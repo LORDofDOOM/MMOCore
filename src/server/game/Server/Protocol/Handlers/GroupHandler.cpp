@@ -286,6 +286,15 @@ void WorldSession::HandleGroupUninviteGuidOpcode(WorldPacket & recv_data)
     if (grp->IsMember(guid))
     {
         Player::RemoveFromGroup(grp, guid, GROUP_REMOVEMETHOD_KICK, GetPlayer()->GetGUID(), reason.c_str());
+
+        //remove any npcbots it has
+        Creature *bot = GetPlayer()->GetBot();
+        if(bot && bot->GetGUID() == guid) GetPlayer()->SetBotMustDie();
+
+        //check that player is not a playerbot
+        Player *player = sObjectMgr->GetPlayer(guid);
+        if(player && player->IsPlayerbot()) GetPlayer()->GetSession()->LogoutPlayerBot(guid, true);
+
         return;
     }
 
@@ -303,9 +312,20 @@ void WorldSession::HandleGroupUninviteOpcode(WorldPacket & recv_data)
     std::string membername;
     recv_data >> membername;
 
+    Player *player = GetPlayer();
+
     // player not found
-    if (!normalizePlayerName(membername))
+    if(!normalizePlayerName(membername))
+    {
+        if(player->HaveBot() &&  !membername.compare(player->GetBot()->GetName()))
+        {
+            Group *grp = GetPlayer()->GetGroup();
+            player->SetBotMustDie();
+            Player::RemoveFromGroup(grp, player->GetBot()->GetGUID());
+        }
         return;
+    }
+
 
     // can't uninvite yourself
     if (GetPlayer()->GetName() == membername)
@@ -327,10 +347,21 @@ void WorldSession::HandleGroupUninviteOpcode(WorldPacket & recv_data)
 
     if (uint64 guid = grp->GetMemberGUID(membername))
     {
+        if(player->HaveBot() &&  !membername.compare(player->GetBot()->GetName())) player->SetBotMustDie();
         Player::RemoveFromGroup(grp, guid, GROUP_REMOVEMETHOD_KICK, GetPlayer()->GetGUID());
         return;
     }
-
+    else
+    {
+        //check if it is a bot
+        if(player->HaveBot())
+        {
+            Group *grp = GetPlayer()->GetGroup();
+            player->SetBotMustDie();
+            Player::RemoveFromGroup(grp, player->GetBot()->GetGUID(), GROUP_REMOVEMETHOD_KICK);
+            return;
+        }
+    }
     if (Player* plr = grp->GetInvited(membername))
     {
         plr->UninviteFromGroup();

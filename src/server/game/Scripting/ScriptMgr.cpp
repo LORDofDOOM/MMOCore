@@ -670,13 +670,29 @@ bool ScriptMgr::OnGossipHello(Player* player, Creature* creature)
     return tmpscript->OnGossipHello(player, creature);
 }
 
+bool ScriptMgr::OnGossipHelloScriptId(Player * player, Creature* creature, uint32 scriptId)
+{
+	ASSERT(player);
+    ASSERT(creature);
+
+    GET_SCRIPT_RET(CreatureScript, scriptId, tmpscript, false);
+    return tmpscript->OnGossipHello(player, creature);
+}
+
 bool ScriptMgr::OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action)
 {
     ASSERT(player);
     ASSERT(creature);
 
-    GET_SCRIPT_RET(CreatureScript, creature->GetScriptId(), tmpscript, false);
-    return tmpscript->OnGossipSelect(player, creature, sender, action);
+	// Bots change
+	if (sender > 6000)
+	{
+        GET_SCRIPT_RET(CreatureScript, sObjectMgr->GetScriptId("script_bot_giver"), tmpscript, false);
+        return tmpscript->OnGossipSelect(player, creature, sender, action);
+	} else {
+        GET_SCRIPT_RET(CreatureScript, creature->GetScriptId(), tmpscript, false);
+        return tmpscript->OnGossipSelect(player, creature, sender, action);
+	}
 }
 
 bool ScriptMgr::OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, const char* code)

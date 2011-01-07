@@ -43,6 +43,20 @@ struct MapEntry;
 #define MAX_RAID_SUBGROUPS MAXRAIDSIZE/MAXGROUPSIZE
 #define TARGETICONCOUNT 8
 
+class PlayerbotAI;
+class PlayerbotClassAI;
+
+enum TARGETICON
+{
+    STAR            = 0,
+    CIRCLE          = 1,
+    DIAMOND         = 2,
+    TRIANGLE        = 3,
+    MOON            = 4,
+    SQUARE          = 5,
+    CROSS           = 6,
+    SKULL           = 7
+};
 enum RollVote
 {
     PASS              = 0,
@@ -239,8 +253,11 @@ class Group
         void SetMainTank(uint64 guid, const bool &apply);
         void SetMainAssistant(uint64 guid, const bool &apply);
         void SetTargetIcon(uint8 id, uint64 whoGuid, uint64 targetGuid);
+        // Bot change
+        uint64 GetTargetWithIconByGroup(uint64 guid);
+        void SetTargetIcon(uint8 id, uint64 guid);
 
-        Difficulty GetDifficulty(bool isRaid) const;
+	    Difficulty GetDifficulty(bool isRaid) const;
         Difficulty GetDungeonDifficulty() const;
         Difficulty GetRaidDifficulty() const;
         void SetDungeonDifficulty(Difficulty difficulty);

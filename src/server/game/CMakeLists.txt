@@ -109,6 +109,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/dep/zlib
   ${CMAKE_SOURCE_DIR}/src/server/collision
   ${CMAKE_SOURCE_DIR}/src/server/collision/Management
+  ${CMAKE_SOURCE_DIR}/src/server/game/AI/Bots
   ${CMAKE_SOURCE_DIR}/src/server/shared
   ${CMAKE_SOURCE_DIR}/src/server/shared/Configuration
   ${CMAKE_SOURCE_DIR}/src/server/shared/Cryptography
@@ -129,6 +130,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/Achievements
   ${CMAKE_CURRENT_SOURCE_DIR}/Addons
   ${CMAKE_CURRENT_SOURCE_DIR}/AI
+  ${CMAKE_CURRENT_SOURCE_DIR}/AI/Bots
   ${CMAKE_CURRENT_SOURCE_DIR}/AI/CoreAI
   ${CMAKE_CURRENT_SOURCE_DIR}/AI/EventAI
   ${CMAKE_CURRENT_SOURCE_DIR}/AI/ScriptedAI

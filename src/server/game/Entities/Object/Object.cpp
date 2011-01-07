@@ -1568,9 +1568,16 @@ void WorldObject::GetRandomPoint(const Position &pos, float distance, float &ran
 
 void WorldObject::UpdateGroundPositionZ(float x, float y, float &z) const
 {
-    float new_z = GetBaseMap()->GetHeight(x,y,z,true);
-    if (new_z > INVALID_HEIGHT)
-        z = new_z+ 0.05f;                                   // just to be sure that we are not a few pixel under the surface
+    float map_z = GetBaseMap()->GetHeight(x,y,z,false);
+    float vmap_z = GetBaseMap()->GetHeight(x,y,z,true);
+
+    if(vmap_z > INVALID_HEIGHT)
+       z = vmap_z;    // add or subtract say 0.05f, to adjust bot hover height
+
+    if((map_z > vmap_z) && (map_z > z))
+       z = map_z;
+
+    Trinity::NormalizeMapCoord(z);
 }
 
 bool Position::IsPositionValid() const
@@ -2106,7 +2113,19 @@ TempSummon *Map::SummonCreature(uint32 entry, const Position &pos, SummonPropert
         case UNIT_MASK_SUMMON:    summon = new TempSummon (properties, summoner);  break;
         case UNIT_MASK_GUARDIAN:  summon = new Guardian   (properties, summoner);  break;
         case UNIT_MASK_PUPPET:    summon = new Puppet     (properties, summoner);  break;
-        case UNIT_MASK_TOTEM:     summon = new Totem      (properties, summoner);  break;
+        case UNIT_MASK_TOTEM:
+        {
+            if(summoner->isCharmed())
+            {
+                //If the caster is charmed, assume it is a Bot.  This might not always be
+                //the case, but oh well.  This will allow the affects of the totem
+                //(ex healing, stoneskin, etc, to affect the bot owner insteadof the
+                //bot. Thats ok, the bot is expendable  :-)
+                summon = new Totem      (properties, summoner->GetCharmer());  break;
+            } else {
+                summon = new Totem      (properties, summoner);  break;
+            }
+        }
         case UNIT_MASK_MINION:    summon = new Minion     (properties, summoner);  break;
         default:    return NULL;
     }

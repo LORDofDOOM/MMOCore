@@ -407,6 +407,8 @@ class CreatureScript : public ScriptObject, public UpdatableScript<Creature>
         // Called when a player opens a gossip dialog with the creature.
         virtual bool OnGossipHello(Player* /*player*/, Creature* /*creature*/) { return false; }
 
+        virtual bool OnGossipHelloScriptId(Player* /*player*/, Creature* /*creature*/, uint32 ScriptId) { return false; }
+
         // Called when a player selects a gossip item in the creature's gossip menu.
         virtual bool OnGossipSelect(Player* /*player*/, Creature* /*creature*/, uint32 /*sender*/, uint32 /*action*/) { return false; }
 
@@ -840,6 +842,7 @@ class ScriptMgr
 
         bool OnDummyEffect(Unit* caster, uint32 spellId, SpellEffIndex effIndex, Creature* target);
         bool OnGossipHello(Player* player, Creature* creature);
+        bool OnGossipHelloScriptId(Player* player, Creature* creature, uint32 ScriptId);
         bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action);
         bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, const char* code);
         bool OnQuestAccept(Player* player, Creature* creature, Quest const* quest);

@@ -89,6 +89,18 @@ void AddSC_npcs_special();
 void AddSC_npc_taxi();
 void AddSC_achievement_scripts();
 
+//Bots
+void AddSC_druid_bot();
+void AddSC_priest_bot();
+void AddSC_shaman_bot();
+void AddSC_warrior_bot();
+void AddSC_rogue_bot();
+void AddSC_mage_bot();
+void AddSC_warlock_bot();
+void AddSC_paladin_bot();
+void AddSC_hunter_bot();
+void AddSC_script_bot_giver();
+
 //eastern kingdoms
 void AddSC_alterac_valley();                 //Alterac Valley
 void AddSC_boss_balinda();
@@ -686,6 +698,19 @@ void AddWorldScripts()
     AddSC_npcs_special();
     AddSC_npc_taxi();
     AddSC_achievement_scripts();
+
+    //Bots
+    AddSC_druid_bot();
+    AddSC_priest_bot();
+    AddSC_shaman_bot();
+    AddSC_warrior_bot();
+    AddSC_rogue_bot();
+    AddSC_mage_bot();
+    AddSC_warlock_bot();
+    AddSC_paladin_bot();
+    AddSC_hunter_bot();
+    AddSC_script_bot_giver();
+
     AddSC_chat_log();
     //Guild House
     AddSC_guildhouse_npcs(); 

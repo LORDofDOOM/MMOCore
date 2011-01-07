@@ -46,6 +46,7 @@ PetAI::PetAI(Creature *c) : CreatureAI(c), i_tracker(TIME_INTERVAL_LOOK)
 
 void PetAI::EnterEvadeMode()
 {
+    if(me->GetIAmABot() && me->GetBotAI()) me->GetBotAI()->EnterEvadeMode();
 }
 
 bool PetAI::_needToStop()
@@ -82,6 +83,12 @@ void PetAI::UpdateAI(const uint32 diff)
 {
     if (!me->isAlive())
         return;
+
+    if(me->GetIAmABot())
+    {
+        //don't do anything if eating or drinking, otherwise call UpdateAI
+        if(!me->HasAura(10256) && !me->HasAura(1137) && me->GetBotAI()) me->GetBotAI()->UpdateAI(diff);
+    }
 
     Unit* owner = me->GetCharmerOrOwner();
 
@@ -295,6 +302,8 @@ void PetAI::KilledUnit(Unit *victim)
 
 void PetAI::AttackStart(Unit *target)
 {
+    if (me->GetCharmInfo() == NULL) return;
+
     // Overrides Unit::AttackStart to correctly evaluate Pet states
 
     // Check all pet states to decide if we can attack this target

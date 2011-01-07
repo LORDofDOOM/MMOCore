@@ -2931,3 +2931,39 @@ OutdoorPvP.Wintergrasp.Antifarm.Def = 5
 
 #
 ##########################################################
+###################################################################################################
+# BOT CONFIGURATION
+#
+#    Bot.FollowDistanceMin
+#    Bot.FollowDistanceMax
+#        Min. and max. follow distance for bots
+#        Default: 0.5 / 2.0
+#    Bot.MaxPlayerBots
+#        Maximum number of Player Bots allowed per account
+#        Default: 9
+#    Bot.PlayerBotsFly
+#        If PlayerBots fly with you when you use the flight master
+#        Default: 0
+#        0 = false
+#        1 = true
+#    Bot.LootMethod
+#        Type of loot method
+#        Default: 2
+#        0 = Free for all
+#        1 = Round robin
+#        2 = Master loot
+#        3 = Group loot
+#        4 = Need before greed
+#    Bot.SaveOrgLocation
+#        Puts playerbots back to their original location after use
+#        Default: 0
+#        0 = false - keep playerbots where they were camped out
+#        1 = true - puts playerbots back to where they were originally summoned
+################################################################################
+Bot.FollowDistanceMin = 0.5
+Bot.FollowDistanceMax = 2.0
+Bot.MaxPlayerBots = 9
+Bot.PlayerBotsFly=0
+Bot.LootMethod=2
+Bot.SaveOrgLocation=0
+

@@ -19,6 +19,10 @@
 #ifndef TRINITYCORE_COMMON_H
 #define TRINITYCORE_COMMON_H
 
+#ifndef PLAYERBOT_EXISTS
+#define PLAYERBOT_EXISTS
+#endif
+
 // config.h needs to be included 1st
 // TODO this thingy looks like hack ,but its not, need to
 // make separate header however, because It makes mess here.
