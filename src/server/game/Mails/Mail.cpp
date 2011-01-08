@@ -277,3 +277,86 @@ void MailDraft::SendMailTo(SQLTransaction& trans, MailReceiver const& receiver, 
         deleteIncludedItems(temp);
     }
 }
+
+void WorldSession::SendExternalMails()
+{
+    sLog->outString("EXTERNAL MAIL> Sending mails in queue...");
+    QueryResult result = CharacterDatabase.Query("SELECT id,receiver,subject,message,money,item,item_count FROM mail_external");
+    SQLTransaction trans = CharacterDatabase.BeginTransaction();
+    if(!result)
+    {
+        sLog->outString("EXTERNAL MAIL> No mails in queue...");
+//        delete result;
+        return;
+    }
+    else
+    {
+        uint32 last_id = 0;
+        MailDraft* mail = NULL;
+        uint32 last_receiver_guid;
+
+        do
+        {
+            Field *fields = result->Fetch();
+            uint32 id = fields[0].GetUInt32();
+            uint64 receiver_guid = fields[1].GetUInt64();
+            std::string subject = fields[2].GetString();
+            std::string body = fields[3].GetString();
+            uint32 money = fields[4].GetUInt32();
+            uint32 itemId = fields[5].GetUInt32();
+            uint32 itemCount = fields[6].GetUInt32();
+
+            Player *receiver = sObjectMgr->GetPlayer( receiver_guid );
+
+            if (id != last_id)
+            {
+                // send mail
+                if (last_id != 0)
+                {
+                    sLog->outString("EXTERNAL MAIL> Sending mail to character with guid %d", last_receiver_guid);
+                    mail->SendMailTo(trans,MailReceiver(last_receiver_guid), MailSender(MAIL_NORMAL, 0, MAIL_STATIONERY_GM), MAIL_CHECK_MASK_RETURNED);
+                    delete mail;
+                    CharacterDatabase.PExecute("DELETE FROM mail_external WHERE id=%u", last_id);
+                    sLog->outString("EXTERNAL MAIL> Mail sent");
+                }
+
+                //Create the maildraft
+                mail = new MailDraft( subject, body );
+
+                if(money)
+                {
+                    sLog->outString("EXTERNAL MAIL> Adding money");
+                    mail->AddMoney(money);
+                }
+            }
+
+            if (itemId)
+            {
+                sLog->outString("EXTERNAL MAIL> Adding %u of item with id %u", itemCount, itemId);
+                Item* mailItem = Item::CreateItem( itemId, itemCount, receiver );
+                mailItem->SaveToDB(trans);
+                mail->AddItem(mailItem);
+            }
+
+            last_id = id;
+            last_receiver_guid = receiver_guid;
+
+        }
+        while( result->NextRow() );
+
+        // we only send a mail when mail_id!=last_mail_id, so we need to send the very last mail here:
+        if (last_id != 0)
+        {
+            // send last mail
+            sLog->outString("EXTERNAL MAIL> Sending mail to character with guid %d", last_receiver_guid);
+
+            mail->SendMailTo(trans,MailReceiver(last_receiver_guid), MailSender(MAIL_NORMAL, 0, MAIL_STATIONERY_GM), MAIL_CHECK_MASK_RETURNED);
+            delete mail;
+            CharacterDatabase.PExecute("DELETE FROM mail_external WHERE id=%u", last_id);
+            sLog->outString("EXTERNAL MAIL> Mail sent");
+        }
+    }
+
+    CharacterDatabase.CommitTransaction(trans);
+    sLog->outString("EXTERNAL MAIL> All Mails Sent...");
+}
