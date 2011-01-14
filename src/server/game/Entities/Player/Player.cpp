@@ -24085,7 +24085,10 @@ void Player::ActivateSpec(uint8 spec)
     _SaveActions(trans);
     CharacterDatabase.CommitTransaction(trans);
 
-    UnsummonPetTemporaryIfAny();
+    // TO-DO: We need more research to know what happens with warlock's reagent
+    if (Pet* pet = GetPet())
+        RemovePet(pet, PET_SAVE_NOT_IN_SLOT);
+
     ClearComboPointHolders();
     ClearAllReactives();
     UnsummonAllTotems();
@@ -24199,10 +24202,6 @@ void Player::ActivateSpec(uint8 spec)
         if (PreparedQueryResult result = CharacterDatabase.Query(stmt))
             _LoadActions(result);
     }
-
-    ResummonPetTemporaryUnSummonedIfAny();
-    if (Pet* pPet = GetPet())
-        pPet->InitTalentForLevel();  // not processed with aura removal because pet was not active
 
     SendActionButtons(1);
 
