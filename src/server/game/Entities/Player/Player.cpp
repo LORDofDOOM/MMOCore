@@ -8477,6 +8477,8 @@ void Player::SendLoot(uint64 guid, LootType loot_type)
             return;
         }
 
+        permission = OWNER_PERMISSION;
+
         loot = &item->loot;
 
         if (!item->m_lootGenerated)
@@ -8529,6 +8531,8 @@ void Player::SendLoot(uint64 guid, LootType loot_type)
 
         if (bones->lootRecipient != this)
             permission = NONE_PERMISSION;
+        else
+            permission = OWNER_PERMISSION;
     }
     else
     {
@@ -8563,6 +8567,7 @@ void Player::SendLoot(uint64 guid, LootType loot_type)
                 const uint32 a = urand(0, creature->getLevel()/2);
                 const uint32 b = urand(0, getLevel()/2);
                 loot->gold = uint32(10 * (a + b) * sWorld->getRate(RATE_DROP_MONEY));
+                permission = OWNER_PERMISSION;
             }
         }
         else
@@ -8603,6 +8608,7 @@ void Player::SendLoot(uint64 guid, LootType loot_type)
             {
                 loot->clear();
                 loot->FillLoot(creature->GetCreatureInfo()->SkinLootId, LootTemplates_Skinning, this, true);
+                permission = OWNER_PERMISSION;
             }
             // set group rights only for loot_type != LOOT_SKINNING
             else
@@ -8631,7 +8637,7 @@ void Player::SendLoot(uint64 guid, LootType loot_type)
                         permission = NONE_PERMISSION;
                 }
                 else if (recipient == this)
-                    permission = ALL_PERMISSION;
+                    permission = OWNER_PERMISSION;
                 else
                     permission = NONE_PERMISSION;
             }
