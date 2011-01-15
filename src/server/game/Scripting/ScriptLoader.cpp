@@ -33,6 +33,8 @@ void AddSC_npc_hunterpetvendor();
 void AddSC_DuelReset();
 //Guild House
 void AddSC_guildhouse_npcs();
+//NPC Customizer
+void AddSC_npc_customize();
 // spells
 void AddSC_deathknight_spell_scripts();
 void AddSC_druid_spell_scripts();
@@ -1235,7 +1237,9 @@ void AddCustomScripts()
     //TeleNPC2
     AddSC_npc_teleport();
     //Hunter Pet Vendor
-    AddSC_npc_hunterpetvendor();	
+    AddSC_npc_hunterpetvendor();
+	//NPC Customizer
+	AddSC_npc_customize();		
     // Custom
     AddSC_DuelReset();
 #endif
