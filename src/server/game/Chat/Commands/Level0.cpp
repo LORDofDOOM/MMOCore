@@ -194,6 +194,49 @@ bool ChatHandler::HandleMallCommand(const char* /*args*/)
    }
         return true;
 }
+
+//Buffer
+bool ChatHandler::HandleBuffsCommand(const char* /*args*/)              
+{
+                                Player *chr = m_session->GetPlayer();
+                                
+        if (chr->isInCombat())
+        {
+        SendSysMessage("Du kannst dich nicht während eines Kampfes buffen");
+        SetSentErrorMessage(true);
+        return false;
+        }
+        if (chr->isInFlight())
+        {
+        SendSysMessage("Du kannste dich nicht während des Fliegens buffen");
+        SetSentErrorMessage(true);
+        return false;
+        }
+                
+        if (chr->GetMoney() >= 2000000)
+                {
+                                chr->Unmount();
+                                chr->RemoveAurasByType(SPELL_AURA_MOUNTED);
+                                chr-> AddAura(48161, chr);              // Power Word: Fortitude        
+                                chr-> AddAura(48073, chr);              // Divine Spirit
+                                chr-> AddAura(20217, chr);              // Blessing of Kings
+                                chr-> AddAura(48469, chr);              // Mark of the wild
+                                chr-> AddAura(16609, chr);              // Spirit of Zandalar
+                                chr-> AddAura(15366, chr);              // Songflower Serenade
+                                chr-> AddAura(22888, chr);              // Rallying Cry of the Dragonslayer
+                                chr-> AddAura(57399, chr);              // Well Fed
+                                chr-> AddAura(17013, chr);              // Agamaggan's Agility
+                                chr-> AddAura(16612, chr);              // Agamaggan's Strength
+                                chr->ModifyMoney(-2000000);
+                                SendSysMessage("Du bist jetzt gebufft!");
+                                return false;
+                }
+        else
+                {
+                SendSysMessage("Du hast nicht genug Gold!");
+        }
+                return false;
+}	
  
 bool ChatHandler::HandleServerInfoCommand(const char* /*args*/)
 {
