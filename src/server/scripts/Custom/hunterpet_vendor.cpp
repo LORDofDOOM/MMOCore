@@ -97,8 +97,8 @@ enum Creatures
  //Preise
 #define PRICE_PET_TYP_1    250000
 #define PRICE_PET_TYP_2    5000000
-#define MSG_NOT_MONEY "You have not enough gold!"
-#define MSG_PET_SUMMON "The creature will be summoned"
+#define MSG_NOT_MONEY "Du hast nicht genug Gold!"
+#define MSG_PET_SUMMON "Dein Pet wird jetzt beschworen"
  
 class npc_hunterpetvendor : public CreatureScript
 {
@@ -109,8 +109,8 @@ bool OnGossipHello(Player* player, Creature* creature)
 {
         if ((player->getClass() == CLASS_HUNTER))
         {
-        player->ADD_GOSSIP_ITEM(0, "Normal Creatures (Cost 25 Gold)", GOSSIP_SENDER_MAIN, pets);
-        player->ADD_GOSSIP_ITEM(0, "Exotic Creatures (Cost 500 Gold)", GOSSIP_SENDER_MAIN, exotic);
+        player->ADD_GOSSIP_ITEM(0, "Normal Pets (Kosten 25 Gold)", GOSSIP_SENDER_MAIN, pets);
+        player->ADD_GOSSIP_ITEM(0, "Exotic Pets (Kosten 500 Gold)", GOSSIP_SENDER_MAIN, exotic);
         player->SEND_GOSSIP_MENU(40009, creature->GetGUID());
     return true;
         }
@@ -128,28 +128,28 @@ player->PlayerTalkClass->ClearMenus();
     {
                 case pets:
                         //player->ADD_GOSSIP_ITEM(2, "Felshetzer", GOSSIP_SENDER_MAIN, felshetzer);
-                        player->ADD_GOSSIP_ITEM(2, "Vile Bat", GOSSIP_SENDER_MAIN, fledermaus);
-                        player->ADD_GOSSIP_ITEM(2, "Marshfang Slicer", GOSSIP_SENDER_MAIN, netherrochen);
-                        player->ADD_GOSSIP_ITEM(2, "Skettis Kaliri", GOSSIP_SENDER_MAIN, raubvogelrot);
-                        player->ADD_GOSSIP_ITEM(2, "Oiled Fledgeling", GOSSIP_SENDER_MAIN, raubvogelschwarz);
-                        player->ADD_GOSSIP_ITEM(2, "Imperial Eagle", GOSSIP_SENDER_MAIN, raubvogelweiss);
+                        player->ADD_GOSSIP_ITEM(2, "Fledermaus", GOSSIP_SENDER_MAIN, fledermaus);
+                        player->ADD_GOSSIP_ITEM(2, "Netherrochen", GOSSIP_SENDER_MAIN, netherrochen);
+                        player->ADD_GOSSIP_ITEM(2, "Raubvogel (Kaliri von Skettis)", GOSSIP_SENDER_MAIN, raubvogelrot);
+                        player->ADD_GOSSIP_ITEM(2, "Raubvogel (Oelbeschmierter Jungvogel)", GOSSIP_SENDER_MAIN, raubvogelschwarz);
+                        player->ADD_GOSSIP_ITEM(2, "Raubvogel (Kaiseradler)", GOSSIP_SENDER_MAIN, raubvogelweiss);
                         //player->ADD_GOSSIP_ITEM(2, "Schlange", GOSSIP_SENDER_MAIN, schlange);
-                        player->ADD_GOSSIP_ITEM(2, "Ridgespine Stalker", GOSSIP_SENDER_MAIN, spinne);
-                        player->ADD_GOSSIP_ITEM(2, "Skymane Gorilla", GOSSIP_SENDER_MAIN, gorillaschwarz);
-                        player->ADD_GOSSIP_ITEM(2, "Un'Goro Thunderer", GOSSIP_SENDER_MAIN, gorillaweiss);
-                        player->ADD_GOSSIP_ITEM(2, "Giant Tidecrawler", GOSSIP_SENDER_MAIN, krebs);
+                        player->ADD_GOSSIP_ITEM(2, "Spinne", GOSSIP_SENDER_MAIN, spinne);
+                        player->ADD_GOSSIP_ITEM(2, "Gorilla (Blaumaehnengorilla)", GOSSIP_SENDER_MAIN, gorillaschwarz);
+                        player->ADD_GOSSIP_ITEM(2, "Gorilla (Donnerer von Un'Goro)", GOSSIP_SENDER_MAIN, gorillaweiss);
+                        player->ADD_GOSSIP_ITEM(2, "Krebs", GOSSIP_SENDER_MAIN, krebs);
                         //player->ADD_GOSSIP_ITEM(2, "Krokodil", GOSSIP_SENDER_MAIN, krokolisk);
                         //player->ADD_GOSSIP_ITEM(2, "Aasvogel", GOSSIP_SENDER_MAIN, aasvogel);
-                        player->ADD_GOSSIP_ITEM(2, "Tundra Scavenger", GOSSIP_SENDER_MAIN, hyaene);
-                        player->ADD_GOSSIP_ITEM(2, "Frostsaber Pride Watcher", GOSSIP_SENDER_MAIN, katzetiger);
-                        player->ADD_GOSSIP_ITEM(2, "Pitch", GOSSIP_SENDER_MAIN, katzeloewe);
+                        player->ADD_GOSSIP_ITEM(2, "Hyaene", GOSSIP_SENDER_MAIN, hyaene);
+                        player->ADD_GOSSIP_ITEM(2, "Katze (Tiger)", GOSSIP_SENDER_MAIN, katzetiger);
+                        player->ADD_GOSSIP_ITEM(2, "Katze (Loewe)", GOSSIP_SENDER_MAIN, katzeloewe);
                         //player->ADD_GOSSIP_ITEM(2, "Katze (Luchs)", GOSSIP_SENDER_MAIN, katzeluchs);
-                        player->ADD_GOSSIP_ITEM(2, "Felsworn Daggermaw", GOSSIP_SENDER_MAIN, raptorgruen);
-                        player->ADD_GOSSIP_ITEM(2, "Bloodfen Screecher", GOSSIP_SENDER_MAIN, raptorrot);
-                        player->ADD_GOSSIP_ITEM(2, "Fleeting Plainstrider", GOSSIP_SENDER_MAIN, weitschreiter);
-                        player->ADD_GOSSIP_ITEM(2, "Blacksting", GOSSIP_SENDER_MAIN, wesperot);
-                        player->ADD_GOSSIP_ITEM(2, "Sapphire Hive Wasp", GOSSIP_SENDER_MAIN, wespeblau);
-                        player->ADD_GOSSIP_ITEM(2, "Shattered Hand Warhound", GOSSIP_SENDER_MAIN, wolfruestung);
+                        player->ADD_GOSSIP_ITEM(2, "Raptor (Dolchrachenteufelsbrut)", GOSSIP_SENDER_MAIN, raptorgruen);
+                        player->ADD_GOSSIP_ITEM(2, "Raptor (Blutsumpfkreischer)", GOSSIP_SENDER_MAIN, raptorrot);
+                        player->ADD_GOSSIP_ITEM(2, "Weitschreiter", GOSSIP_SENDER_MAIN, weitschreiter);
+                        player->ADD_GOSSIP_ITEM(2, "Wespe (Schwarzsichel)", GOSSIP_SENDER_MAIN, wesperot);
+                        player->ADD_GOSSIP_ITEM(2, "Wespe (Saphirblaue Schwarmwespe)", GOSSIP_SENDER_MAIN, wespeblau);
+                        player->ADD_GOSSIP_ITEM(2, "Wolf (Kriegshund der Zerschmetterten Hand)", GOSSIP_SENDER_MAIN, wolfruestung);
                         //player->ADD_GOSSIP_ITEM(2, "Wolf (Wilder Worg)", GOSSIP_SENDER_MAIN, wolfgrau);
                         //player->ADD_GOSSIP_ITEM(2, "Wolf (Blutdurstiger Tundrawolf)", GOSSIP_SENDER_MAIN, wolfwei?);
                         //player->ADD_GOSSIP_ITEM(0, "I would prefer a exotic list...", GOSSIP_SENDER_MAIN, exotic);
@@ -158,15 +158,15 @@ player->PlayerTalkClass->ClearMenus();
                 break;
                
                 case exotic:
-                        player->ADD_GOSSIP_ITEM(2, "Nuramoc", GOSSIP_SENDER_MAIN, schimaere);
-                        player->ADD_GOSSIP_ITEM(2, "Vekniss Warrior", GOSSIP_SENDER_MAIN, silithidgelb);
-                        player->ADD_GOSSIP_ITEM(2, "Centipaar Sandreaver", GOSSIP_SENDER_MAIN, silithidrot);
-                        player->ADD_GOSSIP_ITEM(2, "Wooly Rhino Calf", GOSSIP_SENDER_MAIN, rhinozeros);
-                        player->ADD_GOSSIP_ITEM(2, "Oozeworm", GOSSIP_SENDER_MAIN, wurmgelb);
-                        player->ADD_GOSSIP_ITEM(2, "The Kurken", GOSSIP_SENDER_MAIN, kernhundweiss);
-                        player->ADD_GOSSIP_ITEM(2, "Core Hound", GOSSIP_SENDER_MAIN, kernhundrot);
-                        player->ADD_GOSSIP_ITEM(2, "Devilsaur", GOSSIP_SENDER_MAIN, teufelssaurierweiss);
-                        player->ADD_GOSSIP_ITEM(2, "Tyrantus", GOSSIP_SENDER_MAIN, teufelssaurierschwarz);
+                        player->ADD_GOSSIP_ITEM(2, "Schimaere", GOSSIP_SENDER_MAIN, schimaere);
+                        player->ADD_GOSSIP_ITEM(2, "Silithid (Krieger der Vekniss)", GOSSIP_SENDER_MAIN, silithidgelb);
+                        player->ADD_GOSSIP_ITEM(2, "Silithid (Sandhaescher der Centipaar)", GOSSIP_SENDER_MAIN, silithidrot);
+                        player->ADD_GOSSIP_ITEM(2, "Rhinozeros", GOSSIP_SENDER_MAIN, rhinozeros);
+                        player->ADD_GOSSIP_ITEM(2, "Wurm (Schlammwurm)", GOSSIP_SENDER_MAIN, wurmgelb);
+                        player->ADD_GOSSIP_ITEM(2, "Kernhund (Kurken)", GOSSIP_SENDER_MAIN, kernhundweiss);
+                        player->ADD_GOSSIP_ITEM(2, "Kernhund", GOSSIP_SENDER_MAIN, kernhundrot);
+                        player->ADD_GOSSIP_ITEM(2, "Teufelssaurier", GOSSIP_SENDER_MAIN, teufelssaurierweiss);
+                        player->ADD_GOSSIP_ITEM(2, "Teufelssaurier (Tyrantus)", GOSSIP_SENDER_MAIN, teufelssaurierschwarz);
                         player->ADD_GOSSIP_ITEM(2, "Skoll", GOSSIP_SENDER_MAIN, skoll);
                         player->ADD_GOSSIP_ITEM(2, "Loque'nahak", GOSSIP_SENDER_MAIN, loque);
                         player->ADD_GOSSIP_ITEM(2, "Gondria", GOSSIP_SENDER_MAIN, gondria);
