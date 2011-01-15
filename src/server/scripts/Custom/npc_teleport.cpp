@@ -31,9 +31,9 @@
 #define MSG_CAT                 100000
 #define MSG_DEST                100001
 
-#define NEXT_PAGE               "-> [Next Page]"
-#define PREV_PAGE               "<- [Previous Page]"
-#define MAIN_MENU               "<= [Main Menu]"
+#define NEXT_PAGE               "-> [Nächste Seite]"
+#define PREV_PAGE               "<- [Vorherige Seite]"
+#define MAIN_MENU               "<= [Hauptmenü]"
 
 
 using namespace nsNpcTel;
@@ -122,14 +122,14 @@ namespace
 
         if (player->getLevel() < dest.m_level && !player->isGameMaster())
         {
-            std::string msg ("You do not have the required level. This destination requires level " + ConvertStr(dest.m_level) + ".");
+            std::string msg ("Du hast den benötigten Level noch nicht erreicht. Dieses Ziel benötigt Level " + ConvertStr(dest.m_level) + ".");
             creature->MonsterWhisper(msg.c_str(), player->GetGUID());
             return;
         }
 
         if (player->GetMoney() < dest.m_cost && !player->isGameMaster())
         {
-            std::string msg ("You do not have enough money. The price for teleportation is " + ConvertMoney(dest.m_cost) + ".");
+            std::string msg ("Du hast nicht genug Gold. Der Preis für diesen Teleport beträgt " + ConvertMoney(dest.m_cost) + ".");
             creature->MonsterWhisper(msg.c_str(), player->GetGUID());
             return;
         }
@@ -153,7 +153,7 @@ bool OnGossipHello(Player *player, Creature *creature)
     if(player->isInCombat())
     {
         player->CLOSE_GOSSIP_MENU();
-        creature->MonsterWhisper("You are in combat. Come back later", player->GetGUID());
+            creature->MonsterWhisper("Du befindest dich im Kampf. Bitte versuch es später nochmal", player->GetGUID());
         return true;
     }
     AffichCat(player, creature);
