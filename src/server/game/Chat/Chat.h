@@ -355,6 +355,12 @@ class ChatHandler
 
         bool HandleTempGameObjectCommand(const char* args);
 
+        // ANTICHEAT
+        bool HandleAntiCheatGlobalCommand(const char* args); // top3 : Amount || Average || (Amount && Average)
+        bool HandleAntiCheatPlayerCommand(const char* args); // returns especific player's average and amount
+        bool HandleAntiCheatDeleteCommand(const char* args); // if no player name as parameter, deletes all logs else deletes specific player's log
+        bool HandleAntiCheatHandleCommand(const char* args); // turn it on, turn it off
+
         //! Development Commands
 
         /*bool HandleQuestAdd(const char * args);

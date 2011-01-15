@@ -621,6 +621,10 @@ Player::Player (WorldSession *session): Unit(), m_achievementMgr(this), m_reputa
 
 Player::~Player ()
 {
+    // anticheat
+    if (sWorld->getBoolConfig(CONFIG_ANTICHEAT_ENABLE))
+        CleanTempCheatReports();
+
     // it must be unloaded already in PlayerLogout and accessed only for loggined player
     //m_social = NULL;
 
@@ -654,6 +658,350 @@ Player::~Player ()
     delete m_runes;
 
     sWorld->DecreasePlayerCount();
+}
+
+bool Player::HasFirstReport()
+{
+    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_ANTICHEAT_GET_CHEAT_FIRST_REPORT);
+    stmt->setUInt64(0,GetGUIDLow());
+
+    PreparedQueryResult result = CharacterDatabase.Query(stmt);
+
+    if (result)
+        return true;
+    else
+        return false;
+}
+
+void Player::CleanTempCheatReports()
+{
+    for (uint8 uiI = 0; uiI < 2; uiI++)
+    {
+        PreparedStatement* stmt;
+
+        if (uiI == 0)
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_ANTICHEAT_DEL_CHEAT_FIRST_REPORT);
+        else
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_ANTICHEAT_DEL_CHEATERS_TEMP);
+
+        stmt->setUInt64(0,GetGUIDLow());
+        CharacterDatabase.Execute(stmt);
+    }
+}
+
+void Player::WalkOnWaterHackDetection(MovementInfo& pOldPacket, MovementInfo& pNewPacket)
+{
+    if (HasAuraType(SPELL_AURA_FEATHER_FALL) || HasAuraType(SPELL_AURA_SAFE_FALL) || HasAuraType(SPELL_AURA_WATER_WALK))
+        return;
+
+    // 1066 -> Aquatic Form
+    if (HasAura(1066))
+        return;
+
+    if (IsUnderWater())
+        return;
+
+    float water_level = GetBaseMap()->GetWaterLevel(GetPositionX(),GetPositionY());
+    float water_level_diff = fabs(water_level - GetPositionZ());
+
+    if (water_level_diff > 0.15f)
+        return;
+
+    // we like check heartbeat movements
+    if (pNewPacket.GetMovementFlags() != GetUnitMovementFlags() ||
+        pNewPacket.GetMovementFlags() != pOldPacket.GetMovementFlags())
+        return;
+
+    // if we have movementflag_waterwalking and not an aura for it, we are cheating.
+    if (HasUnitMovementFlag(MOVEMENTFLAG_WATERWALKING) && !CanFlyAnticheat(pNewPacket) && !IsFlying())
+    {
+        sLog->outError("Cheater! WaterWalking guid %u name %s Latency %u",GetGUIDLow(),GetName(), GetSession()->GetLatency());
+        ElaborateCheatReport(this,3);
+    }
+}
+
+void Player::FlyHackDetection(MovementInfo& pOldPacket, MovementInfo& pNewPacket)
+{
+    if (HasAuraType(SPELL_AURA_FEATHER_FALL) || HasAuraType(SPELL_AURA_SAFE_FALL))
+        return;
+
+    if (IsFalling())
+        return;
+
+    // we like check heartbeat movements
+    if (pNewPacket.GetMovementFlags() != GetUnitMovementFlags() ||
+        pNewPacket.GetMovementFlags() != pOldPacket.GetMovementFlags())
+        return;
+
+    if (IsFlying() && !CanFlyAnticheat(pNewPacket))
+    {
+        // if the player has flying movement flags but no auras that add them; player is C H E A T I N G !!
+        sLog->outError("Cheater! Fly guid %u name %s Latency %u",GetGUIDLow(),GetName(),GetSession()->GetLatency());
+        ElaborateCheatReport(this,2);
+    }
+}
+
+void Player::JumpHackDetection(uint32 uiOpcode)
+{
+    // if we receive 2 jump packets consecutively... it is wrong! The player is cheating.
+
+    if (uiOpcode != MSG_MOVE_JUMP || GetLastOpcode() != MSG_MOVE_JUMP)
+        return;
+
+    ElaborateCheatReport(this,5);
+}
+
+/*
+void Player::TeleportHackDetection(MovementInfo& pOldPacket, MovementInfo& pNewPacket, uint32 uiOpcode)
+{
+
+    sLog->outError("Opcode que viene %u, Opcode anterior %u", uiOpcode, GetLastOpcode());
+
+    if (uiOpcode == 183 && GetLastOpcode() == 181)
+    {
+
+        sLog->outError("Opcode %u", uiOpcode);
+
+        sLog->outError("OldPacket MovementFlags %u", pOldPacket.GetMovementFlags());
+        sLog->outError("NewPacket MovementFlags %u", pNewPacket.GetMovementFlags());
+
+        sLog->outError("OldPacket falltime %u", pOldPacket.fallTime);
+        sLog->outError("NewPacket falltime %u", pNewPacket.fallTime);
+
+        sLog->outError("CanFly %b",CanFlyAnticheat(pNewPacket));
+        sLog->outError("IsFlying %b",IsFlying());
+
+        sLog->outError("Old Z: %f New Z: %f",pOldPacket.pos.GetPositionZ(), pNewPacket.pos.GetPositionZ());
+        uint8 uiMoveType = 0;
+
+        if (IsFlying())
+            uiMoveType = MOVE_FLIGHT;
+        else if (IsUnderWater())
+            uiMoveType = MOVE_SWIM;
+        else
+            uiMoveType = MOVE_RUN;
+
+        // core-side speed-rate: Speed / 7
+        float fSpeedRate = GetSpeedRate(UnitMoveType(uiMoveType));
+        // Calculate Distance2D
+        float fDistance2d = pNewPacket.pos.GetExactDist2dSq(GetPositionX(),GetPositionY());
+
+        // time between packets
+        uint32 uiDiffTime =  getMSTimeDiff(pOldPacket.time, pNewPacket.time);
+
+        // fClientRate = it is the player's rate calculated using the distance done by the player
+        float fClientRate = (fDistance2d * 1000 / uiDiffTime) /  GetSpeed(UnitMoveType(uiMoveType));
+
+        // fServerRate = it is the player's rate using the distance per second (core information)
+        float fServerRate = GetSpeed(UnitMoveType(uiMoveType)) * uiDiffTime / 1000 + sWorld->getFloatConfig(CONFIG_ANTICHEAT_MAX_DISTANCE_DIFF_ALLOWED);
+
+        sLog->outError("fSpeedRate: %f fDistance2d: %f uiDiffTime: %u fClientRate: %f fServerRate: %f",fSpeedRate,fDistance2d,uiDiffTime,fClientRate,fServerRate);
+
+
+        if (fClientRate > fServerRate)
+        {
+            sLog->outError("TELEPORT 0");// teleport hack
+            ElaborateCheatReport(this,4);
+        }
+    }
+}
+*/
+bool Player::SpeedHackDetection(MovementInfo& pOldPacket, MovementInfo& pNewPacket, uint32 uiOpcode, float fLastSpeedRate)
+{
+    // strange packet
+    if (uiOpcode == MSG_MOVE_SET_FACING)
+        return false;
+
+    // we like check heartbeat movements
+    if (pNewPacket.GetMovementFlags() != GetUnitMovementFlags() ||
+        pNewPacket.GetMovementFlags() != pOldPacket.GetMovementFlags())
+        return false;
+
+    // just to prevent false reports
+    if (GetVehicle())
+        return false;
+
+    // the best way is checking the ip of the target, if it is the same this check should return.
+    if (GetMotionMaster()->GetCurrentMovementGeneratorType() == TARGETED_MOTION_TYPE)
+        return false;
+
+    // it will make false reports
+    if (IsFalling() && CanFlyAnticheat(pNewPacket))
+        return false;
+
+    // the same reason for IsFalling, just in case...
+    if (HasAuraType(SPELL_AURA_FEATHER_FALL) || HasAuraType(SPELL_AURA_SAFE_FALL))
+        return false;
+
+    uint8 uiMoveType = 0;
+
+    if (IsFlying())
+        uiMoveType = MOVE_FLIGHT;
+    else if (IsUnderWater())
+        uiMoveType = MOVE_SWIM;
+    else
+        uiMoveType = MOVE_RUN;
+
+    // core-side speed-rate: Speed / 7
+    float fSpeedRate = GetSpeedRate(UnitMoveType(uiMoveType));
+
+    // in my opinion this var must be constant in each check to avoid false reports
+    if (fLastSpeedRate != fSpeedRate)
+        return false;
+
+    // Calculate Distance2D
+    float fDistance2d = pNewPacket.pos.GetExactDist2dSq(GetPositionX(),GetPositionY());
+
+    // time between packets
+    uint32 uiDiffTime =  getMSTimeDiff(pOldPacket.time, pNewPacket.time);
+
+    // fClientRate = it is the player's rate calculated using the distance done by the player
+    float fClientRate = (fDistance2d * 1000 / uiDiffTime) /  GetSpeed(UnitMoveType(uiMoveType));
+
+    // fServerRate = it is the player's rate using the distance per second (core information)
+    float fServerRate = GetSpeed(UnitMoveType(uiMoveType)) * uiDiffTime / 1000 + sWorld->getFloatConfig(CONFIG_ANTICHEAT_MAX_DISTANCE_DIFF_ALLOWED);
+
+    if (fDistance2d > 0.0f && fClientRate >  fServerRate)
+    {
+        /*sLog->outError("-----------------");
+        sLog->outError("(CORE-SIDE) SpeedRate %f", fSpeedRate);
+        sLog->outError("(CORE-SIDE) Speed %f", GetSpeed(UnitMoveType(uiMoveType)));
+        sLog->outError("(PLAYER-SIDE) PlayerRate  %f", fClientRate);
+        sLog->outError("(PLAYER-SIDE) DiffTime  %u", uiDiffTime);
+        sLog->outError("fServerRate: %f",fServerRate);
+        sLog->outError("(PLAYER-SIDE) Distancia %f", fDistance2d);
+        sLog->outError("(PLAYER-SIDE) GetSpeed %f", GetSpeed(UnitMoveType(uiMoveType)));
+        sLog->outError("NEW POS: X %f Y %f",pNewPacket.pos.GetPositionX(), pNewPacket.pos.GetPositionY());
+        sLog->outError("OLD POS: X %f Y %f",GetPositionX(),GetPositionY());
+        sLog->outError("Mejor distancia: %f",pNewPacket.pos.GetExactDist2dSq(GetPositionX(),GetPositionY()));
+        sLog->outError("time: %u", pNewPacket.time);
+        sLog->outError("time1: %u", pNewPacket.t_time);
+        sLog->outError("time2: %u", pNewPacket.t_time2);
+        sLog->outError("OPCODE: %u",uiOpcode);*/
+
+        sLog->outError("CHEATER! SpeedHack guid %u name %s Latency %u",GetGUIDLow(),GetName(), GetSession()->GetLatency());
+        ElaborateCheatReport(this,1);
+
+        return true;
+    }
+
+    return false;
+}
+
+void Player::ElaborateCheatReport(Player* pPlayer, uint8 uiCheatType)
+{
+    if (!pPlayer)
+        return;
+
+    // cheatType 1 == SpeedHack
+    // cheatType 2 == FlyHack
+    // cheatType 3 == WalkOnWaterHack
+    // cheatType 4 == TeleportHack
+    // cheatType 5 == JumpHack
+
+    std::string strReportType;
+
+    switch(uiCheatType)
+    {
+    case 1:
+        strReportType = "Speed-Hack";
+        break;
+    case 2:
+        strReportType = "Fly-Hack";
+        break;
+    case 3:
+        strReportType = "WalkOnWater-Hack";
+        break;
+    case 4:
+        strReportType = "Teleport-Hack";
+        break;
+    case 5:
+        strReportType = "Jump-Hack";
+        break;
+    default:
+        strReportType = "";
+        break;
+    }
+
+    if (!HasFirstReport())
+    {
+        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_ANTICHEAT_SET_CHEAT_FIRST_REPORT);
+        stmt->setUInt64(0,GetGUIDLow());
+        stmt->setString(1,GetName());
+        stmt->setUInt64(2, uint64(time(NULL)));
+        CharacterDatabase.Execute(stmt);
+    }
+
+    for (uint8 uiI = 0; uiI < 2; uiI++)
+    {
+        PreparedStatement* stmt;
+
+        if (uiI == 0)
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_ANTICHEAT_SET_CHEATERS);
+        else
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_ANTICHEAT_SET_CHEATERS_TEMP);
+
+        stmt->setUInt64(0,GetGUIDLow());
+        stmt->setString(1,GetName());
+        stmt->setUInt32(2,GetMapId());
+        stmt->setFloat(3,GetPositionX());
+        stmt->setFloat(4,GetPositionY());
+        stmt->setFloat(5,GetPositionZ());
+        stmt->setString(6,strReportType);
+        stmt->setUInt64(7, uint64(time(NULL)));
+        CharacterDatabase.Execute(stmt);
+    }
+
+    /*// teleport hack, if the player use this and is detected it will not create enough reports so... we will insert more than 1 report when this is detected.
+    if (uiCheatType == 4)
+    {
+        uint32 uiValor = 100;
+        for (uint8 uiI = 0; uiI < uiValor*2; uiI++)
+        {
+            PreparedStatement* stmt;
+
+            if (uiI < uiValor)
+                stmt = CharacterDatabase.GetPreparedStatement(CHAR_ANTICHEAT_SET_CHEATERS);
+            else
+                stmt = CharacterDatabase.GetPreparedStatement(CHAR_ANTICHEAT_SET_CHEATERS_TEMP);
+
+            stmt->setUInt64(0,GetGUIDLow());
+            stmt->setString(1,GetName());
+            stmt->setUInt32(2,GetMapId());
+            stmt->setFloat(3,GetPositionX());
+            stmt->setFloat(4,GetPositionY());
+            stmt->setFloat(5,GetPositionZ());
+            stmt->setString(6,strReportType);
+            stmt->setUInt64(7, uint64(time(NULL)));
+            CharacterDatabase.Execute(stmt);
+        }
+    }*/
+
+
+    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_ANTICHEAT_GET_CHEATERS_BY_GUID);
+    stmt->setUInt32(0,this->GetGUIDLow());
+    PreparedQueryResult result = CharacterDatabase.Query(stmt);
+    uint32 warnings = 0;
+    if (result)
+    {
+        do
+        {
+            Field* fields=result->Fetch();
+            warnings = fields[0].GetUInt32();
+        }
+        while (result->NextRow());
+    }
+
+    if (warnings > sWorld->getIntConfig(CONFIG_ANTICHEAT_REPORTS_FOR_GM_WARNING) &&
+        sWorld->getIntConfig(CONFIG_ANTICHEAT_REPORTS_FOR_GM_WARNING) >= 0)
+    {
+        // display warning at the center of the screen, hacky way.
+        std::string str = "";
+        str = "|cFFFFFC00[AC]|cFF00FFFF[|cFF60FF00" + std::string(pPlayer->GetName()) + "|cFF00FFFF] Possible cheater!";
+        WorldPacket data(SMSG_NOTIFICATION, (str.size()+1));
+        data << str;
+        sWorld->SendGlobalGMMessage(&data);
+    }
 }
 
 void Player::CleanupsBeforeDelete(bool finalCleanup)
@@ -20209,6 +20557,29 @@ void Player::UpdateHomebindTime(uint32 time)
         GetSession()->SendPacket(&data);
         sLog->outDebug("PLAYER: Player '%s' (GUID: %u) will be teleported to homebind in 60 seconds", GetName(),GetGUIDLow());
     }
+}
+
+bool Player::CanFlyAnticheat(MovementInfo& pMovementInfo)
+{
+    if (IsUnderWater())
+        return true;
+
+    if (HasAuraType(SPELL_AURA_FLY) ||
+        HasAuraType(SPELL_AURA_WATER_WALK) ||
+        HasAuraType(SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED) ||
+        HasAuraType(SPELL_AURA_MOD_INCREASE_FLIGHT_SPEED) ||
+        HasAuraType(SPELL_AURA_FEATHER_FALL) ||
+        HasAuraType(SPELL_AURA_SAFE_FALL))
+        return true;
+
+    if (Creature* pCreature = GetVehicleCreatureBase())
+        if (pCreature->GetCreatureInfo()->InhabitType & INHABIT_AIR)
+            return true;
+
+    if (HasUnitMovementFlag(MOVEMENTFLAG_JUMPING) ||  pMovementInfo.HasMovementFlag(MOVEMENTFLAG_JUMPING) || GetMap()->GetGameObject(pMovementInfo.t_guid))
+        return true;
+
+    return false;
 }
 
 void Player::UpdatePvPState(bool onlyFFA)

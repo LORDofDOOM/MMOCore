@@ -256,7 +256,330 @@ public:
     }
 };
 
+class anticheat_commandscript : public CommandScript
+{
+public:
+    anticheat_commandscript() : CommandScript("anticheat_commandscript") { }
+
+    ChatCommand* GetCommands() const
+    {
+        static ChatCommand anticheatCommandTable[] =
+        {
+            { "global",         SEC_GAMEMASTER,     true,  &HandleAntiCheatGlobalCommand,         "", NULL },
+            { "player",         SEC_GAMEMASTER,     true,  &HandleAntiCheatPlayerCommand,         "", NULL },
+            { "delete",         SEC_ADMINISTRATOR,  true,  &HandleAntiCheatDeleteCommand,         "", NULL },
+            { "handle",         SEC_ADMINISTRATOR,  true,  &HandleAntiCheatHandleCommand,         "", NULL },
+            { "jail",           SEC_GAMEMASTER,     true,  &HandleAnticheatJailCommand,         "", NULL },
+            { "warn",           SEC_GAMEMASTER,     true,  &HandleAnticheatWarnCommand,         "", NULL },
+            { NULL,             0,                     false, NULL,                                           "", NULL }
+        };
+
+        static ChatCommand commandTable[] =
+        {
+            { "anticheat",      SEC_GAMEMASTER,     true, NULL,                     "",  anticheatCommandTable},
+            { NULL,             0,                  false, NULL,                               "", NULL }
+        };
+
+        return commandTable;
+    }
+
+    static bool HandleAnticheatWarnCommand(ChatHandler* handler, const char* args)
+    {
+        Player* pTarget = NULL;
+
+        std::string strCommand;
+
+        char* command = strtok((char*)args, " ");
+
+        if (command)
+        {
+            strCommand = command;
+            normalizePlayerName(strCommand);
+
+            pTarget = sObjectMgr->GetPlayer(strCommand.c_str()); //get player by name
+        }else
+            pTarget = handler->getSelectedPlayer();
+
+        if (!pTarget)
+            return false;
+
+        WorldPacket data;
+
+        // need copy to prevent corruption by strtok call in LineFromMessage original string
+        char* buf = strdup("The anticheat system has reported several times that you may be cheating. You will be monitored to confirm if this is accurate.");
+        char* pos = buf;
+
+        while (char* line = handler->LineFromMessage(pos))
+        {
+            handler->FillSystemMessageData(&data, line);
+            pTarget->GetSession()->SendPacket(&data);
+        }
+
+        free(buf);
+        return true;
+    }
+    static bool HandleAnticheatJailCommand(ChatHandler* handler, const char* args)
+    {
+        Player* pTarget = NULL;
+
+        std::string strCommand;
+
+        char* command = strtok((char*)args, " ");
+
+        if (command)
+        {
+            strCommand = command;
+            normalizePlayerName(strCommand);
+
+            pTarget = sObjectMgr->GetPlayer(strCommand.c_str()); //get player by name
+        }else
+            pTarget = handler->getSelectedPlayer();
+
+        if (!pTarget)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (pTarget == handler->GetSession()->GetPlayer())
+            return false;
+
+        // teleport both to jail.
+        pTarget->TeleportTo(1,16226.5f,16403.6f,-64.5f,3.2f);
+        handler->GetSession()->GetPlayer()->TeleportTo(1,16226.5f,16403.6f,-64.5f,3.2f);
+
+        WorldLocation loc;
+
+        // the player should be already there, but no :(
+        // pTarget->GetPosition(&loc);
+
+        loc.m_mapId = 1;
+        loc.m_positionX = 16226.5f;
+        loc.m_positionY = 16403.6f;
+        loc.m_positionZ = -64.5f;
+        loc.m_orientation = 3.2f;
+
+        pTarget->SetHomebind(loc,876);
+        return true;
+    }
+
+    static bool HandleAntiCheatDeleteCommand(ChatHandler* handler, const char* args)
+    {
+        std::string strCommand;
+
+        char* command = strtok((char*)args, " "); //get entered name
+
+        if (!command)
+            return true;
+
+        strCommand = command;
+
+        if (strCommand.compare("deleteall") == 0)
+        {
+            uint8 uiStmt[3] = {CHAR_ANTICHEAT_CLEAN_CHEAT_FIRST_REPORT,CHAR_ANTICHEAT_CLEAN_CHEATERS_TEMP, CHAR_ANTICHEAT_CLEAN_CHEATERS };
+            for (uint8 uiI = 0; uiI < 3; uiI++)
+            {
+                PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(uiStmt[uiI]);
+                CharacterDatabase.Execute(stmt);
+            }
+
+        } else
+        {
+            normalizePlayerName(strCommand);
+            Player* pPlayer = sObjectMgr->GetPlayer(strCommand.c_str()); //get player by name
+
+            if (!pPlayer)
+                handler->PSendSysMessage("Player doesn't exist");
+            else
+            {
+                uint8 uiStmt[3] = {CHAR_ANTICHEAT_DEL_CHEATERS, CHAR_ANTICHEAT_DEL_CHEATERS_TEMP,CHAR_ANTICHEAT_DEL_CHEAT_FIRST_REPORT};
+
+                for (uint8 uiI = 0; uiI < 3; uiI++)
+                {
+                    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(uiStmt[uiI]);
+                    stmt->setUInt64(0, pPlayer->GetGUIDLow());
+                    CharacterDatabase.Execute(stmt);
+                }
+            }
+        }
+
+        return true;
+    }
+
+    static bool HandleAntiCheatPlayerCommand(ChatHandler* handler, const char* args)
+    {
+        std::string strCommand;
+
+        char* command = strtok((char*)args, " ");
+
+        uint32 uiGUID = 0;
+        Player* pPlayer = NULL;
+
+        if (command)
+        {
+            strCommand = command;
+
+            normalizePlayerName(strCommand);
+
+            pPlayer = sObjectMgr->GetPlayer(strCommand.c_str()); //get player by name
+
+            if (pPlayer)
+                uiGUID = pPlayer->GetGUIDLow();
+        }else
+        {
+            pPlayer = handler->getSelectedPlayer();
+            if (pPlayer)
+                uiGUID = pPlayer->GetGUIDLow();
+        }
+
+        if (uiGUID == 0)
+        {
+            handler->PSendSysMessage("There is no player.");
+            return true;
+        }
+
+        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_ANTICHEAT_GET_CHEATERS_BY_GUID);
+        stmt->setUInt32(0,uiGUID);
+        PreparedQueryResult result = CharacterDatabase.Query(stmt);
+
+        if (result)
+        {
+            do
+            {
+                Field* fields=result->Fetch();
+                uint32 warnings = fields[0].GetUInt32();
+                handler->PSendSysMessage("Amount: %u", warnings);
+            }
+            while (result->NextRow());
+        } else
+            handler->PSendSysMessage("Player's amount log is empty!.");
+
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_ANTICHEAT_GET_CHEATERS_AVERAGE_BY_GUID);
+        stmt->setUInt32(0,uiGUID);
+        result = CharacterDatabase.Query(stmt);
+
+        if (result)
+        {
+            do
+            {
+                Field* fields=result->Fetch();
+                uint32 average = fields[0].GetUInt32();
+                uint32 warnings = fields[1].GetUInt32();
+
+                handler->PSendSysMessage("Average: %u Warnings: %u", average, warnings);
+            }
+            while (result->NextRow());
+        } else
+            handler->PSendSysMessage("Player's average log is empty!.");
+
+
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_ANTICHEAT_GET_REPORTS_TYPE_BY_GUID);
+        stmt->setUInt32(0,uiGUID);
+        result = CharacterDatabase.Query(stmt);
+
+        uint32 uiReportsAmount[5] = {0,0,0,0,0};
+
+        if (result)
+        {
+            do
+            {
+                Field* fields=result->Fetch();
+                std::string report = fields[0].GetString();
+
+                if (report.compare("Speed-Hack") == 0)
+                    uiReportsAmount[0]++;
+                else if (report.compare("Fly-Hack") == 0)
+                    uiReportsAmount[1]++;
+                else if (report.compare("WalkOnWater-Hack") == 0)
+                    uiReportsAmount[2]++;
+                else if (report.compare("Teleport-Hack") == 0)
+                    uiReportsAmount[3]++;
+                else if (report.compare("Jump-Hack") == 0)
+                    uiReportsAmount[4]++;
+            }
+            while (result->NextRow());
+        }
+
+        handler->PSendSysMessage("Speed-Hack reports: %u || Fly-Hack reports: %u ||  WalkOnWater-Hack reports: %u || Teleport-Hack reports: %u || Jump-Hack reports: %u", uiReportsAmount[0],uiReportsAmount[1],uiReportsAmount[2],uiReportsAmount[3],uiReportsAmount[4]);
+
+        return true;
+    }
+
+    static bool HandleAntiCheatHandleCommand(ChatHandler* handler, const char* args)
+    {
+        std::string strCommand;
+
+        char* command = strtok((char*)args, " ");
+
+        if (!command)
+            return true;
+
+        if (!handler->GetSession()->GetPlayer())
+            return true;
+
+        strCommand = command;
+
+        if (strCommand.compare("on") == 0)
+        {
+            sWorld->setBoolConfig(CONFIG_ANTICHEAT_ENABLE,true);
+            handler->SendSysMessage("The AntiCheat-System is now: Enabled!");
+        }
+        else if (strCommand.compare("off") == 0)
+        {
+            sWorld->setBoolConfig(CONFIG_ANTICHEAT_ENABLE,false);
+            handler->SendSysMessage("The AntiCheat-System is now: Disabled!");
+        }
+
+        return true;
+    }
+
+    static bool HandleAntiCheatGlobalCommand(ChatHandler* handler, const char* args)
+    {
+        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_ANTICHEAT_GET_CHEATERS);
+        PreparedQueryResult result = CharacterDatabase.Query(stmt);
+
+        handler->PSendSysMessage("Cheaters by Amount: -------------");
+        if (result)
+        {
+            do
+            {
+                Field* fields=result->Fetch();
+                std::string name = fields[0].GetCString();
+                uint32 warnings = fields[1].GetUInt32();
+
+                handler->PSendSysMessage("Name: %s Warnings: %u", name.c_str(), warnings);
+            }
+            while (result->NextRow());
+        } else
+            handler->PSendSysMessage("Cheaters amount log empty!.");
+
+        handler->PSendSysMessage("Cheaters by Average: -------------");
+
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_ANTICHEAT_GET_CHEATERS_AVERAGE);
+        result = CharacterDatabase.Query(stmt);
+
+        if (result)
+        {
+            do
+            {
+                Field* fields=result->Fetch();
+                std::string name = fields[0].GetCString();
+                uint32 average = fields[1].GetUInt32();
+                uint32 warnings = fields[2].GetUInt32();
+
+                handler->PSendSysMessage("Name: %s  Average: %u Warnings: %u", name.c_str(), average, warnings);
+            }
+            while (result->NextRow());
+        } else
+            handler->PSendSysMessage("Cheaters average log empty!.");
+
+        return true;
+    }
+};
+
 void AddSC_gm_commandscript()
 {
     new gm_commandscript();
+    new anticheat_commandscript();
 }

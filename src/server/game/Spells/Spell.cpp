@@ -4791,6 +4791,19 @@ SpellCastResult Spell::CheckCast(bool strict)
     if (!m_IsTriggeredSpell && !m_caster->isAlive() && !(m_spellInfo->Attributes & SPELL_ATTR0_PASSIVE) && !(m_spellInfo->Attributes & SPELL_ATTR0_CASTABLE_WHILE_DEAD))
         return SPELL_FAILED_CASTER_DEAD;
 
+    // anticheat code
+    if (m_targets.getUnitTarget() && m_targets.getUnitTarget()->GetTypeId() == TYPEID_PLAYER)
+    {
+        Player* pPlayer = m_targets.getUnitTarget()->ToPlayer();
+
+        if (pPlayer->GetAreaId() == 876 && !pPlayer->isGameMaster() && pPlayer->GetPositionZ() < 15.0f)
+        {
+            for (int i = 0; i < MAX_SPELL_EFFECTS; i++)
+                if (m_spellInfo->Effect[i] == SPELL_EFFECT_TELEPORT_UNITS)
+                        return SPELL_FAILED_NOT_HERE;
+        }
+    }
+
     // check cooldowns to prevent cheating
     if (m_caster->GetTypeId() == TYPEID_PLAYER && !(m_spellInfo->Attributes & SPELL_ATTR0_PASSIVE))
     {

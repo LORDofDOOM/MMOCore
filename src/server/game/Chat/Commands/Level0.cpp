@@ -56,6 +56,14 @@ bool ChatHandler::HandleStartCommand(const char* /*args*/)
 {
     Player *chr = m_session->GetPlayer();
 
+    // anticheat code
+    if (chr->GetAreaId() == 876 && !chr->isGameMaster() && chr->GetPositionZ() < 15.0f)
+    {
+        SendSysMessage("You can't do that, you are jailed!");
+        SetSentErrorMessage(true);
+        return false;
+    }
+
     if (chr->isInFlight())
     {
         SendSysMessage(LANG_YOU_IN_FLIGHT);
