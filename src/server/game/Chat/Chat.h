@@ -285,7 +285,9 @@ class ChatHandler
 		//Mall Teleporter
 		bool HandleMallCommand(const char* args);	
 		//Buffer
-		bool HandleBuffsCommand(const char* args);			
+		bool HandleBuffsCommand(const char* args);	
+		//GuildHouse
+		bool HandleGHCommand(const char* args);			
         bool HandleCooldownCommand(const char* args);
         bool HandleUnLearnCommand(const char* args);
         bool HandleGetDistanceCommand(const char* args);

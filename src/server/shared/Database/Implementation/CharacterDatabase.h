@@ -148,6 +148,7 @@ enum CharacterDatabaseStatements
     CHAR_ADD_GUILD_EVENTLOG,
     CHAR_DEL_GUILD_EVENTLOG,
     CHAR_DEL_GUILD_EVENTLOGS,
+    CHAR_DEL_GUILD_GUILDHOUSE,
     CHAR_SET_GUILD_MEMBER_PNOTE,
     CHAR_SET_GUILD_MEMBER_OFFNOTE,
     CHAR_SET_GUILD_MEMBER_RANK,
@@ -450,7 +451,8 @@ static const PreparedStatementTable CharacterDatabasePreparedStatements[] =
     // Auras
     {CHAR_DEL_AURA, "DELETE FROM character_aura WHERE guid = ?", CONNECTION_ASYNC},
     {CHAR_ADD_AURA, "INSERT INTO character_aura (guid,caster_guid,item_guid,spell,effect_mask,recalculate_mask,stackcount,amount0,amount1,amount2,base_amount0,base_amount1,base_amount2,maxduration,remaintime,remaincharges) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC}
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC},
+    {CHAR_DEL_GUILD_GUILDHOUSE, "DELETE FROM gh_guildadd WHERE guildId = ?", CONNECTION_ASYNC}
 };
 
 #endif

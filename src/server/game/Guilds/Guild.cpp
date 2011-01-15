@@ -21,6 +21,7 @@
 #include "ScriptMgr.h"
 #include "Chat.h"
 #include "Config.h"
+#include "GuildHouse.h"
 #include "SocialMgr.h"
 #include "Log.h"
 
@@ -1194,7 +1195,11 @@ void Guild::Disband()
     stmt->setUInt32(0, m_id);
     trans->Append(stmt);
 
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_GUILD_GUILDHOUSE);
+    stmt->setUInt32(0, m_id);
+    trans->Append(stmt);
     CharacterDatabase.CommitTransaction(trans);
+    GHobj.ChangeGuildHouse(m_id, 0); //Sell GuildHouse
     sObjectMgr->RemoveGuild(m_id);
 }
 

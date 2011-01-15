@@ -31,7 +31,8 @@ void AddSC_npc_teleport();
 void AddSC_npc_hunterpetvendor();
 // Custom
 void AddSC_DuelReset();
-
+//Guild House
+void AddSC_guildhouse_npcs();
 // spells
 void AddSC_deathknight_spell_scripts();
 void AddSC_druid_spell_scripts();
@@ -682,6 +683,8 @@ void AddWorldScripts()
     AddSC_npc_taxi();
     AddSC_achievement_scripts();
     AddSC_chat_log();
+    //Guild House
+    AddSC_guildhouse_npcs(); 
 #endif
 }
 
