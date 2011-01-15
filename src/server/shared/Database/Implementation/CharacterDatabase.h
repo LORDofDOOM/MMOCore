@@ -216,6 +216,24 @@ enum CharacterDatabaseStatements
     CHAR_DEL_AURA,
     CHAR_ADD_AURA,
 
+    CHAR_ANTICHEAT_SET_CHEATERS,
+    CHAR_ANTICHEAT_GET_CHEATERS,
+    CHAR_ANTICHEAT_SET_CHEAT_FIRST_REPORT,
+    CHAR_ANTICHEAT_GET_CHEAT_FIRST_REPORT,
+    CHAR_ANTICHEAT_GET_CHEATERS_AVERAGE,
+    CHAR_ANTICHEAT_DEL_CHEAT_FIRST_REPORT,
+    CHAR_ANTICHEAT_SET_CHEATERS_TEMP,
+    CHAR_ANTICHEAT_DEL_CHEATERS_TEMP,
+    CHAR_ANTICHEAT_DEL_CHEATERS,
+
+    CHAR_ANTICHEAT_CLEAN_CHEAT_FIRST_REPORT,
+    CHAR_ANTICHEAT_CLEAN_CHEATERS_TEMP,
+    CHAR_ANTICHEAT_CLEAN_CHEATERS,
+
+    CHAR_ANTICHEAT_GET_CHEATERS_AVERAGE_BY_GUID,
+    CHAR_ANTICHEAT_GET_CHEATERS_BY_GUID,
+    CHAR_ANTICHEAT_GET_REPORTS_TYPE_BY_GUID,
+
     MAX_CHARACTERDATABASE_STATEMENTS,
 };
 
@@ -450,7 +468,25 @@ static const PreparedStatementTable CharacterDatabasePreparedStatements[] =
     // Auras
     {CHAR_DEL_AURA, "DELETE FROM character_aura WHERE guid = ?", CONNECTION_ASYNC},
     {CHAR_ADD_AURA, "INSERT INTO character_aura (guid,caster_guid,item_guid,spell,effect_mask,recalculate_mask,stackcount,amount0,amount1,amount2,base_amount0,base_amount1,base_amount2,maxduration,remaintime,remaincharges) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC}
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC},
+
+	// Cheaters
+	{CHAR_ANTICHEAT_SET_CHEATERS, "INSERT INTO cheat_reports (`guid`,`name`,`mapid`,`position_x`,`position_y`,`position_z`,`report`,`time`) VALUES (?,?,?,?,?,?,?,?);", CONNECTION_ASYNC},
+	{CHAR_ANTICHEAT_SET_CHEATERS_TEMP, "INSERT INTO cheat_temp_reports (`guid`,`name`,`mapid`,`position_x`,`position_y`,`position_z`,`report`,`time`) VALUES (?,?,?,?,?,?,?,?);", CONNECTION_ASYNC},
+	{CHAR_ANTICHEAT_GET_CHEATERS, "SELECT A.`name` , count( * ) AS 'Repeticiones' FROM `characters` AS A, `cheat_reports` AS B WHERE A.`online` =1 AND A.`guid` = B.`guid` GROUP BY B.`guid` ORDER BY Repeticiones DESC LIMIT 0 , 3", CONNECTION_SYNCH},
+	{CHAR_ANTICHEAT_SET_CHEAT_FIRST_REPORT, "INSERT INTO cheat_first_report (`guid`,`name`,`time`) VALUES (?,?,?);", CONNECTION_ASYNC},
+	{CHAR_ANTICHEAT_GET_CHEATERS_AVERAGE, "SELECT A.`name` , CAST((SUM(B.time ) / count( * ) ) - C.time AS UNSIGNED) AS 'promedio' , CAST(count( * ) AS UNSIGNED) AS 'Repeticiones' FROM `characters` AS A, `cheat_temp_reports` AS B, cheat_first_report AS C WHERE A.`online` =1 AND A.`guid` = B.`guid` AND A.guid = C.guid GROUP BY B.`guid` ORDER BY Repeticiones  DESC LIMIT 0 , 3;", CONNECTION_SYNCH},
+	{CHAR_ANTICHEAT_GET_CHEAT_FIRST_REPORT, "SELECT * FROM cheat_first_report WHERE guid=?;", CONNECTION_SYNCH},
+	{CHAR_ANTICHEAT_DEL_CHEAT_FIRST_REPORT, "DELETE FROM cheat_first_report WHERE guid=?", CONNECTION_ASYNC},
+	{CHAR_ANTICHEAT_DEL_CHEATERS_TEMP, "DELETE FROM cheat_temp_reports WHERE guid=?", CONNECTION_ASYNC},
+	{CHAR_ANTICHEAT_DEL_CHEATERS, "DELETE FROM cheat_reports WHERE guid=?", CONNECTION_ASYNC},
+	{CHAR_ANTICHEAT_CLEAN_CHEAT_FIRST_REPORT, "DELETE FROM cheat_first_report;", CONNECTION_ASYNC},
+	{CHAR_ANTICHEAT_CLEAN_CHEATERS_TEMP, "DELETE FROM cheat_temp_reports", CONNECTION_ASYNC},
+	{CHAR_ANTICHEAT_CLEAN_CHEATERS, "DELETE FROM cheat_reports;", CONNECTION_ASYNC},
+
+	{CHAR_ANTICHEAT_GET_CHEATERS_AVERAGE_BY_GUID,"SELECT CAST((SUM(B.time ) / count( * ) ) - C.time AS UNSIGNED) AS 'promedio' , CAST(count( * ) AS UNSIGNED) AS 'Repeticiones' FROM `characters` AS A, `cheat_temp_reports` AS B, cheat_first_report AS C WHERE A.`online` =1 AND A.`guid` = B.`guid` AND A.guid = C.guid AND A.`guid`=? GROUP BY B.`guid` ORDER BY Repeticiones  DESC LIMIT 0 , 1;", CONNECTION_SYNCH},
+	{CHAR_ANTICHEAT_GET_CHEATERS_BY_GUID,"SELECT count( * ) AS 'Repeticiones' FROM `characters` AS A, `cheat_reports` AS B WHERE A.`online` =1 AND A.`guid` = B.`guid` AND A.`guid`=? GROUP BY B.`guid` ORDER BY Repeticiones DESC LIMIT 0 , 1", CONNECTION_SYNCH},
+	{CHAR_ANTICHEAT_GET_REPORTS_TYPE_BY_GUID,"SELECT report FROM cheat_reports WHERE guid=?;", CONNECTION_SYNCH}
 };
 
 #endif
