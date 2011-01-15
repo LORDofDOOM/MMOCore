@@ -72,7 +72,7 @@ set(scripts_STAT_SRCS
   Northrend/CrusadersColiseum/TrialOfTheCrusader/boss_faction_champions.cpp
   Northrend/CrusadersColiseum/TrialOfTheCrusader/boss_lord_jaraxxus.cpp
   Northrend/CrusadersColiseum/TrialOfTheCrusader/trial_of_the_crusader.h
-  Northrend/CrusadersColiseum/TrialOfTheCrusader/boss_northrend_beasts.cpp
+  Northrend/CrusadersColiseum/TrialOfTheCrusader/boss_beasts_of_northrend.cpp
   Northrend/CrusadersColiseum/TrialOfTheCrusader/trial_of_the_crusader.cpp
   Northrend/CrusadersColiseum/TrialOfTheCrusader/boss_twin_valkyr.cpp
   Northrend/CrusadersColiseum/TrialOfTheCrusader/instance_trial_of_the_crusader.cpp

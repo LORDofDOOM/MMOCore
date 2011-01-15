@@ -374,11 +374,11 @@ void AddSC_boss_black_knight();
 void AddSC_boss_grand_champions();
 void AddSC_instance_trial_of_the_champion();
 void AddSC_trial_of_the_champion();
-void AddSC_boss_anubarak_trial();        //Trial of the Crusader
+void AddSC_boss_beasts_of_northrend();   //Trial of the Crusader
+void AddSC_boss_lord_jaraxxus();
 void AddSC_boss_faction_champions();
-void AddSC_boss_jaraxxus();
-void AddSC_boss_northrend_beasts();
-void AddSC_boss_twin_valkyr();
+void AddSC_boss_twins_valkyr();
+void AddSC_boss_anubarak_trial();
 void AddSC_trial_of_the_crusader();
 void AddSC_instance_trial_of_the_crusader();
 void AddSC_boss_anubrekhan();            //Naxxramas
@@ -1067,12 +1067,12 @@ void AddNorthrendScripts()
     AddSC_boss_grand_champions();
     AddSC_instance_trial_of_the_champion();
     AddSC_trial_of_the_champion();
-    AddSC_boss_anubarak_trial();        //Trial of the Crusader
+    AddSC_boss_beasts_of_northrend();   //Trial of the Crusader
+    AddSC_boss_lord_jaraxxus();
     AddSC_boss_faction_champions();
-    AddSC_boss_jaraxxus();
+    AddSC_boss_twins_valkyr();
+    AddSC_boss_anubarak_trial();
     AddSC_trial_of_the_crusader();
-    AddSC_boss_twin_valkyr();
-    AddSC_boss_northrend_beasts();
     AddSC_instance_trial_of_the_crusader();
     AddSC_boss_krik_thir();             //Azjol-Nerub Azjol-Nerub
     AddSC_boss_hadronox();
