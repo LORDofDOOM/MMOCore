@@ -344,6 +344,7 @@ class boss_the_lich_king : public CreatureScript
                         break;
                     case CREATURE_RAGING_SPIRIT:
                         summoned->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, true);
+                        //Crash is here
                         summoned->getVictim()->CastSpell(summoned, SPELL_RAGING_VISUAL, true);
                         summoned->CastSpell(summoned, SPELL_NECROTIC_PLAGUE_IMMUNITY, true);
                         break;

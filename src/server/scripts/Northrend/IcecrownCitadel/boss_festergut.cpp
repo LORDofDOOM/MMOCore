@@ -141,8 +141,7 @@ class boss_festergut : public CreatureScript
             {
                 if (Creature* gasDummy = me->FindNearestCreature(CREATURE_ORANGE_GAS_STALKER, 100.0f, true))
                     gasDummy->Attack(who, false);
-                _RemoveInoculatedBuffFromRaid(who);
-                _RemoveGastricBloatBuffFromRaid(who);
+                _RemoveDebuffsFromRaid();
                 Talk(SAY_AGGRO);
                 if (Creature* gasDummy = me->FindNearestCreature(CREATURE_ORANGE_GAS_STALKER, 100.0f, true))
                     gasDummyGUID = gasDummy->GetGUID();
@@ -159,10 +158,7 @@ class boss_festergut : public CreatureScript
                 instance->SetBossState(DATA_FESTERGUT, DONE);
                 instance->SetData(DATA_FESTERGUT_EVENT, DONE);
                 if (Creature* professor = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
-                {
                     professor->AI()->DoAction(ACTION_FESTERGUT_DEATH);
-                    professor->AI()->EnterEvadeMode();
-                }
                 //Prevent dummies to attack players or keep them in combat
                 if (Creature* gasDummy = me->FindNearestCreature(CREATURE_ORANGE_GAS_STALKER, 100.0f, true))
                 {
@@ -170,28 +166,13 @@ class boss_festergut : public CreatureScript
                     gasDummy->SetReactState(REACT_PASSIVE);
                 }
                 _RemoveBlight();
-                _RemoveInoculatedBuffFromRaid(killer);
-                _RemoveGastricBloatBuffFromRaid(killer);
+                _RemoveDebuffsFromRaid();
             }
-            void _RemoveBuffFromRaid(Unit *who, uint32 spellId)
+            void _RemoveDebuffsFromRaid()
             {
-                if (who->GetTypeId() != TYPEID_PLAYER)
-                    return;
-                Player *pPlayer = (Player*)who;
-                if (Group* pGroup = pPlayer->GetGroup())
-	                for (GroupReference* pRef = pGroup->GetFirstMember(); pRef != NULL; pRef = pRef->next())
-		                if (Player* pMember = pRef->getSource())
-			                pMember->RemoveAurasDueToSpell(spellId);
-            }
-            void _RemoveGastricBloatBuffFromRaid(Unit *who)
-            {
-                //Removing Gastric Bloat debuff
-                _RemoveBuffFromRaid(who, SPELL_GASTRIC_BLOAT);
-            }
-            void _RemoveInoculatedBuffFromRaid(Unit *who)
-            {
-                //Removing Inoculated debuff
-                _RemoveBuffFromRaid(who, SPELL_INOCULATED);
+                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_GASTRIC_BLOAT);
+                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_INOCULATED);
+                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_VILE_GAS);
             }
             void JustReachedHome()
             {
@@ -199,11 +180,7 @@ class boss_festergut : public CreatureScript
                 instance->SetData(DATA_FESTERGUT_EVENT, FAIL);
                 if (Creature* professor = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
                     professor->AI()->EnterEvadeMode();
-                if (Unit* anyPlayer = SelectTarget(SELECT_TARGET_RANDOM, 0, 200.0f, true))
-                {
-                    _RemoveGastricBloatBuffFromRaid(anyPlayer);
-                    _RemoveInoculatedBuffFromRaid(anyPlayer);
-                }
+                _RemoveDebuffsFromRaid();
             }
 
             void EnterEvadeMode()
@@ -211,11 +188,7 @@ class boss_festergut : public CreatureScript
                 ScriptedAI::EnterEvadeMode();
                 if (Creature* professor = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
                     professor->AI()->EnterEvadeMode();
-                if (Unit* anyPlayer = SelectTarget(SELECT_TARGET_RANDOM, 0, 200.0f, true))
-                {
-                    _RemoveGastricBloatBuffFromRaid(anyPlayer);
-                    _RemoveInoculatedBuffFromRaid(anyPlayer);
-                }
+                _RemoveDebuffsFromRaid();
             }
 
             void KilledUnit(Unit* victim)
@@ -278,8 +251,7 @@ class boss_festergut : public CreatureScript
                                 me->RemoveAurasDueToSpell(SPELL_INHALED_BLIGHT_1);
                                 me->RemoveAurasDueToSpell(SPELL_INHALED_BLIGHT_2);
                                 DoCast(me, PUNGENT_BLIGHT_HELPER, false);
-                                if (Unit* anyPlayer = SelectTarget(SELECT_TARGET_RANDOM, 0, 200.0f, true))
-                                    _RemoveInoculatedBuffFromRaid(anyPlayer);
+                                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_INOCULATED);
                                 inhaleCounter = 0;
                                 //Refill the room with gaseous blight at maximum power
                                 if (Creature* gasDummy = ObjectAccessor::GetCreature(*me, gasDummyGUID))
