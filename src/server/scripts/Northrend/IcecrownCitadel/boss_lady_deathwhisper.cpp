@@ -22,7 +22,7 @@
 #include "icecrown_citadel.h"
 #include "Group.h"
 
-enum ScriptTexts
+enum eScriptTexts
 {
     SAY_INTRO_1                 = 0,
     SAY_INTRO_2                 = 1,
@@ -43,7 +43,7 @@ enum ScriptTexts
     SAY_DEATH                   = 16,
 };
 
-enum Spells
+enum eSpells
 {
     // Lady Deathwhisper
     SPELL_MANA_BARRIER              = 70842,
@@ -91,7 +91,7 @@ enum Spells
     SPELL_VENGEFUL_BLAST_25H        = 72012,
 };
 
-enum Events
+enum eEvents
 {
     // Lady Deathwhisper
     EVENT_INTRO_2                       = 1,
@@ -133,7 +133,7 @@ enum Events
     EVENT_ADHERENT_SHORUD_OF_THE_OCCULT = 27,
 };
 
-enum Phases
+enum ePhases
 {
     PHASE_ALL       = 0,
     PHASE_INTRO     = 1,
@@ -192,7 +192,8 @@ class boss_lady_deathwhisper : public CreatureScript
                 me->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, false);
                 me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_ATTACK_ME, false);
                 instance->SetBossState(DATA_LADY_DEATHWHISPER, NOT_STARTED);
-            }
+                instance->SetData(DATA_DEATHWHISPER_EVENT, NOT_STARTED);             
+			}
 
             void MoveInLineOfSight(Unit* who)
             {
@@ -223,13 +224,6 @@ class boss_lady_deathwhisper : public CreatureScript
 
             void EnterCombat(Unit* who)
             {
-                if (!instance->CheckRequiredBosses(DATA_LADY_DEATHWHISPER, who->ToPlayer()))
-                {
-                    EnterEvadeMode();
-                    instance->DoCastSpellOnPlayers(LIGHT_S_HAMMER_TELEPORT);
-                    return;
-                }
-
                 events.Reset();
                 events.SetPhase(PHASE_ONE);
                 // phase-independent events
@@ -248,6 +242,7 @@ class boss_lady_deathwhisper : public CreatureScript
                 DoCast(me, SPELL_MANA_BARRIER, true);
 
                 instance->SetBossState(DATA_LADY_DEATHWHISPER, IN_PROGRESS);
+				instance->SetData(DATA_DEATHWHISPER_EVENT, IN_PROGRESS);
             }
 
             void JustDied(Unit* killer)
@@ -255,7 +250,7 @@ class boss_lady_deathwhisper : public CreatureScript
                 Talk(SAY_DEATH);
 
                 instance->SetBossState(DATA_LADY_DEATHWHISPER, DONE);
-
+				instance->SetData(DATA_DEATHWHISPER_EVENT, DONE);
                 std::set<uint32> livingAddEntries;
                 // Full House achievement
                 for (SummonList::iterator itr = summons.begin(); itr != summons.end(); ++itr)
@@ -290,7 +285,7 @@ class boss_lady_deathwhisper : public CreatureScript
             void JustReachedHome()
             {
                 instance->SetBossState(DATA_LADY_DEATHWHISPER, FAIL);
-
+				instance->SetData(DATA_DEATHWHISPER_EVENT, FAIL);
                 summons.DespawnAll();
             }
 

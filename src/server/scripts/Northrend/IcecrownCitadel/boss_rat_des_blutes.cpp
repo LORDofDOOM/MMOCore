@@ -15,44 +15,46 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ObjectMgr.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "SpellScript.h"
 #include "SpellAuraEffects.h"
 #include "icecrown_citadel.h"
 
-enum Texts
+enum eTexts
 {
     // Blood Queen Lana'Thel
-    SAY_INTRO_1                 = 0,
-    SAY_INTRO_2                 = 1,
+    SAY_INTRO_1                 = -1631115,
+    SAY_INTRO_2                 = -1631116,
 
     // Prince Keleseth
-    SAY_KELESETH_INVOCATION     = 0,
-    EMOTE_KELESETH_INVOCATION   = 1,
-    SAY_KELESETH_SPECIAL        = 2,
-    SAY_KELESETH_KILL           = 3,
-    EMOTE_KELESETH_BERSERK      = 4,
-    SAY_KELESETH_DEATH          = 5,
+    SAY_KELESETH_INVOCATION     = -1631117,
+    EMOTE_KELESETH_INVOCATION   = -1631118,
+    SAY_KELESETH_SPECIAL        = -1631119,
+    SAY_KELESETH_KILL_1         = -1631120,
+    SAY_KELESETH_KILL_2         = -1631121,
+    EMOTE_KELESETH_BERSERK      = -1631122,
+    SAY_KELESETH_DEATH          = -1631123,
 
     // Prince Taldaram
-    SAY_TALDARAM_INVOCATION     = 0,
-    EMOTE_TALDARAM_INVOCATION   = 1,
-    SAY_TALDARAM_SPECIAL        = 2,
-    EMOTE_TALDARAM_FLAME        = 3,
-    SAY_TALDARAM_KILL           = 4,
-    EMOTE_TALDARAM_BERSERK      = 5,
-    EMOTE_TALDARAM_DEATH        = 6,
+    SAY_TALDARAM_INVOCATION     = -1631124,
+    EMOTE_TALDARAM_INVOCATION   = -1631125,
+    SAY_TALDARAM_SPECIAL        = -1631126,
+    EMOTE_TALDARAM_FLAME        = -1631127,
+    SAY_TALDARAM_KILL_1         = -1631128,
+    SAY_TALDARAM_KILL_2         = -1631129,
+    EMOTE_TALDARAM_BERSERK      = -1631130,
+    EMOTE_TALDARAM_DEATH        = -1631131,
 
     // Prince Valanar
-    SAY_VALANAR_INVOCATION      = 0,
-    EMOTE_VALANAR_INVOCATION    = 1,
-    SAY_VALANAR_SPECIAL         = 2,
-    EMOTE_VALANAR_SHOCK_VORTEX  = 3,
-    SAY_VALANAR_KILL            = 4,
-    SAY_VALANAR_BERSERK         = 5,
-    SAY_VALANAR_DEATH           = 6,
+    SAY_VALANAR_INVOCATION      = -1631132,
+    EMOTE_VALANAR_INVOCATION    = -1631133,
+    SAY_VALANAR_SPECIAL         = -1631134,
+    EMOTE_VALANAR_SHOCK_VORTEX  = -1631135,
+    SAY_VALANAR_KILL_1          = -1631136,
+    SAY_VALANAR_KILL_2          = -1631137,
+    SAY_VALANAR_BERSERK         = -1631138,
+    SAY_VALANAR_DEATH           = -1631139
 };
 
 enum Spells
@@ -110,7 +112,7 @@ enum Spells
     SPELL_SHOCK_VORTEX_DUMMY            = 72633,
 };
 
-enum Events
+enum eEvents
 {
     EVENT_INTRO_1               = 1,
     EVENT_INTRO_2               = 2,
@@ -133,7 +135,7 @@ enum Events
     EVENT_CONTINUE_FALLING      = 12,
 };
 
-enum Actions
+enum eActions
 {
     ACTION_STAND_UP             = 1,
     ACTION_CAST_INVOCATION      = 2,
@@ -142,13 +144,13 @@ enum Actions
     ACTION_FLAME_BALL_CHASE     = 5,
 };
 
-enum Points
+enum ePoints
 {
     POINT_INTRO_DESPAWN         = 380040,
     POINT_KINETIC_BOMB_IMPACT   = 384540,
 };
 
-enum Displays
+enum eDisplays
 {
     DISPLAY_KINETIC_BOMB        = 31095,
 };
@@ -178,16 +180,9 @@ class boss_blood_council_controller : public CreatureScript
 
         struct boss_blood_council_controllerAI : public BossAI
         {
-            boss_blood_council_controllerAI(Creature* creature) : BossAI(creature, DATA_BLOOD_PRINCE_COUNCIL)
+            boss_blood_council_controllerAI(Creature* creature) : BossAI(creature, DATA_BLOOD_PRINCES_CONTROL)
             {
-            }
-
-            void InitializeAI()
-            {
-                if (!instance || static_cast<InstanceMap*>(me->GetMap())->GetScriptId() != GetScriptId(ICCScriptName))
-                    me->IsAIEnabled = false;
-                else if (!me->isDead())
-                    Reset();
+                instance = creature->GetInstanceScript();
             }
 
             void Reset()
@@ -196,46 +191,43 @@ class boss_blood_council_controller : public CreatureScript
                 me->SetReactState(REACT_PASSIVE);
                 invocationStage = 0;
 
-                instance->SetBossState(DATA_BLOOD_PRINCE_COUNCIL, NOT_STARTED);
+                if(instance)
+                    instance->SetData(DATA_BLOOD_PRINCE_COUNCIL_EVENT, NOT_STARTED);
             }
 
             void EnterCombat(Unit* who)
             {
-                if (!instance->CheckRequiredBosses(DATA_BLOOD_PRINCE_COUNCIL, who->ToPlayer()))
-                {
-                    EnterEvadeMode();
-                    instance->DoCastSpellOnPlayers(LIGHT_S_HAMMER_TELEPORT);
+                if(!instance)
                     return;
-                }
 
-                instance->SetBossState(DATA_BLOOD_PRINCE_COUNCIL, IN_PROGRESS);
+                instance->SetData(DATA_BLOOD_PRINCE_COUNCIL_EVENT, IN_PROGRESS);
 
                 DoCast(me, SPELL_INVOCATION_OF_BLOOD_VALANAR);
 
-                if (Creature* keleseth = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_KELESETH_GUID)))
+                if (Creature* keleseth = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_KELESETH_ICC)))
                     if (!keleseth->isInCombat())
                         DoZoneInCombat(keleseth);
 
-                if (Creature* taldaram = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_TALDARAM_GUID)))
+                if (Creature* taldaram = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_TALDARAM_ICC)))
                     if (!taldaram->isInCombat())
                         DoZoneInCombat(taldaram);
 
-                if (Creature* valanar = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_VALANAR_GUID)))
+                if (Creature* valanar = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_VALANAR_ICC)))
                     if (!valanar->isInCombat())
                         DoZoneInCombat(valanar);
 
                 events.ScheduleEvent(EVENT_INVOCATION_OF_BLOOD, 30000);
 
-                invocationOrder[0] = InvocationData(instance->GetData64(DATA_PRINCE_VALANAR_GUID), SPELL_INVOCATION_OF_BLOOD_VALANAR, EMOTE_VALANAR_INVOCATION, 71070);
+                invocationOrder[0] = InvocationData(instance->GetData(DATA_PRINCE_VALANAR_ICC), SPELL_INVOCATION_OF_BLOOD_VALANAR, EMOTE_VALANAR_INVOCATION, 71070);
                 if (urand(0, 1))
                 {
-                    invocationOrder[1] = InvocationData(instance->GetData64(DATA_PRINCE_TALDARAM_GUID), SPELL_INVOCATION_OF_BLOOD_TALDARAM, EMOTE_TALDARAM_INVOCATION, 71081);
-                    invocationOrder[2] = InvocationData(instance->GetData64(DATA_PRINCE_KELESETH_GUID), SPELL_INVOCATION_OF_BLOOD_KELESETH, EMOTE_KELESETH_INVOCATION, 71080);
+                    invocationOrder[1] = InvocationData(instance->GetData64(DATA_PRINCE_TALDARAM_ICC), SPELL_INVOCATION_OF_BLOOD_TALDARAM, EMOTE_TALDARAM_INVOCATION, 71081);
+                    invocationOrder[2] = InvocationData(instance->GetData64(DATA_PRINCE_KELESETH_ICC), SPELL_INVOCATION_OF_BLOOD_KELESETH, EMOTE_KELESETH_INVOCATION, 71080);
                 }
                 else
                 {
-                    invocationOrder[1] = InvocationData(instance->GetData64(DATA_PRINCE_KELESETH_GUID), SPELL_INVOCATION_OF_BLOOD_KELESETH, EMOTE_KELESETH_INVOCATION, 71080);
-                    invocationOrder[2] = InvocationData(instance->GetData64(DATA_PRINCE_TALDARAM_GUID), SPELL_INVOCATION_OF_BLOOD_TALDARAM, EMOTE_TALDARAM_INVOCATION, 71081);
+                    invocationOrder[1] = InvocationData(instance->GetData64(DATA_PRINCE_KELESETH_ICC), SPELL_INVOCATION_OF_BLOOD_KELESETH, EMOTE_KELESETH_INVOCATION, 71080);
+                    invocationOrder[2] = InvocationData(instance->GetData64(DATA_PRINCE_TALDARAM_ICC), SPELL_INVOCATION_OF_BLOOD_TALDARAM, EMOTE_TALDARAM_INVOCATION, 71081);
                 }
 
                 if (IsHeroic())
@@ -260,7 +252,8 @@ class boss_blood_council_controller : public CreatureScript
 
             void JustReachedHome()
             {
-                instance->SetBossState(DATA_BLOOD_PRINCE_COUNCIL, FAIL);
+                if(instance)
+                    instance->SetBossState(DATA_BLOOD_PRINCE_COUNCIL_EVENT, FAIL);
             }
 
             void JustDied(Unit* /*killer*/)
@@ -275,18 +268,15 @@ class boss_blood_council_controller : public CreatureScript
                     if (Creature* prince = ObjectAccessor::GetCreature(*me, invocationOrder[invocationStage].guid))
                         prince->Kill(prince);
                 }
-                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_SHADOW_PRISON_DUMMY);
+                instance->SetData(DATA_BLOOD_PRINCE_COUNCIL_EVENT, DONE);
             }
 
             void UpdateAI(const uint32 diff)
             {
-                if (!UpdateVictim())
+                if (!UpdateVictim() || me->HasUnitState(UNIT_STAT_CASTING))
                     return;
 
                 events.Update(diff);
-
-                if (me->HasUnitState(UNIT_STAT_CASTING))
-                    return;
 
                 while (uint32 eventId = events.ExecuteEvent())
                 {
@@ -307,12 +297,10 @@ class boss_blood_council_controller : public CreatureScript
                             }
 
                             if (newPrince)
-                            {
                                 newPrince->SetHealth(me->GetHealth());
-                                newPrince->AI()->Talk(invocationOrder[invocationStage].textId);
-                            }
 
                             DoCast(me, invocationOrder[invocationStage].spellId);
+                            DoScriptText(invocationOrder[invocationStage].textId, me);
                             events.ScheduleEvent(EVENT_INVOCATION_OF_BLOOD, 30000);
                             break;
                         }
@@ -327,7 +315,7 @@ class boss_blood_council_controller : public CreatureScript
             {
                 uint64 guid;
                 uint32 spellId;
-                uint8  textId;
+                int32  textId;
                 uint32 visualSpell;
 
                 InvocationData(uint64 _guid, uint32 _spellId, int32 _textId, uint32 _visualSpell)
@@ -341,6 +329,7 @@ class boss_blood_council_controller : public CreatureScript
                 InvocationData() : guid(0), spellId(0), textId(0), visualSpell(0) { }
             } invocationOrder[3];
             uint8 invocationStage;
+            InstanceScript* instance;
         };
 
         CreatureAI* GetAI(Creature* creature) const
@@ -352,14 +341,15 @@ class boss_blood_council_controller : public CreatureScript
 class boss_prince_keleseth_icc : public CreatureScript
 {
     public:
-        boss_prince_keleseth_icc() : CreatureScript("boss_prince_keleseth_icc") { }
+        boss_prince_keleseth_icc() : CreatureScript("boss_blood_elf_keleset_icc") { }
 
         struct boss_prince_kelesethAI : public BossAI
         {
-            boss_prince_kelesethAI(Creature* creature) : BossAI(creature, DATA_BLOOD_PRINCE_COUNCIL)
+            boss_prince_kelesethAI(Creature* creature) : BossAI(creature, DATA_PRINCE_KELESETH_ICC)
             {
-                isEmpowered = false;
+                bIsEmpowered = false;
                 spawnHealth = creature->GetMaxHealth();
+                instance = creature->GetInstanceScript();
             }
 
             void InitializeAI()
@@ -367,11 +357,6 @@ class boss_prince_keleseth_icc : public CreatureScript
                 if (CreatureData const* data = sObjectMgr->GetCreatureData(me->GetDBTableGUIDLow()))
                     if (data->curhealth)
                         spawnHealth = data->curhealth;
-
-                if (!instance || static_cast<InstanceMap*>(me->GetMap())->GetScriptId() != GetScriptId(ICCScriptName))
-                    me->IsAIEnabled = false;
-                else if (!me->isDead())
-                    JustRespawned();
 
                 me->SetReactState(REACT_DEFENSIVE);
             }
@@ -382,9 +367,8 @@ class boss_prince_keleseth_icc : public CreatureScript
                 summons.DespawnAll();
 
                 me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
-                isEmpowered = false;
+                bIsEmpowered = false;
                 me->SetHealth(spawnHealth);
-                instance->SetData(DATA_ORB_WHISPERER_ACHIEVEMENT, uint32(true));
                 me->SetReactState(REACT_DEFENSIVE);
                 if (IsHeroic())
                     DoCast(me, SPELL_SHADOW_PRISON);
@@ -407,13 +391,7 @@ class boss_prince_keleseth_icc : public CreatureScript
 
             void JustDied(Unit* /*killer*/)
             {
-                Talk(SAY_KELESETH_DEATH);
-            }
-
-            void JustReachedHome()
-            {
-                me->SetHealth(spawnHealth);
-                isEmpowered = false;
+                DoScriptText(SAY_KELESETH_DEATH, me);
             }
 
             void JustRespawned()
@@ -433,28 +411,16 @@ class boss_prince_keleseth_icc : public CreatureScript
                 summons.Summon(summon);
             }
 
-            void DamageDealt(Unit* /*target*/, uint32& damage, DamageEffectType damageType)
+            void DamageTaken(Unit* /*attacker*/, uint32& damage)
             {
-                if (damageType != SPELL_DIRECT_DAMAGE)
-                    return;
-
-                if (damage > RAID_MODE<uint32>(23000, 25000, 23000, 25000))
-                    instance->SetData(DATA_ORB_WHISPERER_ACHIEVEMENT, uint32(false));
-            }
-
-            void DamageTaken(Unit* attacker, uint32& damage)
-            {
-                if (!isEmpowered)
-                {
-                    me->AddThreat(attacker, float(damage));
+                if (!bIsEmpowered)
                     damage = 0;
-                }
             }
 
-            void KilledUnit(Unit* victim)
+            void KilledUnit(Unit *victim)
             {
                 if (victim->GetTypeId() == TYPEID_PLAYER)
-                    Talk(SAY_KELESETH_KILL);
+                    DoScriptText(RAND(SAY_KELESETH_KILL_1, SAY_KELESETH_KILL_2), me);
             }
 
             void DoAction(const int32 action)
@@ -470,15 +436,15 @@ class boss_prince_keleseth_icc : public CreatureScript
                         me->m_Events.AddEvent(new StandUpEvent(*me), me->m_Events.CalculateTime(1000));
                         break;
                     case ACTION_CAST_INVOCATION:
-                        Talk(SAY_KELESETH_INVOCATION);
+                        DoScriptText(SAY_KELESETH_INVOCATION, me);
                         DoCast(me, SPELL_INVOCATION_VISUAL_ACTIVE, true);
-                        isEmpowered = true;
+                        bIsEmpowered = true;
                         break;
                     case ACTION_REMOVE_INVOCATION:
                         me->SetHealth(spawnHealth);
                         me->RemoveAurasDueToSpell(SPELL_INVOCATION_VISUAL_ACTIVE);
                         me->RemoveAurasDueToSpell(SPELL_INVOCATION_OF_BLOOD_KELESETH);
-                        isEmpowered = false;
+                        bIsEmpowered = false;
                         break;
                     default:
                         break;
@@ -487,13 +453,10 @@ class boss_prince_keleseth_icc : public CreatureScript
 
             void UpdateAI(const uint32 diff)
             {
-                if (!UpdateVictim() || !CheckInRoom())
+                if (!UpdateVictim() || !CheckInRoom() || me->HasUnitState(UNIT_STAT_CASTING))
                     return;
 
                 events.Update(diff);
-
-                if (me->HasUnitState(UNIT_STAT_CASTING))
-                    return;
 
                 while (uint32 eventId = events.ExecuteEvent())
                 {
@@ -501,15 +464,15 @@ class boss_prince_keleseth_icc : public CreatureScript
                     {
                         case EVENT_BERSERK:
                             DoCast(me, SPELL_BERSERK);
-                            Talk(EMOTE_KELESETH_BERSERK);
+                            DoScriptText(EMOTE_KELESETH_BERSERK, me);
                             break;
                         case EVENT_SHADOW_RESONANCE:
-                            Talk(SAY_KELESETH_SPECIAL);
+                            DoScriptText(SAY_KELESETH_SPECIAL, me);
                             DoCast(me, SPELL_SHADOW_RESONANCE);
                             events.ScheduleEvent(EVENT_SHADOW_RESONANCE, urand(10000, 15000));
                             break;
                         case EVENT_SHADOW_LANCE:
-                            if (isEmpowered)
+                            if (bIsEmpowered)
                                 DoCastVictim(SPELL_EMPOWERED_SHADOW_LANCE);
                             else
                                 DoCastVictim(SPELL_SHADOW_LANCE);
@@ -524,8 +487,9 @@ class boss_prince_keleseth_icc : public CreatureScript
             }
 
         private:
-            bool isEmpowered;  // bool check faster than map lookup
+            bool bIsEmpowered;  // bool check faster than map lookup
             uint32 spawnHealth;
+            InstanceScript* instance;
         };
 
         CreatureAI* GetAI(Creature* creature) const
@@ -537,14 +501,15 @@ class boss_prince_keleseth_icc : public CreatureScript
 class boss_prince_taldaram_icc : public CreatureScript
 {
     public:
-        boss_prince_taldaram_icc() : CreatureScript("boss_prince_taldaram_icc") { }
+        boss_prince_taldaram_icc() : CreatureScript("boss_blood_elf_taldaram_icc") { }
 
         struct boss_prince_taldaramAI : public BossAI
         {
-            boss_prince_taldaramAI(Creature* creature) : BossAI(creature, DATA_BLOOD_PRINCE_COUNCIL)
+            boss_prince_taldaramAI(Creature* creature) : BossAI(creature, DATA_PRINCE_TALDARAM_ICC)
             {
-                isEmpowered = false;
+                bIsEmpowered = false;
                 spawnHealth = creature->GetMaxHealth();
+                instance = creature->GetInstanceScript();
             }
 
             void InitializeAI()
@@ -552,11 +517,6 @@ class boss_prince_taldaram_icc : public CreatureScript
                 if (CreatureData const* data = sObjectMgr->GetCreatureData(me->GetDBTableGUIDLow()))
                     if (data->curhealth)
                         spawnHealth = data->curhealth;
-
-                if (!instance || static_cast<InstanceMap*>(me->GetMap())->GetScriptId() != GetScriptId(ICCScriptName))
-                    me->IsAIEnabled = false;
-                else if (!me->isDead())
-                    JustRespawned();
 
                 me->SetReactState(REACT_DEFENSIVE);
             }
@@ -567,16 +527,11 @@ class boss_prince_taldaram_icc : public CreatureScript
                 summons.DespawnAll();
 
                 me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
-                isEmpowered = false;
+                bIsEmpowered = false;
                 me->SetHealth(spawnHealth);
-                instance->SetData(DATA_ORB_WHISPERER_ACHIEVEMENT, uint32(true));
                 me->SetReactState(REACT_DEFENSIVE);
                 if (IsHeroic())
                     DoCast(me, SPELL_SHADOW_PRISON);
-            }
-
-            void MoveInLineOfSight(Unit* /*who*/)
-            {
             }
 
             void EnterCombat(Unit* /*who*/)
@@ -592,13 +547,7 @@ class boss_prince_taldaram_icc : public CreatureScript
 
             void JustDied(Unit* /*killer*/)
             {
-                Talk(EMOTE_TALDARAM_DEATH);
-            }
-
-            void JustReachedHome()
-            {
-                me->SetHealth(spawnHealth);
-                isEmpowered = false;
+                DoScriptText(EMOTE_TALDARAM_DEATH, me);
             }
 
             void JustRespawned()
@@ -618,37 +567,25 @@ class boss_prince_taldaram_icc : public CreatureScript
                 summons.Summon(summon);
                 Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, -10.0f, true); // first try at distance
                 if (!target)
-                    target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true);     // too bad for you raiders, its going to boom
+                    target = SelectTarget(SELECT_TARGET_RANDOM, 0/*1*/, 0.0f, true);     // too bad for you raiders, its going to boom
 
-                if (summon->GetEntry() == NPC_BALL_OF_INFERNO_FLAME && target)
-                    Talk(EMOTE_TALDARAM_FLAME, target->GetGUID());
+                if (summon->GetEntry() == CREATURE_BALL_OF_INFERNO_FLAME)
+                    DoScriptText(EMOTE_TALDARAM_FLAME, summon, target);             // safe, has NULL checks
 
                 if (target)
                     summon->AI()->SetGUID(target->GetGUID());
             }
 
-            void DamageDealt(Unit* /*target*/, uint32& damage, DamageEffectType damageType)
+            void DamageTaken(Unit* /*attacker*/, uint32& damage)
             {
-                if (damageType != SPELL_DIRECT_DAMAGE)
-                    return;
-
-                if (damage > RAID_MODE<uint32>(23000, 25000, 23000, 25000))
-                    instance->SetData(DATA_ORB_WHISPERER_ACHIEVEMENT, uint32(false));
-            }
-
-            void DamageTaken(Unit* attacker, uint32& damage)
-            {
-                if (!isEmpowered)
-                {
-                    me->AddThreat(attacker, float(damage));
+                if (!bIsEmpowered)
                     damage = 0;
-                }
             }
 
-            void KilledUnit(Unit* victim)
+            void KilledUnit(Unit *victim)
             {
                 if (victim->GetTypeId() == TYPEID_PLAYER)
-                    Talk(SAY_TALDARAM_KILL);
+                    DoScriptText(RAND(SAY_TALDARAM_KILL_1, SAY_TALDARAM_KILL_2), me);
             }
 
             void DoAction(const int32 action)
@@ -664,15 +601,15 @@ class boss_prince_taldaram_icc : public CreatureScript
                         me->m_Events.AddEvent(new StandUpEvent(*me), me->m_Events.CalculateTime(1000));
                         break;
                     case ACTION_CAST_INVOCATION:
-                        Talk(SAY_TALDARAM_INVOCATION);
+                        DoScriptText(SAY_TALDARAM_INVOCATION, me);
                         DoCast(me, SPELL_INVOCATION_VISUAL_ACTIVE, true);
-                        isEmpowered = true;
+                        bIsEmpowered = true;
                         break;
                     case ACTION_REMOVE_INVOCATION:
                         me->SetHealth(spawnHealth);
                         me->RemoveAurasDueToSpell(SPELL_INVOCATION_VISUAL_ACTIVE);
                         me->RemoveAurasDueToSpell(SPELL_INVOCATION_OF_BLOOD_TALDARAM);
-                        isEmpowered = false;
+                        bIsEmpowered = false;
                         break;
                     default:
                         break;
@@ -681,13 +618,10 @@ class boss_prince_taldaram_icc : public CreatureScript
 
             void UpdateAI(const uint32 diff)
             {
-                if (!UpdateVictim() || !CheckInRoom())
+                if (!UpdateVictim() || !CheckInRoom() || me->HasUnitState(UNIT_STAT_CASTING))
                     return;
 
                 events.Update(diff);
-
-                if (me->HasUnitState(UNIT_STAT_CASTING))
-                    return;
 
                 while (uint32 eventId = events.ExecuteEvent())
                 {
@@ -695,14 +629,14 @@ class boss_prince_taldaram_icc : public CreatureScript
                     {
                         case EVENT_BERSERK:
                             DoCast(me, SPELL_BERSERK);
-                            Talk(EMOTE_TALDARAM_BERSERK);
+                            DoScriptText(EMOTE_TALDARAM_BERSERK, me);
                             break;
                         case EVENT_GLITTERING_SPARKS:
                             DoCastVictim(SPELL_GLITTERING_SPARKS);
                             events.ScheduleEvent(EVENT_GLITTERING_SPARKS, urand(15000, 50000));
                             break;
                         case EVENT_CONJURE_FLAME:
-                            if (isEmpowered)
+                            if (bIsEmpowered)
                             {
                                 DoCast(me, SPELL_CONJURE_EMPOWERED_FLAME);
                                 events.ScheduleEvent(EVENT_CONJURE_FLAME, urand(15000, 25000));
@@ -712,7 +646,7 @@ class boss_prince_taldaram_icc : public CreatureScript
                                 DoCast(me, SPELL_CONJURE_FLAME);
                                 events.ScheduleEvent(EVENT_CONJURE_FLAME, urand(20000, 30000));
                             }
-                            Talk(SAY_TALDARAM_SPECIAL);
+                            DoScriptText(SAY_TALDARAM_SPECIAL, me);
                             break;
                         default:
                             break;
@@ -723,8 +657,9 @@ class boss_prince_taldaram_icc : public CreatureScript
             }
 
         private:
+            bool bIsEmpowered;  // bool check faster than map lookup
             uint32 spawnHealth;
-            bool isEmpowered;  // bool check faster than map lookup
+            InstanceScript* instance;
         };
 
         CreatureAI* GetAI(Creature* creature) const
@@ -736,14 +671,15 @@ class boss_prince_taldaram_icc : public CreatureScript
 class boss_prince_valanar_icc : public CreatureScript
 {
     public:
-        boss_prince_valanar_icc() : CreatureScript("boss_prince_valanar_icc") { }
+        boss_prince_valanar_icc() : CreatureScript("boss_blood_elf_valanar_icc") { }
 
         struct boss_prince_valanarAI : public BossAI
         {
-            boss_prince_valanarAI(Creature* creature) : BossAI(creature, DATA_BLOOD_PRINCE_COUNCIL)
+            boss_prince_valanarAI(Creature* creature) : BossAI(creature, DATA_PRINCE_VALANAR_ICC)
             {
-                isEmpowered = false;
+                bIsEmpowered = false;
                 spawnHealth = creature->GetMaxHealth();
+                instance = creature->GetInstanceScript();
             }
 
             void InitializeAI()
@@ -751,11 +687,6 @@ class boss_prince_valanar_icc : public CreatureScript
                 if (CreatureData const* data = sObjectMgr->GetCreatureData(me->GetDBTableGUIDLow()))
                     if (data->curhealth)
                         spawnHealth = data->curhealth;
-
-                if (!instance || static_cast<InstanceMap*>(me->GetMap())->GetScriptId() != GetScriptId(ICCScriptName))
-                    me->IsAIEnabled = false;
-                else if (!me->isDead())
-                    JustRespawned();
 
                 me->SetReactState(REACT_DEFENSIVE);
             }
@@ -766,16 +697,11 @@ class boss_prince_valanar_icc : public CreatureScript
                 summons.DespawnAll();
 
                 me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
-                isEmpowered = false;
+                bIsEmpowered = false;
                 me->SetHealth(me->GetMaxHealth());
-                instance->SetData(DATA_ORB_WHISPERER_ACHIEVEMENT, uint32(true));
                 me->SetReactState(REACT_DEFENSIVE);
                 if (IsHeroic())
                     DoCast(me, SPELL_SHADOW_PRISON);
-            }
-
-            void MoveInLineOfSight(Unit* /*who*/)
-            {
             }
 
             void EnterCombat(Unit* /*who*/)
@@ -791,13 +717,7 @@ class boss_prince_valanar_icc : public CreatureScript
 
             void JustDied(Unit* /*killer*/)
             {
-                Talk(SAY_VALANAR_DEATH);
-            }
-
-            void JustReachedHome()
-            {
-                me->SetHealth(me->GetMaxHealth());
-                isEmpowered = false;
+                DoScriptText(SAY_VALANAR_DEATH, me);
             }
 
             void JustRespawned()
@@ -810,11 +730,11 @@ class boss_prince_valanar_icc : public CreatureScript
             {
                 switch (summon->GetEntry())
                 {
-                    case NPC_KINETIC_BOMB_TARGET:
+                    case CREATURE_KINETIC_BOMB_TARGET:
                         summon->SetReactState(REACT_PASSIVE);
                         summon->CastSpell(summon, SPELL_KINETIC_BOMB, true, NULL, NULL, me->GetGUID());
                         break;
-                    case NPC_KINETIC_BOMB:
+                    case CREATURE_KINETIC_BOMB:
                     {
                         float x, y, z;
                         summon->GetPosition(x, y, z);
@@ -822,11 +742,9 @@ class boss_prince_valanar_icc : public CreatureScript
                         summon->GetMotionMaster()->MovePoint(POINT_KINETIC_BOMB_IMPACT, x, y, ground_Z);
                         break;
                     }
-                    case NPC_SHOCK_VORTEX:
+                    case CREATURE_SHOCK_VORTEX:
                         summon->CastSpell(summon, SPELL_SHOCK_VORTEX_DUMMY, true);
                         summon->CastSpell(summon, SPELL_SHOCK_VORTEX_PERIODIC, true);
-                        break;
-                    default:
                         break;
                 }
                 summons.Summon(summon);
@@ -840,28 +758,16 @@ class boss_prince_valanar_icc : public CreatureScript
                     DoAction(ACTION_CAST_INVOCATION);
             }
 
-            void DamageDealt(Unit* /*target*/, uint32& damage, DamageEffectType damageType)
+            void DamageTaken(Unit* /*attacker*/, uint32& damage)
             {
-                if (damageType != SPELL_DIRECT_DAMAGE)
-                    return;
-
-                if (damage > RAID_MODE<uint32>(23000, 25000, 23000, 25000))
-                    instance->SetData(DATA_ORB_WHISPERER_ACHIEVEMENT, uint32(false));
-            }
-
-            void DamageTaken(Unit* attacker, uint32& damage)
-            {
-                if (!isEmpowered)
-                {
-                    me->AddThreat(attacker, float(damage));
+                if (!bIsEmpowered)
                     damage = 0;
-                }
             }
 
-            void KilledUnit(Unit* victim)
+            void KilledUnit(Unit *victim)
             {
                 if (victim->GetTypeId() == TYPEID_PLAYER)
-                    Talk(SAY_VALANAR_KILL);
+                    DoScriptText(RAND(SAY_VALANAR_KILL_1, SAY_VALANAR_KILL_2), me);
             }
 
             void DoAction(const int32 action)
@@ -877,15 +783,15 @@ class boss_prince_valanar_icc : public CreatureScript
                         me->m_Events.AddEvent(new StandUpEvent(*me), me->m_Events.CalculateTime(1000));
                         break;
                     case ACTION_CAST_INVOCATION:
-                        Talk(SAY_VALANAR_INVOCATION);
+                        DoScriptText(SAY_VALANAR_INVOCATION, me);
                         DoCast(me, SPELL_INVOCATION_VISUAL_ACTIVE, true);
-                        isEmpowered = true;
+                        bIsEmpowered = true;
                         break;
                     case ACTION_REMOVE_INVOCATION:
                         me->SetHealth(spawnHealth);
                         me->RemoveAurasDueToSpell(SPELL_INVOCATION_VISUAL_ACTIVE);
                         me->RemoveAurasDueToSpell(SPELL_INVOCATION_OF_BLOOD_VALANAR);
-                        isEmpowered = false;
+                        bIsEmpowered = false;
                         break;
                     default:
                         break;
@@ -894,13 +800,10 @@ class boss_prince_valanar_icc : public CreatureScript
 
             void UpdateAI(const uint32 diff)
             {
-                if (!UpdateVictim() || !CheckInRoom())
+                if (!UpdateVictim() || !CheckInRoom() || me->HasUnitState(UNIT_STAT_CASTING))
                     return;
 
                 events.Update(diff);
-
-                if (me->HasUnitState(UNIT_STAT_CASTING))
-                    return;
 
                 while (uint32 eventId = events.ExecuteEvent())
                 {
@@ -908,21 +811,21 @@ class boss_prince_valanar_icc : public CreatureScript
                     {
                         case EVENT_BERSERK:
                             DoCast(me, SPELL_BERSERK);
-                            Talk(SAY_VALANAR_BERSERK);
+                            DoScriptText(SAY_VALANAR_BERSERK, me);
                             break;
                         case EVENT_KINETIC_BOMB:
                             if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 0.0f, true))
                             {
                                 DoCast(target, SPELL_KINETIC_BOMB_TARGET);
-                                Talk(SAY_VALANAR_SPECIAL);
+                                DoScriptText(SAY_VALANAR_SPECIAL, me);
                             }
                             events.ScheduleEvent(EVENT_KINETIC_BOMB, urand(18000, 24000));
                             break;
                         case EVENT_SHOCK_VORTEX:
-                            if (isEmpowered)
+                            if (bIsEmpowered)
                             {
                                 DoCast(me, SPELL_EMPOWERED_SHOCK_VORTEX);
-                                Talk(EMOTE_VALANAR_SHOCK_VORTEX);
+                                DoScriptText(EMOTE_VALANAR_SHOCK_VORTEX, me);
                                 events.ScheduleEvent(EVENT_SHOCK_VORTEX, 30000);
                             }
                             else
@@ -941,8 +844,9 @@ class boss_prince_valanar_icc : public CreatureScript
             }
 
         private:
+            bool bIsEmpowered;  // bool check faster than map lookup
             uint32 spawnHealth;
-            bool isEmpowered;  // bool check faster than map lookup
+            InstanceScript* instance;
         };
 
         CreatureAI* GetAI(Creature* creature) const
@@ -960,45 +864,31 @@ class npc_blood_queen_lana_thel : public CreatureScript
         {
             npc_blood_queen_lana_thelAI(Creature* creature) : ScriptedAI(creature)
             {
-                introDone = false;
+                bIntroDone = false;
                 instance = creature->GetInstanceScript();
-            }
-
-            void InitializeAI()
-            {
-                if (!instance || static_cast<InstanceMap*>(me->GetMap())->GetScriptId() != GetScriptId(ICCScriptName))
-                    me->IsAIEnabled = false;
-                else if (!me->isDead())
-                    Reset();
             }
 
             void Reset()
             {
                 events.Reset();
+                me->SetVisible(true);
                 me->AddUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
-                if (instance->GetBossState(DATA_BLOOD_PRINCE_COUNCIL) == DONE)
-                {
-                    me->SetVisible(false);
-                    introDone = true;
-                }
-                else
-                    me->SetVisible(true);
             }
 
             void MoveInLineOfSight(Unit* who)
             {
-                if (introDone)
+                if (bIntroDone)
                     return;
 
                 if (!me->IsWithinDistInMap(who, 35.0f))
                     return;
 
-                introDone = true;
-                Talk(SAY_INTRO_1);
+                bIntroDone = true;
+                DoScriptText(SAY_INTRO_1, me);
                 events.SetPhase(1);
                 events.ScheduleEvent(EVENT_INTRO_1, 14000);
                 // summon a visual trigger
-                if (Creature* summon = DoSummon(NPC_FLOATING_TRIGGER, triggerPos, 15000, TEMPSUMMON_TIMED_DESPAWN))
+                if (Creature* summon = DoSummon(CREATURE_FLOATING_TRIGGER, triggerPos, 15000, TEMPSUMMON_TIMED_DESPAWN))
                 {
                     summon->CastSpell(summon, SPELL_OOC_INVOCATION_VISUAL, true);
                     summon->SetSpeed(MOVE_FLIGHT, 0.15f, true);
@@ -1014,25 +904,25 @@ class npc_blood_queen_lana_thel : public CreatureScript
 
             void UpdateAI(const uint32 diff)
             {
-                if (!events.GetPhaseMask())
+                if (!events.GetPhaseMask() || !instance)
                     return;
 
                 events.Update(diff);
 
                 if (events.ExecuteEvent() == EVENT_INTRO_1)
                 {
-                    Talk(SAY_INTRO_2);
+                    DoScriptText(SAY_INTRO_2, me);
                     me->GetMotionMaster()->MovePoint(POINT_INTRO_DESPAWN, introFinalPos);
                     events.Reset();
 
                     // remove Feign Death from princes
-                    if (Creature* keleseth = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_KELESETH_GUID)))
+                    if (Creature* keleseth = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_KELESETH_ICC)))
                         keleseth->AI()->DoAction(ACTION_STAND_UP);
 
-                    if (Creature* taldaram = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_TALDARAM_GUID)))
+                    if (Creature* taldaram = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_TALDARAM_ICC)))
                         taldaram->AI()->DoAction(ACTION_STAND_UP);
 
-                    if (Creature* valanar = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_VALANAR_GUID)))
+                    if (Creature* valanar = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_VALANAR_ICC)))
                     {
                         valanar->AI()->DoAction(ACTION_STAND_UP);
                         valanar->SetHealth(valanar->GetMaxHealth());
@@ -1041,9 +931,9 @@ class npc_blood_queen_lana_thel : public CreatureScript
             }
 
         private:
+            bool bIntroDone;
             EventMap events;
             InstanceScript* instance;
-            bool introDone;
         };
 
         CreatureAI* GetAI(Creature* creature) const
@@ -1067,7 +957,7 @@ class npc_ball_of_flame : public CreatureScript
             void Reset()
             {
                 me->CastSpell(me, SPELL_BALL_OF_FLAMES_VISUAL, true);
-                if (me->GetEntry() == NPC_BALL_OF_INFERNO_FLAME)
+                if (me->GetEntry() == CREATURE_BALL_OF_INFERNO_FLAME)
                 {
                     me->CastSpell(me, SPELL_BALL_OF_FLAMES_PROC, true);
                     me->CastSpell(me, SPELL_BALL_OF_FLAMES_PERIODIC, true);
@@ -1117,8 +1007,8 @@ class npc_ball_of_flame : public CreatureScript
             }
 
         private:
-            uint64 chaseGUID;
             uint32 despawnTimer;
+            uint64 chaseGUID;
         };
 
         CreatureAI* GetAI(Creature* creature) const
@@ -1250,7 +1140,7 @@ class npc_dark_nucleus : public CreatureScript
                 if (targetAuraCheck <= diff)
                 {
                     targetAuraCheck = 1000;
-                    if (Unit* victim = me->getVictim())
+                    if (Unit *victim = me->getVictim())
                         if (me->GetDistance(victim) < 15.0f &&
                             !victim->HasAura(SPELL_SHADOW_RESONANCE_RESIST, me->GetGUID()))
                         {
@@ -1263,7 +1153,7 @@ class npc_dark_nucleus : public CreatureScript
 
                 if (!lockedTarget)
                 {
-                    if (Unit* victim = me->SelectVictim())
+                    if (Unit *victim = me->SelectVictim())
                     {
                         if (me->getVictim() && me->getVictim() != victim)
                         {
@@ -1302,7 +1192,7 @@ class spell_taldaram_glittering_sparks : public SpellScriptLoader
             void HandleScript(SpellEffIndex effIndex)
             {
                 PreventHitDefaultEffect(effIndex);
-                GetCaster()->CastSpell(GetCaster(), uint32(GetEffectValue()), true);
+                GetCaster()->CastSpell(GetCaster(), GetEffectValue(), true);
             }
 
             void Register()
@@ -1329,7 +1219,7 @@ class spell_taldaram_summon_flame_ball : public SpellScriptLoader
             void HandleScript(SpellEffIndex effIndex)
             {
                 PreventHitDefaultEffect(effIndex);
-                GetCaster()->CastSpell(GetCaster(), uint32(GetEffectValue()), true);
+                GetCaster()->CastSpell(GetCaster(), GetEffectValue(), true);
             }
 
             void Register()
@@ -1355,7 +1245,7 @@ class spell_taldaram_flame_ball_visual : public SpellScriptLoader
 
             bool Load()
             {
-                if (GetCaster()->GetEntry() == NPC_BALL_OF_FLAME || GetCaster()->GetEntry() == NPC_BALL_OF_INFERNO_FLAME)
+                if (GetCaster()->GetEntry() == CREATURE_BALL_OF_FLAME || GetCaster()->GetEntry() == CREATURE_BALL_OF_INFERNO_FLAME)
                     return true;
                 return false;
             }
@@ -1373,7 +1263,12 @@ class spell_taldaram_flame_ball_visual : public SpellScriptLoader
                     target->AI()->DoAction(ACTION_FLAME_BALL_CHASE);
                 }
                 else // SPELL_FLAME_SPHERE_DEATH_EFFECT
-                    target->DespawnOrUnsummon();
+                {
+                    if (TempSummon* summ = target->ToTempSummon())
+                        summ->UnSummon();
+                    else
+                        target->DespawnOrUnsummon();
+                }
             }
 
             void Register()
@@ -1400,7 +1295,7 @@ class spell_taldaram_ball_of_inferno_flame : public SpellScriptLoader
             void ModAuraStack()
             {
                 if (Aura* aur = GetHitAura())
-                    aur->SetStackAmount(uint8(GetSpellInfo()->StackAmount));
+                    aur->SetStackAmount(GetSpellInfo()->StackAmount);
             }
 
             void Register()
@@ -1447,7 +1342,7 @@ class spell_valanar_kinetic_bomb : public SpellScriptLoader
                 if (target->GetTypeId() != TYPEID_UNIT)
                     return;
 
-                if (Creature* bomb = target->FindNearestCreature(NPC_KINETIC_BOMB, 1.0f, true))
+                if (Creature* bomb = target->FindNearestCreature(CREATURE_KINETIC_BOMB, 1.0f, true))
                 {
                     bomb->CastSpell(bomb, SPELL_KINETIC_BOMB_EXPLOSION, true);
                     bomb->RemoveAurasDueToSpell(SPELL_KINETIC_BOMB_VISUAL);
@@ -1555,7 +1450,7 @@ class spell_blood_council_shadow_prison_damage : public SpellScriptLoader
         }
 };
 
-void AddSC_boss_blood_prince_council()
+void AddSC_boss_rat_des_blutes()
 {
     new boss_blood_council_controller();
     new boss_prince_keleseth_icc();
