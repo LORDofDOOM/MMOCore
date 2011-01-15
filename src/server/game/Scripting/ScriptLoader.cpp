@@ -35,6 +35,8 @@ void AddSC_DuelReset();
 void AddSC_guildhouse_npcs();
 //NPC Customizer
 void AddSC_npc_customize();
+//Item Summon NPC
+void AddSC_npc_item_summon();
 // spells
 void AddSC_deathknight_spell_scripts();
 void AddSC_druid_spell_scripts();
@@ -1240,6 +1242,8 @@ void AddCustomScripts()
     AddSC_npc_hunterpetvendor();
 	//NPC Customizer
 	AddSC_npc_customize();		
+	//Item Summon NPC
+	AddSC_npc_item_summon();	
     // Custom
     AddSC_DuelReset();
 #endif
