@@ -160,6 +160,41 @@ bool ChatHandler::HandleRouletteCommand(const char* args)
      return true;
  }
 
+//Mall Teleporter
+bool ChatHandler::HandleMallCommand(const char* /*args*/)
+{
+        //MALL command
+        
+        Player *chr = m_session->GetPlayer();
+
+        if (chr->isInCombat())
+        {
+        SendSysMessage(LANG_YOU_IN_COMBAT);
+        SetSentErrorMessage(true);
+        return false;
+        }
+        if (chr->isInFlight())
+        {
+        SendSysMessage(LANG_YOU_IN_FLIGHT);
+        SetSentErrorMessage(true);
+        return false;
+        }
+
+        chr->ResurrectPlayer(0.5, false);
+
+        switch(chr->GetTeam())
+   {
+        case ALLIANCE:
+                chr->TeleportTo(0, -8865.454102f, 591.230469f, 92.323326f, 4.69254f);    // Insert Ally mall Cords here
+                break;
+
+        case HORDE:
+                        chr->TeleportTo(1, 1554.14f, -4424.46f, 9.86212f, 5.96413f);    // Insert Horde mall Cords here
+                break;
+   }
+        return true;
+}
+ 
 bool ChatHandler::HandleServerInfoCommand(const char* /*args*/)
 {
     uint32 PlayersNum = sWorld->GetPlayerCount();

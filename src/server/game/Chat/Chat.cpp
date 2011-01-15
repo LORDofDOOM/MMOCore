@@ -441,6 +441,8 @@ ChatCommand * ChatHandler::getCommandTable()
 		//Allows your players to gamble for fun and prizes
         { "gamble",         SEC_PLAYER,         false, OldHandler<&ChatHandler::HandleGambleCommand>,              "", NULL },	
         { "roulette",       SEC_PLAYER,         false, OldHandler<&ChatHandler::HandleRouletteCommand>,            "", NULL },
+		//Mall Teleporter
+		{ "mall",			SEC_PLAYER,			false, OldHandler<&ChatHandler::HandleMallCommand>,				"", NULL }, 		
         { "freeze",         SEC_MODERATOR,  false, OldHandler<&ChatHandler::HandleFreezeCommand>,              "", NULL },
         { "unfreeze",       SEC_MODERATOR,  false, OldHandler<&ChatHandler::HandleUnFreezeCommand>,            "", NULL },
         { "listfreeze",     SEC_MODERATOR,  false, OldHandler<&ChatHandler::HandleListFreezeCommand>,          "", NULL },
