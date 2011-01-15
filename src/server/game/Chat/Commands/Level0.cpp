@@ -82,6 +82,84 @@ bool ChatHandler::HandleStartCommand(const char* /*args*/)
     return true;
 }
 
+//Allows your players to gamble for fun and prizes
+bool ChatHandler::HandleGambleCommand(const char* args)
+{
+    Player *chr = m_session->GetPlayer();
+
+    char* px = strtok((char*)args, " ");
+
+    if (!px)
+        return false;
+
+    uint32 money = (uint32)atoi(px);
+
+    if (chr->GetMoney() < money)
+    {
+        SendSysMessage("Du kannst kein Gold setzen welches du nicht hast!");
+        return true;
+    }
+
+    else
+    {
+        if (money>0)
+        {
+             //if (rand()%100 < 50)
+			 if (rand()%100 < 40)
+             {
+				  chr->ModifyMoney(money);	
+                  //chr->ModifyMoney(money*2);
+                  SendSysMessage("Du hast gewonnen und einen Einsatz verdoppelt");
+             }
+             else
+             {
+                  chr->ModifyMoney(-int(money));
+                  SendSysMessage("Du hast verloren");
+             }  
+        }
+    }
+
+    return true;
+}
+
+bool ChatHandler::HandleRouletteCommand(const char* args)
+{
+    Player *chr = m_session->GetPlayer();
+
+    char* px = strtok((char*)args, " ");
+
+    if (!px)
+        return false;
+
+    uint32 money = (uint32)atoi(px);
+
+    if (chr->GetMoney() < money)
+    {
+        SendSysMessage("Du kannst kein Gold setzen welches du nicht hast!");
+        return true;
+    }
+
+    else
+    {
+        if (money>0)
+        {
+             //if (rand()%36 < 1)
+			 if (rand()%42 < 1)
+             {
+                  chr->ModifyMoney(money*36);
+                  SendSysMessage("Du hast das 36x deines Einsatzes gewonnen, GZ!");
+             }
+             else
+             {
+                  chr->ModifyMoney(-int(money));
+                  SendSysMessage("Du hast verloren");
+             }  
+        }
+    }
+
+     return true;
+ }
+
 bool ChatHandler::HandleServerInfoCommand(const char* /*args*/)
 {
     uint32 PlayersNum = sWorld->GetPlayerCount();
