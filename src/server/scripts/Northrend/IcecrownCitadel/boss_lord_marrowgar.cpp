@@ -15,15 +15,15 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ScriptPCH.h"
-#include "icecrown_citadel.h"
-#include "SpellAuraEffects.h"
+#include "ObjectMgr.h"
+#include "ScriptMgr.h"
+#include "ScriptedCreature.h"
 #include "SpellScript.h"
 #include "SpellAuras.h"
+#include "icecrown_citadel.h"
 #include "MapManager.h"
-#include "Group.h"
 
-enum eScriptTexts
+enum ScriptTexts
 {
     SAY_ENTER_ZONE              = 0,
     SAY_AGGRO                   = 1,
@@ -35,7 +35,7 @@ enum eScriptTexts
     EMOTE_BONE_STORM            = 7,
 };
 
-enum eSpells
+enum Spells
 {
     // Lord Marrowgar
     SPELL_BONE_SLICE            = 69055,
@@ -54,7 +54,7 @@ enum eSpells
 
 static const uint32 boneSpikeSummonId[3] = {69062, 72669, 72670};
 
-enum eEvents
+enum Events
 {
     EVENT_BONE_SPIKE_GRAVEYARD  = 1,
     EVENT_COLDFLAME             = 2,
@@ -71,7 +71,7 @@ enum eEvents
     EVENT_GROUP_SPECIAL         = 1,
 };
 
-enum eMovementPoints
+enum MovementPoints
 {
     POINT_TARGET_BONESTORM_PLAYER   = 36612631,
     POINT_TARGET_COLDFLAME          = 36672631,
@@ -113,7 +113,6 @@ class boss_lord_marrowgar : public CreatureScript
                 events.ScheduleEvent(EVENT_WARN_BONE_STORM, urand(45000, 50000));
                 events.ScheduleEvent(EVENT_ENRAGE, 600000);
                 instance->SetBossState(DATA_LORD_MARROWGAR, NOT_STARTED);
-				instance->SetData(DATA_MARROWGAR_EVENT, NOT_STARTED);
             }
 
             void EnterCombat(Unit* /*who*/)
@@ -121,30 +120,18 @@ class boss_lord_marrowgar : public CreatureScript
                 Talk(SAY_AGGRO);
 
                 instance->SetBossState(DATA_LORD_MARROWGAR, IN_PROGRESS);
-				instance->SetData(DATA_MARROWGAR_EVENT, IN_PROGRESS);
             }
 
-            void JustDied(Unit* killer)
+            void JustDied(Unit* /*killer*/)
             {
                 Talk(SAY_DEATH);
-				//Removing "Impaled" aura due to bug.
-				if (killer->GetTypeId() == TYPEID_PLAYER)
-				{
-					Player *pPlayer = (Player*)killer;
-					if (Group* pGroup = pPlayer->GetGroup())
-						for (GroupReference* pRef = pGroup->GetFirstMember(); pRef != NULL; pRef = pRef->next())
-							if (Player* pMember = pRef->getSource())
-								pMember->RemoveAurasDueToSpell(SPELL_IMPALED);
-				}
-				instance->SetBossState(DATA_LORD_MARROWGAR, DONE);
-				instance->SetData(DATA_MARROWGAR_EVENT, DONE);
-				summons.DespawnAll();
+
+                instance->SetBossState(DATA_LORD_MARROWGAR, DONE);
             }
 
             void JustReachedHome()
             {
                 instance->SetBossState(DATA_LORD_MARROWGAR, FAIL);
-				instance->SetData(DATA_MARROWGAR_EVENT, FAIL);
                 instance->SetData(DATA_BONED_ACHIEVEMENT, uint32(true));    // reset
             }
 
@@ -403,18 +390,6 @@ class npc_bone_spike : public CreatureScript
                 if (events.ExecuteEvent() == EVENT_FAIL_BONED)
                     if (InstanceScript* instance = me->GetInstanceScript())
                         instance->SetData(DATA_BONED_ACHIEVEMENT, uint32(false));
-
-                if (TempSummon* summ = me->ToTempSummon())
-                {
-                    if (Unit* trapped = summ->GetSummoner())
-					{
-						if (trapped->isDead())
-						{
-							trapped->RemoveAurasDueToSpell(SPELL_IMPALED);
-							summ->UnSummon();
-						}
-					}
-                }
             }
 
         private:
