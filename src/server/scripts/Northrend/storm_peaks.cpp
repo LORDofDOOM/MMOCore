@@ -535,6 +535,443 @@ public:
 };
 
 /*######
+## Fix Quest http://www.wowhead.com/quest=12851 "Going Bearback"
+######*/
+
+enum eGoingBearback
+{
+    MOB_FROSTWORG                     = 29358,
+    SPELL_ABLAZE                      = 54683,
+    SPELL_FROSTWORG_CREDIT            = 54896,
+    SPELL_FROSTGIANT_CREDIT           = 54893,
+    SPELL_FLAMING_ARROW_EFFECT        = 54798
+};
+
+class npc_icefang : public CreatureScript
+{
+    public:
+        npc_icefang() : CreatureScript("npc_icefang") {}
+
+        struct npc_icefangAI : public ScriptedAI
+        {
+            npc_icefangAI(Creature* pCreature) : ScriptedAI(pCreature) {}
+
+            bool bBurned;
+
+            uint32 uiCheckTimer;
+            uint32 uiDespawnTimer;
+
+            void Reset()
+            {
+                bBurned = false;
+                uiCheckTimer = 5000;
+                uiDespawnTimer = 4000;
+                me->SetCorpseDelay(5);
+            }
+
+            void UpdateAI(const uint32 diff)
+            {
+                if (uiCheckTimer < diff && !bBurned)
+                {
+                    if (Aura* pFlames = me->GetAura(SPELL_FLAMING_ARROW_EFFECT))
+                    {
+                        Unit* pIcefang = pFlames->GetCaster();
+                        if (pIcefang && pIcefang->IsVehicle())
+                            if (Unit* pPlayer = pIcefang->GetVehicleKit()->GetPassenger(0))
+                            {
+                                bBurned = true;
+                                me->CastSpell(me, SPELL_ABLAZE, true);
+                                pPlayer->CastSpell(pPlayer, me->GetEntry() == MOB_FROSTWORG ? SPELL_FROSTWORG_CREDIT : SPELL_FROSTGIANT_CREDIT, true);
+                            }
+                    }
+                    uiCheckTimer = 5000;
+                } else uiCheckTimer -= diff;
+
+                if (bBurned && me->isAlive())
+                    if (uiDespawnTimer < diff)
+                    {
+                        me->Kill(me);
+                    } else uiDespawnTimer -= diff;
+
+                if (!UpdateVictim())
+                    return;
+
+                DoMeleeAttackIfReady();
+            }
+        };
+
+        CreatureAI *GetAI(Creature *creature) const
+        {
+            return new npc_icefangAI(creature);
+        }
+};
+
+/*######
+## Fix Quest: "Cold Hearted" (12856) http://www.wowhead.com/quest=12856
+######*/
+
+enum eCaptiveProtodrake
+{
+    QUEST_COLD_HEARTED                = 12856,
+    ENTRY_FREED_PROTODRAKE            = 29709,
+    SPELL_RIDE_FREED_DRAKE            = 55029
+};
+
+class npc_captive_protodrake : public CreatureScript
+{
+public:
+    npc_captive_protodrake() : CreatureScript("npc_captive_protodrake") {}
+
+    struct npc_captive_protodrakeAI : public ScriptedAI
+    {
+        npc_captive_protodrakeAI(Creature* pCreature) : ScriptedAI(pCreature) {}
+
+        void Reset()
+        {
+            me->SetVisible(true);
+        }
+
+        void PassengerBoarded(Unit* pWho, int8 /*seatId*/, bool apply) 
+        {
+            if (pWho->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            if (pWho && apply)
+            {
+                if (pWho->ToPlayer()->GetQuestStatus(QUEST_COLD_HEARTED) == QUEST_STATUS_INCOMPLETE)
+                {
+                    pWho->ExitVehicle();
+                    Creature* pFreed = pWho->SummonCreature(ENTRY_FREED_PROTODRAKE, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 300000);
+                    if (pFreed && pFreed->IsVehicle())
+                    {
+                        pWho->RemoveAurasDueToSpell(45472);  //remove parachute
+                        pWho->CastSpell(pFreed, SPELL_RIDE_FREED_DRAKE, true);
+                        pFreed->SetFlying(true);  //should not be here
+                        pFreed->SetSpeed(MOVE_FLIGHT, 3.0f);
+                        me->SetVisible(false);
+                        me->Kill(me);
+                    }
+                }
+            }
+        }
+
+    };
+
+    CreatureAI *GetAI(Creature *creature) const
+    {
+        return new npc_captive_protodrakeAI(creature);
+    }
+};
+
+enum eFreedProtodrake
+{
+    ENTRY_LIBERATED_BRUNNHILDAR         = 29734
+};
+
+const Position FreedDrakeWaypoints[6] =
+{
+    {7250.15f, -2327.22f, 869.03f, 0.0f},
+    {7118.79f, -2122.05f, 841.32f, 0.0f},
+    {7052.86f, -1905.99f, 888.59f, 0.0f},
+    {7038.24f, -1822.77f, 857.94f, 0.0f},
+    {7044.09f, -1792.25f, 841.69f, 0.0f},
+    {7071.20f, -1780.73f, 822.42f, 0.0f}
+};
+
+class npc_freed_protodrake : public CreatureScript
+{
+public:
+    npc_freed_protodrake() : CreatureScript("npc_freed_protodrake") { }
+
+    struct npc_freed_protodrakeAI : public ScriptedAI
+    {
+        npc_freed_protodrakeAI(Creature* pCreature) : ScriptedAI(pCreature) { }
+
+        uint8 count;
+        bool wp_reached;
+        bool movementStarted;
+
+        void Reset()
+        {
+            count = 0;
+            wp_reached = false;
+            movementStarted = false;
+        }
+
+        void MovementInform(uint32 type, uint32 id)
+        {
+            if (type != POINT_MOTION_TYPE || id != count)
+                return;
+
+            if (id < 5)
+            {
+                ++count;
+                wp_reached = true;
+            }
+            else //reached village, give credits
+            {
+                Unit* pPlayer = me->GetVehicleKit()->GetPassenger(0); //get player
+                if (pPlayer && pPlayer->GetTypeId() == TYPEID_PLAYER)
+                {
+                    for (uint8 i = 1; i < 4; ++i) //try to get prisoners
+                        if (Unit* pPrisoner = me->GetVehicleKit()->GetPassenger(i))
+                        {
+                            pPlayer->ToPlayer()->KilledMonsterCredit(ENTRY_LIBERATED_BRUNNHILDAR, 0);
+                            pPrisoner->ExitVehicle();
+                        }
+
+                    pPlayer->ToPlayer()->KilledMonsterCredit(ENTRY_FREED_PROTODRAKE, 0);
+                    pPlayer->ExitVehicle();
+                }
+
+                me->SetVisible(false);
+                me->ForcedDespawn(1000);
+            }
+        }
+
+        void UpdateAI(const uint32 uiDiff)
+        {
+            if (!me->isCharmed() && !movementStarted)
+            {
+                movementStarted = true;
+                wp_reached = true;
+            }
+
+            if (wp_reached)
+            {
+                wp_reached = false;
+                me->GetMotionMaster()->MovePoint(count, FreedDrakeWaypoints[count]);
+            }
+        }
+    };
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new npc_freed_protodrakeAI(pCreature);
+    }
+};
+
+/*######
+## Quest: The Last of Her Kind (12983)
+######*/
+
+enum eIcemawMatriarch
+{
+    QUEST_LAST_OF_HER_KIND         = 12983,
+    ENTRY_INJURED_ICEMAW           = 29563,
+    SPELL_HARNESSED_ICEMAW         = 56795
+};
+
+const Position HarnessedIcemawWaypoints[17] =
+{
+    {7332.80f, -2065.69f, 765.29f, 0.0f},
+    {7327.32f, -2101.70f, 774.22f, 0.0f},
+    {7254.51f, -2117.08f, 778.98f, 0.0f},
+    {7224.31f, -2117.58f, 777.44f, 0.0f},
+    {7194.28f, -2114.08f, 765.97f, 0.0f},
+    {7155.83f, -2134.19f, 762.16f, 0.0f},
+    {7117.62f, -2113.06f, 760.57f, 0.0f},
+    {7074.25f, -1956.43f, 769.82f, 0.0f},
+    {7065.34f, -1917.58f, 781.57f, 0.0f},
+    {7094.17f, -1884.47f, 787.00f, 0.0f},
+    {7033.13f, -1883.46f, 799.88f, 0.0f},
+    {7021.64f, -1844.55f, 818.59f, 0.0f},
+    {7015.42f, -1745.49f, 819.72f, 0.0f},
+    {7003.12f, -1721.36f, 820.06f, 0.0f},
+    {6947.09f, -1724.14f, 820.61f, 0.0f},
+    {6877.17f, -1684.31f, 820.03f, 0.0f},
+    {6825.53f, -1702.27f, 820.55f, 0.0f}
+};
+
+class npc_injured_icemaw : public CreatureScript
+{
+public:
+    npc_injured_icemaw() : CreatureScript("npc_injured_icemaw") { }
+
+    struct npc_injured_icemawAI : public ScriptedAI
+    {
+        npc_injured_icemawAI(Creature* pCreature) : ScriptedAI(pCreature) { }
+
+        void MoveInLineOfSight(Unit* who)
+        {
+            if (who->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            if (who->ToPlayer()->GetQuestStatus(QUEST_LAST_OF_HER_KIND) == QUEST_STATUS_INCOMPLETE && !who->HasUnitState(UNIT_STAT_ONVEHICLE) && who->GetDistance(me) < 5.0f)
+            {
+                who->CastSpell(who, SPELL_HARNESSED_ICEMAW, true);
+                //disable player control
+                if (Unit* pBase = who->GetVehicleBase())
+                    if (pBase->isCharmed())
+                        pBase->RemoveCharmedBy(pBase->GetCharmer());
+            }
+        }
+
+    };
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new npc_injured_icemawAI(pCreature);
+    }
+};
+
+class npc_harnessed_icemaw : public CreatureScript
+{
+public:
+    npc_harnessed_icemaw() : CreatureScript("npc_harnessed_icemaw") { }
+
+    struct npc_harnessed_icemawAI : public ScriptedAI
+    {
+        npc_harnessed_icemawAI(Creature* pCreature) : ScriptedAI(pCreature) { }
+
+        uint8 count;
+        bool wp_reached;
+        bool movementStarted;
+
+        void Reset()
+        {
+            count = 0;
+            wp_reached = false;
+            movementStarted = false;
+        }
+
+        void MovementInform(uint32 type, uint32 id)
+        {
+            if (type != POINT_MOTION_TYPE || id != count)
+                return;
+
+            if (id < 16)
+            {
+                ++count;
+                wp_reached = true;
+            }
+            else //reached questgiver, give credit
+            {
+                Unit* pPlayer = me->GetVehicleKit()->GetPassenger(0);
+                if (pPlayer && pPlayer->GetTypeId() == TYPEID_PLAYER)
+                {
+                    pPlayer->ToPlayer()->KilledMonsterCredit(ENTRY_INJURED_ICEMAW, 0);
+                    pPlayer->ExitVehicle();
+                }
+            }
+        }
+
+        void UpdateAI(const uint32 uiDiff)
+        {
+            if (!me->isCharmed() && !movementStarted)
+            {
+                movementStarted = true;
+                wp_reached = true;
+            }
+
+            if (wp_reached)
+            {
+                wp_reached = false;
+                me->GetMotionMaster()->MovePoint(count, HarnessedIcemawWaypoints[count]);
+            }
+        }
+    };
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new npc_harnessed_icemawAI(pCreature);
+    }
+};
+
+/*######
+## Quest: The Drakkensryd (12886)
+######*/
+
+enum eHyldsmeetProtodrake
+{
+    //QUEST_DRAKKENSRYD              = 12886,
+    ENTRY_DRAKE_RIDER              = 29800
+};
+
+const Position HyldsmeetProtodrakeWaypoints[11] =
+{
+    {7043.96f, -1742.44f, 838.93f, 0.0f},
+    {7034.98f, -1709.58f, 856.51f, 0.0f},
+    {7079.37f, -1612.35f, 924.75f, 0.0f},
+    {7379.18f, -1134.81f, 1088.66f, 0.0f},
+    {7692.76f, -651.09f, 1461.96f, 0.0f},
+    {7675.39f, -486.31f, 1672.88f, 0.0f},
+    {7593.01f, -442.39f, 1786.34f, 0.0f},
+    {7439.90f, -381.42f, 1852.33f, 0.0f},
+    {7339.86f, -426.02f, 1852.92f, 0.0f},
+    {7324.65f, -553.58f, 1924.50f, 0.0f},
+    {7397.71f, -540.00f, 1927.81f, 0.0f}
+};
+
+class npc_hyldsmeet_protodrake : public CreatureScript
+{
+public:
+    npc_hyldsmeet_protodrake() : CreatureScript("npc_hyldsmeet_protodrake") { }
+
+    struct npc_hyldsmeet_protodrakeAI : public ScriptedAI
+    {
+        npc_hyldsmeet_protodrakeAI(Creature* pCreature) : ScriptedAI(pCreature) { }
+
+        uint8 count;
+        bool wp_reached;
+
+        void Reset()
+        {
+            count = 0;
+            wp_reached = false;
+        }
+
+        void PassengerBoarded(Unit* pWho, int8 /*seatId*/, bool apply) 
+        {
+            if (pWho && apply)
+            {
+                wp_reached = true;
+                me->SetFlying(true);
+                me->SetSpeed(MOVE_FLIGHT, 5.0f);
+            }
+
+        }
+
+        void MovementInform(uint32 type, uint32 id)
+        {
+            if (type != POINT_MOTION_TYPE || id != count)
+                return;
+
+            if (id < 10)
+            {
+                ++count;
+                wp_reached = true;
+            }
+            else //TODO: remove this and loop waypoints around the hill
+            {
+                Unit* pPlayer = me->GetVehicleKit()->GetPassenger(0);
+                if (pPlayer && pPlayer->GetTypeId() == TYPEID_PLAYER)
+                {
+                    for (uint8 i = 0; i < 10; ++i)
+                        pPlayer->ToPlayer()->KilledMonsterCredit(ENTRY_DRAKE_RIDER, 0);
+                    pPlayer->ExitVehicle();
+                    //me->ForcedDespawn(5000);
+                }
+            }
+        }
+
+        void UpdateAI(const uint32 uiDiff)
+        {
+            if (wp_reached)
+            {
+                wp_reached = false;
+                me->GetMotionMaster()->MovePoint(count, HyldsmeetProtodrakeWaypoints[count]);
+            }
+        }
+    };
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new npc_hyldsmeet_protodrakeAI(pCreature);
+    }
+};
+
+/*######
 ## npc_brunnhildar_prisoner
 ######*/
 
@@ -675,5 +1112,11 @@ void AddSC_storm_peaks()
     new npc_loklira_crone;
     new npc_injured_goblin;
     new npc_roxi_ramrocket;
+    new npc_icefang;
+    new npc_captive_protodrake;
+    new npc_freed_protodrake;
     new npc_brunnhildar_prisoner;
+    new npc_injured_icemaw;
+    new npc_harnessed_icemaw;
+    new npc_hyldsmeet_protodrake;
 }
