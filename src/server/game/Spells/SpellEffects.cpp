@@ -4472,7 +4472,33 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                 case 26465:
                     unitTarget->RemoveAuraFromStack(26464);
                     return;
-                // Shadow Flame (All script effects, not just end ones to prevent player from dodging the last triggered spell)
+				case 62575:
+				{
+					if(m_caster->GetOwner())
+						m_caster->GetOwner()->CastSpell(unitTarget,62626,true );
+						return;
+				}
+				case 62960:
+				{
+					if (!unitTarget)
+						return;
+					m_caster->CastSpell(unitTarget,62563,true );
+					m_caster->CastSpell(unitTarget,68321,true );
+					return;
+				}
+				case 62626:
+				case 68321:
+				{
+					if(!unitTarget)
+						return;
+					if (unitTarget->GetAura(62719))
+						unitTarget->RemoveAuraFromStack(62719);
+
+					if(unitTarget->GetAura(64100))
+						unitTarget->RemoveAuraFromStack(64100);
+					return;
+				}
+					// Shadow Flame (All script effects, not just end ones to prevent player from dodging the last triggered spell)
                 case 22539:
                 case 22972:
                 case 22975:
@@ -4933,9 +4959,15 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                         return;
 
                     if (m_caster->ToPlayer()->GetTeam() == ALLIANCE)
+			{
                         m_caster->CastSpell(m_caster, 63914, true);
+			DoCreateItem(0,46069);
+			}
                     else
-                        m_caster->CastSpell(m_caster, 63919, true);
+			{
+                        DoCreateItem(0,46070);
+			m_caster->CastSpell(m_caster, 63919, true);
+			}
                     return;
                 }
                 case 71342:                                     // Big Love Rocket
@@ -5277,6 +5309,7 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                     break;
                 }
                 case 64142:                                 // Upper Deck - Create Foam Sword
+		{
                     if (unitTarget->GetTypeId() != TYPEID_PLAYER)
                         return;
                     Player *plr = unitTarget->ToPlayer();
@@ -5287,6 +5320,7 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                             return;
                     DoCreateItem(effIndex, itemId[urand(0,4)]);
                     return;
+		}
             }
             break;
         }
