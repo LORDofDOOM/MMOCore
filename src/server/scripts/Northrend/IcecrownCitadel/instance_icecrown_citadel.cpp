@@ -442,7 +442,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case DATA_LORD_MARROWGAR:         return uiLordMarrowgar;
                     case DATA_GUNSHIP_BATTLE:         return uiGunship;
                     case DATA_SAURFANG:               return uiDeathbringerSaurfang;
-                    case DATA_FESTERGUT:             return uiFestergut;
+                    case DATA_FESTERGUT:              return uiFestergut;
                     case DATA_ROTFACE:                return uiRotface;
                     case DATA_PROFESSOR_PUTRICIDE:    return uiProfessorPutricide;
                     case DATA_PRINCE_VALANAR_ICC:     return uiPrinceValanar;
