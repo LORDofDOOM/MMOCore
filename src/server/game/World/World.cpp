@@ -862,6 +862,19 @@ void World::LoadConfigSettings(bool reload)
             pvp_ranks[i] = atoi(strtok (NULL, ","));
     }
 
+    rate_values[RATE_PVP_RANK_EXTRA_HONOR] = sConfig->GetFloatDefault("PvPRank.Rate.ExtraHonor", 1);
+    std::string s_pvp_ranks = sConfig->GetStringDefault("PvPRank.HKPerRank", "10,50,100,200,450,750,1300,2000,3500,6000,9500,15000,21000,30000");
+    char *c_pvp_ranks = const_cast<char*>(s_pvp_ranks.c_str());
+    for (int i = 0; i !=HKRANKMAX; i++)
+    {
+        if (i==0)
+            pvp_ranks[0] = 0;
+        else if (i==1)
+            pvp_ranks[1] = atoi(strtok (c_pvp_ranks, ","));
+        else
+            pvp_ranks[i] = atoi(strtok (NULL, ","));
+    }
+
     m_int_configs[CONFIG_GM_LOGIN_STATE]        = sConfig->GetIntDefault("GM.LoginState", 2);
     m_int_configs[CONFIG_GM_VISIBLE_STATE]      = sConfig->GetIntDefault("GM.Visible", 2);
     m_int_configs[CONFIG_GM_CHAT]               = sConfig->GetIntDefault("GM.Chat", 2);
@@ -1213,6 +1226,9 @@ void World::LoadConfigSettings(bool reload)
     // MySQL ping time interval
     m_int_configs[CONFIG_DB_PING_INTERVAL] = sConfig->GetIntDefault("MaxPingTime", 30);
 
+    m_bool_configs[CONFIG_ANTICHEAT_ENABLE] = sConfig->GetBoolDefault("Anticheat.Enable", true);
+    m_int_configs[CONFIG_ANTICHEAT_REPORTS_INGAME_NOTIFICATION] = sConfig->GetIntDefault("Anticheat.ReportsForIngameWarnings", 70);
+    
     sScriptMgr->OnConfigLoad(reload);
 }
 
@@ -2652,7 +2668,7 @@ void World::InitDailyQuestResetTime()
     if (result)
     {
         Field *fields = result->Fetch();
-        mostRecentQuestTime = (time_t)fields[0].GetUInt64();
+        mostRecentQuestTime = time_t(fields[0].GetUInt32());
     }
     else
         mostRecentQuestTime = 0;
@@ -2824,7 +2840,7 @@ void World::LoadWorldStates()
     do
     {
         Field *fields = result->Fetch();
-        m_worldstates[fields[0].GetUInt32()] = fields[1].GetUInt64();
+        m_worldstates[fields[0].GetUInt32()] = fields[1].GetUInt32();
         ++count;
     }
     while (result->NextRow());

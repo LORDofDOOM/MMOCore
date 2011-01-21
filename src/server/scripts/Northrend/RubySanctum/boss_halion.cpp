@@ -1,18 +1,18 @@
 /* Copyright (C) 2010 Easy for TrinityCore <http://trinity-core.ru/>
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
 
 #include "ScriptPCH.h"
 #include "ruby_sanctum.h"
@@ -422,10 +422,8 @@ class boss_halion : public CreatureScript
                            instance->DoCompleteAchievement(TWILIGHT_DESTROYER_NORMAL_25);
                   case RAID_DIFFICULTY_25MAN_HEROIC:
                              instance->DoCompleteAchievement(TWILIGHT_DESTROYER_HEROIC_25);
-
                  }
              }
-
         private:
             uint32 PercentDamage;
         };
@@ -788,11 +786,11 @@ class npc_summon_halion : public CreatureScript
 
 void AddSC_boss_halion()
 {
-    new boss_halion();
-    new boss_twilight_halion();
-    new spell_halion_portal();
-    new npc_meteor_strike();
-    new npc_spell_meteor_strike();
-    new npc_meteor_flame();
-    new npc_summon_halion();
+    new boss_halion;
+    new boss_twilight_halion;
+    new spell_halion_portal;
+    new npc_meteor_strike;
+    new npc_spell_meteor_strike;
+    new npc_meteor_flame;
+    new npc_summon_halion;
 }

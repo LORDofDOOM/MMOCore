@@ -165,6 +165,7 @@ enum WorldBoolConfigs
     CONFIG_ALLOW_TICKETS,
     CONFIG_DBC_ENFORCE_ITEM_ATTRIBUTES,
     CONFIG_PRESERVE_CUSTOM_CHANNELS,
+    CONFIG_ANTICHEAT_ENABLE,
     CONFIG_OUTDOORPVP_WINTERGRASP_ENABLED,
     CONFIG_OUTDOORPVP_WINTERGRASP_CUSTOM_HONOR,
     CONFIG_CONFIG_OUTDOORPVP_WINTERGRASP_ANTIFARM_ENABLE,
@@ -328,6 +329,7 @@ enum WorldIntConfigs
     CONFIG_CONFIG_OUTDOORPVP_WINTERGRASP_ANTIFARM_ATK,
     CONFIG_CONFIG_OUTDOORPVP_WINTERGRASP_ANTIFARM_DEF,
     CONFIG_PERSISTENT_CHARACTER_CLEAN_FLAGS,
+    CONFIG_ANTICHEAT_REPORTS_INGAME_NOTIFICATION,
     INT_CONFIG_VALUE_COUNT
 };
 
@@ -400,7 +402,7 @@ enum Rates
     RATE_MOVESPEED,
     MAX_RATES
 };
-    
+	
 enum HonorKillPvPRank
 {
     HKRANK00,
@@ -667,6 +669,8 @@ class World
         void SendZoneMessage(uint32 zone, WorldPacket *packet, WorldSession *self = 0, uint32 team = 0);
         void SendZoneText(uint32 zone, const char *text, WorldSession *self = 0, uint32 team = 0);
         void SendServerMessage(ServerMessageType type, const char *text = "", Player* player = NULL);
+
+        uint32 pvp_ranks[HKRANKMAX];
 
         uint32 pvp_ranks[HKRANKMAX];
 

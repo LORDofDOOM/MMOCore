@@ -392,7 +392,7 @@ enum PlayerFlags
       PLAYER_TITLE_KNIGHT_LIEUTENANT | PLAYER_TITLE_KNIGHT_CAPTAIN | \
       PLAYER_TITLE_KNIGHT_CHAMPION | PLAYER_TITLE_LIEUTENANT_COMMANDER | \
       PLAYER_TITLE_COMMANDER | PLAYER_TITLE_MARSHAL | \
-      PLAYER_TITLE_FIELD_MARSHAL | PLAYER_TITLE_GRAND_MARSHAL)\
+      PLAYER_TITLE_FIELD_MARSHAL | PLAYER_TITLE_GRAND_MARSHAL)
 
 #define PLAYER_TITLE_MASK_HORDE_PVP                           \
     (PLAYER_TITLE_SCOUT | PLAYER_TITLE_GRUNT |  \
@@ -401,7 +401,7 @@ enum PlayerFlags
       PLAYER_TITLE_BLOOD_GUARD | PLAYER_TITLE_LEGIONNAIRE | \
       PLAYER_TITLE_CENTURION | PLAYER_TITLE_CHAMPION | \
       PLAYER_TITLE_LIEUTENANT_GENERAL | PLAYER_TITLE_GENERAL | \
-      PLAYER_TITLE_WARLORD | PLAYER_TITLE_HIGH_WARLORD)\
+      PLAYER_TITLE_WARLORD | PLAYER_TITLE_HIGH_WARLORD)
 
 #define PLAYER_TITLE_MASK_ALL_PVP  \
     (PLAYER_TITLE_MASK_ALLIANCE_PVP | PLAYER_TITLE_MASK_HORDE_PVP)
@@ -1007,6 +1007,18 @@ class TradeData
         uint64     m_items[TRADE_SLOT_COUNT];               // traded itmes from m_player side including non-traded slot
 };
 
+struct AnticheatData
+{
+    uint32 lastOpcode;
+    MovementInfo lastMovementInfo;
+    bool disableACCheck;
+    uint32 disableACCheckTimer;
+    uint32 total_reports;
+    uint32 type_reports[5];
+    uint32 average;
+    uint64 creation_time;
+};
+
 class Player : public Unit, public GridObject<Player>
 {
     friend class WorldSession;
@@ -1015,6 +1027,8 @@ class Player : public Unit, public GridObject<Player>
     public:
         explicit Player (WorldSession *session);
         ~Player ();
+
+        AnticheatData anticheatData;
 
         void CleanupsBeforeDelete(bool finalCleanup = true);
 
