@@ -2408,24 +2408,6 @@ class Player : public Unit, public GridObject<Player>
         float GetAverageItemLevel();
         bool isDebugAreaTriggers;
 
-        /*********************************************************/
-        /***                 ANTICHEAT SYSTEM                  ***/
-        /*********************************************************/
-        float GetLastSpeedRate() { return fLastSpeedRate; }
-        uint32 GetLastOpcode() { return uiLastOpcode; }
-        MovementInfo& GetLastPacket() { return lastMovementInfo; }
-        void SaveLastPacket(MovementInfo& pMovementInfo) { lastMovementInfo = pMovementInfo; }
-        void SetLastSpeedRate(float fSpeedRateRate) { fLastSpeedRate = fSpeedRateRate; }
-        void SetLastOpcode(uint32 uiOpcode) { uiLastOpcode = uiOpcode; }
-        void ElaborateCheatReport(Player* pPlayer, uint8 uiReportType);
-        bool SpeedHackDetection(MovementInfo& pOldPacket, MovementInfo& pNewPacket, uint32 uiOpcode, float fLastSpeedRate);
-        void TeleportHackDetection(MovementInfo& pOldPacket, MovementInfo& pNewPacket, uint32 uiOpcode);
-        void FlyHackDetection(MovementInfo& pOldPacket, MovementInfo& pNewPacket);
-        void WalkOnWaterHackDetection(MovementInfo& pOldPacket, MovementInfo& pNewPacket);
-        void JumpHackDetection(uint32 uiOpcode);
-        bool CanFlyAnticheat(MovementInfo& pMovementInfo);
-        bool HasFirstReport();
-        void CleanTempCheatReports();
     protected:
         uint32 m_AreaID;
         uint32 m_regenTimerCount;
@@ -2677,13 +2659,6 @@ class Player : public Unit, public GridObject<Player>
 
         bool isAlwaysDetectableFor(WorldObject const* seer) const;
     private:
-        /*********************************************************/
-        /***                    ANTICHEAT SYSTEM               ***/
-        /*********************************************************/
-        float fLastSpeedRate;
-        uint32 uiLastOpcode;
-        MovementInfo lastMovementInfo;
-
         // internal common parts for CanStore/StoreItem functions
         uint8 _CanStoreItem_InSpecificSlot(uint8 bag, uint8 slot, ItemPosCountVec& dest, ItemPrototype const *pProto, uint32& count, bool swap, Item *pSrcItem) const;
         uint8 _CanStoreItem_InBag(uint8 bag, ItemPosCountVec& dest, ItemPrototype const *pProto, uint32& count, bool merge, bool non_specialized, Item *pSrcItem, uint8 skip_bag, uint8 skip_slot) const;

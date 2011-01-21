@@ -2768,43 +2768,6 @@ DuelResetCooldown = 0
 PreventPlayersAccessToGMIsland = 0
 
 #
-#   Anticheat.Enable
-#        Enable Anticheat System
-#        Default: 0 - off
-#                 1 - on
-
-Anticheat.Enable = 0
-
-#
-#   Anticheat.MaxDiffTime
-#        Default: 1000 ms
-#
-
-Anticheat.MaxDiffTime = 1000
-
-#
-#   Anticheat.MinDiffTime
-#        Default: 350 ms
-#
-
-Anticheat.MinDiffTime = 50
-
-#
-#   Anticheat.MaxMaxAllowedDistance
-#	    Default: 0.5 f
-#
-
-Anticheat.MaxMaxAllowedDistance = 0.5
-
-#
-#   Anticheat.ReportsForGMWarnings
-#	    Enable and set warnings (at which amount will allow the report) for ingame-report, -1 disables it
-#	    Default: 75
-#
-
-Anticheat.ReportsForGMWarnings = 75
-
-#
 ###################################################################################################
 
 ###################################################################################################
