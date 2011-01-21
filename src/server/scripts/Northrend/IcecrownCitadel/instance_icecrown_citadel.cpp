@@ -219,12 +219,15 @@ class instance_icecrown_citadel : public InstanceMapScript
                         break;
                     case CREATURE_PRINCE_VALANAR_ICC:
                         uiPrinceValanar = creature->GetGUID();
+                        creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
                         break;
                     case CREATURE_PRINCE_KELESETH_ICC:
                         uiPrinceKeleseth = creature->GetGUID();
+                        creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
                         break;
                     case CREATURE_PRINCE_TALDARAM_ICC:
                         uiPrinceTaldaram = creature->GetGUID();
+                        creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
                         break;
                     case CREATURE_BLOOD_ORB_CONTROLLER:
                         uiBloodCouncilController = creature->GetGUID();

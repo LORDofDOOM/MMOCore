@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2010 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -22,7 +22,7 @@
 #include "SpellAuraEffects.h"
 #include "icecrown_citadel.h"
 
-enum eTexts
+enum Texts
 {
     // Blood Queen Lana'Thel
     SAY_INTRO_1                 = 0,
@@ -55,7 +55,7 @@ enum eTexts
     SAY_VALANAR_DEATH           = 6,
 };
 
-enum eSpells
+enum Spells
 {
     SPELL_FEIGN_DEATH                   = 71598,
     SPELL_OOC_INVOCATION_VISUAL         = 70934,
@@ -110,7 +110,7 @@ enum eSpells
     SPELL_SHOCK_VORTEX_DUMMY            = 72633,
 };
 
-enum eEvents
+enum Events
 {
     EVENT_INTRO_1               = 1,
     EVENT_INTRO_2               = 2,
@@ -133,7 +133,7 @@ enum eEvents
     EVENT_CONTINUE_FALLING      = 12,
 };
 
-enum eActions
+enum Actions
 {
     ACTION_STAND_UP             = 1,
     ACTION_CAST_INVOCATION      = 2,
@@ -142,13 +142,13 @@ enum eActions
     ACTION_FLAME_BALL_CHASE     = 5,
 };
 
-enum ePoints
+enum Points
 {
     POINT_INTRO_DESPAWN         = 380040,
     POINT_KINETIC_BOMB_IMPACT   = 384540,
 };
 
-enum eDisplays
+enum Displays
 {
     DISPLAY_KINETIC_BOMB        = 31095,
 };
@@ -160,6 +160,7 @@ class StandUpEvent : public BasicEvent
         bool Execute(uint64 /*eventTime*/, uint32 /*diff*/)
         {
             m_owner.HandleEmoteCommand(EMOTE_ONESHOT_ROAR);
+            //m_owner.SetReactState(REACT_AGGRESSIVE);
             return true;
         }
 
@@ -170,7 +171,21 @@ class StandUpEvent : public BasicEvent
 static const Position introFinalPos = {4660.490f, 2769.200f, 430.0000f, 0.000000f};
 static const Position triggerPos    = {4680.231f, 2769.134f, 379.9256f, 3.121708f};
 static const Position triggerEndPos = {4680.180f, 2769.150f, 365.5000f, 3.121708f};
-
+void removeFeignDeath(Creature *me)
+{
+    me->RemoveAllAuras();
+    me->RemoveAurasDueToSpell(SPELL_FEIGN_DEATH);
+    me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_OOC_NOT_ATTACKABLE | UNIT_FLAG_UNK_6 | UNIT_FLAG_UNK_15 | UNIT_FLAG_UNK_29);
+    me->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
+    me->RemoveFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_FEIGN_DEATH);
+    me->RemoveAurasByType(SPELL_AURA_FEIGN_DEATH);
+}
+void evadeToHome(Creature *me)
+{
+    me->GetMotionMaster()->MoveTargetedHome();
+    Position pos = me->GetHomePosition();
+    me->SetPosition(pos, true);
+}
 class boss_blood_council_controller : public CreatureScript
 {
     public:
@@ -200,25 +215,41 @@ class boss_blood_council_controller : public CreatureScript
                 instance->SetData(DATA_BLOOD_PRINCE_COUNCIL_EVENT, NOT_STARTED);
             }
 
-            void EnterCombat(Unit* /*who*/)
+            void EnterCombat(Unit* who)
             {
+                if (!instance->CheckRequiredBosses(DATA_BLOOD_PRINCES_CONTROL, who->ToPlayer()))
+                {
+                    EnterEvadeMode();
+                    instance->DoCastSpellOnPlayers(LIGHT_S_HAMMER_TELEPORT);
+                    return;
+                }
+
                 instance->SetBossState(DATA_BLOOD_PRINCES_CONTROL, IN_PROGRESS);
                 instance->SetData(DATA_BLOOD_PRINCE_COUNCIL_EVENT, IN_PROGRESS);
                 DoCast(me, SPELL_INVOCATION_OF_BLOOD_VALANAR);
 
                 if (Creature* keleseth = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_KELESETH_ICC)))
                     if (!keleseth->isInCombat())
+                    {
                         DoZoneInCombat(keleseth);
+                        keleseth->Attack(who, false);
+                    }
 
                 if (Creature* taldaram = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_TALDARAM_ICC)))
                     if (!taldaram->isInCombat())
+                    {
                         DoZoneInCombat(taldaram);
+                        taldaram->Attack(who, true);
+                    }
 
                 if (Creature* valanar = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_VALANAR_ICC)))
                     if (!valanar->isInCombat())
+                    {
                         DoZoneInCombat(valanar);
+                        valanar->Attack(who, true);
+                    }
 
-                events.ScheduleEvent(EVENT_INVOCATION_OF_BLOOD, 30000);
+                events.ScheduleEvent(EVENT_INVOCATION_OF_BLOOD, 46500);
 
                 invocationOrder[0] = InvocationData(instance->GetData64(DATA_PRINCE_VALANAR_ICC), SPELL_INVOCATION_OF_BLOOD_VALANAR, EMOTE_VALANAR_INVOCATION, 71070);
                 if (urand(0, 1))
@@ -308,7 +339,7 @@ class boss_blood_council_controller : public CreatureScript
                             }
 
                             DoCast(me, invocationOrder[invocationStage].spellId);
-                            events.ScheduleEvent(EVENT_INVOCATION_OF_BLOOD, 30000);
+                            events.ScheduleEvent(EVENT_INVOCATION_OF_BLOOD, 46500);
                             break;
                         }
                         default:
@@ -385,9 +416,9 @@ class boss_prince_keleseth_icc : public CreatureScript
                     DoCast(me, SPELL_SHADOW_PRISON);
             }
 
-            void MoveInLineOfSight(Unit* /*who*/)
-            {
-            }
+            //void MoveInLineOfSight(Unit* /*who*/)
+            //{
+            //}
 
             void EnterCombat(Unit* /*who*/)
             {
@@ -409,11 +440,12 @@ class boss_prince_keleseth_icc : public CreatureScript
             {
                 me->SetHealth(spawnHealth);
                 isEmpowered = false;
+                removeFeignDeath(me);
             }
 
             void JustRespawned()
             {
-                DoCast(me, SPELL_FEIGN_DEATH);
+                //DoCast(me, SPELL_FEIGN_DEATH);
                 me->SetHealth(spawnHealth);
             }
 
@@ -451,17 +483,18 @@ class boss_prince_keleseth_icc : public CreatureScript
                 if (victim->GetTypeId() == TYPEID_PLAYER)
                     Talk(SAY_KELESETH_KILL);
             }
-
+            void EnterEvadeMode()
+            {
+                ScriptedAI::EnterEvadeMode();
+                removeFeignDeath(me);
+                evadeToHome(me);
+            }
             void DoAction(const int32 action)
             {
                 switch (action)
                 {
                     case ACTION_STAND_UP:
-                        me->RemoveAurasDueToSpell(SPELL_FEIGN_DEATH);
-                        me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
-                        me->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
-                        me->RemoveFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_FEIGN_DEATH);
-                        me->SetStandState(UNIT_STAND_STATE_STAND);
+                        removeFeignDeath(me);
                         me->ForceValuesUpdateAtIndex(UNIT_NPC_FLAGS);   // was in sniff. don't ask why
                         me->m_Events.AddEvent(new StandUpEvent(*me), me->m_Events.CalculateTime(1000));
                         break;
@@ -571,9 +604,9 @@ class boss_prince_taldaram_icc : public CreatureScript
                     DoCast(me, SPELL_SHADOW_PRISON);
             }
 
-            void MoveInLineOfSight(Unit* /*who*/)
-            {
-            }
+            //void MoveInLineOfSight(Unit* /*who*/)
+            //{
+            //}
 
             void EnterCombat(Unit* /*who*/)
             {
@@ -595,11 +628,12 @@ class boss_prince_taldaram_icc : public CreatureScript
             {
                 me->SetHealth(spawnHealth);
                 isEmpowered = false;
+                removeFeignDeath(me);
             }
 
             void JustRespawned()
             {
-                DoCast(me, SPELL_FEIGN_DEATH);
+                //DoCast(me, SPELL_FEIGN_DEATH);
                 me->SetHealth(spawnHealth);
             }
 
@@ -647,16 +681,18 @@ class boss_prince_taldaram_icc : public CreatureScript
                     Talk(SAY_TALDARAM_KILL);
             }
 
+            void EnterEvadeMode()
+            {
+                ScriptedAI::EnterEvadeMode();
+                removeFeignDeath(me);
+                evadeToHome(me);
+            }
             void DoAction(const int32 action)
             {
                 switch (action)
                 {
                     case ACTION_STAND_UP:
-                        me->RemoveAurasDueToSpell(SPELL_FEIGN_DEATH);
-                        me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
-                        me->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
-                        me->RemoveFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_FEIGN_DEATH);
-                        me->SetStandState(UNIT_STAND_STATE_STAND);
+                        removeFeignDeath(me);
                         me->ForceValuesUpdateAtIndex(UNIT_NPC_FLAGS);   // was in sniff. don't ask why
                         me->m_Events.AddEvent(new StandUpEvent(*me), me->m_Events.CalculateTime(1000));
                         break;
@@ -771,9 +807,9 @@ class boss_prince_valanar_icc : public CreatureScript
                     DoCast(me, SPELL_SHADOW_PRISON);
             }
 
-            void MoveInLineOfSight(Unit* /*who*/)
-            {
-            }
+            //void MoveInLineOfSight(Unit* /*who*/)
+            //{
+            //}
 
             void EnterCombat(Unit* /*who*/)
             {
@@ -795,11 +831,12 @@ class boss_prince_valanar_icc : public CreatureScript
             {
                 me->SetHealth(me->GetMaxHealth());
                 isEmpowered = false;
+                removeFeignDeath(me);
             }
 
             void JustRespawned()
             {
-                DoCast(me, SPELL_FEIGN_DEATH);
+                //DoCast(me, SPELL_FEIGN_DEATH);
                 me->SetHealth(spawnHealth);
             }
 
@@ -861,16 +898,18 @@ class boss_prince_valanar_icc : public CreatureScript
                     Talk(SAY_VALANAR_KILL);
             }
 
+            void EnterEvadeMode()
+            {
+                ScriptedAI::EnterEvadeMode();
+                removeFeignDeath(me);
+                evadeToHome(me);
+            }
             void DoAction(const int32 action)
             {
                 switch (action)
                 {
                     case ACTION_STAND_UP:
-                        me->RemoveAurasDueToSpell(SPELL_FEIGN_DEATH);
-                        me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
-                        me->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
-                        me->RemoveFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_FEIGN_DEATH);
-                        me->SetStandState(UNIT_STAND_STATE_STAND);
+                        removeFeignDeath(me);
                         me->ForceValuesUpdateAtIndex(UNIT_NPC_FLAGS);   // was in sniff. don't ask why
                         me->m_Events.AddEvent(new StandUpEvent(*me), me->m_Events.CalculateTime(1000));
                         break;
@@ -1057,7 +1096,7 @@ class npc_ball_of_flame : public CreatureScript
 
         struct npc_ball_of_flameAI : public ScriptedAI
         {
-            npc_ball_of_flameAI(Creature* creature) : ScriptedAI(creature)
+            npc_ball_of_flameAI(Creature* creature) : ScriptedAI(creature), instance(creature->GetInstanceScript())
             {
                 despawnTimer = 0;
             }
@@ -1100,6 +1139,15 @@ class npc_ball_of_flame : public CreatureScript
                     }
             }
 
+            void DamageDealt(Unit* /*target*/, uint32& damage, DamageEffectType damageType)
+            {
+                if (!instance || damageType != SPELL_DIRECT_DAMAGE)
+                    return;
+
+                if (damage > RAID_MODE<uint32>(23000, 25000, 23000, 25000))
+                    instance->SetData(DATA_ORB_WHISPERER_ACHIEVEMENT, uint32(false));
+            }
+
             void UpdateAI(const uint32 diff)
             {
                 if (!despawnTimer)
@@ -1115,6 +1163,7 @@ class npc_ball_of_flame : public CreatureScript
             }
 
         private:
+            InstanceScript* instance;
             uint64 chaseGUID;
             uint32 despawnTimer;
         };
@@ -1225,6 +1274,7 @@ class npc_dark_nucleus : public CreatureScript
             {
                 me->DespawnOrUnsummon();
             }
+
 
             void MoveInLineOfSight(Unit* who)
             {
@@ -1375,9 +1425,7 @@ class spell_taldaram_flame_ball_visual : public SpellScriptLoader
                     target->AI()->DoAction(ACTION_FLAME_BALL_CHASE);
                 }
                 else // SPELL_FLAME_SPHERE_DEATH_EFFECT
-                {
                     target->DespawnOrUnsummon();
-                }
             }
 
             void Register()
@@ -1577,4 +1625,4 @@ void AddSC_boss_rat_des_blutes()
     new spell_valanar_kinetic_bomb_knockback();
     new spell_blood_council_shadow_prison();
     new spell_blood_council_shadow_prison_damage();
-} 
+}
