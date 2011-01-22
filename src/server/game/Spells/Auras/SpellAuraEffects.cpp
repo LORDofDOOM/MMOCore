@@ -2318,6 +2318,12 @@ void AuraEffect::TriggerSpell(Unit * target, Unit * caster) const
                     case 46736:
                         triggerSpellId = 46737;
                         break;
+                    // Shield Level 1
+                    case 63130:
+                    // Shield Level 2
+                    case 63131:
+                    // Shield Level 3
+                    case 63132:
                     // Ball of Flames Visual
                     case 71706:
                         return;
@@ -5957,14 +5963,17 @@ void AuraEffect::HandleAuraDummy(AuraApplication const * aurApp, uint8 mode, boo
                     break;
                 case SPELLFAMILY_PRIEST:
                     // Vampiric Touch
-                    if (m_spellProto->SpellFamilyFlags[1] & 0x0400 && aurApp->GetRemoveMode() == AURA_REMOVE_BY_ENEMY_SPELL)
+                    if (GetSpellProto()->SpellFamilyFlags[EFFECT_1] & 0x400)
                     {
-                        if (AuraEffect const * aurEff = GetBase()->GetEffect(1))
+                        if ((GetEffIndex() != EFFECT_2) || (aurApp->GetRemoveMode() != AURA_REMOVE_BY_ENEMY_SPELL))
+                            break;
+
+                        if (AuraEffect const * aurEff = GetBase()->GetEffect(EFFECT_1))
                         {
-                            int32 damage = aurEff->GetAmount()*4;
-                            // backfire damage
-                            target->CastCustomSpell(target, 64085, &damage, NULL, NULL, true, NULL, NULL,GetCasterGUID());
+                            int32 damage = aurEff->GetAmount() * 8;
+                            target->CastCustomSpell(target, 64085, &damage, NULL, NULL, true, NULL, NULL, GetCasterGUID());
                         }
+                        break;
                     }
                     break;
                 case SPELLFAMILY_HUNTER:
