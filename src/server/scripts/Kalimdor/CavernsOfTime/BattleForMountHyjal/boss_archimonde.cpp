@@ -74,6 +74,8 @@ EndScriptData */
 #define NORDRASSIL_Y       -3523.436f
 #define NORDRASSIL_Z        1608.781f
 
+#define ACHIEVEMENT_MOUNT_HYJAL         695
+
 class mob_ancient_wisp : public CreatureScript
 {
 public:
@@ -340,9 +342,16 @@ public:
             DoScriptText(SAY_DEATH, me);
 
             if (pInstance)
-                pInstance->SetData(DATA_ARCHIMONDEEVENT, DONE);
-        }
+                 
+                 {
+              
+                     pInstance->SetData(DATA_ARCHIMONDEEVENT, DONE);
 
+
+                     pInstance->DoCompleteAchievement(ACHIEVEMENT_MOUNT_HYJAL);
+             }
+            
+          }
         bool CanUseFingerOfDeath()
         {
             // First we check if our current victim is in melee range or not.
