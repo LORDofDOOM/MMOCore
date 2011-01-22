@@ -36,8 +36,8 @@ static const DoorData doorData[] =
     {GO_CRIMSON_HALL_DOOR,                   DATA_BLOOD_PRINCE_COUNCIL_EVENT,  DOOR_TYPE_ROOM,    BOUNDARY_S   },
     {GO_BLOOD_ELF_COUNCIL_DOOR,              DATA_BLOOD_PRINCE_COUNCIL_EVENT,  DOOR_TYPE_PASSAGE, BOUNDARY_W   },
     {GO_BLOOD_ELF_COUNCIL_DOOR_RIGHT,        DATA_BLOOD_PRINCE_COUNCIL_EVENT,  DOOR_TYPE_PASSAGE, BOUNDARY_E   },
-    {GO_DOODAD_ICECROWN_BLOODPRINCE_DOOR_01, DATA_BLOOD_QUEEN_LANATHEL_EVENT, DOOR_TYPE_ROOM,    BOUNDARY_S   },
-    {GO_DOODAD_ICECROWN_GRATE_01,            DATA_BLOOD_QUEEN_LANATHEL_EVENT, DOOR_TYPE_PASSAGE, BOUNDARY_NONE},
+    {GO_DOODAD_ICECROWN_BLOODPRINCE_DOOR_01, DATA_BLOOD_QUEEN_LANA_THEL_EVENT, DOOR_TYPE_ROOM,    BOUNDARY_S   },
+    {GO_DOODAD_ICECROWN_GRATE_01,            DATA_BLOOD_QUEEN_LANA_THEL_EVENT, DOOR_TYPE_PASSAGE, BOUNDARY_NONE},
     {GO_GREEN_DRAGON_BOSS_ENTRANCE,          DATA_VALITHRIA_DREAMWALKER_EVENT, DOOR_TYPE_ROOM,    BOUNDARY_N   },
     {GO_GREEN_DRAGON_BOSS_EXIT,              DATA_VALITHRIA_DREAMWALKER_EVENT, DOOR_TYPE_PASSAGE, BOUNDARY_S   },
     {GO_SINDRAGOSA_ENTRANCE_DOOR,            DATA_SINDRAGOSA_EVENT,            DOOR_TYPE_ROOM,    BOUNDARY_S   },
@@ -232,8 +232,9 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case CREATURE_BLOOD_ORB_CONTROLLER:
                         uiBloodCouncilController = creature->GetGUID();
                         break;
-                    case CREATURE_BLOOD_QUEEN_LANATHEL:
+                    case CREATURE_BLOOD_QUEEN_LANA_THEL:
                         uiBloodQueenLanathel = creature->GetGUID();
+                        creature->SetReactState(REACT_DEFENSIVE);
                         break;
                     case CREATURE_VALITHRIA_DREAMWALKER:
                         uiValithriaDreamwalker = creature->GetGUID();
@@ -277,12 +278,15 @@ class instance_icecrown_citadel : public InstanceMapScript
                         break;
                     case CRIMSONHALL_DOOR:
                         uiCrimsonHallDoor1 = go->GetGUID();
+                        HandleGameObject(uiCrimsonHallDoor1, uiEncounter[7] != IN_PROGRESS);
                         break;
                     case CRIMSONHALL_DOOR_1:
                         uiCrimsonHallDoor2 = go->GetGUID();
+                        HandleGameObject(uiCrimsonHallDoor2, uiEncounter[7] == DONE);
                         break;
                     case CRIMSONHALL_DOOR_2:
                         uiCrimsonHallDoor3 = go->GetGUID();
+                        HandleGameObject(uiCrimsonHallDoor3, uiEncounter[7] == DONE);
                         break;
                     case DRAGON_DOOR_1:
                         uiDragonDoor1 = go->GetGUID();
@@ -435,6 +439,11 @@ class instance_icecrown_citadel : public InstanceMapScript
                         HandleGameObject(NULL, bAllOthersAreDone, go);
                         break;
                     }
+                   case GO_DOODAD_ICECROWN_BLOODPRINCE_DOOR_01:
+                    {
+                        uiBloodPrinceDoor01 = go->GetGUID();
+                        break;
+                    }
                 }
             }
 
@@ -451,7 +460,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case DATA_PRINCE_VALANAR_ICC:     return uiPrinceValanar;
                     case DATA_PRINCE_KELESETH_ICC:    return uiPrinceKeleseth;
                     case DATA_PRINCE_TALDARAM_ICC:    return uiPrinceTaldaram;
-                    case DATA_BLOOD_QUEEN_LANATHEL:   return uiBloodQueenLanathel;
+                    case DATA_BLOOD_QUEEN_LANA_THEL:  return uiBloodQueenLanathel;
                     case DATA_VALITHRIA_DREAMWALKER:  return uiValithriaDreamwalker;
                     case DATA_SINDRAGOSA:             return uiSindragosa;
                     case DATA_LICH_KING:              return uiLichKing;
@@ -666,7 +675,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                             HandleGameObject(uiCrimsonHallDoor1, false);
                         uiEncounter[7] = data;
                         break;
-                    case DATA_BLOOD_QUEEN_LANATHEL_EVENT:
+                    case DATA_BLOOD_QUEEN_LANA_THEL_EVENT:
                         if(data == DONE)
                         {
                             if (GameObject* go = instance->GetGameObject(uiBloodQueenTransporter))
@@ -675,6 +684,10 @@ class instance_icecrown_citadel : public InstanceMapScript
                                 go->SetGoState(GO_STATE_READY);
                             }
                         }
+                        if (data == FAIL || data == DONE)
+                            HandleGameObject(uiBloodPrinceDoor01, true);
+                        if (data == IN_PROGRESS)
+                            HandleGameObject(uiBloodPrinceDoor01, false);
                         uiEncounter[8] = data;
                         break;
                     case DATA_VALITHRIA_DREAMWALKER_EVENT:
@@ -773,7 +786,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                     return uiEncounter[6];
                 case DATA_BLOOD_PRINCE_COUNCIL_EVENT:
                     return uiEncounter[7];
-                case DATA_BLOOD_QUEEN_LANATHEL_EVENT:
+                case DATA_BLOOD_QUEEN_LANA_THEL_EVENT:
                     return uiEncounter[8];
                 case DATA_VALITHRIA_DREAMWALKER_EVENT:
                     return uiEncounter[9];
@@ -925,6 +938,7 @@ class instance_icecrown_citadel : public InstanceMapScript
             uint64 uiCrimsonHallDoor2;
             uint64 uiCrimsonHallDoor3;
             uint64 uiBloodQueenTransporter;
+            uint64 uiBloodPrinceDoor01;
             uint64 uiFrostwingDoor;
             uint64 uiDragonDoor1;
             uint64 uiDragonDoor2;
@@ -965,7 +979,12 @@ class instance_icecrown_citadel : public InstanceMapScript
             return new instance_icecrown_citadel_InstanceMapScript(pMap);
         }
 };
-
+void DespawnAllCreaturesAround(Creature *ref, uint32 entry)
+{
+    while (Unit *unit = ref->FindNearestCreature(entry, 200.0f, false))
+        if (Creature *creature = unit->ToCreature())
+            creature->DespawnOrUnsummon();
+}
 void AddSC_instance_icecrown_citadel()
 {
     new instance_icecrown_citadel();

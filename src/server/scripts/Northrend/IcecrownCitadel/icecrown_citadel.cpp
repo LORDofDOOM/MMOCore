@@ -223,7 +223,7 @@ class go_icecrown_teleporter : public GameObjectScript
                 player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Шпиль", GOSSIP_SENDER_MAIN, UPPER_SPIRE);
             if(instance->GetData(DATA_PROFESSOR_PUTRICIDE_EVENT) == DONE)
                 player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Чумодельня", GOSSIP_SENDER_MAIN, PLAGUEWORKS);
-            if(instance->GetData(DATA_BLOOD_QUEEN_LANATHEL_EVENT) == DONE)
+            if(instance->GetData(DATA_BLOOD_QUEEN_LANA_THEL_EVENT) == DONE)
                 player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Багровый зал", GOSSIP_SENDER_MAIN, CRIMSONHALL);
             if(instance->GetData(DATA_VALITHRIA_DREAMWALKER_EVENT) == DONE)
                 player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Логово Королевы Льда", GOSSIP_SENDER_MAIN, QUEEN);

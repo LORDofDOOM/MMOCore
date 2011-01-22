@@ -345,7 +345,6 @@ class boss_the_lich_king : public CreatureScript
                     case CREATURE_RAGING_SPIRIT:
                         summoned->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, true);
                         //Crash is here
-						if (summoned->getVictim())
                         summoned->getVictim()->CastSpell(summoned, SPELL_RAGING_VISUAL, true);
                         summoned->CastSpell(summoned, SPELL_NECROTIC_PLAGUE_IMMUNITY, true);
                         break;
@@ -974,11 +973,13 @@ class npc_valkyr_icc : public CreatureScript
                 switch(id)
                 {
                     case POINT_PLATFORM_END:
+                    {
                         vehicle->RemoveAllPassengers();
-                        float x,y,z;
+                        float x,y,z = me->GetPositionZ();
                         me->GetNearPoint2D(x, y, 50, me->GetAngle(me));
                         me->GetMotionMaster()->MovePoint(POINT_VALKYR_END,x,y,z+15);
                         break;
+                    }
                     case POINT_VALKYR_END:
                         me->DespawnOrUnsummon();
                         break;

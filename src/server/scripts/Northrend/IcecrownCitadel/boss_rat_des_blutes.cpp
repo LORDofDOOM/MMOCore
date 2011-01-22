@@ -97,6 +97,7 @@ enum Spells
     SPELL_INVOCATION_OF_BLOOD_VALANAR   = 70952,
     SPELL_KINETIC_BOMB_TARGET           = 72053,
     SPELL_KINETIC_BOMB                  = 72080,
+    SPELL_KINETIC_BOMB_KNOCKBACK        = 72087,
     SPELL_SHOCK_VORTEX                  = 72037,
     SPELL_EMPOWERED_SHOCK_VORTEX        = 72039,
 
@@ -131,6 +132,8 @@ enum Events
     EVENT_SHOCK_VORTEX          = 10,
     EVENT_BOMB_DESPAWN          = 11,
     EVENT_CONTINUE_FALLING      = 12,
+    EVENT_SHOCK_VORTEX_ACTIVATE = 13,
+    EVENT_SHOCK_VORTEX_DESPAWN  = 14
 };
 
 enum Actions
@@ -146,6 +149,7 @@ enum Points
 {
     POINT_INTRO_DESPAWN         = 380040,
     POINT_KINETIC_BOMB_IMPACT   = 384540,
+    POINT_KINETIC_BOMB_CONTINUE_FALLING = 1
 };
 
 enum Displays
@@ -153,6 +157,11 @@ enum Displays
     DISPLAY_KINETIC_BOMB        = 31095,
 };
 
+//enum eDataKineticBomb
+//{
+//    DATA_KINETIC_BOMB_TARGET1 = 1,
+//    DATA_KINETIC_BOMB_TARGET2 = 2
+//};
 class StandUpEvent : public BasicEvent
 {
     public:
@@ -186,6 +195,7 @@ void evadeToHome(Creature *me)
     Position pos = me->GetHomePosition();
     me->SetPosition(pos, true);
 }
+
 class boss_blood_council_controller : public CreatureScript
 {
     public:
@@ -204,7 +214,11 @@ class boss_blood_council_controller : public CreatureScript
                 else if (!me->isDead())
                     Reset();
             }
-
+            void JustSummoned(Creature* summon)
+            {
+                if (summon->GetEntry() == CREATURE_DARK_NUCLEUS)
+                    summons.Summon(summon);
+            }
             void Reset()
             {
                 events.Reset();
@@ -287,6 +301,12 @@ class boss_blood_council_controller : public CreatureScript
             {
                 instance->SetBossState(DATA_BLOOD_PRINCES_CONTROL, FAIL);
                 instance->SetData(DATA_BLOOD_PRINCE_COUNCIL_EVENT, FAIL);
+                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_SHADOW_RESONANCE);
+                summons.DespawnAll();
+                DespawnAllCreaturesAround(me, CREATURE_SHOCK_VORTEX);
+                DespawnAllCreaturesAround(me, CREATURE_KINETIC_BOMB);
+                DespawnAllCreaturesAround(me, CREATURE_KINETIC_BOMB_TARGET);
+                DespawnAllCreaturesAround(me, CREATURE_BALL_OF_INFERNO_FLAME);
             }
 
             void JustDied(Unit* /*killer*/)
@@ -302,8 +322,15 @@ class boss_blood_council_controller : public CreatureScript
                         prince->Kill(prince);
                 }
                 instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_SHADOW_PRISON_DUMMY);
+                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_SHADOW_RESONANCE);
+                instance->SetData(DATA_BLOOD_PRINCE_COUNCIL_EVENT, DONE);
+                //Despawn all short votexes and balls
+                summons.DespawnAll();
+                DespawnAllCreaturesAround(me, CREATURE_SHOCK_VORTEX);
+                DespawnAllCreaturesAround(me, CREATURE_KINETIC_BOMB);
+                DespawnAllCreaturesAround(me, CREATURE_KINETIC_BOMB_TARGET);
+                DespawnAllCreaturesAround(me, CREATURE_BALL_OF_INFERNO_FLAME);
             }
-
             void UpdateAI(const uint32 diff)
             {
                 if (!UpdateVictim())
@@ -406,6 +433,10 @@ class boss_prince_keleseth_icc : public CreatureScript
             {
                 events.Reset();
                 summons.DespawnAll();
+                DespawnAllCreaturesAround(me, CREATURE_SHOCK_VORTEX);
+                DespawnAllCreaturesAround(me, CREATURE_KINETIC_BOMB);
+                DespawnAllCreaturesAround(me, CREATURE_KINETIC_BOMB_TARGET);
+                DespawnAllCreaturesAround(me, CREATURE_BALL_OF_INFERNO_FLAME);
 
                 me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
                 isEmpowered = false;
@@ -427,7 +458,7 @@ class boss_prince_keleseth_icc : public CreatureScript
                         DoZoneInCombat(controller);
 
                 events.ScheduleEvent(EVENT_BERSERK, 600000);
-                events.ScheduleEvent(EVENT_SHADOW_RESONANCE, urand(10000, 15000));
+                events.ScheduleEvent(EVENT_SHADOW_RESONANCE, urand(5000, 10000));
                 events.ScheduleEvent(EVENT_SHADOW_LANCE, 2000);
             }
 
@@ -441,6 +472,12 @@ class boss_prince_keleseth_icc : public CreatureScript
                 me->SetHealth(spawnHealth);
                 isEmpowered = false;
                 removeFeignDeath(me);
+                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_SHADOW_RESONANCE);
+                summons.DespawnAll();
+                DespawnAllCreaturesAround(me, CREATURE_SHOCK_VORTEX);
+                DespawnAllCreaturesAround(me, CREATURE_KINETIC_BOMB);
+                DespawnAllCreaturesAround(me, CREATURE_KINETIC_BOMB_TARGET);
+                DespawnAllCreaturesAround(me, CREATURE_BALL_OF_INFERNO_FLAME);
             }
 
             void JustRespawned()
@@ -594,6 +631,10 @@ class boss_prince_taldaram_icc : public CreatureScript
             {
                 events.Reset();
                 summons.DespawnAll();
+                DespawnAllCreaturesAround(me, CREATURE_SHOCK_VORTEX);
+                DespawnAllCreaturesAround(me, CREATURE_KINETIC_BOMB);
+                DespawnAllCreaturesAround(me, CREATURE_KINETIC_BOMB_TARGET);
+                DespawnAllCreaturesAround(me, CREATURE_BALL_OF_INFERNO_FLAME);
 
                 me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
                 isEmpowered = false;
@@ -629,6 +670,12 @@ class boss_prince_taldaram_icc : public CreatureScript
                 me->SetHealth(spawnHealth);
                 isEmpowered = false;
                 removeFeignDeath(me);
+                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_SHADOW_RESONANCE);
+                summons.DespawnAll();
+                DespawnAllCreaturesAround(me, CREATURE_SHOCK_VORTEX);
+                DespawnAllCreaturesAround(me, CREATURE_KINETIC_BOMB);
+                DespawnAllCreaturesAround(me, CREATURE_KINETIC_BOMB_TARGET);
+                DespawnAllCreaturesAround(me, CREATURE_BALL_OF_INFERNO_FLAME);
             }
 
             void JustRespawned()
@@ -797,6 +844,10 @@ class boss_prince_valanar_icc : public CreatureScript
             {
                 events.Reset();
                 summons.DespawnAll();
+                DespawnAllCreaturesAround(me, CREATURE_SHOCK_VORTEX);
+                DespawnAllCreaturesAround(me, CREATURE_KINETIC_BOMB);
+                DespawnAllCreaturesAround(me, CREATURE_KINETIC_BOMB_TARGET);
+                DespawnAllCreaturesAround(me, CREATURE_BALL_OF_INFERNO_FLAME);
 
                 me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
                 isEmpowered = false;
@@ -818,7 +869,7 @@ class boss_prince_valanar_icc : public CreatureScript
                         DoZoneInCombat(controller);
 
                 events.ScheduleEvent(EVENT_BERSERK, 600000);
-                events.ScheduleEvent(EVENT_KINETIC_BOMB, urand(18000, 24000));
+                events.ScheduleEvent(EVENT_KINETIC_BOMB, 15000);
                 events.ScheduleEvent(EVENT_SHOCK_VORTEX, urand(15000, 20000));
             }
 
@@ -832,6 +883,12 @@ class boss_prince_valanar_icc : public CreatureScript
                 me->SetHealth(me->GetMaxHealth());
                 isEmpowered = false;
                 removeFeignDeath(me);
+                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_SHADOW_RESONANCE);
+                summons.DespawnAll();
+                DespawnAllCreaturesAround(me, CREATURE_SHOCK_VORTEX);
+                DespawnAllCreaturesAround(me, CREATURE_KINETIC_BOMB);
+                DespawnAllCreaturesAround(me, CREATURE_KINETIC_BOMB_TARGET);
+                DespawnAllCreaturesAround(me, CREATURE_BALL_OF_INFERNO_FLAME);
             }
 
             void JustRespawned()
@@ -845,20 +902,15 @@ class boss_prince_valanar_icc : public CreatureScript
                 switch (summon->GetEntry())
                 {
                     case CREATURE_KINETIC_BOMB_TARGET:
-                        summon->SetReactState(REACT_PASSIVE);
-                        summon->CastSpell(summon, SPELL_KINETIC_BOMB, true, NULL, NULL, me->GetGUID());
+                    {
                         break;
+                    }
                     case CREATURE_KINETIC_BOMB:
                     {
-                        float x, y, z;
-                        summon->GetPosition(x, y, z);
-                        float ground_Z = summon->GetMap()->GetHeight(x, y, z, true, 500.0f);
-                        summon->GetMotionMaster()->MovePoint(POINT_KINETIC_BOMB_IMPACT, x, y, ground_Z);
                         break;
                     }
                     case CREATURE_SHOCK_VORTEX:
                         summon->CastSpell(summon, SPELL_SHOCK_VORTEX_DUMMY, true);
-                        summon->CastSpell(summon, SPELL_SHOCK_VORTEX_PERIODIC, true);
                         break;
                     default:
                         break;
@@ -953,7 +1005,8 @@ class boss_prince_valanar_icc : public CreatureScript
                                 DoCast(target, SPELL_KINETIC_BOMB_TARGET);
                                 Talk(SAY_VALANAR_SPECIAL);
                             }
-                            events.ScheduleEvent(EVENT_KINETIC_BOMB, urand(18000, 24000));
+                            //At every moment of time there are 2 bombs floating in the room (3 in 25-man mode)
+                            events.ScheduleEvent(EVENT_KINETIC_BOMB, RAID_MODE<uint32>(30000, 20000, 30000, 20000));
                             break;
                         case EVENT_SHOCK_VORTEX:
                             if (isEmpowered)
@@ -1027,9 +1080,19 @@ class npc_blood_queen_lana_thel : public CreatureScript
                 if (introDone)
                     return;
 
+                if (instance->GetData(DATA_BLOOD_PRINCE_COUNCIL_EVENT) == DONE)
+                {
+                    introDone = true;
+                    instance->SetData(DATA_BLOOD_PRINCE_COUNCIL_EVENT, DONE);
+                    me->SetVisible(false);
+                    me->DespawnOrUnsummon();
+                    return;
+                }
+
                 if (!me->IsWithinDistInMap(who, 35.0f))
                     return;
 
+                //Avoid showing intro once encounter is done
                 introDone = true;
                 Talk(SAY_INTRO_1);
                 events.SetPhase(1);
@@ -1174,71 +1237,6 @@ class npc_ball_of_flame : public CreatureScript
         }
 };
 
-class npc_kinetic_bomb : public CreatureScript
-{
-    public:
-        npc_kinetic_bomb() : CreatureScript("npc_kinetic_bomb") { }
-
-        struct npc_kinetic_bombAI : public ScriptedAI
-        {
-            npc_kinetic_bombAI(Creature* creature) : ScriptedAI(creature) { }
-
-            void Reset()
-            {
-                events.Reset();
-                me->SetDisplayId(DISPLAY_KINETIC_BOMB);
-                me->CastSpell(me, SPELL_UNSTABLE, true);
-                me->CastCustomSpell(SPELL_KINETIC_BOMB_VISUAL, SPELLVALUE_BASE_POINT0, 0x7FFFFFFF, me, true);
-                me->SetReactState(REACT_PASSIVE);
-                me->SetSpeed(MOVE_FLIGHT, IsHeroic() ? 0.3f : 0.15f, true);
-                me->GetPosition(x, y, groundZ);
-                groundZ = me->GetMap()->GetHeight(x, y, groundZ, true, 500.0f);
-            }
-
-            void DoAction(const int32 action)
-            {
-                if (action == SPELL_KINETIC_BOMB_EXPLOSION)
-                    events.ScheduleEvent(EVENT_BOMB_DESPAWN, 1000);
-                else if (action == ACTION_KINETIC_BOMB_JUMP)
-                {
-                    me->GetMotionMaster()->Clear();
-                    me->GetMotionMaster()->MoveJump(x, y, me->GetPositionZ()+7.0f, 1.0f, 7.0f);
-                    events.ScheduleEvent(EVENT_CONTINUE_FALLING, 700);
-                }
-            }
-
-            void UpdateAI(const uint32 diff)
-            {
-                events.Update(diff);
-
-                while (uint32 eventId = events.ExecuteEvent())
-                {
-                    switch (eventId)
-                    {
-                        case EVENT_BOMB_DESPAWN:
-                            me->SetVisible(false);
-                            break;
-                        case EVENT_CONTINUE_FALLING:
-                            me->GetMotionMaster()->Clear();
-                            me->GetMotionMaster()->MovePoint(POINT_KINETIC_BOMB_IMPACT, x, y, groundZ);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-
-        private:
-            EventMap events;
-            float x, y, groundZ;
-        };
-
-        CreatureAI* GetAI(Creature* creature) const
-        {
-            return new npc_kinetic_bombAI(creature);
-        }
-};
-
 class npc_dark_nucleus : public CreatureScript
 {
     public:
@@ -1270,12 +1268,18 @@ class npc_dark_nucleus : public CreatureScript
                 DoCast(who, SPELL_SHADOW_RESONANCE_RESIST);
                 me->ClearUnitState(UNIT_STAT_CASTING);
             }
+
             void JustDied(Unit* /*killer*/)
             {
                 me->DespawnOrUnsummon();
             }
 
-
+            void IsSummonedBy(Unit* summoner)
+            {
+                if (InstanceScript* instance = me->GetInstanceScript())
+                    if (Creature* bloodPrincesController = Unit::GetCreature(*me, instance->GetData64(DATA_BLOOD_PRINCES_CONTROL)))
+                        bloodPrincesController->AI()->JustSummoned(me);
+            }
             void MoveInLineOfSight(Unit* who)
             {
                 if (me->GetDistance(who) >= 15.0f)
@@ -1284,14 +1288,21 @@ class npc_dark_nucleus : public CreatureScript
                 ScriptedAI::MoveInLineOfSight(who);
             }
 
+            //Dark Nuclei reportedly aggro on the last person to hit them.
             void DamageTaken(Unit* attacker, uint32& /*damage*/)
             {
                 if (attacker == me)
                     return;
 
-                if (!lockedTarget)
-                    if (me->getVictim() == attacker)
-                        lockedTarget = true;
+                me->getThreatManager().clearReferences();
+                me->AddThreat(attacker, 1.0f);
+
+                //if (!lockedTarget)
+                //    if (me->getVictim() == attacker)
+                //        lockedTarget = true;
+                if (me->getVictim() && me->getVictim() != attacker)
+                    me->getVictim()->RemoveAurasDueToSpell(SPELL_SHADOW_RESONANCE_RESIST, me->GetGUID());
+                lockedTarget = (me->getVictim() == attacker);
             }
 
             void UpdateAI(const uint32 diff)
@@ -1466,6 +1477,187 @@ class spell_taldaram_ball_of_inferno_flame : public SpellScriptLoader
             return new spell_taldaram_ball_of_inferno_flame_SpellScript();
         }
 };
+//Kinetic bomb code starts
+class npc_kinetic_bomb_target : public CreatureScript
+{
+    public:
+        npc_kinetic_bomb_target() : CreatureScript("npc_kinetic_bomb_target") { }
+
+        struct npc_kinetic_bomb_targetAI : public ScriptedAI
+        {
+            npc_kinetic_bomb_targetAI(Creature* creature) : ScriptedAI(creature) { }
+
+            void Reset()
+            {
+                me->SetReactState(REACT_PASSIVE);
+                me->CastSpell(me, SPELL_KINETIC_BOMB, true, NULL, NULL, me->GetGUID());
+                me->CastSpell(me, 65686, true); //Just for visual aura
+                me->SetDisplayId(11686);//invisible model,around a size of a player 
+                events.Reset();
+                events.ScheduleEvent(EVENT_BOMB_DESPAWN, 60000);
+            }
+
+            void UpdateAI(const uint32 diff)
+            {
+                events.Update(diff);
+                
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                        case EVENT_BOMB_DESPAWN:
+                            me->SetVisible(false);
+                            me->DespawnOrUnsummon();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+        private:
+            EventMap events;
+
+        };
+
+        CreatureAI* GetAI(Creature* creature) const
+        {
+            return new npc_kinetic_bomb_targetAI(creature);
+        }
+};
+
+class npc_kinetic_bomb : public CreatureScript
+{
+    public:
+        npc_kinetic_bomb() : CreatureScript("npc_kinetic_bomb") { }
+
+        struct npc_kinetic_bombAI : public ScriptedAI
+        {
+            npc_kinetic_bombAI(Creature* creature) : ScriptedAI(creature) { }
+
+            void Reset()
+            {
+                events.Reset();
+                me->SetDisplayId(DISPLAY_KINETIC_BOMB);
+                me->CastSpell(me, SPELL_UNSTABLE, true);
+                me->CastCustomSpell(SPELL_KINETIC_BOMB_VISUAL, SPELLVALUE_BASE_POINT0, 0x7FFFFFFF, me, true);
+                me->SetReactState(REACT_PASSIVE);
+                me->SetSpeed(MOVE_FLIGHT, IsHeroic() ? 0.3f : 0.15f, true);
+                me->GetPosition(x, y, maxZ);
+                groundZ = me->GetMap()->GetHeight(x, y, maxZ, true, 500.0f);
+                events.ScheduleEvent(EVENT_BOMB_DESPAWN, 60000);
+                updatePeriod = 100; //Less is smooth, more is less server load
+                events.ScheduleEvent(EVENT_CONTINUE_FALLING, updatePeriod);
+                baseSpeed = me->GetSpeed(MOVE_FLIGHT);
+                dz = baseSpeed * updatePeriod / 1000;
+                alreadyExplodes = false;
+                nextZ = maxZ;
+            }
+
+            void DamageTaken(Unit* attacker, uint32& damage)
+            {
+                damage = 0;
+                me->CastSpell(me, SPELL_KINETIC_BOMB_KNOCKBACK, true);
+            }
+
+            void MovementInform(uint32 type, uint32 id)
+            {
+                if (type != POINT_MOTION_TYPE)
+                    return;
+                switch (id)
+                {
+                    case POINT_KINETIC_BOMB_CONTINUE_FALLING:
+                    {
+                        me->SetPosition(x, y, nextZ, false);
+                        if (abs(nextZ - groundZ) < 1.0f)
+                            DoAction(SPELL_KINETIC_BOMB_EXPLOSION);
+                        else
+                            events.ScheduleEvent(EVENT_CONTINUE_FALLING, updatePeriod);
+                        break;
+                    }
+                }
+            }
+
+            void DoAction(const int32 action)
+            {
+                switch (action)
+                {
+                    case SPELL_KINETIC_BOMB_EXPLOSION:
+                    {
+                        //because every time it falls to the ground, it explodes for ~10k damage before bouncing back up.
+                        if (alreadyExplodes)
+                            return;
+                        alreadyExplodes = true;
+                        events.CancelEvent(EVENT_CONTINUE_FALLING);
+                        float curZ = me->GetPositionZ();
+                        me->SetSpeed(MOVE_FLIGHT, maxZ - curZ);
+                        me->GetMotionMaster()->Clear();
+                        me->GetMotionMaster()->MovePoint(POINT_KINETIC_BOMB_CONTINUE_FALLING, x, y, maxZ);
+                        nextZ = maxZ;
+                        me->CastSpell(me, SPELL_KINETIC_BOMB_EXPLOSION, true);
+                        break;
+                    }
+                    case ACTION_KINETIC_BOMB_JUMP:
+                    {
+                        events.CancelEvent(EVENT_CONTINUE_FALLING);
+                        float curZ = me->GetPositionZ();
+                        float newZ = curZ + 7.0f;
+                        if (newZ > maxZ)
+                            newZ = maxZ;
+                        nextZ = newZ;
+                        me->SetSpeed(MOVE_FLIGHT, baseSpeed);
+                        me->GetMotionMaster()->Clear();
+                        me->GetMotionMaster()->MovePoint(POINT_KINETIC_BOMB_CONTINUE_FALLING, x, y, newZ);
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+
+            void UpdateAI(const uint32 diff)
+            {
+                events.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                        case EVENT_BOMB_DESPAWN:
+                            me->SetVisible(false);
+                            me->DespawnOrUnsummon();
+                            break;
+                        case EVENT_CONTINUE_FALLING:
+                        {
+                            alreadyExplodes = false;
+                            float curZ = me->GetPositionZ();
+                            float newZ = curZ - dz;
+                            if (newZ < groundZ)
+                                newZ = groundZ;
+                            nextZ = newZ;
+                            me->SetSpeed(MOVE_FLIGHT, baseSpeed);
+                            me->GetMotionMaster()->Clear();
+                            me->GetMotionMaster()->MovePoint(POINT_KINETIC_BOMB_CONTINUE_FALLING, x, y, newZ);
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
+            }
+
+        private:
+            EventMap events;
+            float x, y, groundZ, maxZ, dz, nextZ, baseSpeed;
+            bool alreadyExplodes;
+            uint32 updatePeriod;
+        };
+
+        CreatureAI* GetAI(Creature* creature) const
+        {
+            return new npc_kinetic_bombAI(creature);
+        }
+};
 
 class spell_valanar_kinetic_bomb : public SpellScriptLoader
 {
@@ -1495,17 +1687,7 @@ class spell_valanar_kinetic_bomb : public SpellScriptLoader
 
             void HandleDummyTick(AuraEffect const* /*aurEff*/)
             {
-                Unit* target = GetTarget();
-                if (target->GetTypeId() != TYPEID_UNIT)
-                    return;
-
-                if (Creature* bomb = target->FindNearestCreature(CREATURE_KINETIC_BOMB, 1.0f, true))
-                {
-                    bomb->CastSpell(bomb, SPELL_KINETIC_BOMB_EXPLOSION, true);
-                    bomb->RemoveAurasDueToSpell(SPELL_KINETIC_BOMB_VISUAL);
-                    target->RemoveAura(GetAura());
-                    bomb->AI()->DoAction(SPELL_KINETIC_BOMB_EXPLOSION);
-                }
+                //Processed in npc_kinetic_bomb's MovementInform function
             }
 
             void Register()
@@ -1551,7 +1733,7 @@ class spell_valanar_kinetic_bomb_knockback : public SpellScriptLoader
             return new spell_valanar_kinetic_bomb_knockback_SpellScript();
         }
 };
-
+//End of Kinetic bomb code
 class spell_blood_council_shadow_prison : public SpellScriptLoader
 {
     public:
@@ -1606,6 +1788,51 @@ class spell_blood_council_shadow_prison_damage : public SpellScriptLoader
             return new spell_blood_council_shadow_prison_SpellScript();
         }
 };
+class npc_shock_vortex : public CreatureScript
+{
+    public:
+        npc_shock_vortex() : CreatureScript("npc_shock_vortex") { }
+
+        struct npc_shock_vortexAI : public ScriptedAI
+        {
+            npc_shock_vortexAI(Creature* creature) : ScriptedAI(creature) { }
+
+            void Reset()
+            {
+                events.Reset();
+                events.ScheduleEvent(EVENT_SHOCK_VORTEX_ACTIVATE, 5000);
+                events.ScheduleEvent(EVENT_SHOCK_VORTEX_DESPAWN, 25000);
+            }
+
+            void UpdateAI(const uint32 diff)
+            {
+                events.Update(diff);
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                        case EVENT_SHOCK_VORTEX_ACTIVATE:
+                            me->CastSpell(me, SPELL_SHOCK_VORTEX_PERIODIC, true);
+                            break;
+                        case EVENT_SHOCK_VORTEX_DESPAWN:
+                            me->SetVisible(false);
+                            me->DespawnOrUnsummon();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        private:
+            EventMap events;
+        };
+
+        CreatureAI* GetAI(Creature* creature) const
+        {
+            return new npc_shock_vortexAI(creature);
+        }
+};
 
 void AddSC_boss_rat_des_blutes()
 {
@@ -1616,7 +1843,9 @@ void AddSC_boss_rat_des_blutes()
     new npc_blood_queen_lana_thel();
     new npc_ball_of_flame();
     new npc_kinetic_bomb();
+    new npc_kinetic_bomb_target();
     new npc_dark_nucleus();
+    new npc_shock_vortex();
     new spell_taldaram_glittering_sparks();
     new spell_taldaram_summon_flame_ball();
     new spell_taldaram_flame_ball_visual();
