@@ -191,6 +191,7 @@ class boss_blood_queen_lana_thel : public CreatureScript
 
             void JustReachedHome()
             {
+                events.Reset();
                 _JustReachedHome();
                 Talk(SAY_WIPE);
                 instance->SetBossState(DATA_BLOOD_QUEEN_LANA_THEL, FAIL);

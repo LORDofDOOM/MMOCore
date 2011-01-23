@@ -70,7 +70,7 @@ enum eSpells
     SPELL_MORTAL_WOUND                      = 71127,
     SPELL_DECIMATE                          = 71123,
     SPELL_AWAKEN_PLAGUED_ZOMBIES            = 71159,
-    SPELL_INFECTED_WOUND                    = 69789
+    SPELL_INFECTED_WOUND                    = 71158
 };
 #define SPELL_OOZE_FLOOD_EFFECT  RAID_MODE<int32>(69789, 71215, 71587, 71588)
 static const uint32 oozeFloodSpells[4] = {69782, 69796, 69798, 69801};
@@ -994,6 +994,70 @@ class spell_rotface_unstable_ooze_explosion_suicide : public SpellScriptLoader
         }
 };
 
+class spell_rotface_plagued_zombie_infected_wound : public SpellScriptLoader
+{
+    public:
+        spell_rotface_plagued_zombie_infected_wound() : SpellScriptLoader("spell_rotface_plagued_zombie_infected_wound") { }
+
+        class spell_rotface_plagued_zombie_infected_wound_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_rotface_plagued_zombie_infected_wound_SpellScript);
+
+            bool Load()
+            {
+                prevented = false;
+                return true;
+            }
+
+            void EnsureAuraStack()
+            {
+                if (!(GetHitUnit() && GetHitUnit()->isAlive()))
+                    return;
+                if (GetHitUnit()->GetGUID() == GetCaster()->GetGUID())
+                    return;
+
+                if (Unit *who = GetHitUnit())
+                {
+                    uint32 curSpellId = GetSpellInfo()->Id;
+                    if (Aura* oldAura = who->GetAura(curSpellId))
+                    {
+                        prevented = true;
+                        prevStackAmount = oldAura->GetStackAmount();
+                    }
+                }
+            }
+
+            void RemoveImmunity()
+            {
+                if (Unit* target = GetHitUnit())
+                {
+                    if (prevented)
+                    {
+                        if (Aura* oldAura = GetHitUnit()->GetAura(GetSpellInfo()->Id))
+                        {
+                            oldAura->SetStackAmount(prevStackAmount+1);
+                            oldAura->RefreshDuration();
+                        }
+                    }
+                }
+            }
+
+            void Register()
+            {
+                BeforeHit += SpellHitFn(spell_rotface_plagued_zombie_infected_wound_SpellScript::EnsureAuraStack);
+                AfterHit += SpellHitFn(spell_rotface_plagued_zombie_infected_wound_SpellScript::RemoveImmunity);
+            }
+        private:
+            bool prevented;
+            uint8 prevStackAmount;
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_rotface_plagued_zombie_infected_wound_SpellScript();
+        }
+};
+
 void AddSC_boss_rotface()
 {
     new boss_rotface();
@@ -1007,4 +1071,5 @@ void AddSC_boss_rotface()
     new spell_rotface_unstable_ooze_explosion_init();
     new spell_rotface_unstable_ooze_explosion();
     new spell_rotface_unstable_ooze_explosion_suicide();
+    new spell_rotface_plagued_zombie_infected_wound();
 } 

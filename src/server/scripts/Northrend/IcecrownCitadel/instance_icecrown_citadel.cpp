@@ -68,6 +68,8 @@ class instance_icecrown_citadel : public InstanceMapScript
                 uiPrinceTaldaram        = 0;
                 uiBloodQueenLanathel    = 0;
                 uiValithriaDreamwalker  = 0;
+                uiValithriaAlternative  = 0;
+                uiValithriaCombatTrigger= 0;
                 uiSindragosa            = 0;
                 uiLichKing              = 0;
                 uiTirion                = 0;
@@ -239,6 +241,17 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case CREATURE_VALITHRIA_DREAMWALKER:
                         uiValithriaDreamwalker = creature->GetGUID();
                         break;
+                    case CREATURE_VALITHRIA_ALTERNATIVE:
+                        uiValithriaAlternative = creature->GetGUID();
+                        break;
+                    case CREATURE_COMBAT_TRIGGER:
+                    {
+                        uiValithriaCombatTrigger = creature->GetGUID();
+                        creature->SetReactState(REACT_AGGRESSIVE);
+                        creature->SetSpeed(MOVE_RUN, 0.0f, true);
+                        creature->SetSpeed(MOVE_WALK, 0.0f, true);
+                        break;
+                    }
                     case CREATURE_SINDRAGOSA:
                         uiSindragosa = creature->GetGUID();
                         break;
@@ -462,6 +475,8 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case DATA_PRINCE_TALDARAM_ICC:    return uiPrinceTaldaram;
                     case DATA_BLOOD_QUEEN_LANA_THEL:  return uiBloodQueenLanathel;
                     case DATA_VALITHRIA_DREAMWALKER:  return uiValithriaDreamwalker;
+                    case DATA_VALITHRIA_ALTERNATIVE:  return uiValithriaAlternative;
+                    case DATA_VALITHRIA_COMBAT_TRIGGER: return uiValithriaCombatTrigger;
                     case DATA_SINDRAGOSA:             return uiSindragosa;
                     case DATA_LICH_KING:              return uiLichKing;
                     case DATA_TIRION:                 return uiTirion;
@@ -715,10 +730,15 @@ class instance_icecrown_citadel : public InstanceMapScript
                             HandleGameObject(uiDragonDoor2, true);
                             HandleGameObject(uiDragonDoor3, true);
                         }
-                        if(data == NOT_STARTED)
+                        if(data == NOT_STARTED || data == FAIL)
                         {
                             if (GameObject* SindragossaTp = instance->GetGameObject(uiSindragossaTp))
                                 SindragossaTp->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_INTERACT_COND);
+                            HandleGameObject(uiDragonDoor1, true);
+                            HandleGameObject(uiRoostDoor3, false);
+                            HandleGameObject(uiRoostDoor2, false);         
+                            HandleGameObject(uiRoostDoor1, false);
+                            HandleGameObject(uiRoostDoor4, false);
                         }
                         if(data == IN_PROGRESS)
                         {
@@ -909,6 +929,8 @@ class instance_icecrown_citadel : public InstanceMapScript
             uint64 uiPrinceTaldaram;
             uint64 uiBloodQueenLanathel;
             uint64 uiValithriaDreamwalker;
+            uint64 uiValithriaAlternative;
+            uint64 uiValithriaCombatTrigger;
             uint64 uiSindragosa;
             uint64 uiLichKing;
             uint64 uiTirion;

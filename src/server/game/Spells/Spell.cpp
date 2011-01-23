@@ -4972,6 +4972,9 @@ SpellCastResult Spell::CheckCast(bool strict)
 
         SpellCastResult locRes= sSpellMgr->GetSpellAllowedInLocationError(m_spellInfo,m_caster->GetMapId(),zone,area,
             m_caster->GetTypeId() == TYPEID_PLAYER ? m_caster->ToPlayer() : NULL);
+        //Fix Blood Queen Lana'thel's Swarming Shadows spell - there is incorrect area restriction in DBC
+        if (m_spellInfo->Id == 71266 && zone == 4812 && area == 4891 && m_caster->GetMapId() == 631)
+            locRes = SPELL_CAST_OK;			
         if (locRes != SPELL_CAST_OK)
             return locRes;
     }

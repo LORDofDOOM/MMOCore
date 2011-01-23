@@ -49,3 +49,16 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_kinetic_bomb_target' WHERE `e
 
 -- Blood Queen Lana'thel 
 UPDATE `creature_template` SET `ScriptName` = 'boss_blood_queen_lana_thel' WHERE `entry` = 37955;
+
+-- Valithria Dreamwalker
+UPDATE `creature_template` SET `unit_flags` = 33554432 WHERE `entry` IN (38186, 38429);
+UPDATE `creature_template` SET `faction_A` = 35, `faction_H` = 35 WHERE `entry` = 38429;
+UPDATE `creature_template` SET `faction_A` = 14, `faction_H` = 14 WHERE `entry` = 37985;
+UPDATE `creature_template` SET `ScriptName` = 'npc_dreamcloud_icc' WHERE `entry` = 38421;
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (71301, 71977);
+INSERT INTO `spell_script_names` VALUES (71301, 'spell_valithria_summon_portal'), (71977, 'spell_valithria_summon_portal');
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (70873, 71941);
+INSERT INTO `spell_script_names` VALUES (70873, 'spell_valithria_vigor'), (71941, 'spell_valithria_vigor');
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (71157, 29306);
+INSERT INTO `spell_script_names` VALUES (71157,  'spell_rotface_plagued_zombie_infected_wound'), (29306, 'spell_rotface_plagued_zombie_infected_wound');
+UPDATE `creature` SET `spawntimesecs` = 604800 WHERE `id` IN (38008, 38752);
