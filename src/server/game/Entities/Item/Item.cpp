@@ -651,6 +651,7 @@ void Item::SetState(ItemUpdateState state, Player *forplayer)
         // pretend the item never existed
         RemoveFromUpdateQueueOf(forplayer);
         forplayer->DeleteRefundReference(GetGUIDLow());
+		forplayer->RemoveTradeableItem(this); 
         delete this;
         return;
     }
