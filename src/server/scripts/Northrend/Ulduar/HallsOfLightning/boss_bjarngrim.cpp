@@ -1,27 +1,20 @@
-/*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+/* 
+ * Copyright (C) 2008 - 2010 Trinity <http://www.trinitycore.org/>
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Script Author: LordVanMartin
  */
-
-/* ScriptData
-SDName: Boss General Bjarngrim
-SD%Complete: 70%
-SDComment: Waypoint needed, we expect boss to always have 2x Stormforged Lieutenant following
-SDCategory: Halls of Lightning
-EndScriptData */
 
 #include "ScriptPCH.h"
 #include "halls_of_lightning.h"
@@ -74,7 +67,9 @@ enum eEnums
 
     STANCE_DEFENSIVE                        = 0,
     STANCE_BERSERKER                        = 1,
-    STANCE_BATTLE                           = 2
+    STANCE_BATTLE                           = 2,
+
+    MAX_DISTANCE_CHARGE                     = 8
 };
 
 /*######
@@ -172,7 +167,7 @@ public:
             DoScriptText(SAY_AGGRO, me);
 
             //must get both lieutenants here and make sure they are with him
-            me->CallForHelp(30.0f);
+        me->CallForHelp(40.0f);
 
             if (m_pInstance)
                 m_pInstance->SetData(TYPE_BJARNGRIM, IN_PROGRESS);
@@ -298,11 +293,10 @@ public:
                 }
                 case STANCE_BERSERKER:
                 {
-                    if (m_uiIntercept_Timer <= uiDiff)
+                float fDist = me->GetExactDist(me->getVictim()->GetPositionX(), me->getVictim()->GetPositionY(), me->getVictim()->GetPositionZ());
+                if (fDist>=8 && fDist<=25)
                     {
-                        //not much point is this, better random target and more often?
-                        DoCast(me->getVictim(), SPELL_INTERCEPT);
-                        m_uiIntercept_Timer = 45000 + rand()%1000;
+                    DoCastVictim(SPELL_INTERCEPT);
                     }
                     else
                         m_uiIntercept_Timer -= uiDiff;
@@ -418,7 +412,7 @@ public:
                     if (Creature* pBjarngrim = m_pInstance->instance->GetCreature(m_pInstance->GetData64(DATA_BJARNGRIM)))
                     {
                         if (pBjarngrim->isAlive())
-                            DoCast(pBjarngrim, SPELL_RENEW_STEEL_N);
+                        DoCast(pBjarngrim, DUNGEON_MODE(SPELL_RENEW_STEEL_N,SPELL_RENEW_STEEL_H));
                     }
                 }
                 m_uiRenewSteel_Timer = 10000 + rand()%4000;
