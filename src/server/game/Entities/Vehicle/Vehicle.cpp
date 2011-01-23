@@ -368,11 +368,12 @@ bool Vehicle::AddPassenger(Unit *unit, int8 seatId, bool byAura)
                 me->ToCreature()->AI()->PassengerBoarded(unit, seat->first, true);
 
             // update all passenger's positions
-            RelocatePassengers(me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), me->GetOrientation());
+            //RelocatePassengers(me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), me->GetOrientation());
+            RelocatePassengers(me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), 0);			
         }
     }
-    unit->DestroyForNearbyPlayers();
-    unit->UpdateObjectVisibility(false);
+    //unit->DestroyForNearbyPlayers();
+    //unit->UpdateObjectVisibility(false);
 
     if (GetBase()->GetTypeId() == TYPEID_UNIT)
         sScriptMgr->OnAddPassenger(this, unit, seatId);
