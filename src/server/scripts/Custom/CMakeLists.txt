@@ -4,6 +4,7 @@ set(scripts_STAT_SRCS
   Custom/GuildHouse_npc.cpp  
   Custom/npc_customize.cpp      
   Custom/npc_item_summon.cpp      
+  Custom/resetduel.cpp  
 )
 
 message("  -> Prepared: Custom")
