@@ -124,8 +124,12 @@ class boss_garfrost : public CreatureScript
                 DoScriptText(SAY_DEATH, me);
                 if (Creature* tyrannus = me->GetCreature(*me, instance->GetData64(DATA_TYRANNUS)))
                     DoScriptText(SAY_TYRANNUS_DEATH, tyrannus);
-
                 instance->SetBossState(DATA_GARFROST, DONE);
+				if(instance->GetBossState(DATA_ICK == DONE))
+				{
+					if (GameObject* go = GameObject::GetGameObject((*me),instance->GetData64(GO_ICE_WALL)))
+						instance->HandleGameObject(NULL,true,go);
+				}
             }
 
             void DamageTaken(Unit* /*attacker*/, uint32& /*uiDamage*/)

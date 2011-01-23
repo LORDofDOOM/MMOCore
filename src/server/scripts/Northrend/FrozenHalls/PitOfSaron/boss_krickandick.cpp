@@ -19,6 +19,7 @@
 #include "pit_of_saron.h"
 #include "Vehicle.h"
 
+
 enum Spells
 {
     SPELL_MIGHTY_KICK                           = 69021, //ick's spell
@@ -191,6 +192,11 @@ class boss_ick : public CreatureScript
                 }
 
                 instance->SetBossState(DATA_ICK, DONE);
+				if(instance->GetBossState(DATA_GARFROST == DONE))
+				{
+					if (GameObject* go = GameObject::GetGameObject((*me),instance->GetData64(GO_ICE_WALL)))
+						instance->HandleGameObject(NULL,true,go);
+				}
             }
 
             void SetTempThreat(float threat)

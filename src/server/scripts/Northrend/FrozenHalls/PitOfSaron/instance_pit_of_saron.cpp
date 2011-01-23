@@ -137,6 +137,17 @@ class instance_pit_of_saron : public InstanceMapScript
 
                 return 0;
             }
+			
+			void OnGameObjectCreate(GameObject* go)
+			{
+				switch (go->GetEntry())
+				{
+				case GO_ICE_WALL:
+					if(GetBossState(DATA_GARFROST) == DONE && GetBossState(DATA_ICK) == DONE)
+						HandleGameObject(NULL,true,go);
+					break;
+				}
+			}
 
             uint64 GetData64(uint32 type)
             {
