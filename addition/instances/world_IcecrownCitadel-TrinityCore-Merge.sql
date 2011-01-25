@@ -62,3 +62,12 @@ INSERT INTO `spell_script_names` VALUES (70873, 'spell_valithria_vigor'), (71941
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (71157, 29306);
 INSERT INTO `spell_script_names` VALUES (71157,  'spell_rotface_plagued_zombie_infected_wound'), (29306, 'spell_rotface_plagued_zombie_infected_wound');
 UPDATE `creature` SET `spawntimesecs` = 604800 WHERE `id` IN (38008, 38752);
+DELETE FROM `creature` WHERE `id` = 38752 AND NOT (`guid` = 10718);
+UPDATE `creature` SET `spawntimesecs` = 604800 WHERE `guid` = 10718;
+DELETE FROM `creature_template` WHERE `entry` = 38752;
+INSERT INTO `creature_template` VALUES (38752, 0, 0, 0, 0, 0, 26623, 0, 0, 0, 'Green Dragon Combat Trigger', '', '', 0, 80, 
+80, 2, 16, 16, 0, 1, 1.14286, 1, 1, 1, 2, 0, 1, 1, 2000, 2000, 1, 32832, 8, 0, 0, 0, 0, 0, 1, 2, 126, 7, 8, 0, 0, 0, 
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, '', 0, 3, 1.35, 1, 1, 0, 0, 0, 0, 0, 0, 0,  0, 1, 358, 803160063, 0, 'npc_icc_combat_stalker', 12340);
+
+-- Valithria Dreamwalker updates
+UPDATE `creature_template` SET `ScriptName` = 'npc_column_of_frost_icc' WHERE `entry` = 37918;

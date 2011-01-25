@@ -27,7 +27,7 @@ enum Yells
     SAY_DEATH       = -1666067,
     SAY_PDEATH      = -1666068,
     SAY_END         = -1666070,
-    SAY_BERSERK     = -1666069,
+    SAY_FAILURES    = -1666069,
     SAY_OPEN_PORTAL = -1666064
 };
 
@@ -36,7 +36,11 @@ enum Spells
     SPELL_CORRUPTION    = 70904,
     SPELL_DREAM_SLIP    = 71196,
     SPELL_RAGE          = 71189,
-    SPELL_COLUMN        = 70704,
+    SPELL_COLUMN_PRE    = 70704,
+    SPELL_COLUMN_EFFECT_10N = 70702,
+    SPELL_COLUMN_EFFECT_10H_25N = 71746,
+    SPELL_COLUMN_EFFECT_25H = 72020,
+
     SPELL_DREAM_STATE   = 70766,
     SPELL_VIGOR         = 70873,
     SPELL_TWISTED_NIGHTMARES = 71941,
@@ -59,9 +63,11 @@ enum eEvents
     EVENT_EVADE_TO_DREAM_SLIP       = 5,
 
     //Adds
-    EVENT_SUMMON_ADDS               = 8,
-    EVENT_SUMMON_SUPRESSORS         = 9,
-    EVENT_SUMMON_BLAZING_SKELETONS  = 10,
+    EVENT_SUMMON_ARCHMAGE           = 8,
+    EVENT_SUMMON_ZOMBIE             = 17,
+    EVENT_SUMMON_ABOMINATION        = 18,
+    EVENT_SUMMON_SUPRESSOR          = 9,
+    EVENT_SUMMON_BLAZING_SKELETON   = 10,
     EVENT_CAST_COLUMN_OF_FROST      = 11,
     EVENT_HASTEN_SUMMON_TIMER       = 12,
 
@@ -72,16 +78,19 @@ enum eEvents
     EVENT_CLOUD_EMULATE_DESPAWN     = 14,
     EVENT_CLOUD_EMULATE_RESPAWN     = 15,
     EVENT_INTRO                     = 7,
+
+    EVENT_CHECK_WIPE                = 16
 };
 enum eValithriaData
 {
     DATA_INSTANCE_DIFFICULTY = 1
 };
-//enum ePhases
-//{
-//    PHASE_NORMAL    = 0,
-//    PHASE_WIN       = 1
-//};
+enum eActions
+{
+    ACTION_WIPE = 1
+};
+
+
 const Position Pos[] =
 {
     {4239.579102f, 2566.753418f, 364.868439f, 0.0f}, //normal 0,1
@@ -126,12 +135,18 @@ class boss_valithria : public CreatureScript
         {
             boss_valithriaAI(Creature* pCreature) : BossAI(pCreature, DATA_VALITHRIA_DREAMWALKER)
             {
+                //Make Valithria immune to column of frost in case it's spawned near her
+                me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
+                me->SetSpeed(MOVE_RUN, 0.0f, true);
+                me->SetSpeed(MOVE_WALK, 0.0f, true);
+                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNK_9); // 3.0.3 - makes you unable to attack everything
+                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
             }
 
             void Reset()
             {
                 events.Reset();
-
+                me->RemoveAllAuras();
                 DoCast(me, SPELL_CORRUPTION);
                 me->SetHealth(uint32(me->GetMaxHealth() / 2));
 
@@ -142,52 +157,62 @@ class boss_valithria : public CreatureScript
 
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
 
-                instance->SetData(DATA_VALITHRIA_DREAMWALKER_EVENT, NOT_STARTED);
             }
-
-            void MoveInLineOfSight(Unit *who)
+            void DoAction(const int32 action)
             {
-                if (instance->GetData(DATA_VALITHRIA_DREAMWALKER_EVENT) == NOT_STARTED
-                    && who->IsWithinDistInMap(me, 40.0f,true))
+                if (action == EVENT_INTRO)
                 {
-                    //instance->SetData(DATA_VALITHRIA_DREAMWALKER_EVENT, IN_PROGRESS);
-                    if (Creature* combatTrigger = me->GetCreature(*me, instance->GetData64(DATA_VALITHRIA_COMBAT_TRIGGER)))
-                        ((ScriptedAI*)combatTrigger->GetAI())->AttackStartNoMove(who);
+                    Reset();
                     events.ScheduleEvent(EVENT_INTRO, 10000);
                 }
-  
-                //if (instance->GetData(DATA_VALITHRIA_DREAMWALKER_EVENT) == IN_PROGRESS)
-                //    if(!who->IsWithinDistInMap(me, 60.0f,true))
-                //    {
-                //        instance->SetData(DATA_VALITHRIA_DREAMWALKER_EVENT, FAIL);
-                //        events.Reset();
-                //    }
+                if (action == ACTION_WIPE)
+                {
+                    events.Reset();
+                    DoScriptText(SAY_FAILURES, me);
+                    DoCast(me, SPELL_RAGE);
+                    instance->SetData(DATA_VALITHRIA_DREAMWALKER_EVENT, FAIL);
+                    Cleanup(me, instance);
+                    if (Creature* combatTrigger = me->GetCreature(*me, instance->GetData64(DATA_VALITHRIA_COMBAT_TRIGGER)))
+                        combatTrigger->AI()->EnterEvadeMode();
+                    me->RemoveAllAuras();
+                    DoCast(me, SPELL_CORRUPTION);
+                    me->SetHealth(uint32(me->GetMaxHealth() / 2));
+                    return;
+                }
             }
-
-            void JustReachedHome()
-            {
-            }
-
-            void JustDied(Unit* /*pKiller*/)
-            {
-            }
+ 
             uint32 GetData(uint32 id)
             {
                 if (id == DATA_INSTANCE_DIFFICULTY)
                     return RAID_MODE(10, 25, 10, 25);
                 return BossAI::GetData(id);
             }
+
             void CheckHealth()
             {
-                if (instance->GetData(DATA_VALITHRIA_DREAMWALKER_EVENT) == DONE)
+                //Prevent cheaters
+                if (instance->GetData(DATA_VALITHRIA_DREAMWALKER_EVENT) != IN_PROGRESS)
+                {
+                    me->SetHealth(uint32(me->GetMaxHealth() / 2));
                     return;
+                }
+                switch (instance->GetData(DATA_VALITHRIA_DREAMWALKER_EVENT))
+                {
+                    case DONE:
+                        return;
+                    case NOT_STARTED:
+                    {
+                        //Disallow healing while encounter isn't in progress
+                        if (Creature* combatTrigger = me->GetCreature(*me, instance->GetData64(DATA_VALITHRIA_COMBAT_TRIGGER)))
+                            combatTrigger->AI()->EnterEvadeMode();
+                        break;
+                    }
+                    default:
+                        break;
+                }
                 if (HealthBelowPct(2))
                 {
-                    events.Reset();
-                    DoScriptText(SAY_DEATH, me);
-                    instance->SetData(DATA_VALITHRIA_DREAMWALKER_EVENT, FAIL);
-                    if (Creature* combatTrigger = me->GetCreature(*me, instance->GetData64(DATA_VALITHRIA_COMBAT_TRIGGER)))
-                        combatTrigger->AI()->EnterEvadeMode();
+                    DoAction(ACTION_WIPE);
                     return;
                 }
                 if (!bAboveHP && HealthAbovePct(74))
@@ -240,9 +265,8 @@ class boss_valithria : public CreatureScript
                         case EVENT_INTRO:
                         {
                             DoScriptText(SAY_AGGRO, me);
-                            events.ScheduleEvent(EVENT_SUMMON_ADDS, 10000);
-                            //For debug purposes it's scheduled earlier, 5 seconds instead of 35
-                            events.ScheduleEvent(EVENT_SUMMON_PORTALS_TO_DREAM, 5000);
+                            //events.ScheduleEvent(EVENT_SUMMON_ADDS, 10000);
+                            events.ScheduleEvent(EVENT_SUMMON_PORTALS_TO_DREAM, 35000);
                             break;
                         }
                         case EVENT_SUMMON_PORTALS_TO_DREAM:
@@ -259,7 +283,6 @@ class boss_valithria : public CreatureScript
                         }
                         case EVENT_BERSERK:
                         {
-                            //DoScriptText(SAY_BERSERK, me);
                             DoCast(me, SPELL_RAGE);
                             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                             events.ScheduleEvent(EVENT_EVADE_TO_DREAM_SLIP, 6000);
@@ -490,9 +513,8 @@ class npc_dreamcloud_icc : public CreatureScript
                 if (canApplyBuff && me->IsWithinDistInMap(who, 5.0f, true) && who->GetTypeId() == TYPEID_PLAYER)
                 {
                     canApplyBuff = false;
-                    //uiPlayerTriggered = who->GetGUID();
                     //Cloud will explode in about 1-2 seconds after player touch it
-                    events.ScheduleEvent(EVENT_CLOUD_EXPLODE, 1000);
+                    events.ScheduleEvent(EVENT_CLOUD_EXPLODE, 1500);
                 }
                 ScriptedAI::MoveInLineOfSight(who);
             }
@@ -537,7 +559,6 @@ class npc_dreamcloud_icc : public CreatureScript
         private:
             EventMap events;
             bool canApplyBuff;
-            uint64 uiPlayerTriggered;
         };
 
         CreatureAI* GetAI(Creature* pCreature) const
@@ -652,6 +673,96 @@ class spell_valithria_vigor : public SpellScriptLoader
 };
 
 //End of Dream related NPCs and spells
+class npc_column_of_frost_icc : public CreatureScript 
+{
+    public:
+        npc_column_of_frost_icc() : CreatureScript("npc_column_of_frost_icc") { }
+
+        struct npc_column_of_frost_iccAI : public ScriptedAI
+        {
+            npc_column_of_frost_iccAI(Creature* pCreature) : ScriptedAI(pCreature) { }
+            void Reset()
+            {
+                events.ScheduleEvent(EVENT_CAST_COLUMN_OF_FROST, 2000);
+                //Knockback value fix
+                me->SetFloatValue(UNIT_FIELD_COMBATREACH, 50.0f);
+            }
+            void UpdateAI(const uint32 diff)
+            {
+                events.Update(diff);
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                        case EVENT_CAST_COLUMN_OF_FROST:
+                        {
+                            uint32 effectId = RAID_MODE<uint32>(SPELL_COLUMN_EFFECT_10N, SPELL_COLUMN_EFFECT_10H_25N, SPELL_COLUMN_EFFECT_10H_25N, SPELL_COLUMN_EFFECT_25H);
+                            DoCast(me, effectId, true);
+                            events.ScheduleEvent(EVENT_DESPAWN, 3500);
+                            break;
+                        }
+                        case EVENT_DESPAWN:
+                            me->DespawnOrUnsummon();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        private:
+            EventMap events;
+        };
+
+        CreatureAI* GetAI(Creature* pCreature) const
+        {
+            return new npc_column_of_frost_iccAI(pCreature);
+        }
+};
+
+class spell_valithria_column_of_frost : public SpellScriptLoader
+{
+    public:
+        spell_valithria_column_of_frost() : SpellScriptLoader("spell_valithria_column_of_frost") { }
+
+        class spell_valithria_column_of_frost_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_valithria_column_of_frost_SpellScript);
+
+            void KnockIntoAir(SpellEffIndex effIndex)
+            {
+                bool bDummy = true;
+                bDummy = !bDummy;
+                //PreventHitDefault();
+
+                //if (Creature *valithria = GetCaster()->ToCreature())
+                //{
+                //    uint32 instanceDifficulty = valithria->GetAI()->GetData(DATA_INSTANCE_DIFFICULTY);
+                //    float x, y, distMin = 15.0f, distMax = 30.0f;
+                //    valithria->GetPosition(x, y);
+                //    float maxAngle = ((instanceDifficulty == 25) ?  static_cast<float>(2 * M_PI) :  static_cast<float>(M_PI));
+                //    //Decrease ange by 90 degreese because portals should be spawned in front of boss in 10-man modes
+                //    float angle = (float)rand_norm() * maxAngle - static_cast<float>(M_PI) / 2.0f;
+                //    float summonDist = distMin + (distMax - distMin) * (float)rand_norm();
+                //    float summonX = x + summonDist * cos(angle);
+                //    float summonY = y + summonDist * sin(angle);
+
+                //    WorldLocation* summonPos = GetTargetDest();
+                //    summonPos->Relocate(summonX, summonY); 
+                //}
+            }
+
+            void Register()
+            {
+                OnEffect += SpellEffectFn(spell_valithria_column_of_frost_SpellScript::KnockIntoAir, EFFECT_1, SPELL_EFFECT_KNOCK_BACK);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_valithria_column_of_frost_SpellScript();
+        }
+};
+
 class npc_icc_combat_stalker : public CreatureScript
 {
     public:
@@ -664,49 +775,65 @@ class npc_icc_combat_stalker : public CreatureScript
                 pInstance = me->GetInstanceScript();
             }
 
-            void InitializeAI()
+            void DamageTaken(Unit* /*done_by*/, uint32& damage)
             {
-                //if (!me->isDead())
-                //   Reset();
-                EnterEvadeIfOutOfCombatArea(60.0f);
+                damage = 0;
+                me->SetFullHealth();
             }
-            void Reset()
+            void JustDied(Unit* killer)
             {
-                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                //me->SetInCombatWithZone();
-                DoStartNoMovement(me->getVictim());
+                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER)))
+                    DoScriptText(SAY_FAILURES, me);
+            }
+            void EnterCombat(Unit* who)
+            {   
+                bSummonColumns = true;
+                bSummonZombies = true;
+                bSummonAbominations = true;
+                bSummonArchmages = true;
+                bSummonSkeletons = true;
+                bSummonSupressors = true;
+
                 events.Reset();
-                //For debug purposes
-                //events.ScheduleEvent(EVENT_SUMMON_ADDS, 20000);
-                //events.ScheduleEvent(EVENT_SUMMON_SUPRESSORS, 20000);
-                //events.ScheduleEvent(EVENT_SUMMON_BLAZING_SKELETONS, 20000);
-                //events.ScheduleEvent(EVENT_CAST_COLUMN_OF_FROST, 13000);
-                //events.ScheduleEvent(EVENT_HASTEN_SUMMON_TIMER, 30000);
-                m_uiSummonTimer = 2000;
-                if (pInstance && pInstance->GetData(DATA_VALITHRIA_DREAMWALKER_EVENT) != IN_PROGRESS)
-                    summons.DespawnAll();
-                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER)))
-                    valithria->AI()->Reset();
-            }
-
-            void EnterCombat(Unit* /*who*/)
-            {
+                events.ScheduleEvent(EVENT_CHECK_WIPE, 1000);
                 DoZoneInCombat(me);
+                m_uiSummonTimer = 20000;
+
+                events.ScheduleEvent(EVENT_SUMMON_ZOMBIE, 17000);
+                events.ScheduleEvent(EVENT_SUMMON_ARCHMAGE, 2000);
+                events.ScheduleEvent(EVENT_SUMMON_ABOMINATION, 10000);
+                events.ScheduleEvent(EVENT_SUMMON_SUPRESSOR, 20000);
+                events.ScheduleEvent(EVENT_SUMMON_BLAZING_SKELETON, 5000);
+
+                events.ScheduleEvent(EVENT_CAST_COLUMN_OF_FROST, 13000);
+                events.ScheduleEvent(EVENT_HASTEN_SUMMON_TIMER, 30000);
+                events.ScheduleEvent(EVENT_CHECK_WIPE, 1000);
                 pInstance->SetData(DATA_VALITHRIA_DREAMWALKER_EVENT, IN_PROGRESS);
+                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER)))
+                    valithria->AI()->DoAction(EVENT_INTRO);
+
             }
 
-            void JustReachedHome()
+            void MoveInLineOfSight(Unit *who)
             {
-                pInstance->SetData(DATA_VALITHRIA_DREAMWALKER_EVENT, FAIL);
-                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER)))
-                    valithria->AI()->EnterEvadeMode();
+                if (!pInstance)
+                    return;
+                if (pInstance->GetData(DATA_VALITHRIA_DREAMWALKER_EVENT) == IN_PROGRESS)
+                    return;
+                if (me->IsWithinDistInMap(who, 80.0f, true) && who->GetTypeId() == TYPEID_PLAYER)
+                {
+                    AttackStart(who);
+                }
+                ScriptedAI::MoveInLineOfSight(who);
             }
 
             void EnterEvadeMode()
             {
-                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER)))
-                    valithria->AI()->EnterEvadeMode();
-                pInstance->DoCastSpellOnPlayers(UPPER_SPIRE_TELEPORT);
+                me->getThreatManager().clearReferences();
+                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IN_COMBAT);
+                summons.DespawnAll();
+                events.Reset();
+                ScriptedAI::EnterEvadeMode();
             }
 
             void JustSummoned(Creature* pSummoned)
@@ -732,28 +859,51 @@ class npc_icc_combat_stalker : public CreatureScript
                 {
                     switch (eventId)
                     {
-                        case EVENT_SUMMON_ADDS:
+                        case EVENT_CHECK_WIPE:
                         {
-                            for (uint8 coords = 0; coords <= RAID_MODE(1,3,1,3); ++coords)
+                            if (!SelectTarget(SELECT_TARGET_RANDOM, 0, 60.0f, true))
                             {
-                                if(urand(0,1)) DoSummon(CREATURE_ZOMBIE, Pos[coords]);
-                                if(urand(0,1)) DoSummon(CREATURE_ARCHMAGE, Pos[coords]);
-                                if(urand(0,1)) DoSummon(CREATURE_ABOMINATION, Pos[coords]);
+                                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER)))
+                                    valithria->AI()->DoAction(ACTION_WIPE);
+                                return;
                             }
+                            else
+                                events.ScheduleEvent(EVENT_CHECK_WIPE, 1000);
                             break;
                         }
-                        case EVENT_SUMMON_SUPRESSORS:
+                        case EVENT_SUMMON_ZOMBIE:
                         {
-                            for (uint8 coords = 0; coords <= RAID_MODE(1,3,1,3); ++coords)
-                                if(urand(0,1)) DoSummon(CREATURE_SUPPRESSER, Pos[coords]);
-                            events.ScheduleEvent(EVENT_SUMMON_SUPRESSORS, urand(m_uiSummonTimer-2000, m_uiSummonTimer+2000));
+                            if (bSummonZombies)
+                                DoSummon(CREATURE_ZOMBIE, Pos[urand(0,RAID_MODE(1,3,1,3))]);
+                            events.ScheduleEvent(EVENT_SUMMON_ZOMBIE, 17500);
                             break;
                         }
-                        case EVENT_SUMMON_BLAZING_SKELETONS:
+                        case EVENT_SUMMON_ARCHMAGE:
                         {
-                            for (uint8 coords = 0; coords <= RAID_MODE(1,3,1,3); ++coords)
-                                if(urand(0,1)) DoSummon(CREATURE_SKELETON, Pos[coords]);
-                            events.ScheduleEvent(EVENT_SUMMON_BLAZING_SKELETONS, urand(m_uiSummonTimer-2000, m_uiSummonTimer+2000));
+                            if (bSummonArchmages)
+                                DoSummon(CREATURE_ARCHMAGE, Pos[urand(0,RAID_MODE(1,3,1,3))]);
+                            events.ScheduleEvent(EVENT_SUMMON_ARCHMAGE, 27500);
+                            break;
+                        }
+                        case EVENT_SUMMON_ABOMINATION:
+                        {
+                            if (bSummonAbominations)
+                                DoSummon(CREATURE_ABOMINATION, Pos[urand(0,RAID_MODE(1,3,1,3))]);
+                            events.ScheduleEvent(EVENT_SUMMON_ABOMINATION, 30000);
+                            break;
+                        }
+                        case EVENT_SUMMON_SUPRESSOR:
+                        {
+                            if (bSummonSupressors)
+                                DoSummon(CREATURE_SUPPRESSER, Pos[urand(0,RAID_MODE(1,3,1,3))]);
+                            events.ScheduleEvent(EVENT_SUMMON_SUPRESSOR, urand(m_uiSummonTimer-2000, m_uiSummonTimer+2000));
+                            break;
+                        }
+                        case EVENT_SUMMON_BLAZING_SKELETON:
+                        {
+                            if (bSummonSkeletons)
+                                DoSummon(CREATURE_SKELETON, Pos[urand(0,RAID_MODE(1,3,1,3))]);
+                            events.ScheduleEvent(EVENT_SUMMON_BLAZING_SKELETON, urand(m_uiSummonTimer-2000, m_uiSummonTimer+2000));
                             break;
                         }
                         case EVENT_HASTEN_SUMMON_TIMER:
@@ -766,15 +916,15 @@ class npc_icc_combat_stalker : public CreatureScript
                         }
                         case EVENT_CAST_COLUMN_OF_FROST:
                         {
-                            if(Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 1, 100.0f, true))
-                                DoCast(pTarget, SPELL_COLUMN);
+                            if (bSummonColumns)
+                                if(Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true))
+                                    DoCast(pTarget, SPELL_COLUMN_PRE);
                             events.ScheduleEvent(EVENT_CAST_COLUMN_OF_FROST, 13000);
                             break;
                         }
                         default: 
                             break;
                     }
-
                 }
 
             }
@@ -784,6 +934,7 @@ class npc_icc_combat_stalker : public CreatureScript
                 uint32 m_uiSummonTimer;
                 SummonList summons;
                 EventMap events;
+                bool bSummonColumns, bSummonZombies, bSummonSupressors, bSummonArchmages, bSummonSkeletons, bSummonAbominations;
         };
 
         CreatureAI* GetAI(Creature* pCreature) const
@@ -801,4 +952,5 @@ void AddSC_boss_valithria()
     new npc_valithria_alternative();
     new spell_valithria_summon_portal();
     new spell_valithria_vigor();
+    new npc_column_of_frost_icc();
 }

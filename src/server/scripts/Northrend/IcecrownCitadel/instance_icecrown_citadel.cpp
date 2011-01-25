@@ -250,6 +250,8 @@ class instance_icecrown_citadel : public InstanceMapScript
                         creature->SetReactState(REACT_AGGRESSIVE);
                         creature->SetSpeed(MOVE_RUN, 0.0f, true);
                         creature->SetSpeed(MOVE_WALK, 0.0f, true);
+                        creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_DISABLE_MOVE | UNIT_FLAG_NOT_SELECTABLE);
+                        creature->SetVisible(false);
                         break;
                     }
                     case CREATURE_SINDRAGOSA:
@@ -1003,7 +1005,7 @@ class instance_icecrown_citadel : public InstanceMapScript
 };
 void DespawnAllCreaturesAround(Creature *ref, uint32 entry)
 {
-    while (Unit *unit = ref->FindNearestCreature(entry, 200.0f, false))
+    while (Unit *unit = ref->FindNearestCreature(entry, 80.0f, true))
         if (Creature *creature = unit->ToCreature())
             creature->DespawnOrUnsummon();
 }
