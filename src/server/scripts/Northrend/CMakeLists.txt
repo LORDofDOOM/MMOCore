@@ -53,6 +53,7 @@ set(scripts_STAT_SRCS
   Northrend/FrozenHalls/ForgeOfSouls/forge_of_souls.h
   Northrend/Nexus/EyeOfEternity/boss_malygos.cpp
   Northrend/Nexus/EyeOfEternity/instance_eye_of_eternity.cpp
+  Northrend/Nexus/EyeOfEternity/npc_alexsrtaza.cpp
   Northrend/Nexus/EyeOfEternity/eye_of_eternity.h
   Northrend/Nexus/Oculus/boss_eregos.cpp
   Northrend/Nexus/Oculus/boss_drakos.cpp
