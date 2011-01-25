@@ -19,7 +19,7 @@ const int32 KillerStreak3 = 30;
 const int32 KillerStreak4 = 40; 
 const int32 KillerStreak5 = 50; 
 int32 KillStreaks[5] = { KillerStreak1, KillerStreak2, KillerStreak3, KillerStreak4, KillerStreak5 };//On how many kills the killstreaks should announce & Reward.
-int32 PVP_System_SamePlayer = 1;
+
 ///////////////////////////////////////////////////////////////////
 ///////////////////////      END      ////////////////////////////
 /////////////////////////////////////////////////////////////////
@@ -27,7 +27,7 @@ int32 PVP_System_SamePlayer = 1;
 struct SystemInfo
 {
     uint32              KillStreak;
-    uint32              LastGUIDKill;
+    uint64              LastGUIDKill;
     uint8               KillCount;
 };
 
@@ -41,14 +41,16 @@ class System_OnPvPKill : public PlayerScript
         
 void OnPVPKill(Player *pKiller, Player *pVictim)
 {
-    if(PvPSystemEnabled == false)
+    if(!PvPSystemEnabled)
     {
              return;
     }
-    else if(PvPSystemEnabled == true)
+    else if(PvPSystemEnabled)
     {
-        uint32 kGUID; 
-        uint32 vGUID;
+
+
+        uint64 kGUID; 
+        uint64 vGUID;
         char msg[500];
         kGUID = pKiller->GetGUID();
         vGUID = pVictim->GetGUID();                 
@@ -58,74 +60,79 @@ void OnPVPKill(Player *pKiller, Player *pVictim)
         }
                 
       if(KillingStreak[kGUID].LastGUIDKill == vGUID)
-                if (PVP_System_SamePlayer !=1 )
-                {
-                        return;
-                }
-                else
-        {
-        KillingStreak[kGUID].KillCount++;
-        KillingStreak[vGUID].KillCount = 1;
+
+
+
+
+
+
+      {
+          KillingStreak[kGUID].KillCount++;
+          KillingStreak[vGUID].KillCount = 1;
           pKiller->AddItem(ItemReward, 1);
-        if(LooseTokenOnPvPDeath == true)
-          pVictim->DestroyItemCount(ItemReward, AmountOfItemsYouWantTheVictimToLoose, true, false);
-        }
+          if(LooseTokenOnPvPDeath == true)
+
+
+              pVictim->DestroyItemCount(ItemReward, AmountOfItemsYouWantTheVictimToLoose, true, false);
+      }
 
       if(KillingStreak[kGUID].LastGUIDKill != vGUID)
       {
-        KillingStreak[kGUID].KillCount = 1;
-        KillingStreak[vGUID].KillCount = 1;
+          KillingStreak[kGUID].KillCount = 1;
+          KillingStreak[vGUID].KillCount = 1;
       }
 
       if(KillingStreak[kGUID].KillCount == HowManyTimesYouWantTheKillerToGetAwardedForKillingTheSameVictim)
       {
-        return;
+          return;
       }
 
-      if(OnlyInBattlegrounds == true)
-        {
-        if(!pKiller->GetMap()->IsBattleground())
-           return;
+      if(OnlyInBattlegrounds)
+
+      {
+          if(!pKiller->GetMap()->IsBattleground())
+              return;
       }
 
-        KillingStreak[kGUID].KillStreak++;
-        KillingStreak[vGUID].KillStreak = 0;
-        KillingStreak[kGUID].LastGUIDKill = vGUID;
-        KillingStreak[vGUID].LastGUIDKill = 0;
+      KillingStreak[kGUID].KillStreak++;
+      KillingStreak[vGUID].KillStreak = 0;
+      KillingStreak[kGUID].LastGUIDKill = vGUID;
+      KillingStreak[vGUID].LastGUIDKill = 0;
       if(AddTokenOnPvPKill == true)
           pKiller->AddItem(ItemReward, 1);
       if(LooseTokenOnPvPDeath == true)
-        pVictim->DestroyItemCount(ItemReward, AmountOfItemsYouWantTheVictimToLoose, true, false);
+
+          pVictim->DestroyItemCount(ItemReward, AmountOfItemsYouWantTheVictimToLoose, true, false);
                 
         switch(KillingStreak[kGUID].KillStreak)
         {
         case KillerStreak1:
         sprintf(msg, "[PvP System]: %s killed %s and is on a %u kill streak. ", pKiller->GetName(), pVictim->GetName(), KillStreaks[1]);
-        sWorld.SendWorldText(LANG_SYSTEMMESSAGE, msg);
+        sWorld->SendWorldText(LANG_SYSTEMMESSAGE, msg);
         pKiller->AddItem(ItemReward, AmountOfRewardsOnKillStreak[1]);
         break;
 
         case KillerStreak2:
         sprintf(msg, "[PvP System]: %s killed %s and is on a %u kill streak. ", pKiller->GetName(), pVictim->GetName(), KillStreaks[2]);
-        sWorld.SendWorldText(LANG_SYSTEMMESSAGE, msg);
+        sWorld->SendWorldText(LANG_SYSTEMMESSAGE, msg);
         pKiller->AddItem(ItemReward, AmountOfRewardsOnKillStreak[2]);
         break;
 
         case KillerStreak3:
         sprintf(msg, "[PvP System]: %s killed %s and is on a %u kill streak. ", pKiller->GetName(), pVictim->GetName(), KillStreaks[3]);
-        sWorld.SendWorldText(LANG_SYSTEMMESSAGE, msg);
+        sWorld->SendWorldText(LANG_SYSTEMMESSAGE, msg);
         pKiller->AddItem(ItemReward, AmountOfRewardsOnKillStreak[3]);
         break;
 
         case KillerStreak4:
         sprintf(msg, "[PvP System]: %s killed %s and is on a %u kill streak. ", pKiller->GetName(), pVictim->GetName(), KillStreaks[4]);
-        sWorld.SendWorldText(LANG_SYSTEMMESSAGE, msg);
+        sWorld->SendWorldText(LANG_SYSTEMMESSAGE, msg);
         pKiller->AddItem(ItemReward, AmountOfRewardsOnKillStreak[4]);
         break;
 
         case KillerStreak5:
         sprintf(msg, "[PvP System]: %s killed %s and is on a %u kill streak. ", pKiller->GetName(), pVictim->GetName(), KillStreaks[5]);
-        sWorld.SendWorldText(LANG_SYSTEMMESSAGE, msg);
+        sWorld->SendWorldText(LANG_SYSTEMMESSAGE, msg);
         pKiller->AddItem(ItemReward, AmountOfRewardsOnKillStreak[5]);
         KillingStreak[kGUID].KillStreak = 0;
         break;
