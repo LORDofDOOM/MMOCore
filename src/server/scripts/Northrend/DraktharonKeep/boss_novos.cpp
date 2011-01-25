@@ -18,19 +18,13 @@
 #include "ScriptPCH.h"
 #include "drak_tharon_keep.h"
 
-enum Spells
-{
-    SPELL_ARCANE_BLAST                            = 49198,
-    H_SPELL_ARCANE_BLAST                          = 59909,
-    SPELL_ARCANE_FIELD                            = 47346,
-    SPELL_BLIZZARD                                = 49034,
-    H_SPELL_BLIZZARD                              = 59854,
-    SPELL_FROSTBOLT                               = 49037,
-    H_SPELL_FROSTBOLT                             = 59855,
-    SPELL_WRATH_OF_MISERY                         = 50089,
-    H_SPELL_WRATH_OF_MISERY                       = 59856,
-    SPELL_SUMMON_MINIONS                          = 59910 //Summons an army of Fetid Troll Corpses to assist the caster.
-};
+#define SPELL_ARCANE_BLAST                          DUNGEON_MODE(49198,59909)
+#define SPELL_ARCANE_FIELD                          47346
+#define SPELL_BLIZZARD                              DUNGEON_MODE(49034,59854)
+#define SPELL_FROSTBOLT                             DUNGEON_MODE(49037,59855)
+#define SPELL_WARTH_OF_MISERY                       DUNGEON_MODE(50089,59856)
+#define SPELL_SUMMON_MINIONS                        59910
+
 //not in db
 enum Yells
 {
@@ -59,14 +53,33 @@ enum Achievements
     ACHIEV_OH_NOVOS                               = 2057
 };
 
-static Position AddSpawnPoint = { -379.20f, -816.76f, 59.70f, 0.0f };
-static Position CrystalHandlerSpawnPoint = { -326.626343f, -709.956604f, 27.813314f, 0.0f };
-static Position AddDestinyPoint = { -379.314545f, -772.577637f, 28.58837f, 0.0f };
+enum Events
+{
+    EVENT_NONE,
+    EVENT_CRYSTAL,
+    EVENT_SUMMON,
+    EVENT_BLIZZARD,
+    EVENT_BLAST,
+    EVENT_BOLT,
+    EVENT_CURSE,
+    EVENT_HERO_SUMMON,
+};
+
+#define MAX_SUMMONS                            5
+
+static Position AddSpawnPoint = { -379.20f, -816.76f, 59.70f };
+static Position CrystalHandlerSpawnPoint = { -326.626343f, -709.956604f, 27.813314f };
+static Position AddDestinyPoint = { -379.314545f, -772.577637f, 28.58837f };
 
 class boss_novos : public CreatureScript
 {
 public:
     boss_novos() : CreatureScript("boss_novos") { }
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new boss_novosAI (pCreature);
+    }
 
     struct boss_novosAI : public Scripted_NoMovementAI
     {
@@ -75,13 +88,10 @@ public:
             pInstance = c->GetInstanceScript();
         }
 
-        uint32 uiTimer;
-        uint32 uiCrystalHandlerTimer;
-        uint8 crystalHandlerAmount;
-
         bool bAchiev;
 
         SummonList lSummons;
+        EventMap events;
 
         std::list<uint64> luiCrystals;
 
@@ -96,7 +106,7 @@ public:
             bAchiev = true;
             me->CastStop();
             lSummons.DespawnAll();
-            crystalHandlerAmount = 0;
+            events.Reset();
 
             if (me->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE))
                 me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
@@ -120,12 +130,14 @@ public:
             }
         }
 
-        void EnterCombat(Unit* /*who*/)
+        void EnterCombat(Unit* who)
         {
             DoScriptText(SAY_AGGRO, me);
             Phase = PHASE_1;
-            uiCrystalHandlerTimer = 30*IN_MILLISECONDS;
-            uiTimer = 1*IN_MILLISECONDS;
+            events.ScheduleEvent(EVENT_CRYSTAL,30000);
+            events.ScheduleEvent(EVENT_SUMMON,1000);
+
+            me->RemoveAllAuras();
             DoCast(SPELL_ARCANE_FIELD);
             if (pInstance)
             {
@@ -139,44 +151,84 @@ public:
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+
+            DoAttackerAreaInCombat(who,100);
         }
 
         void UpdateAI(const uint32 diff)
         {
-            switch (Phase)
+            if (!UpdateVictim())
+                return;
+
+            events.Update(diff);
+
+            if (me->HasUnitState(UNIT_STAT_CASTING) && Phase!=PHASE_1)
+                return;
+
+            Creature *pCrystalHandler;
+            Creature *pSummon;
+
+            while (uint32 eventId = events.ExecuteEvent())
             {
-                case PHASE_1:
-                    if (uiTimer <= diff)
-                    {
-                        Creature *pSummon = me->SummonCreature(RAND(CREATURE_FETID_TROLL_CORPSE,CREATURE_HULKING_CORPSE,CREATURE_RISEN_SHADOWCASTER), AddSpawnPoint, TEMPSUMMON_CORPSE_TIMED_DESPAWN,20*IN_MILLISECONDS);
-                        pSummon->GetMotionMaster()->MovePoint(0, AddDestinyPoint);
-                        //If spell is casted stops casting arcane field so no spell casting
-                        //DoCast(me, SPELL_SUMMON_MINIONS);
-                        uiTimer = 3*IN_MILLISECONDS;
-                    } else uiTimer -= diff;
-                    if (crystalHandlerAmount < 4)
-                    {
-                        if (uiCrystalHandlerTimer <= diff)
-                        {
-                            DoScriptText(SAY_NECRO_ADD, me);
-                            Creature *pCrystalHandler = me->SummonCreature(CREATURE_CRYSTAL_HANDLER, CrystalHandlerSpawnPoint, TEMPSUMMON_CORPSE_TIMED_DESPAWN,20*IN_MILLISECONDS);
-                            pCrystalHandler->GetMotionMaster()->MovePoint(0, AddDestinyPoint);
-                            uiCrystalHandlerTimer = urand(20*IN_MILLISECONDS,30*IN_MILLISECONDS);
-                        } else uiCrystalHandlerTimer -= diff;
-                    }
+                switch(eventId)
+                {
+                case EVENT_CRYSTAL:
+                    DoScriptText(SAY_NECRO_ADD, me);
+                    pCrystalHandler = me->SummonCreature(CREATURE_CRYSTAL_HANDLER, CrystalHandlerSpawnPoint, TEMPSUMMON_CORPSE_TIMED_DESPAWN,20*IN_MILLISECONDS);
+                    pCrystalHandler->GetMotionMaster()->MovePoint(0, AddDestinyPoint);
+                    events.ScheduleEvent(EVENT_CRYSTAL,20000);
+    //                events.ScheduleEvent(EVENT_CRYSTAL,urand(20000,30000));
                     break;
-                case PHASE_2:
-                    if (uiTimer <= diff)
-                    {
-                        if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
-                            DoCast(pTarget, DUNGEON_MODE(RAND(SPELL_ARCANE_BLAST,SPELL_BLIZZARD,SPELL_FROSTBOLT,SPELL_WRATH_OF_MISERY),
-                                                         RAND(H_SPELL_ARCANE_BLAST,H_SPELL_BLIZZARD,H_SPELL_FROSTBOLT,H_SPELL_WRATH_OF_MISERY)));
-                        uiTimer = urand(1*IN_MILLISECONDS,3*IN_MILLISECONDS);
-                    } else uiTimer -= diff;
+                case EVENT_SUMMON:
+                    pSummon = me->SummonCreature(RAND(CREATURE_FETID_TROLL_CORPSE,CREATURE_HULKING_CORPSE,CREATURE_RISEN_SHADOWCASTER), AddSpawnPoint, TEMPSUMMON_CORPSE_TIMED_DESPAWN,20*IN_MILLISECONDS);
+                    pSummon->GetMotionMaster()->MovePoint(0, AddDestinyPoint);
+                    events.ScheduleEvent(EVENT_SUMMON,4000);
+    //                events.ScheduleEvent(EVENT_SUMMON,DUNGEON_MODE(3000,2000));
                     break;
-                default:
+                case EVENT_HERO_SUMMON:
+                    for (int i=1;i<=MAX_SUMMONS;i++)
+                        me->SummonCreature(CREATURE_FETID_TROLL_CORPSE,me->GetPositionX(),me->GetPositionY(),me->GetPositionZ(),0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,1000);
+                    events.ScheduleEvent(EVENT_HERO_SUMMON,urand(20000,30000));
+    //                events.ScheduleEvent(EVENT_HERO_SUMMON,urand(5000,15000));
+                case EVENT_BLIZZARD:
+                    if (Unit *pTarget=SelectTarget(SELECT_TARGET_RANDOM,0,100,true))
+                        DoCast(pTarget,SPELL_BLIZZARD);
+                    events.ScheduleEvent(EVENT_BLIZZARD,15000);
+    //                events.ScheduleEvent(EVENT_BLIZZARD,7500);
                     break;
+                case EVENT_BOLT:
+                    if (Unit *pTarget=SelectTarget(SELECT_TARGET_RANDOM,0,100,true))
+                        if (!me->HasUnitState(UNIT_STAT_CASTING))
+                            DoCast(pTarget,SPELL_FROSTBOLT);
+                        events.ScheduleEvent(EVENT_BOLT,2500);
+                    break;
+                case EVENT_CURSE:
+                    if (Unit *pTarget=SelectTarget(SELECT_TARGET_RANDOM,0,100,true))
+                        if (!me->HasUnitState(UNIT_STAT_CASTING))
+                            DoCast(pTarget,SPELL_WARTH_OF_MISERY);
+                        events.ScheduleEvent(EVENT_CURSE,9000);
+                    break;
+                case EVENT_BLAST:
+                    if (Unit *pTarget=SelectTarget(SELECT_TARGET_RANDOM,0,100,true))
+                        if (!me->HasUnitState(UNIT_STAT_CASTING))
+                            DoCast(pTarget,SPELL_ARCANE_BLAST);
+                        events.ScheduleEvent(EVENT_BLAST,urand(20000,30000));
+                    break;
+                }
             }
+            
+            /*
+            if (!me->hasUnitState(UNIT_STAT_CASTING))
+            {
+                uint8 cast=(urand(0,100));
+                if (cast<=65)
+                    events.ScheduleEvent(EVENT_BOLT,0);
+                if (cast<90 && cast>65)
+                    events.ScheduleEvent(EVENT_CURSE,0);
+                if (cast>=90)
+                    events.ScheduleEvent(EVENT_BLAST,0);
+            } */
+
         }
         void JustDied(Unit* /*killer*/)
         {
@@ -200,9 +252,6 @@ public:
 
         void JustSummoned(Creature *summon)
         {
-            if (summon->GetEntry() == CREATURE_CRYSTAL_HANDLER)
-                crystalHandlerAmount++;
-
             lSummons.Summon(summon);
         }
 
@@ -222,7 +271,14 @@ public:
                 me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                 me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                 Phase = PHASE_2;
-                uiTimer = 1*IN_MILLISECONDS;
+                events.Reset();
+                events.ScheduleEvent(EVENT_BLIZZARD,0);
+                events.ScheduleEvent(EVENT_BLAST,urand(20000,30000));
+                events.ScheduleEvent(EVENT_CURSE,5000);
+                events.ScheduleEvent(EVENT_BOLT,2000);
+
+                if (IsHeroic())
+                    events.ScheduleEvent(EVENT_HERO_SUMMON,0);
             }
         }
 
@@ -232,10 +288,6 @@ public:
         }
     };
 
-    CreatureAI *GetAI(Creature *creature) const
-    {
-        return new boss_novosAI(creature);
-    }
 };
 
 enum CrystalHandlerSpells
@@ -249,6 +301,11 @@ class mob_crystal_handler : public CreatureScript
 public:
     mob_crystal_handler() : CreatureScript("mob_crystal_handler") { }
 
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new mob_crystal_handlerAI (pCreature);
+    }
+
     struct mob_crystal_handlerAI : public ScriptedAI
     {
         mob_crystal_handlerAI(Creature *c) : ScriptedAI(c)
@@ -258,7 +315,7 @@ public:
 
         uint32 uiFlashOfDarknessTimer;
 
-        InstanceScript *pInstance;
+        InstanceScript* pInstance;
 
         void Reset()
         {
@@ -295,16 +352,17 @@ public:
         }
     };
 
-    CreatureAI *GetAI(Creature *creature) const
-    {
-        return new mob_crystal_handlerAI(creature);
-    }
 };
 
 class mob_novos_minion : public CreatureScript
 {
 public:
     mob_novos_minion() : CreatureScript("mob_novos_minion") { }
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new mob_novos_minionAI (pCreature);
+    }
 
     struct mob_novos_minionAI : public ScriptedAI
     {
@@ -313,7 +371,7 @@ public:
             pInstance = c->GetInstanceScript();
         }
 
-        InstanceScript *pInstance;
+        InstanceScript* pInstance;
 
         void MovementInform(uint32 type, uint32 id)
         {
@@ -328,15 +386,11 @@ public:
         }
     };
 
-    CreatureAI *GetAI(Creature *creature) const
-    {
-        return new mob_novos_minionAI(creature);
-    }
 };
 
 void AddSC_boss_novos()
 {
-    new boss_novos;
-    new mob_crystal_handler;
-    new mob_novos_minion;
+    new boss_novos();
+    new mob_crystal_handler();
+    new mob_novos_minion();
 }

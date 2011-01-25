@@ -59,6 +59,11 @@ class boss_trollgore : public CreatureScript
 public:
     boss_trollgore() : CreatureScript("boss_trollgore") { }
 
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new boss_trollgoreAI (pCreature);
+    }
+
     struct boss_trollgoreAI : public ScriptedAI
     {
         boss_trollgoreAI(Creature *c) : ScriptedAI(c), lSummons(me)
@@ -84,7 +89,7 @@ public:
             uiConsumeTimer = 15*IN_MILLISECONDS;
             uiAuraCountTimer = 15500;
             uiCrushTimer = urand(1*IN_MILLISECONDS,5*IN_MILLISECONDS);
-            uiInfectedWoundTimer = urand(60*IN_MILLISECONDS,10*IN_MILLISECONDS);
+            uiInfectedWoundTimer = urand(6*IN_MILLISECONDS,10*IN_MILLISECONDS);
             uiExplodeCorpseTimer = 3*IN_MILLISECONDS;
             uiSpawnTimer = urand(30*IN_MILLISECONDS,40*IN_MILLISECONDS);
 
@@ -185,13 +190,9 @@ public:
         }
     };
 
-    CreatureAI *GetAI(Creature *creature) const
-    {
-        return new boss_trollgoreAI(creature);
-    }
 };
 
 void AddSC_boss_trollgore()
 {
-    new boss_trollgore;
+    new boss_trollgore();
 }
