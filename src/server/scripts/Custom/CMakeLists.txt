@@ -5,6 +5,7 @@ set(scripts_STAT_SRCS
   Custom/npc_customize.cpp      
   Custom/npc_item_summon.cpp      
   Custom/resetduel.cpp  
+  Custom/killstreak_pvp_system.cpp  
 )
 
 message("  -> Prepared: Custom")
