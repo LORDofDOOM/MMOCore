@@ -77,7 +77,8 @@ public:
         uint64 auiContainmentSphereGUIDs[DATA_CONTAINMENT_SPHERES];
 
         uint32 uiCheckIntenseColdTimer;
-        bool bMoreThanTwoIntenseCold; // needed for achievement: Intense Cold(2036)
+        // bool bMoreThanTwoIntenseCold; // needed for achievement: Intense Cold(2036)
+        std::set<uint64> lMoreThanTwoIntenseCold;
 
         void Reset()
         {
@@ -87,7 +88,8 @@ public:
             bEnrage = false;
 
             uiCheckIntenseColdTimer = 2*IN_MILLISECONDS;
-            bMoreThanTwoIntenseCold = false;
+            //bMoreThanTwoIntenseCold = false;
+            lMoreThanTwoIntenseCold.clear();
 
             me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
 
@@ -112,8 +114,23 @@ public:
 
             if (pInstance)
             {
-                if (IsHeroic() && !bMoreThanTwoIntenseCold)
-                    pInstance->DoCompleteAchievement(ACHIEV_INTENSE_COLD);
+                /*if (IsHeroic() && !bMoreThanTwoIntenseCold)
+                    pInstance->DoCompleteAchievement(ACHIEV_INTENSE_COLD);*/
+                if (IsHeroic())
+                {
+                    AchievementEntry const *achievIntenseCold = GetAchievementStore()->LookupEntry(ACHIEV_INTENSE_COLD);
+                    if (achievIntenseCold)
+                    {
+                        Map::PlayerList const &players = pInstance->instance->GetPlayers();
+                        for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+                        {
+                            if (lMoreThanTwoIntenseCold.find(itr->getSource()->GetGUID()) != lMoreThanTwoIntenseCold.end())
+                                continue;
+                            else
+                                itr->getSource()->CompletedAchievement(achievIntenseCold);
+                        }
+                    }
+                }
                 pInstance->SetData(DATA_KERISTRASZA_EVENT, DONE);
             }
         }
@@ -169,9 +186,9 @@ public:
             if (!UpdateVictim())
                 return;
 
-            if (uiCheckIntenseColdTimer < diff && !bMoreThanTwoIntenseCold)
+            if (uiCheckIntenseColdTimer < diff /*&& !bMoreThanTwoIntenseCold*/)
             {
-                std::list<HostileReference*> ThreatList = me->getThreatManager().getThreatList();
+                /*std::list<HostileReference*> ThreatList = me->getThreatManager().getThreatList();
                 for (std::list<HostileReference*>::const_iterator itr = ThreatList.begin(); itr != ThreatList.end(); ++itr)
                 {
                     Unit *pTarget = Unit::GetUnit(*me, (*itr)->getUnitGuid());
@@ -184,6 +201,14 @@ public:
                         bMoreThanTwoIntenseCold = true;
                         break;
                     }
+                }*/
+                Map::PlayerList const &players = pInstance->instance->GetPlayers();
+                for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+                {
+                    Aura *AuraIntenseCold = itr->getSource()->GetAura(SPELL_INTENSE_COLD_TRIGGERED);
+                    if (AuraIntenseCold)
+                        if (AuraIntenseCold->GetStackAmount() > 2)
+                            lMoreThanTwoIntenseCold.insert(itr->getSource()->GetGUID());
                 }
                 uiCheckIntenseColdTimer = 2*IN_MILLISECONDS;
             } else uiCheckIntenseColdTimer -= diff;
