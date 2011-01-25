@@ -24536,8 +24536,6 @@ void Player::RefundItem(Item *item)
     }
     GetSession()->SendPacket(&data);
 
-    uint32 moneyRefund = item->GetPaidMoney();  // item-> will be invalidated in DestroyItem
-
     // Delete any references to the refund data
     item->SetNotRefundable(this);
 
