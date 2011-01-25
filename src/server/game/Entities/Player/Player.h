@@ -132,8 +132,6 @@ struct SpellCooldown
 };
 
 typedef std::map<uint32, SpellCooldown> SpellCooldowns;
-
-#define MAX_INSTANCES_PER_HOUR 5
 typedef UNORDERED_MAP<uint32 /*instanceId*/, time_t/*releaseTime*/> InstanceTimeMap;
 
 enum TrainerSpellState
@@ -2321,6 +2319,7 @@ class Player : public Unit, public GridObject<Player>
 
         void SendCinematicStart(uint32 CinematicSequenceId);
         void SendMovieStart(uint32 MovieId);
+        void SendClearFocus(Unit* target);
 
         /*********************************************************/
         /***                 INSTANCE SYSTEM                   ***/
@@ -2350,7 +2349,7 @@ class Player : public Unit, public GridObject<Player>
         bool CheckInstanceLoginValid();
         bool CheckInstanceCount(uint32 instanceId) const
         {
-            if (_instanceResetTimes.size() < MAX_INSTANCES_PER_HOUR)
+            if (_instanceResetTimes.size() < sWorld->getIntConfig(CONFIG_MAX_INSTANCES_PER_HOUR))
                 return true;
             return _instanceResetTimes.find(instanceId) != _instanceResetTimes.end();
         }
