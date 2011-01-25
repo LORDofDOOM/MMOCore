@@ -1,5 +1,9 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008 - 2010 Trinity <http://www.trinitycore.org/>
+ *
+ * Copyright (C) 2010 Lol Project <http://hg.assembla.com/lol_trinity/>
+ *
+ * Copyright (C) 2010 Myth Project <https://mythcore.googlecode.com/hg/mythcore/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -43,8 +47,8 @@ enum Spells
     H_SPELL_BROOD_PLAGUE                          = 59467,
     H_SPELL_BROOD_RAGE                            = 59465,
     SPELL_ENRAGE                                  = 26662, // Enraged if too far away from home
-    SPELL_SUMMON_SWARMERS                         = 56119, //2x 30178  -- 2x every 10secs
-    SPELL_SUMMON_SWARM_GUARD                      = 56120, //1x 30176  -- every 25secs
+    SPELL_SUMMON_SWARMERS                         = 56119, // 2x 30178  -- 2x every 10secs
+    SPELL_SUMMON_SWARM_GUARD                      = 56120, // 1x 30176  -- every 25%
 };
 
 enum Creatures
@@ -68,28 +72,26 @@ public:
         }
 
         uint32 uiPlagueTimer;
-        uint32 uiRagueTimer;
+        uint32 uiRageTimer;
 
         uint32 uiSwarmerSpawnTimer;
-        uint32 uiGuardSpawnTimer;
-        uint32 uiEnragueTimer;
+        uint32 uiEnrageTimer;
 
-        bool bGuardSpawned;
+        uint32 uiHealthAmountModifier;
 
         InstanceScript *pInstance;
 
         void Reset()
         {
             uiPlagueTimer = 13*IN_MILLISECONDS;
-            uiRagueTimer = 20*IN_MILLISECONDS;
+            uiRageTimer = 10*IN_MILLISECONDS;
 
             uiSwarmerSpawnTimer = 10*IN_MILLISECONDS;
-            uiGuardSpawnTimer = 25*IN_MILLISECONDS;
+            uiEnrageTimer = 5*IN_MILLISECONDS;
 
-            uiEnragueTimer = 5*IN_MILLISECONDS;
+            uiHealthAmountModifier = 1;
 
             DeadAhnkaharGuardian = false;
-            bGuardSpawned = false;
 
             if (pInstance)
                 pInstance->SetData(DATA_ELDER_NADOX_EVENT, NOT_STARTED);
@@ -127,25 +129,23 @@ public:
 
             if (uiPlagueTimer <= diff)
             {
-                DoCast(me->getVictim(), SPELL_BROOD_PLAGUE);
+                if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM))
+                    DoCast(pTarget, DUNGEON_MODE(SPELL_BROOD_PLAGUE, H_SPELL_BROOD_PLAGUE));
+
                 uiPlagueTimer = 15*IN_MILLISECONDS;
             } else uiPlagueTimer -= diff;
 
             if (IsHeroic())
             {
-                if (uiRagueTimer <= diff)
+                if (uiRageTimer <= diff)
                 {
-                    if (Creature *pSwarmer = me->FindNearestCreature(MOB_AHNKAHAR_SWARMER, 35))
-                    {
-                        DoCast(pSwarmer, H_SPELL_BROOD_RAGE, true);
-                        uiRagueTimer = 15*IN_MILLISECONDS;
-                    }
-                } else uiRagueTimer -= diff;
+                    DoCast(H_SPELL_BROOD_RAGE);
+                    uiRageTimer = 5*IN_MILLISECONDS;
+                } else uiRageTimer -= diff;
             }
 
             if (uiSwarmerSpawnTimer <= diff)
             {
-                DoCast(me, SPELL_SUMMON_SWARMERS, true);
                 DoCast(me, SPELL_SUMMON_SWARMERS);
                 if (urand(1,3) == 3) // 33% chance of dialog
                     DoScriptText(RAND(SAY_EGG_SAC_1,SAY_EGG_SAC_2), me);
@@ -153,26 +153,24 @@ public:
                 uiSwarmerSpawnTimer = 10*IN_MILLISECONDS;
             } else uiSwarmerSpawnTimer -= diff;
 
-            if (!bGuardSpawned && uiGuardSpawnTimer <= diff)
+            if (me->HealthBelowPct(100 - uiHealthAmountModifier * 25))
             {
                 me->MonsterTextEmote(EMOTE_HATCHES,me->GetGUID(),true);
                 DoCast(me, SPELL_SUMMON_SWARM_GUARD);
-                bGuardSpawned = true;
-            } else uiGuardSpawnTimer -= diff;
+                ++uiHealthAmountModifier;
+            }
 
-            if (uiEnragueTimer <= diff)
+            if (uiEnrageTimer <= diff)
             {
                 if (me->HasAura(SPELL_ENRAGE,0))
                     return;
 
-                float x, y, z, o;
-                me->GetHomePosition(x, y, z, o);
-                if (z < 24)
+                if (me->GetPositionZ() < 24.0f)
                     if (!me->IsNonMeleeSpellCasted(false))
                         DoCast(me, SPELL_ENRAGE, true);
 
-                uiEnragueTimer = 5*IN_MILLISECONDS;
-            } else uiEnragueTimer -= diff;
+                uiEnrageTimer = 5*IN_MILLISECONDS;
+            } else uiEnrageTimer -= diff;
 
             DoMeleeAttackIfReady();
         }
@@ -187,7 +185,8 @@ public:
 enum AddSpells
 {
     SPELL_SPRINT                                  = 56354,
-    SPELL_GUARDIAN_AURA                           = 56151
+    SPELL_GUARDIAN_AURA                           = 56151,
+    SPELL_GUARDIAN_AURA_TRIGGERED                 = 56153
 };
 
 class mob_ahnkahar_nerubian : public CreatureScript
@@ -209,7 +208,8 @@ public:
         {
             if (me->GetEntry() == MOB_AHNKAHAR_GUARDIAN_ENTRY) //magic numbers are bad!
                 DoCast(me, SPELL_GUARDIAN_AURA, true);
-            uiSprintTimer = 10*IN_MILLISECONDS;
+
+            uiSprintTimer = 5*IN_MILLISECONDS;
         }
 
         void JustDied(Unit * /*killer*/)
@@ -220,21 +220,17 @@ public:
 
         void EnterCombat(Unit * /*who*/){}
 
+        void SpellHit(Unit * /*caster*/, const SpellEntry *spell)
+        {
+            if (spell->Id == SPELL_GUARDIAN_AURA_TRIGGERED && me->GetEntry() == MOB_AHNKAHAR_GUARDIAN_ENTRY)
+                me->RemoveAurasDueToSpell(SPELL_GUARDIAN_AURA_TRIGGERED);
+        }
+
         void UpdateAI(const uint32 diff)
         {
-            if (!UpdateVictim())
-                return;
-
-            if (me->GetEntry() == MOB_AHNKAHAR_GUARDIAN_ENTRY)
-                me->RemoveAurasDueToSpell(SPELL_GUARDIAN_AURA);
-
             if (pInstance)
-            {
                 if (pInstance->GetData(DATA_ELDER_NADOX_EVENT) != IN_PROGRESS)
-                {
                     me->DisappearAndDie();
-                }
-            }
 
             if (!UpdateVictim())
                 return;
@@ -242,7 +238,7 @@ public:
             if (uiSprintTimer <= diff)
             {
                 DoCast(me, SPELL_SPRINT);
-                uiSprintTimer = 25*IN_MILLISECONDS;
+                uiSprintTimer = 20*IN_MILLISECONDS;
             } else uiSprintTimer -= diff;
 
             DoMeleeAttackIfReady();

@@ -1,5 +1,9 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008 - 2010 Trinity <http://www.trinitycore.org/>
+ *
+ * Copyright (C) 2010 Lol Project <http://hg.assembla.com/lol_trinity/>
+ *
+ * Copyright (C) 2010 Myth Project <https://mythcore.googlecode.com/hg/mythcore/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -13,10 +17,6 @@
  *
  * You should have received a copy of the GNU General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
- */
-
-/*
- * Comment: Missing AI for Twisted Visages
  */
 
 #include "ScriptPCH.h"
@@ -173,6 +173,15 @@ public:
             me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         }
 
+        void EnterEvadeMode()
+        {
+            me->RemoveAllAuras();
+            me->SetControlled(false, UNIT_STAT_STUNNED);
+            _EnterEvadeMode();
+            me->GetMotionMaster()->MoveTargetedHome();
+            Reset();
+        }
+
         void EnterCombat(Unit* /*who*/)
         {
             DoScriptText(SAY_AGGRO, me);
@@ -307,9 +316,12 @@ public:
             ResetPlayersPhaseMask();
         }
 
-        void KilledUnit(Unit * /*victim*/)
+        void KilledUnit(Unit* pVictim)
         {
             DoScriptText(RAND(SAY_SLAY_1,SAY_SLAY_2,SAY_SLAY_3), me);
+
+            if (pVictim->GetTypeId() == TYPEID_PLAYER)
+                pVictim->RemoveAurasDueToSpell(GetSpellForPhaseMask(pVictim->GetPhaseMask()));
         }
     };
 
