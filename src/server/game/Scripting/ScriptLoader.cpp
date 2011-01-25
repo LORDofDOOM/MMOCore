@@ -590,7 +590,6 @@ void AddSC_shadowmoon_valley();
 void AddSC_shattrath_city();
 void AddSC_terokkar_forest();
 void AddSC_zangarmarsh();
-void AddSC_wintergrasp();
 
 // battlegrounds
 
@@ -602,6 +601,7 @@ void AddSC_outdoorpvp_si();
 void AddSC_outdoorpvp_tf();
 void AddSC_outdoorpvp_zm();
 void AddSC_outdoorpvp_wg();
+void AddSC_wintergrasp();
 
 // player
 void AddSC_chat_log();
@@ -1210,6 +1210,7 @@ void AddNorthrendScripts()
     AddSC_zuldrak();
     AddSC_crystalsong_forest();
     AddSC_isle_of_conquest();
+
     AddSC_wintergrasp();
 #endif
 }

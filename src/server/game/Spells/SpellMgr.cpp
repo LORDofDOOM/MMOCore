@@ -3111,8 +3111,8 @@ bool SpellArea::IsFitToRequirements(Player const* player, uint32 newZone, uint32
 				  if ((pvpWG->isWarTime()==false) || !player || (!player->HasAuraType(SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED) && !player->HasAuraType(SPELL_AURA_FLY)) || player->HasAura(45472) || player->HasAura(44795) || player->GetPositionZ())
 				    return false;
 				}
+                break;
 			}
-            break;
         case 58045: // Essence of Wintergrasp - Wintergrasp
         case 57940: // Essence of Wintergrasp - Northrend
              if (!player || player->GetTeamId() != sWorld->getWorldState(WORLDSTATE_WINTERGRASP_CONTROLING_FACTION))
@@ -3608,9 +3608,22 @@ void SpellMgr::LoadSpellCustomAttr()
 
         switch (i)
         {
-        case 54069: // Energize Cores 
+        case 61407: // Energize Cores
+        case 62136: // Energize Cores
+        case 54069: // Energize Cores
         case 56251: // Energize Cores
-            spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_CONE_ENTRY;
+            spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_AREA_ENTRY_SRC;
+            count++;
+            break;
+        case 50785: // Energize Cores
+        case 59372: // Energize Cores
+            spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_AREA_ENEMY_SRC;
+            count++;
+            break;
+        case 71880:
+        case 71892:
+            spellInfo->SpellFamilyName = SPELLFAMILY_GENERIC;
+            spellInfo->procChance = 20;
             count++;
             break;
         case 71880:
