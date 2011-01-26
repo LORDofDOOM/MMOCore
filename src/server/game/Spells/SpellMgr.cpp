@@ -3475,14 +3475,17 @@ void SpellMgr::LoadSpellCustomAttr()
 {
     uint32 oldMSTime = getMSTime();
 
-    mSpellCustomAttr.resize(GetSpellStore()->GetNumRows(), 0);  // initialize with 0 values
+    mSpellCustomAttr.resize(GetSpellStore()->GetNumRows());
+
 
     uint32 count = 0;
 
-    SpellEntry* spellInfo = NULL;
-    for (uint32 i = 0; i < sSpellStore.GetNumRows(); ++i)
+    SpellEntry *spellInfo;
+    for (uint32 i = 0; i < GetSpellStore()->GetNumRows(); ++i)
     {
-        spellInfo = (SpellEntry*)sSpellStore.LookupEntry(i);
+
+        mSpellCustomAttr[i] = 0;
+        spellInfo = (SpellEntry*)GetSpellStore()->LookupEntry(i);
         if (!spellInfo)
             continue;
 
