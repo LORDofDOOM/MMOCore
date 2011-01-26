@@ -566,6 +566,11 @@ void BossAI::TeleportCheaters()
             (*itr)->getTarget()->NearTeleportTo(x, y, z, 0);
 }
 
+void BossAI::SetImmuneToDeathGrip(bool set)
+{
+    me->ApplySpellImmune(0, IMMUNITY_ID, 49560, set);
+}
+
 bool BossAI::CheckBoundary(Unit *who)
 {
     if (!boundary || !who)
