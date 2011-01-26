@@ -56,7 +56,7 @@ void AddSC_example_spell_scripts();
 void AddSC_SmartSCripts();
 
 // Killstreak PvP System
-void AddSC_System_OnPVPKill();
+void AddSC_PVP_System();
 
 //Commands
 void AddSC_anticheat_commandscript();
@@ -1276,6 +1276,6 @@ void AddCustomScripts()
     // Custom
     AddSC_DuelReset();
 	// Killstreak PvP System
-	AddSC_System_OnPVPKill();
+	AddSC_PVP_System();
 #endif
 }

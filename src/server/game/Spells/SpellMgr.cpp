@@ -3475,17 +3475,18 @@ void SpellMgr::LoadSpellCustomAttr()
 {
     uint32 oldMSTime = getMSTime();
 
-    mSpellCustomAttr.resize(GetSpellStore()->GetNumRows());
+    mSpellCustomAttr.resize(GetSpellStore()->GetNumRows(), 0);  // initialize with 0 values
 
 
     uint32 count = 0;
 
-    SpellEntry *spellInfo;
-    for (uint32 i = 0; i < GetSpellStore()->GetNumRows(); ++i)
+    SpellEntry* spellInfo = NULL;
+    for (uint32 i = 0; i < sSpellStore.GetNumRows(); ++i)
     {
+        spellInfo = (SpellEntry*)sSpellStore.LookupEntry(i);
 
-        mSpellCustomAttr[i] = 0;
-        spellInfo = (SpellEntry*)GetSpellStore()->LookupEntry(i);
+
+
         if (!spellInfo)
             continue;
 
@@ -3621,12 +3622,6 @@ void SpellMgr::LoadSpellCustomAttr()
         case 50785: // Energize Cores
         case 59372: // Energize Cores
             spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_AREA_ENEMY_SRC;
-            count++;
-            break;
-        case 71880:
-        case 71892:
-            spellInfo->SpellFamilyName = SPELLFAMILY_GENERIC;
-            spellInfo->procChance = 20;
             count++;
             break;
         case 71880:
