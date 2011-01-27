@@ -636,7 +636,7 @@ int32 AuraEffect::CalculateAmount(Unit * caster)
                 if (AuraEffect const * aurEff = caster->GetAuraEffect(34241,0))
                     amount += cp * aurEff->GetAmount();
 
-                amount += CalculatePctF(cp, caster->GetTotalAttackPowerValue(BASE_ATTACK));
+                amount += CalculatePctF(caster->GetTotalAttackPowerValue(BASE_ATTACK), cp);
             }
             // Rend
             else if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARRIOR && GetSpellProto()->SpellFamilyFlags[0] & 0x20)
@@ -2402,15 +2402,15 @@ void AuraEffect::TriggerSpell(Unit * target, Unit * caster) const
                 {
                     Unit *permafrostCaster = NULL;
                     if (caster->HasAura(66193)) permafrostCaster = caster->GetAura(66193)->GetCaster();
-                    if (caster->HasAura(67855)) permafrostCaster = caster->GetAura(67855)->GetCaster(); 
-                    if (caster->HasAura(67856)) permafrostCaster = caster->GetAura(67856)->GetCaster(); 
+                    if (caster->HasAura(67855)) permafrostCaster = caster->GetAura(67855)->GetCaster();
+                    if (caster->HasAura(67856)) permafrostCaster = caster->GetAura(67856)->GetCaster();
                     if (caster->HasAura(67857)) permafrostCaster = caster->GetAura(67857)->GetCaster();
-                
+
                     if (permafrostCaster)
                     {
                         if (Creature *permafrostCasterAsCreature = permafrostCaster->ToCreature())
                             permafrostCasterAsCreature->DespawnOrUnsummon(3000);
- 
+
                         caster->CastSpell(caster, 66181, false);
                         caster->RemoveAllAuras();
                         if (Creature *casterAsCreature = caster->ToCreature())
@@ -3178,7 +3178,11 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const * aurApp, uint8 m
         {
             target->SetShapeshiftForm(FORM_NONE);
             if (target->getClass() == CLASS_DRUID)
+            {
                 target->setPowerType(POWER_MANA);
+                // Remove movement impairing effects also when shifting out
+                target->RemoveMovementImpairingAuras();
+            }
         }
 
         if (modelid > 0)
@@ -3241,7 +3245,7 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const * aurApp, uint8 m
     {
         // Dash
         if (AuraEffect * aurEff =target->GetAuraEffect(SPELL_AURA_MOD_INCREASE_SPEED, SPELLFAMILY_DRUID, 0, 0, 0x8))
-            aurEff->RecalculateAmount();        
+            aurEff->RecalculateAmount();
 
         // Disarm handling
         // If druid shifts while being disarmed we need to deal with that since forms aren't affected by disarm
@@ -4271,7 +4275,7 @@ void AuraEffect::HandleAuraControlVehicle(AuraApplication const * aurApp, uint8 
         return;
 
     if (apply)
-    {   
+    {
         caster->EnterVehicle(target->GetVehicleKit(), m_amount - 1, aurApp);
     }
     else
@@ -5833,7 +5837,7 @@ void AuraEffect::HandleAuraDummy(AuraApplication const * aurApp, uint8 mode, boo
                     break;
                 case 63322: // Saronite Vapors
                 {
-                    int32 mana = int32(GetAmount() * pow(2.0f, GetBase()->GetStackAmount())); // mana restore - bp * 2^stackamount 
+                    int32 mana = int32(GetAmount() * pow(2.0f, GetBase()->GetStackAmount())); // mana restore - bp * 2^stackamount
                     int32 damage = mana * 2; // damage
                     caster->CastCustomSpell(target, 63337, &mana, NULL, NULL, true);
                     caster->CastCustomSpell(target, 63338, &damage, NULL, NULL, true);
