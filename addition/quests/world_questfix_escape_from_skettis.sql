@@ -70,19 +70,3 @@ VALUES
 (22458,21,-3728.771729,5385.649414,-3.704,0,''),
 (22458,22,-3733.334229,5389.243164,-5.331,0,''),
 (22458,23,-3739.907959,5393.691895,-4.213,0,'');
-
--- -------------------------
--- Netherstorm FULL
--- -------------------------
-
--- [10427]Quest_Creatures_Of_The_Eco_Domes.sql
--- Fix Quest Creatures of the Eco-Domes 10427
-UPDATE `creature_template` SET `ScriptName`='mob_Talbuk' WHERE entry IN (20610,20777);
-
--- [10409]Quest_Deathblow_to_the_Legion.sql
--- Fix Quest Deathblow to the Legion http://www.wowhead.com/quest=10409
-UPDATE `quest_template` SET `SpecialFlags` = 0, `ReqCreatureOrGOCount1` = 1, `ReqCreatureOrGOId1` = 20132 WHERE `entry` = 10409;
-
--- Quest Bring Me The Egg! http://www.wowhead.com/quest=10111
-UPDATE `creature_template` SET `unit_flags` = 0, `flags_extra` = 0 WHERE `entry` = 19055;
-

@@ -35,8 +35,16 @@ npc_creditmarker_visit_with_ancestors
 mob_sparrowhawk
 EndContentData */
 
-#include "ScriptPCH.h"
+
+
 #include "ScriptedEscortAI.h"
+
+#include "ScriptPCH.h"
+#include "ScriptMgr.h"
+#include <cstring>
+#include <cstring>
+#include "Pet.h"
+#include "Formulas.h"
 
 /*######
 ## mob_shattered_rumbler - this should be done with ACID
@@ -906,8 +914,333 @@ public:
 
 
 /*####
-#
+# Quest Soporte http://www.wowhead.com/quest=9923 "HELP!"
 ####*/
+
+enum eHelp
+{
+    QUEST_HELP                      = 9923,
+    NPC_CORKI                       = 18445,
+    SAY_CREDIT                      = -1850070
+};
+
+class go_help_cage : public GameObjectScript
+{
+public:
+    go_help_cage() : GameObjectScript("go_help_cage") { }
+
+    bool OnGossipHello(Player *pPlayer, GameObject *pGO)
+    {
+        if (pPlayer->GetQuestStatus(QUEST_HELP) == QUEST_STATUS_INCOMPLETE)
+        {
+            Creature *pCorki = pGO->FindNearestCreature(NPC_CORKI,1.0f);
+            if (pCorki)
+            {
+                DoScriptText(SAY_CREDIT, pCorki);
+                Quest const* qInfo = sObjectMgr->GetQuestTemplate(QUEST_HELP);
+                if (qInfo)
+                {
+                    pPlayer->KilledMonsterCredit(qInfo->ReqCreatureOrGOId[0],0);
+                }
+            }
+        }
+        return true;
+    }
+};
+
+
+/*####
+# Quest Soporte http://www.wowhead.com/quest=9924 "Corki's Gone Missing Again!"
+####*/
+
+enum eCorki
+{
+    QUEST_CORKI_GONE_MISSING_AGAIN  = 9924,
+    NPC_CORKI_RUN                   = 20812,//Guid: 79588
+    SAY_RUN                         = -1850071//This is the last time I get caughht! I promise! Bye!
+};
+
+class go_corki_cage : public GameObjectScript
+{
+public:
+    go_corki_cage() : GameObjectScript("go_corki_cage") { }
+
+    bool OnGossipHello(Player *pPlayer, GameObject *pGO)
+    {
+        if (pPlayer->GetQuestStatus(QUEST_CORKI_GONE_MISSING_AGAIN) == QUEST_STATUS_INCOMPLETE)
+        {
+            Creature *pCorkiRun = pGO->FindNearestCreature(NPC_CORKI_RUN,1.0f);
+            if (pCorkiRun)
+            {
+                pCorkiRun->GetMotionMaster()->MoveFleeing(pPlayer, 3500);
+                DoScriptText(SAY_RUN, pCorkiRun);
+                pCorkiRun->DespawnOrUnsummon();
+                Quest const* qInfo = sObjectMgr->GetQuestTemplate(QUEST_CORKI_GONE_MISSING_AGAIN);
+                if (qInfo)
+                {
+                    pPlayer->KilledMonsterCredit(qInfo->ReqCreatureOrGOId[0],0);
+                }
+            }
+        }
+        return true;
+    }
+};
+
+
+/*####
+# Beast Master
+####*/
+
+#define GOSSIP_ITEM_STABLE  "Stable"
+#define GOSSIP_ITEM_NEWPET  "New Pet"
+#define GOSSIP_ITEM_BOAR    "Boar"
+#define GOSSIP_ITEM_SERPENT "Serpent"
+#define GOSSIP_ITEM_SCRAB   "Scrab"
+#define GOSSIP_ITEM_LION    "Lion"
+#define GOSSIP_ITEM_WOLF    "Wolf"
+#define GOSSIP_ITEM_RAVAGER "Ravenger"
+
+#define GOSSIP_ITEM_UNTRAINEPET "Restart Pet"
+
+void CreatePet(Player *player, Creature * m_creature, uint32 entry) {
+
+    if(player->getClass() != CLASS_HUNTER) {
+        m_creature->MonsterWhisper("You are not hunter! Your order have been rejected.", player->GetGUID());
+        player->PlayerTalkClass->CloseGossip();
+        return;
+    }
+
+    if(player->GetPet()) {
+        m_creature->MonsterWhisper("First you must drop your pet!", player->GetGUID());
+        player->PlayerTalkClass->CloseGossip();
+        return;
+    }
+
+    Creature *creatureTarget = m_creature->SummonCreature(entry, player->GetPositionX(), player->GetPositionY()+2, player->GetPositionZ(), player->GetOrientation(), TEMPSUMMON_CORPSE_TIMED_DESPAWN, 500);
+    if(!creatureTarget) return;
+    
+    Pet* pet = player->CreateTamedPetFrom(creatureTarget, 0);
+    if(!pet) return;
+
+    // kill original creature
+    creatureTarget->setDeathState(JUST_DIED);
+    creatureTarget->RemoveCorpse();
+    creatureTarget->SetHealth(0);                       // just for nice GM-mode view
+
+    pet->SetPower(POWER_HAPPINESS, 1048000);
+
+    //pet->SetUInt32Value(UNIT_FIELD_PETEXPERIENCE,0);
+    //pet->SetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP, uint32((Trinity::XP::xp_to_level(70))/4));
+
+    // prepare visual effect for levelup
+        pet->SetUInt32Value(UNIT_FIELD_LEVEL, player->getLevel() - 1);
+    pet->GetMap()->Add((Creature*)pet);
+    // visual effect for levelup
+    pet->SetUInt32Value(UNIT_FIELD_LEVEL, player->getLevel());
+
+    
+    /*if(!pet->InitStatsForLevel(player->getLevel()))
+        error_log ("Pet Create fail: no init stats for entry %u", entry);*/
+
+    pet->UpdateAllStats();
+    
+    // caster have pet now
+    player->SetMinion(pet, true);
+
+    pet->SavePetToDB(PET_SAVE_AS_CURRENT);
+    pet->InitTalentForLevel();
+    player->PetSpellInitialize();
+    
+    //end
+    player->PlayerTalkClass->CloseGossip();
+    m_creature->MonsterWhisper("Pet added. You might want to feed it and name it somehow.", player->GetGUID());
+};
+
+
+bool GossipHello_npc_beastmaster(Player *player, Creature *_Creature)
+{
+
+    if(player->getClass() != CLASS_HUNTER)
+      {
+      _Creature->MonsterWhisper("You are not hunter!", player->GetGUID());
+        return true;
+        }
+      player->ADD_GOSSIP_ITEM(4, "Get new pet", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 30);
+      if (player->CanTameExoticPets())
+      {
+        player->ADD_GOSSIP_ITEM(4, "Get new exotic pet", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 50);
+      }
+      player->ADD_GOSSIP_ITEM(2, "Take me to stable", GOSSIP_SENDER_MAIN, GOSSIP_OPTION_STABLEPET);
+      player->ADD_GOSSIP_ITEM(6, "Sell me some food", GOSSIP_SENDER_MAIN, GOSSIP_OPTION_VENDOR);
+    player->SEND_GOSSIP_MENU(1,_Creature->GetGUID());
+    return true;
+};
+                        //player->SEND_VENDORLIST( _Creature->GetGUID() );
+
+bool GossipSelect_npc_beastmaster(Player *player, Creature *_Creature, uint32 sender, uint32 action)
+{
+    switch (action)
+    {
+    
+   case GOSSIP_ACTION_INFO_DEF + 100:
+    player->ADD_GOSSIP_ITEM(4, "Get new pet", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 30);
+      if (player->CanTameExoticPets())
+      {
+        player->ADD_GOSSIP_ITEM(4, "Get new exotic pet", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 50);
+      }
+      player->ADD_GOSSIP_ITEM(2, "Take me to stable", GOSSIP_SENDER_MAIN, GOSSIP_OPTION_STABLEPET);
+      player->ADD_GOSSIP_ITEM(6, "Sell me some food", GOSSIP_SENDER_MAIN, GOSSIP_OPTION_VENDOR);
+      player->SEND_GOSSIP_MENU(1,_Creature->GetGUID());
+    break;
+    
+  case GOSSIP_ACTION_INFO_DEF + 30:
+    player->ADD_GOSSIP_ITEM(2, "<< Back to main menu", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 100);
+    player->ADD_GOSSIP_ITEM(4, "Next page >>", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 31);
+    player->ADD_GOSSIP_ITEM(6, "Bat", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 18);
+    player->ADD_GOSSIP_ITEM(6, "Bear", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
+    player->ADD_GOSSIP_ITEM(6, "Boar", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
+    player->ADD_GOSSIP_ITEM(6, "Cat", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
+    player->ADD_GOSSIP_ITEM(6, "Carrion Bird", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 5);
+    player->ADD_GOSSIP_ITEM(6, "Crab", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 6);
+    player->ADD_GOSSIP_ITEM(6, "Crocolisk", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 7);
+    player->ADD_GOSSIP_ITEM(6, "Dragonhawk", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 17);
+    player->ADD_GOSSIP_ITEM(6, "Gorilla", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 8);
+    player->ADD_GOSSIP_ITEM(6, "Hound", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 9);
+    player->ADD_GOSSIP_ITEM(6, "Hyena", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 10);
+    player->ADD_GOSSIP_ITEM(6, "Moth", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 11);
+    player->ADD_GOSSIP_ITEM(6, "Owl", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 12);
+    player->SEND_GOSSIP_MENU(1,_Creature->GetGUID());
+    break;
+    
+  case GOSSIP_ACTION_INFO_DEF + 31:  
+    player->ADD_GOSSIP_ITEM(2, "<< Back to main menu", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 100);
+    player->ADD_GOSSIP_ITEM(4, "<< Previous page", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 30);
+    player->ADD_GOSSIP_ITEM(6, "Raptor", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 20);
+    player->ADD_GOSSIP_ITEM(6, "Ravager", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 19);
+    player->ADD_GOSSIP_ITEM(6, "Strider", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 13);
+    player->ADD_GOSSIP_ITEM(6, "Scorpid", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 14);
+    player->ADD_GOSSIP_ITEM(6, "Spider", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 16);
+    player->ADD_GOSSIP_ITEM(6, "Serpent", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 21);  
+    player->ADD_GOSSIP_ITEM(6, "Turtle", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 15);
+    player->ADD_GOSSIP_ITEM(6, "Wasp", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3);
+    player->SEND_GOSSIP_MENU(1,_Creature->GetGUID());
+    break;
+    
+  case GOSSIP_ACTION_INFO_DEF + 50:  
+    player->ADD_GOSSIP_ITEM(2, "<< Back to main menu", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 100);
+    player->ADD_GOSSIP_ITEM(6, "Chimaera", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 51);
+    player->ADD_GOSSIP_ITEM(6, "Core Hound", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 52);
+    player->ADD_GOSSIP_ITEM(6, "Devilsaur", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 53);
+    player->ADD_GOSSIP_ITEM(6, "Rhino", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 54);
+    player->ADD_GOSSIP_ITEM(6, "Silithid", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 55);
+    player->ADD_GOSSIP_ITEM(6, "Worm", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 56);  
+    player->ADD_GOSSIP_ITEM(6, "Loque'nahak", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 57);
+        player->ADD_GOSSIP_ITEM(6, "Skoll", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 58);
+        player->ADD_GOSSIP_ITEM(6, "Gondria", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 59);
+        player->SEND_GOSSIP_MENU(1,_Creature->GetGUID());
+    break;
+  
+        case GOSSIP_OPTION_STABLEPET:
+            player->GetSession()->SendStablePet(_Creature->GetGUID());
+            break; 
+        case GOSSIP_OPTION_VENDOR:
+            player->SEND_VENDORLIST( _Creature->GetGUID());
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 51: //chimera
+            CreatePet(player, _Creature, 21879);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 52: //core hound
+            CreatePet(player, _Creature, 21108);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 53: //Devilsaur
+            CreatePet(player, _Creature, 20931);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 54: //rhino
+            CreatePet(player, _Creature, 30445);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 55: //silithid
+            CreatePet(player, _Creature, 5460);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 56: //Worm
+            CreatePet(player, _Creature, 30148);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 57: //Loque'nahak
+            CreatePet(player, _Creature, 32517);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 58: //Skoll
+            CreatePet(player, _Creature, 35189);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 59: //Gondria
+            CreatePet(player, _Creature, 33776);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 16: //Spider
+            CreatePet(player, _Creature, 2349);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 17: //Dragonhawk
+            CreatePet(player, _Creature, 27946);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 18: //Bat
+            CreatePet(player, _Creature, 28233);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 19: //Ravager
+            CreatePet(player, _Creature, 17199);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 20: //Raptor
+            CreatePet(player, _Creature, 14821);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 21: //Serpent
+            CreatePet(player, _Creature, 28358);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 1: //bear
+            CreatePet(player, _Creature, 29319);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 2: //Boar
+            CreatePet(player, _Creature, 29996);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 3: //Bug
+            CreatePet(player, _Creature, 28085);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 4: //cat
+            CreatePet(player, _Creature, 28097);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 5: //carrion
+            CreatePet(player, _Creature, 26838);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 6: //crab
+            CreatePet(player, _Creature, 24478);
+            break;   
+        case GOSSIP_ACTION_INFO_DEF + 7: //crocolisk
+            CreatePet(player, _Creature, 1417);
+            break;  
+        case GOSSIP_ACTION_INFO_DEF + 8: //gorila
+            CreatePet(player, _Creature, 28213);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 9: //hound
+            CreatePet(player, _Creature, 29452);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 10: //hynea
+            CreatePet(player, _Creature, 13036);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 11: //Moth
+            CreatePet(player, _Creature, 27421);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 12: //owl
+            CreatePet(player, _Creature, 23136);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 13: //strider
+            CreatePet(player, _Creature, 22807);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 14: //scorpid
+            CreatePet(player, _Creature, 9698);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 15: //turtle
+            CreatePet(player, _Creature, 25482);
+            break;
+    }
+    
+    return true;
+
+};
 
 void AddSC_nagrand()
 {
@@ -920,4 +1253,6 @@ void AddSC_nagrand()
     new npc_maghar_captive();
     new npc_creditmarker_visit_with_ancestors();
     new mob_sparrowhawk();
+    new go_help_cage();
+    new go_corki_cage();
 }

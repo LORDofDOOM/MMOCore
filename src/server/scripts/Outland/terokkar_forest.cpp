@@ -898,11 +898,8 @@ public:
         {
             if (m_bIsActivated)
                 return;
-
             m_bIsActivated = true;
-
             pPlayer->KilledMonsterCredit(NPC_MANA_BOMB_KILL_TRIGGER,me->GetGUID());
-
             pManaBomb = pGo;
         }
 
@@ -923,7 +920,6 @@ public:
                     case 5:
                         if (pManaBomb)
                             pManaBomb->SetGoState(GO_STATE_ACTIVE);
-
                         DoScriptText(SAY_COUNT_1, me);
                         break;
                     case 6:
@@ -943,8 +939,7 @@ public:
                         break;
                     case 30:
                         if (pManaBomb)
-                            pManaBomb->SetGoState(GO_STATE_READY);
-
+                            pManaBomb->SetGoState(GO_STATE_READY);                            
                         Reset();
                         break;
                 }
@@ -1093,10 +1088,15 @@ public:
 
         void WaypointReached(uint32 uiPointId)
         {
+            Player* pPlayer = GetPlayerForEscort();
+
+            if (!pPlayer)
+                return;
+
             switch(uiPointId)
             {
                 case 0:
-                    if (Player* pPlayer = GetPlayerForEscort())
+                    if (pPlayer)
                         DoScriptText(SAY_LE_KEEP_SAFE, me, pPlayer);
                     break;
                 case 1:
@@ -1110,6 +1110,12 @@ public:
                     SetEscortPaused(true);
                     break;
                 case 13:
+                    DoScriptText(EMOTE_LE_PICK_UP, me);
+                    if (pPlayer) 
+                    {
+                        DoScriptText(SAY_LE_THANKS, me, pPlayer);
+                        pPlayer->GroupEventHappens(QUEST_DIGGING_BONES, me);
+                    }
                     SetRun();
                     break;
             }
@@ -1191,14 +1197,6 @@ public:
                                 me->SummonCreature(NPC_BONE_SIFTER, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 30000);
                                 break;
                             case 13:
-                                DoScriptText(EMOTE_LE_PICK_UP, me);
-
-                                if (Player* pPlayer = GetPlayerForEscort())
-                                {
-                                    DoScriptText(SAY_LE_THANKS, me, pPlayer);
-                                    pPlayer->GroupEventHappens(QUEST_DIGGING_BONES, me);
-                                }
-
                                 SetEscortPaused(false);
                                 break;
                         }
@@ -1217,6 +1215,129 @@ public:
     };
 };
 
+/*#####
+## go_veil_skith_cage & npc_captive_child
+#####*/
+
+enum eCaptive
+{
+    GO_VEIL_SKITH_CAGE        = 185202,
+    GO_VEIL_SKITH_CAGE2       = 185203,
+    GO_VEIL_SKITH_CAGE3       = 185204,
+    GO_VEIL_SKITH_CAGE4       = 185205
+};
+
+class npc_captive_child : public CreatureScript
+{
+public:
+    npc_captive_child() : CreatureScript("npc_captive_child") { }
+
+    struct npc_captive_childAI : public ScriptedAI
+    {
+        npc_captive_childAI(Creature* c) : ScriptedAI(c){}
+
+        uint32 FleeTimer;        
+
+        void Reset()
+        {
+            FleeTimer = 0;
+            if (GameObject *cage = me->FindNearestGameObject(GO_VEIL_SKITH_CAGE, 5.0f))
+            {
+                if (cage)
+                    cage->ResetDoorOrButton(); 
+            }
+            else
+            {
+                if (GameObject *cage = me->FindNearestGameObject(GO_VEIL_SKITH_CAGE2, 5.0f))
+                {
+                    if (cage)
+                        cage->ResetDoorOrButton();
+                }
+                else
+                {
+                    if (GameObject *cage = me->FindNearestGameObject(GO_VEIL_SKITH_CAGE3, 5.0f))
+                    {
+                        if (cage)
+                            cage->ResetDoorOrButton();
+                    }
+                    else
+                    {
+                        if (GameObject *cage = me->FindNearestGameObject(GO_VEIL_SKITH_CAGE4, 5.0f))
+                        {
+                            if (cage)
+                                cage->ResetDoorOrButton();
+                        }
+                    }
+                }
+            }
+        }
+
+        void UpdateAI(const uint32 uiDiff)
+        {
+            if (FleeTimer)
+            {
+                if (FleeTimer <= uiDiff)
+                    me->ForcedDespawn();
+                else 
+                    FleeTimer -= uiDiff;
+            }
+        }
+    };
+
+    CreatureAI *GetAI(Creature *creature) const
+    {
+        return new npc_captive_childAI(creature);
+    }
+};
+
+enum eVeils
+{
+    QUEST_MISSING_FRIENDS     = 10852,
+    NPC_CAPTIVE_CHILD         = 22314,
+    SAY_THANKS_1              = -1000590,
+    SAY_THANKS_2              = -1000591,
+    SAY_THANKS_3              = -1000592,
+    SAY_THANKS_4              = -1000593
+};
+
+class go_veil_skith_cage : public GameObjectScript
+{
+public:
+    go_veil_skith_cage() : GameObjectScript("go_veil_skith_cage") { }
+
+    bool OnGossipHello(Player *pPlayer, GameObject* pGO)
+    {
+        if (pPlayer->GetQuestStatus(QUEST_MISSING_FRIENDS) == QUEST_STATUS_INCOMPLETE)
+        {
+            std::list<Creature*> lChildrenList;
+            GetCreatureListWithEntryInGrid(lChildrenList, pGO, NPC_CAPTIVE_CHILD, INTERACTION_DISTANCE);
+            for (std::list<Creature*>::const_iterator itr = lChildrenList.begin(); itr != lChildrenList.end(); ++itr)
+            {
+                pPlayer->KilledMonsterCredit(NPC_CAPTIVE_CHILD, (*itr)->GetGUID());
+                (*itr)->GetMotionMaster()->MoveFleeing(pPlayer, 3500);
+                CAST_AI(npc_captive_child::npc_captive_childAI, (*itr)->AI())->FleeTimer = 3500;;                
+                switch (urand(0,3))
+                {
+                    case 0: 
+                        DoScriptText(SAY_THANKS_1, *itr);
+                        break;
+                    case 1: 
+                        DoScriptText(SAY_THANKS_2, *itr);
+                        break;
+                    case 2: 
+                        DoScriptText(SAY_THANKS_3, *itr); 
+                        break;
+                    case 3: 
+                        DoScriptText(SAY_THANKS_4, *itr);
+                        break;
+                }
+                (*itr)->GetMotionMaster()->Clear();
+            }
+        }     
+        return false;
+    }
+};
+
 void AddSC_terokkar_forest()
 {
     new mob_unkor_the_ruthless();
@@ -1232,4 +1353,6 @@ void AddSC_terokkar_forest()
     new npc_skyguard_prisoner();
     new npc_mana_bomb();
     new npc_letoll();
+    new npc_captive_child();
+    new go_veil_skith_cage();
 }

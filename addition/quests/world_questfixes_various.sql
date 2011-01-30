@@ -56,3 +56,6 @@ INSERT INTO `creature` (`id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equip
 (1178, 0, 1, 1, 1122, 0, -5111, -3845.37, 320.988, 4.76514, 300, 5, 0, 417, 0, 0, 1),
 (1178, 0, 1, 1, 1122, 0, -5009.46, -3890.06, 309.664, 2.09648, 300, 10, 0, 417, 0, 0, 1),
 (1178, 0, 1, 1, 1122, 0, -5072.94, -3885.23, 321.944, 0.028778, 300, 5, 0, 417, 0, 0, 1);
+
+-- Npc Lieutenant Commander Thalvos
+UPDATE `creature_ai_scripts` SET `action1_param1` = 33900 WHERE `id` = 1697800 AND `creature_id` = 16978 -- Shroud of Death 10848

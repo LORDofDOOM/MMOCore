@@ -26,7 +26,6 @@ EndScriptData */
 /* ContentData
 npc_arete
 EndContentData */
-
 /*
 #######ARGENT TOURNAMENT##############
 TODO.
@@ -45,13 +44,9 @@ TODO.
 -- Quest The Valiant's Challenge 13699-13713-13723-13724-13725-13726-13727-13728-13729-13731.
 */
 
-/* ContentData
-npc_arete
-EndContentData */
-
 #include "ScriptPCH.h"
-
 #include "Group.h"
+
 enum TimersGral
 {
     TIMER_SPELL_MIN         = 1000,
@@ -563,7 +558,7 @@ public:
         bool questCheck = false;
         bool raceCheck = false;
         uint32 textId = 0;
-        
+	
         for(int i = 0; (i < 10) && !npcCheck; i++)
         {
             if(pCreature->GetEntry() == ArgentTournamentVendor[i][0])
@@ -572,9 +567,9 @@ public:
                 questCheck = pPlayer->GetQuestStatus(ArgentTournamentVendor[i][1]) == QUEST_STATUS_COMPLETE;
                 raceCheck = pPlayer->getRace() == ArgentTournamentVendor[i][2];
                 textId = ArgentTournamentVendor[i][3];
-                    }
-            }
-        
+		    }
+	    }
+	
         if(questCheck || raceCheck)
             pPlayer->SEND_VENDORLIST(pCreature->GetGUID()); 
         else
@@ -751,7 +746,7 @@ public:
                         me->CastSpell(caster,62709,true);
                     }   
                 }
-            }                   
+            }			
             if(m_Entry==33243)
                 if(spell->Id==SPELL_ARGENT_BREAK_SHIELD)
                     if(!me->GetAura(SPELL_DEFEND_AURA))
@@ -1265,8 +1260,8 @@ UPDATE creature_template SET KillCredit2=31555 WHERE entry IN (31554, 30949 , 30
 
 enum eKeritose
 {
-        QUEST_SEEDS_OF_CHAOS                      = 13172,
-        SPELL_TAXI_KERITOSE                               = 58698, 
+	QUEST_SEEDS_OF_CHAOS	            	  = 13172,
+	SPELL_TAXI_KERITOSE	       		          = 58698, 
 };
 class npc_keritose : public CreatureScript
 {
@@ -2292,7 +2287,7 @@ public:
     CreatureAI *GetAI(Creature *creature) const
     {
         return new npc_Scarlet_OnslaughtAI(creature);
-    }   
+    }	
 
     struct npc_Scarlet_OnslaughtAI : public ScriptedAI
     {
@@ -2306,20 +2301,20 @@ public:
                     me->DespawnOrUnsummon();
             }           
         }
-        };
+	};
 };
 
-/*Apprentice Osterkilrg - when he will reache 40% HP, he will yell and give first part of Q. On kill he will complete quest*/
+/*######
+## Quest 13042
+## "Deep in the Bowels of The Underhalls"
+######*/
 enum eOsterkilgr
 {
     SAY_QUEST1                                   = -1603500,
-    SAY_QUEST2                                   = -1603501,
-    
+    SAY_QUEST2                                   = -1603501,    
     SPELL_FIREBALL                               = 14034,
     SPELL_FIRE_WAVE                              = 60290,
-
     QUEST_DEEP_IN_THE_BOWELS_OF_THE_UNDERHALLS   = 13042,
-
     CREATURE_CREDIT_BUNNY                        = 30412,
 };
 
@@ -2408,9 +2403,11 @@ public:
     };
 };
 
-/*Dying Soldier (Finish me!) - on Gossip he will give a Quest Credit and die*/
-/*Dying Soldier (The Broken Front - Alliance) - on Gossip he will talk with you and after give a Quest Credit*/
-/*Dying Berserker (The Broken Front - Horde) - on Gossip he will talk with you and after give a Quest Credit*/
+/*######
+## Quest 13231 - 13228 (A/H) - 13232
+## "The Broken Front"
+## "Finish Me!"
+######*/
 enum eSoldier
 {
     SAY_KILL_QUEST1                              = -1603511,
@@ -2433,17 +2430,15 @@ enum eSoldier
     SAY_QUEST_BERSERKER6                         = -1603528,
     SAY_QUEST_BERSERKER7                         = -1603529,
     SAY_QUEST_BERSERKER8                         = -1603530,
-
     CREATURE_DYING_SOLDIER_KC                    = 31312,
     CREATURE_DYING_BERSERKER_KC                  = 31272,
-
     QUEST_FINISH_ME                              = 13232,
     QUEST_THE_BROKEN_FRONT_A                     = 13231,
     QUEST_THE_BROKEN_FRONT_H                     = 13228,
 };
 
-#define GOSSIP_ITEM_DYING_SOLDIER "Travel well, hero of the Alliance!"
-#define GOSSIP_ITEM_DYING_SOLDIER1 "Stay with me, friend. I must know what happened here."
+#define GOSSIP_ITEM_DYING_SOLDIER   "Travel well, hero of the Alliance!"
+#define GOSSIP_ITEM_DYING_SOLDIER1  "Stay with me, friend. I must know what happened here."
 #define GOSSIP_ITEM_DYING_BERSERKER "Stay with me, friend. I must know what happened here."
 
 class npc_dying_soldier : public CreatureScript
@@ -2664,6 +2659,7 @@ public:
         }
     };
 };
+
 void AddSC_icecrown()
 {
     new npc_arete;
@@ -2694,4 +2690,7 @@ void AddSC_icecrown()
     new npc_argent_champion;
     new npc_maloric;
     new npc_Scarlet_Onslaught;
+    new npc_apprentice_osterkilgr();
+    new npc_dying_soldier();
+    new npc_dying_berserker();
 }

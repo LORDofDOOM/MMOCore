@@ -12,7 +12,7 @@ INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `quest_start`, `qu
 UPDATE `creature_template` SET `spell1` = '54897' , `spell2` =  '54907' WHERE `entry` = 29602; -- Spells Icefang
 UPDATE `creature` SET `spawntimesecs` = 30 WHERE `id` IN (29358,29351); -- Mobs Respawn Rapido (Elites).
 UPDATE `creature_template` SET `ScriptName` = 'npc_icefang' WHERE `entry` IN (29358,29351); -- Set Scriptname.
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` = 54798; -- Anadida Condiciones Correspondientes
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` = 54798; -- A adida Condiciones Correspondientes
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceEntry`, `ConditionTypeOrReference`, `ConditionValue1`, `ConditionValue2`) 
 VALUES
 (13,54798,18,1,29351),
@@ -208,3 +208,80 @@ VALUES
 ('30387','571','1','8','0','0','7201.47','-3487.47','832.464','4.3843','180','7','0','12600','0','0','1','0','0','0'),
 ('30387','571','1','8','0','0','7207.03','-3375.13','845.052','4.94489','180','7','0','12600','0','0','1','0','0','0'),
 ('30387','571','1','8','0','0','7218.05','-3434.39','837.901','1.38016','180','7','0','12600','0','0','1','0','0','0');
+-- Quest 12985 "Forging a Head"  http://www.wowhead.com/quest=12985
+-- Dead iron giant scriptname
+UPDATE `creature_template` SET `unit_flags` = `unit_flags` &~2, `ScriptName` = 'npc_dead_irongiant' WHERE `entry` = 29914;
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` = 56227;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceEntry`, `ConditionTypeOrReference`, `ConditionValue1`, `ConditionValue2`) 
+VALUES
+(13,56227,18,1,29914);
+-- Stormforged ambusher basic loot
+DELETE FROM `creature_loot_template` WHERE `entry` = 30208;
+INSERT INTO `creature_loot_template` (`entry`,`item`,`ChanceOrQuestChance`,`lootmode`,`groupid`,`mincountOrRef`,`maxcount`)
+VALUES
+(30208, 42423, -50, 1, 0, 1, 1),
+(30208, 42105, -33, 1, 0, 1, 1),
+(30208, 42780,  40, 1, 0, 1, 1),
+(30208, 33470,  30, 1, 0, 1, 4),
+(30208, 43851,  20, 1, 0, 1, 1);
+-- Quest 12987  http://www.wowhead.com/quest=12987 "Mounting Hodir's Helm"
+-- Give credit
+DELETE FROM `spell_scripts` WHERE `id` = 56278;
+INSERT INTO `spell_scripts` (`id`,`effIndex`,`delay`,`command`,`datalong`,`datalong2`,`dataint`,`x`,`y`,`z`,`o`) 
+VALUES
+(56278, 0, 3, 8, 30210, 0, 0, 0, 0, 0, 0);
+-- "northern ice spike" in phase 4
+UPDATE `gameobject` SET `phaseMask` = 4 WHERE `guid` = 99731;
+-- Misc spell_area
+-- Lokrila buff 
+UPDATE `spell_area` SET `quest_end` = 0 WHERE `area` = 4437 AND `quest_end` = 12983;
+-- Apply hibernal cavern phase 4 area aura
+DELETE FROM `spell_area` WHERE `spell` = 55858 AND `area` = 4455;
+INSERT INTO `spell_area` (`spell`,`area`,`quest_start`,`quest_start_active`,`quest_end`,`aura_spell`,`racemask`,`gender`,`autocast`)
+VALUES 
+(55858, 4455, 12915, 0, 0, 0, 0, 2, 1);
+-- Quest 13006 http://www.wowhead.com/quest=13006 "Polishing the Helm"
+-- "polishing the helm" prequest condition
+UPDATE `quest_template` SET `PrevQuestId` = 12987 WHERE `entry` = 13006;
+-- Helm questrelations
+INSERT IGNORE INTO `gameobject_questrelation` VALUES (192080, 13006);
+INSERT IGNORE INTO `gameobject_involvedrelation` VALUES (192080, 13006);
+-- Spawn helm
+DELETE FROM `gameobject` WHERE `id` = 192080;
+INSERT INTO `gameobject` (`id`,`map`,`spawnMask`,`phaseMask`,`position_x`,`position_y`,`position_z`,`orientation`,`rotation0`,`rotation1`,`rotation2`,`rotation3`,`spawntimesecs`,`animprogress`,`state`)
+VALUES (192080, 571, 1, 4, 7389.34, -2726.2, 875.227, 2.82985, 0, 0, 0.987876, 0.155243, 300, 0, 1);
+-- Oil faster respawn
+UPDATE `creature` SET `phaseMask` = 4, `spawntimesecs` = 60 WHERE `id` = 30325;
+-- Oil loot
+UPDATE `creature_template` SET `lootid` = 30325 WHERE `entry` = 30325;
+DELETE FROM `creature_loot_template` WHERE `entry` = 30325;
+INSERT INTO `creature_loot_template` (`entry`,`item`,`ChanceOrQuestChance`,`lootmode`,`groupid`,`mincountOrRef`,`maxcount`)
+VALUES
+(30325, 42640, -100, 1, 0, 1, 1),
+(30325, 39551,   80, 1, 0, 1, 1),
+(30325, 39552,   20, 1, 0, 1, 1);
+-- Quest 13011 http://www.wowhead.com/quest=13011 "Jormuttar is Soo Fat..."
+-- item target restriction
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 18 AND `SourceEntry` = 42732;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceEntry`, `ConditionTypeOrReference`, `ConditionValue1`, `ConditionValue2`) 
+VALUES
+(18, 42732, 24, 1, 30292);
+-- spell 56562 script
+DELETE FROM `spell_scripts` WHERE `id` = 56562;
+INSERT INTO `spell_scripts` (`id`,`effIndex`,`delay`,`command`,`datalong`,`datalong2`,`dataint`,`x`,`y`,`z`,`o`) 
+VALUES
+(56562, 0, 0, 18,     0, 0, 0, 0, 0, 0, 0),
+(56562, 0, 0, 15, 56566, 1, 0, 0, 0, 0, 0);
+-- "Icy crater" in phase 4
+UPDATE `gameobject` SET `phaseMask` = 4 WHERE `guid` = 99730;
+-- Lure jormuttar bunny
+UPDATE `creature_template` SET `AIName` = 'EventAI' WHERE `entry` = 30366;
+DELETE FROM `creature_ai_scripts` WHERE `creature_id` = 30366;
+INSERT INTO `creature_ai_scripts` (`id`, `creature_id`, `event_type`, `event_inverse_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action1_type`, `action1_param1`, `action1_param2`, `action1_param3`, `action2_type`, `action2_param1`, `action2_param2`, `action2_param3`, `action3_type`, `action3_param1`, `action3_param2`, `action3_param3`, `comment`)
+VALUES
+('3036601','30366','1','0','100','0','5000','10000','0','0','12','30340','0','120000','41','1000','0','0','0','0','0','0','Lure Jormuttar');
+
+-- Fix Quest http://www.wowhead.com/quest=13061  Prepare for Glory Spawn Npc faltante
+DELETE FROM `creature` WHERE `id` = 29975
+INSERT INTO `creature` (`id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `DeathState`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES
+(29975, 571, 1, 1, 0, 0, 6925.96, -1533.25, 836.426, 4.56475, 300, 0, 0, 12175, 0, 0, 0, 0, 0, 0);

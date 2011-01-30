@@ -361,7 +361,7 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_lake_frog' WHERE `entry` =332
 UPDATE `creature_template` SET `npcflag` = `npcflag` | 1, `ScriptName` = 'npc_maiden_of_ashwood_lake' WHERE `creature_template`.`entry` =33220;
 DELETE FROM `creature` WHERE `id` =33211;
 INSERT INTO `creature` (`id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `DeathState`, `MovementType`) VALUES 
-('33211','571','1','1','0','0','3725.43','-4311.13','180.978','2.05551','300','0','0','40','120','0','0');-- Spawn Rana Quest (faltante a?adir movimiento por la laguna con waypoints).
+('33211','571','1','1','0','0','3725.43','-4311.13','180.978','2.05551','300','0','0','40','120','0','0');-- Spawn Rana Quest (faltante a adir movimiento por la laguna con waypoints).
 DELETE FROM `script_texts` WHERE `entry` = -1850015;
 INSERT INTO `script_texts` (`npc_entry`, `entry`, `content_default`, `content_loc1`, `content_loc2`, `content_loc3`, `content_loc4`, `content_loc5`, `content_loc6`, `content_loc7`, `content_loc8`, `sound`, `type`, `language`, `emote`, `comment`) VALUES 
 ('0','-1850015','Can it really be? Free after all these years?',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'0','0','0','0','');
@@ -513,3 +513,52 @@ UPDATE `creature_template` SET `ScriptName`= 'npc_lady_nightswood' WHERE `entry`
 
 -- Quest From Their Corpses, Rise! 12813
 UPDATE `creature_template` SET `ScriptName` = 'npc_Scarlet_Onslaught', `AIName` = '' WHERE entry IN (29330, 29338, 29333, 29329);
+
+-- [13042]Quest_Deep_in_the_bowels_of_the_underhalls.sql
+-- Quest Deep in the Bowels of the Underhalls (13042)
+-- Script Texts
+DELETE FROM `script_texts` WHERE `entry` IN (-1603500,-1603501);
+INSERT INTO `script_texts` (`npc_entry`,`entry`,`content_default`,`content_loc1`,`content_loc2`,`content_loc3`,`content_loc4`,`content_loc5`,`content_loc6`,`content_loc7`,`content_loc8`,`sound`,`type`,`language`,`emote`,`comment`)
+VALUES
+(30409,-1603500,'You\'ve come for the doctor\'s plans! You\'ll only find death!','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'Apprentice Osterkilgr - SAY_QUEST1'),
+(30409,-1603501,'The doctor entrusted me with the plans to Nergeld! I will not fail!','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'Apprentice Osterkilgr - SAY_QUEST2');
+-- ScriptName
+UPDATE `creature_template` SET `ScriptName`='npc_apprentice_osterkilgr',`AIName`='' WHERE `entry`=30409; -- Apprentice Osterkilgr
+
+-- [13228-13231]Quest_The_Broken_Front.sql
+-- Quest The Broken Front (13228, 13231)
+-- Script Texts
+DELETE FROM `script_texts` WHERE `entry` BETWEEN ('-1603530') AND ('-1603516');
+INSERT INTO `script_texts` (`npc_entry`,`entry`,`content_default`,`content_loc1`,`content_loc2`,`content_loc3`,`content_loc4`,`content_loc5`,`content_loc6`,`content_loc7`,`content_loc8`,`sound`,`type`,`language`,`emote`,`comment`)
+VALUES
+(31304,-1603516,'Uhnhh.... It is too late for me, $Gsister:brother;.','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'DYING SOLDIER - SAY1'),
+(31304,-1603517,'I am... finished...','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'DYING SOLDIER - SAY2'),
+(31304,-1603518,'Stay with me, friend. I must know what happened here.','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'DYING SOLDIER - SAY3 (Player\'s say)'),
+(31304,-1603519,'We attacked under cover of a blizzard....','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'DYING SOLDIER - SAY4'),
+(31304,-1603520,'The Scourge were caught off guard... our victory was certain....','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'DYING SOLDIER - SAY5'),
+(31304,-1603521,'Then... from behind us... the Horde came from nowhere.','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'DYING SOLDIER - SAY6'),
+(31304,-1603522,'They cost us... everything...','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'DYING SOLDIER - SAY7'),
+(31273,-1603523,'Uhnhh... Don\'t.... bother with me.','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'DYING BERSERKER - SAY1'),
+(31273,-1603524,'I am... finished...','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'DYING BERSERKER - SAY2'),
+(31273,-1603525,'Hold on friend. Tell me what happened here.','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'DYING BERSERKER - SAY3'),
+(31273,-1603526,'Gathering... information.... on the Scourge.','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'DYING BERSERKER - SAY4 (Player\'s say)'),
+(31273,-1603527,'Alliance forces appeared...','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'DYING BERSERKER - SAY5'),
+(31273,-1603528,'We took cover - waited until they attacked the gate, then we hit them from the rear.','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'DYING BERSERKER - SAY6'),
+(31273,-1603529,'Pinched between us... and the Scourge... it was too much for them...','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'DYING BERSERKER - SAY7'),
+(31273,-1603530,'Brother... it was... glorious.','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'DYING BERSERKER - SAY8');
+-- ScriptName
+UPDATE `creature_template` SET `ScriptName`='npc_dying_berserker' WHERE `entry`=31273; -- Dying Berserker
+
+-- [13232]Quest_Finisg_me.sql
+-- Quest Finish me! (13232)
+-- Script Texts
+DELETE FROM `script_texts` WHERE `entry` BETWEEN (-1603515) AND (-1603511);
+INSERT INTO `script_texts` (`npc_entry`,`entry`,`content_default`,`content_loc1`,`content_loc2`,`content_loc3`,`content_loc4`,`content_loc5`,`content_loc6`,`content_loc7`,`content_loc8`,`sound`,`type`,`language`,`emote`,`comment`)
+VALUES
+(30658,-1603511,'Please $R... Release me...','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'Dying NPC - SAY1'),
+(30658,-1603512,'Don\'t think $C...Just..do it...','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'Dying NPC - SAY2'),
+(30658,-1603513,'Send me on my way...I beg you...','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'Dying NPC - SAY3'),
+(30658,-1603514,'Do it $C...then...avenge me!','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'Dying NPC - SAY4'),
+(30658,-1603515,'Tell my family...my last thoughts were of them...','NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL',0,0,0,0,'Dying NPC - SAY5');
+-- ScriptName
+UPDATE `creature_template` SET `ScriptName`='npc_dying_soldier' WHERE `entry`=31304; -- Dying Soldier
