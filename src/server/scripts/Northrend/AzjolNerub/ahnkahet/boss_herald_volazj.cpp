@@ -97,7 +97,8 @@ public:
                 (GetHealthPct(0) >= 33 && GetHealthPct(damage) < 33))
             {
                 me->InterruptNonMeleeSpells(false);
-                DoCast(me, SPELL_INSANITY, false);
+				//Disable spell until fixed
+                //DoCast(me, SPELL_INSANITY, false);
             }
         }
 
