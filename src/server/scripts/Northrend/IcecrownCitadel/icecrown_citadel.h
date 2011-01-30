@@ -47,7 +47,9 @@ enum eAchievements
     ACHIEV_BEEN_WAITING_A_LONG_TIME_FOR_THIS_10 = 4601,
     ACHIEV_BEEN_WAITING_A_LONG_TIME_FOR_THIS_25 = 4621,
     ACHIEV_NECK_DEEP_IN_VILE_10                 = 4581,
-    ACHIEV_NECK_DEEP_IN_VILE_25                 = 4622
+    ACHIEV_NECK_DEEP_IN_VILE_25                 = 4622,
+    ACHIEV_PORTAL_JOCKEY_10                     = 4579,
+    ACHIEV_PORTAL_JOCKEY_25                     = 4619
 };
 
 enum eAchievementCriteria
@@ -149,7 +151,8 @@ enum Data64
     DATA_BONED_ACHIEVEMENT,
 	DATA_OOZE_DANCE_ACHIEVEMENT,
 	DATA_NAUSEA_ACHIEVEMENT,
-	DATA_ORB_WHISPERER_ACHIEVEMENT
+	DATA_ORB_WHISPERER_ACHIEVEMENT,
+    DATA_PORTAL_JOCKEY_ACHIEVEMENT
 };
 
 enum eCreatures
@@ -245,7 +248,7 @@ enum eCreatures
     CREATURE_ABOMINATION             = 37886,
     CREATURE_SKELETON                = 36791,
     CREATURE_ARCHMAGE                = 37868,
-    CREATURE_SUPPRESSER              = 37863,
+    CREATURE_SUPPRESSOR              = 37863,
     CREATURE_ZOMBIE                  = 37934,
     CREATURE_COLUMN_OF_FROST         = 37918,
     CREATURE_COMBAT_TRIGGER          = 38752,
@@ -376,4 +379,5 @@ enum eGameobjects_TrinityCore
     GO_SINDRAGOSA_SHORTCUT_EXIT_DOOR        = 201379
 };
 void DespawnAllCreaturesAround(Creature *ref, uint32 entry);
+void UnsummonSpecificCreaturesNearby(Creature *ref, uint32 entry, float radius);
 #endif

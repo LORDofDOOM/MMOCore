@@ -130,6 +130,7 @@ class instance_icecrown_citadel : public InstanceMapScript
 				isOozeDanceEligible     = 0;
 				isNauseaEligible        = 0;
 				isOrbWhispererEligible  = 0;
+                isPortalJockeyEligible  = 0;
 
                 memset(&uiEncounter, 0, sizeof(uiEncounter));
             };
@@ -731,6 +732,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                             HandleGameObject(uiDragonDoor1, true);
                             HandleGameObject(uiDragonDoor2, true);
                             HandleGameObject(uiDragonDoor3, true);
+
                         }
                         if(data == NOT_STARTED || data == FAIL)
                         {
@@ -781,6 +783,9 @@ class instance_icecrown_citadel : public InstanceMapScript
                         break;
                     case DATA_ORB_WHISPERER_ACHIEVEMENT:
                         isOrbWhispererEligible = data ? true : false;
+                        break;
+                    case DATA_PORTAL_JOCKEY_ACHIEVEMENT:
+                        isPortalJockeyEligible = data ? true : false;
                         break;
                 }
 
@@ -868,6 +873,11 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case CRITERIA_ONCE_BITTEN_TWICE_SHY_25N:
                     case CRITERIA_ONCE_BITTEN_TWICE_SHY_25V:
                         return CAST_INST(InstanceMap, instance)->GetMaxPlayers() == 25;
+                    //case CRITERIA_PORTAL_JOCKEY_10N:
+                    //case CRITERIA_PORTAL_JOCKEY_10H:
+                    //case CRITERIA_PORTAL_JOCKEY_25N:
+                    //case CRITERIA_PORTAL_JOCKEY_25H:
+                    //    return isPortalJockeyEligible;
                     default:
                         break;
                 }
@@ -995,6 +1005,7 @@ class instance_icecrown_citadel : public InstanceMapScript
 			uint8 isOozeDanceEligible;
 			uint8 isNauseaEligible;
 			uint8 isOrbWhispererEligible;
+            uint8 isPortalJockeyEligible;
             uint32 uiEncounter[MAX_ENCOUNTER];
         };
 
@@ -1008,6 +1019,20 @@ void DespawnAllCreaturesAround(Creature *ref, uint32 entry)
     while (Unit *unit = ref->FindNearestCreature(entry, 80.0f, true))
         if (Creature *creature = unit->ToCreature())
             creature->DespawnOrUnsummon();
+}
+void UnsummonSpecificCreaturesNearby(Creature *ref, uint32 entry, float radius)
+{
+    std::list<Creature*> allCreaturesWithEntry;
+    GetCreatureListWithEntryInGrid(allCreaturesWithEntry, ref, entry, radius);
+    for(std::list<Creature*>::iterator itr = allCreaturesWithEntry.begin(); itr != allCreaturesWithEntry.end(); ++itr)
+    {
+        Creature *candidate = *itr;
+
+        if (!candidate)
+            continue;
+        if (TempSummon* summon = candidate->ToTempSummon())
+            summon->DespawnOrUnsummon();
+    }
 }
 void AddSC_instance_icecrown_citadel()
 {

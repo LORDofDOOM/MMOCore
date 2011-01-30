@@ -246,21 +246,21 @@ class boss_blood_council_controller : public CreatureScript
                     if (!keleseth->isInCombat())
                     {
                         DoZoneInCombat(keleseth);
-                        keleseth->Attack(who, false);
+                        keleseth->AI()->AttackStart(who);
                     }
 
                 if (Creature* taldaram = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_TALDARAM_ICC)))
                     if (!taldaram->isInCombat())
                     {
                         DoZoneInCombat(taldaram);
-                        taldaram->Attack(who, true);
+                        taldaram->AI()->AttackStart(who);
                     }
 
                 if (Creature* valanar = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_VALANAR_ICC)))
                     if (!valanar->isInCombat())
                     {
                         DoZoneInCombat(valanar);
-                        valanar->Attack(who, true);
+                        valanar->AI()->AttackStart(who);
                     }
 
                 events.ScheduleEvent(EVENT_INVOCATION_OF_BLOOD, 46500);
@@ -296,7 +296,16 @@ class boss_blood_council_controller : public CreatureScript
                     }
                 }
             }
-
+            void MoveInLineOfSight(Unit* who)
+            {
+                if (instance->GetData(DATA_BLOOD_PRINCE_COUNCIL_EVENT) == DONE)
+                {
+                    instance->SetData(DATA_BLOOD_PRINCE_COUNCIL_EVENT, DONE);
+                    me->DespawnOrUnsummon();
+                    return;
+                }
+                BossAI::MoveInLineOfSight(who);
+            }
             void JustReachedHome()
             {
                 instance->SetBossState(DATA_BLOOD_PRINCES_CONTROL, FAIL);

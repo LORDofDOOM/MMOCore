@@ -430,11 +430,14 @@ class npc_rimefang : public CreatureScript
             {
                 uiFrostBreathTimer = 5000;
                 uiIceBlastTimer = 7000;
-                me->SetFlying(true);
+                me->SetReactState(REACT_AGGRESSIVE);
+                me->SetStandState(UNIT_STAND_STATE_SIT);
+                //me->SetFlying(true);
             }
 
             void EnterCombat(Unit* /*who*/)
             {
+                me->SetStandState(UNIT_STAND_STATE_STAND);
                 DoCast(me, SPELL_FROST_AURA_ADD);
             }
 
@@ -442,7 +445,7 @@ class npc_rimefang : public CreatureScript
             {
                 if(instance)
                     if(instance->GetData(DATA_SINDRAGOSA_EVENT) != DONE)
-                        instance->SetData(DATA_SPAWN, +1);
+                        instance->SetData(DATA_SPAWN, instance->GetData(DATA_SPAWN)+1);
             }
 
             void UpdateAI(const uint32 uiDiff)
@@ -452,7 +455,7 @@ class npc_rimefang : public CreatureScript
 
                 if (uiFrostBreathTimer <= uiDiff)
                 {
-                    DoCastVictim( SPELL_FROST_BREATH_ADD);
+                    DoCastVictim(SPELL_FROST_BREATH_ADD);
                     uiFrostBreathTimer = 6000;
                 } else uiFrostBreathTimer -= uiDiff;
 
@@ -495,11 +498,14 @@ class npc_spinestalker : public CreatureScript
                 uiRoarTimer = 14000;
                 uiCleaveTimer = 6000;
                 uiSweepTimer = 7000;
-                me->SetFlying(true);
+                me->SetReactState(REACT_AGGRESSIVE);
+                me->SetStandState(UNIT_STAND_STATE_SIT);
+                //me->SetFlying(true);
             }
 
             void EnterCombat(Unit* /*who*/)
             {
+                me->SetStandState(UNIT_STAND_STATE_STAND);
                 DoCast(me, SPELL_FROST_AURA_ADD);
             }
 
@@ -507,7 +513,7 @@ class npc_spinestalker : public CreatureScript
             {
                 if(instance)
                     if(instance->GetData(DATA_SINDRAGOSA_EVENT) != DONE)
-                        instance->SetData(DATA_SPAWN, +1);
+                        instance->SetData(DATA_SPAWN, instance->GetData(DATA_SPAWN)+1);
             }
 
             void UpdateAI(const uint32 uiDiff)
@@ -523,7 +529,7 @@ class npc_spinestalker : public CreatureScript
 
                 if (uiCleaveTimer <= uiDiff)
                 {
-                    DoCastVictim( SPELL_CLEAVE_ADD);
+                    DoCastVictim(SPELL_CLEAVE_ADD);
                     uiCleaveTimer = 5000;
                 } else uiCleaveTimer -= uiDiff;
 

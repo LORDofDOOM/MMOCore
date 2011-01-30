@@ -71,3 +71,25 @@ INSERT INTO `creature_template` VALUES (38752, 0, 0, 0, 0, 0, 26623, 0, 0, 0, 'G
 
 -- Valithria Dreamwalker updates
 UPDATE `creature_template` SET `ScriptName` = 'npc_column_of_frost_icc' WHERE `entry` = 37918;
+UPDATE `creature_template` SET `ScriptName` = 'npc_icc_valithria_gluttonous_abomination' WHERE `entry` = 37886;
+UPDATE `creature_template` SET `ScriptName` = 'npc_icc_valithria_rot_worm' WHERE `entry` = 37907;
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (70912, 70913, 70914, 70915, 70916);
+INSERT INTO `spell_script_names` VALUES
+(70912,'spell_valithria_summon_adds'),
+(70913,'spell_valithria_summon_adds'),
+(70914,'spell_valithria_summon_adds'),
+(70915,'spell_valithria_summon_adds'),
+(70916,'spell_valithria_summon_adds');
+UPDATE `creature_template` SET `ScriptName` = 'npc_icc_valithria_blistering_zombie' WHERE `entry` = 37934;
+UPDATE `creature_template` SET `Scriptname` = 'npc_icc_valithria_supressor' WHERE `entry` = 37863;
+UPDATE `creature_template` SET `ScriptName` = 'npc_icc_valithria_risen_archmage' WHERE `entry` = 37868;
+UPDATE `creature_template` SET `spell1` = 0, `spell2` = 0, `AIName` = '' WHERE `entry` IN (37868, 37863, 37934);
+UPDATE `creature_template` SET `AIName` = '' WHERE `entry` IN (37868, 37934, 37886, 37863);
+UPDATE `creature_template` SET `ScriptName` = 'npc_icc_valithria_blazing_skeleton' WHERE `entry` = 36791;
+
+-- Sindragosa updates
+-- Rimefang and Spinestalker positions are corrected according to http://www.youtube.com/watch?v=OtprVV-3q1w
+UPDATE `creature_template` SET `MovementType` = 0 WHERE `entry` IN (37533, 37534);
+UPDATE `creature` SET `MovementType` = 0 WHERE `id` IN (37533, 37534);
+UPDATE `creature` SET `position_x` = 4430, `position_y` = 2460, `position_z` = 203.386 WHERE `id` = 37533;
+UPDATE `creature` SET `position_x` = 4430, `position_y` = 2506, `position_z` = 203.386 WHERE `id` = 37534;
