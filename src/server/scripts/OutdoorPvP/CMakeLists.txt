@@ -7,6 +7,8 @@ set(scripts_STAT_SRCS
   OutdoorPvP/OutdoorPvPNA.cpp
   OutdoorPvP/OutdoorPvPHP.cpp
   OutdoorPvP/OutdoorPvPTF.h
+  OutdoorPvP/OutdoorPvPGH.cpp
+  OutdoorPvP/OutdoorPvPGH.h
   OutdoorPvP/OutdoorPvPEP.h
   OutdoorPvP/OutdoorPvPEP.cpp
   OutdoorPvP/OutdoorPvPHP.h
