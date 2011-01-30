@@ -425,7 +425,6 @@ void AddSC_instance_oculus();
 void AddSC_oculus();
 void AddSC_instance_eye_of_eternity();   //Eye Of Eternity
 void AddSC_boss_malygos();
-void AddSC_npc_alexstraza();
 void AddSC_boss_sartharion();            //Obsidian Sanctum
 void AddSC_instance_obsidian_sanctum();
 void AddSC_boss_baltharus();            //Ruby Sanctum
@@ -1140,7 +1139,6 @@ void AddNorthrendScripts()
     AddSC_oculus();
     AddSC_instance_eye_of_eternity();   //Eye Of Eternity
     AddSC_boss_malygos();
-    AddSC_npc_alexstraza();
     AddSC_boss_sartharion();            //Obsidian Sanctum
     AddSC_instance_obsidian_sanctum();
     AddSC_boss_baltharus();            //Ruby Sanctum

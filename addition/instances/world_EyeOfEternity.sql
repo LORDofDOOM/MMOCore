@@ -1,65 +1,40 @@
 ﻿-- Set instance script
-UPDATE instance_template SET script = 'instance_eye_of_eternity' WHERE map = 616;
+UPDATE `instance_template` SET `script` = 'instance_eye_of_eternity' WHERE map = 616;
+UPDATE `creature_template` SET `flags_extra` = 2 WHERE `entry` = 30334;
 
 -- Update flags for NPCs/Vehicles
-UPDATE creature_template SET flags_extra = flags_extra | 2 WHERE entry = 30090; -- Vortex  'Arcane Overload', 'Hover Disk');
-UPDATE creature_template SET flags_extra = flags_extra | 2, faction_A = 35, faction_H = 35, VehicleId = 165 WHERE entry IN (30234, 30248); -- Hover Disk
-UPDATE creature_template SET flags_extra = flags_extra | 2, faction_A = 35, faction_H = 35 WHERE entry = 30118; -- Portal (Malygos)
-UPDATE creature_template SET flags_extra = flags_extra | 2 WHERE entry = 30282; -- Arcane Overload
-UPDATE creature_template SET mindmg = 1, maxdmg = 1, dmg_multiplier = 1 WHERE entry = 30592; -- Static Field
-UPDATE creature_template SET modelid1 = 11686, modelid2 = 11686 WHERE entry = 22517; -- Some world trigger
+UPDATE `creature_template` SET `flags_extra` = flags_extra | 2 WHERE `entry`= 30090; -- Vortex  'Arcane Overload', 'Hover Disk');
+UPDATE `creature_template` SET `flags_extra` = flags_extra | 2, `faction_A` = 35, `faction_H` = 35, `VehicleId` = 264 WHERE `entry` IN (30234, 30248); -- Hover Disk (`VehicleId` 264)
+UPDATE `creature_template` SET `flags_extra` = flags_extra | 2, `faction_A` = 35, `faction_H` = 35 WHERE `entry` = 30118; -- Portal (Malygos)
+UPDATE `creature_template` SET `flags_extra` = flags_extra | 2 WHERE `entry` = 30282; -- Arcane Overload
+UPDATE `creature_template` SET `mindmg` = 1, `maxdmg` = 1, `dmg_multiplier` = 1 WHERE `entry` = 30592; -- Static Field
+UPDATE `creature_template` SET `modelid1` = 11686, `modelid2` = 11686 WHERE `entry` = 22517; -- Some world trigger
 
 -- Set scriptnames and some misc data to bosses and GOs
-UPDATE gameobject_template SET flags = 4, data0 = 43 WHERE gameobject_template.entry in (193967, 193905);
-UPDATE creature_template SET ScriptName = 'boss_malygos', unit_flags = unit_flags & ~256 WHERE entry = 28859;
-UPDATE creature SET MovementType = 0, spawndist = 0 WHERE id = 28859; -- Malygos, don't move
-UPDATE creature_template SET ScriptName = 'mob_nexus_lord' WHERE entry = 30245; -- Nexus Lord
-UPDATE creature_template SET ScriptName = 'mob_scion_of_eternity' WHERE entry = 30249; -- Scion of Eternity
-UPDATE creature_template SET faction_A = 14, faction_H = 14, ScriptName = 'mob_power_spark' WHERE entry = 30084; -- Power Spark
-UPDATE creature_template SET faction_A = 14, faction_H = 14 WHERE entry = 32187; -- Power Spark (1)
-UPDATE creature_template SET ScriptName = 'npc_arcane_overload' WHERE entry = 30282; -- Arcane Overload
+UPDATE `gameobject_template` SET `flags` = 0, `data0` = 43 WHERE `entry` IN (193967, 193905);
+UPDATE `creature_template` SET `ScriptName` = 'boss_malygos', unit_flags = unit_flags & ~256 WHERE `entry` = 28859;
+UPDATE `creature` SET `MovementType` = 0, `spawndist` = 0 WHERE `id` = 28859; -- Malygos, don't move
+UPDATE `creature_template` SET `ScriptName` = 'mob_nexus_lord' WHERE `entry` = 30245; -- Nexus Lord
+UPDATE `creature_template` SET `ScriptName` = 'mob_scion_of_eternity' WHERE `entry` = 30249; -- Scion of Eternity
+UPDATE `creature_template` SET `faction_A` = 14, `faction_H` = 14, `ScriptName` = 'mob_power_spark' WHERE `entry` = 30084; -- Power Spark
+UPDATE `creature_template` SET `ScriptName` = 'npc_arcane_overload' WHERE `entry` = 30282; -- Arcane Overload
+
+-- Script GO Focusing Iris
+UPDATE `gameobject_template` SET `ScriptName` = 'go_malygos_iris' WHERE `entry` IN (193960,193958); 
 
 -- Fix Wyrmrest drakes creature info
-UPDATE creature_template SET spell1 = 56091, spell2 = 56092, spell3 = 57090, spell4 = 57143, spell5 = 57108, spell6 = 57403, VehicleId = 165 WHERE entry IN (30161, 31752);
+UPDATE `creature_template` SET `spell1` = 56091, `spell2` = 56092, `spell3` = 57090, `spell4` = 57143, `spell5` = 57108, `spell6` = 57403, `VehicleId` = 165 WHERE entry IN (30161, 31752);
 
--- Delete faulty Alextrasza spawn
-DELETE FROM creature WHERE guid = 132302;
-DELETE FROM creature_addon WHERE guid = 132302;
+-- Fix Surge of Power targeting
+DELETE FROM `conditions` WHERE SourceTypeOrReferenceId = 13 AND `SourceEntry` = 56505;
+INSERT INTO `conditions` (SourceTypeOrReferenceId, SourceGroup, SourceEntry, ElseGroup, ConditionTypeOrReference, ConditionValue1, ConditionValue2, ConditionValue3, ErrorTextId, COMMENT) VALUES
+(13, 0, 56505, 0, 18, 1, 22517, 0, 0, "Surge of Power - cast only on World Trigger (Large AOI)");
 
--- And Surge of Power
-DELETE FROM creature WHERE guid = 132303;
-DELETE FROM creature_addon WHERE guid = 132303;
-
--- Fix Loot caches being not selectable
-UPDATE gameobject_template SET faction = 35, flags = 0 WHERE entry IN (193967, 193905);
-
--- Fix loot for Malygos (Alexstrasza's Gift)
-
--- Fix Malygos and his adds' damage
-UPDATE creature_template SET mindmg = 3684, maxdmg = 4329, dmg_multiplier = 7.5, mechanic_immune_mask = 1072918979 WHERE entry = 30245; -- Nexus Lord
-UPDATE creature_template SET mindmg = 3684, maxdmg = 4329, dmg_multiplier = 13,  mechanic_immune_mask = 1072918979 WHERE entry = 31750; -- Nexus Lord (1)
-UPDATE creature_template SET mechanic_immune_mask = 1072918979 WHERE entry IN (30249, 31751);
-UPDATE creature_template SET faction_A = 14, faction_H = 14 WHERE entry IN (31750, 31751);
-
--- Create entry for Heroic Malygos
-DELETE FROM creature_template WHERE entry = 50000;
-INSERT INTO creature_template (entry, difficulty_entry_1, difficulty_entry_2, difficulty_entry_3, KillCredit1, KillCredit2, modelid1, modelid2, 
-modelid3, modelid4, name, subname, IconName, gossip_menu_id, minlevel, maxlevel, exp, faction_A, faction_H, npcflag, speed_walk, speed_run, scale, 
-rank, mindmg, maxdmg, dmgschool, attackpower, dmg_multiplier, baseattacktime, rangeattacktime, unit_class, unit_flags, dynamicflags, family, 
-trainer_type, trainer_spell, trainer_class, trainer_race, minrangedmg, maxrangedmg, rangedattackpower, type, type_flags, lootid, pickpocketloot, 
-skinloot, resistance1, resistance2, resistance3, resistance4, resistance5, resistance6, spell1, spell2, spell3, spell4, spell5, spell6, spell7, 
-spell8, PetSpellDataId, VehicleId, mingold, maxgold, AIName, MovementType, InhabitType, Health_mod, Mana_mod, Armor_mod, RacialLeader, questItem1, 
-questItem2, questItem3, questItem4, questItem5, questItem6, movementId, RegenHealth, equipment_id, mechanic_immune_mask, flags_extra, ScriptName, WDBVerified) VALUES 
-(50000, 0, 0, 0, 0, 0, 26752, 0, 0, 0, 'Malygos', '', '', 0, 83, 83, 2, 16, 16, 0, 1, 1.14286, 1, 3, 496, 674, 0, 783, 35, 2000, 0, 2, 64, 8, 0, 0, 0, 0, 0, 365, 529, 98, 2, 108, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 5, 500, 50, 1, 0, 44650, 0, 0, 0, 0, 0, 227, 1, 0, 0, 1, 'boss_malygos', 1);
-
-UPDATE creature_template SET Health_mod = 1400, questItem1 = 44651, mechanic_immune_mask = 617299803, ScriptName = '', WDBVerified = 1 WHERE entry = 50000;
-UPDATE creature_template SET mindmg = 4602, maxdmg = 5502, dmg_multiplier = 7.5, difficulty_entry_1 = 50000, mechanic_immune_mask = 617299803 WHERE entry = 28859;
-UPDATE creature_template SET mindmg = 4602, maxdmg = 5502, dmg_multiplier = 13 WHERE entry = 50000;
-UPDATE creature_template SET flags_extra = flags_extra | 1 WHERE entry IN (28859, 50000);
+UPDATE `creature_template` SET flags_extra = flags_extra | 1, mechanic_immune_mask = 1072902595 WHERE `entry` IN (30245, 31750);
 
 -- Fix sound entries for Malygos encounter
-DELETE FROM script_texts WHERE entry BETWEEN -1616034 AND -1616000;
-INSERT INTO script_texts (npc_entry, entry, content_default, sound, type, language, emote, comment) VALUES
+DELETE FROM `script_texts` WHERE `entry` BETWEEN -1616034 AND -1616000;
+INSERT INTO `script_texts` (npc_entry, entry, content_default, sound, type, language, emote, comment) VALUES
 (28859, -1616000, 'Lesser beings, intruding here! A shame that your excess courage does not compensate for your stupidity!', 14512, 1, 0, 0, 'Malygos INTRO 1'),
 (28859, -1616001, 'None but the blue dragonflight are welcome here! Perhaps this is the work of Alexstrasza? Well then, she has sent you to your deaths.', 14513, 1, 0, 0, 'Malygos INTRO 2'),
 (28859, -1616002, 'What could you hope to accomplish, to storm brazenly into my domain? To employ MAGIC? Against ME?', 14514, 1, 0, 0, 'Malygos INTRO 3'),
@@ -93,84 +68,3 @@ INSERT INTO script_texts (npc_entry, entry, content_default, sound, type, langua
 (32295, -1616032, 'And so ends the Nexus War.', 14407, 1, 0, 0, 'Alexstrasza OUTRO 2'),
 (32295, -1616033, 'This resolution pains me deeply, but the destruction, the monumental loss of life had to end. Regardless of Malygos\' recent transgressions, I will mourn his loss. He was once a guardian, a protector. This day, one of the world\'s mightiest has fallen.', 14408, 1, 0, 0, 'Alexstrasza OUTRO 3'),
 (32295, -1616034, 'The red dragonflight will take on the burden of mending the devastation wrought on Azeroth. Return home to your people and rest. Tomorrow will bring you new challenges, and you must be ready to face them. Life...goes on.', 14409, 1, 0, 0, 'Alexstrasza OUTRO 4');
-
-UPDATE creature_template SET ScriptName="npc_alexsrtaza" WHERE entry=32295;
-
--- Set instance script
-UPDATE instance_template SET script = 'instance_eye_of_eternity' WHERE map = 616;
-
--- For multilanguage
-REPLACE INTO script_texts (npc_entry, entry, content_default, TYPE, COMMENT) VALUE
-(28859, -1616035, "A Power Spark forms from a nearby rift!", 5, "Malygos WHISPER_POWER_SPARK");
-REPLACE INTO script_texts (npc_entry, entry, content_default, TYPE, COMMENT) VALUE
-(28859, -1616036, "Malygos fixes his eyes on you !", 5, "Malygos WHISPER_LOOK_ME");
-
--- Update flags for NPCs/Vehicles
-UPDATE creature_template SET flags_extra = flags_extra | 2 WHERE entry = 30090; -- Vortex  'Arcane Overload', 'Hover Disk');
-UPDATE creature_template SET flags_extra = flags_extra | 2, faction_A = 35, faction_H = 35, VehicleId = 165 WHERE entry IN (30234, 30248); -- Hover Disk
-UPDATE creature_template SET flags_extra = flags_extra | 2, faction_A = 35, faction_H = 35 WHERE entry = 30118; -- Portal (Malygos)
-UPDATE creature_template SET flags_extra = flags_extra | 2 WHERE entry = 30282; -- Arcane Overload
-UPDATE creature_template SET mindmg = 1, maxdmg = 1, dmg_multiplier = 1 WHERE entry = 30592; -- Static Field
-UPDATE creature_template SET modelid1 = 11686, modelid2 = 11686 WHERE entry = 22517; -- Some world trigger
-
--- Set scriptnames and some misc data to bosses and GOs
-UPDATE gameobject_template SET flags = 4, data0 = 43 WHERE gameobject_template.entry in (193967, 193905);
-UPDATE creature_template SET ScriptName = 'boss_malygos', unit_flags = unit_flags & ~256 WHERE entry = 28859;
-UPDATE creature SET MovementType = 0, spawndist = 0 WHERE id = 28859; -- Malygos, don't move
-UPDATE creature_template SET ScriptName = 'mob_nexus_lord' WHERE entry = 30245; -- Nexus Lord
-UPDATE creature_template SET ScriptName = 'mob_scion_of_eternity' WHERE entry = 30249; -- Scion of Eternity
-UPDATE creature_template SET faction_A = 14, faction_H = 14, ScriptName = 'mob_power_spark' WHERE entry = 30084; -- Power Spark
-UPDATE creature_template SET faction_A = 14, faction_H = 14 WHERE entry = 32187; -- Power Spark (1)
-UPDATE creature_template SET ScriptName = 'npc_arcane_overload' WHERE entry = 30282; -- Arcane Overload
-
--- Fix Wyrmrest drakes creature info
-UPDATE creature_template SET spell1 = 56091, spell2 = 56092, spell3 = 57090, spell4 = 57143, spell5 = 57108, spell6 = 57403, VehicleId = 165 WHERE entry IN (30161, 31752);
-
--- Delete faulty Alextrasza spawn
-DELETE FROM creature WHERE guid = 132302;
-DELETE FROM creature_addon WHERE guid = 132302;
-
--- And Surge of Power
-DELETE FROM creature WHERE guid = 132303;
-DELETE FROM creature_addon WHERE guid = 132303;
-
--- Fix Loot caches being not selectable
-UPDATE gameobject_template SET faction = 35, flags = 0 WHERE entry IN (193967, 193905);
-
--- Fix Surge of Power targeting
-DELETE FROM `conditions` WHERE `SourceEntry`=56505;
-INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceEntry`,`ConditionTypeOrReference`,`ConditionValue1`,`ConditionValue2`) VALUES
-(13,56505,18,1,22517);
-
--- Fix loot for Malygos (Alexstrasza's Gift)
--- End of 25m Malygos loot
--- Fix Malygos and his adds' damage
-UPDATE creature_template SET mindmg = 3684, maxdmg = 4329, dmg_multiplier = 7.5, mechanic_immune_mask = 1072918979 WHERE entry = 30245; -- Nexus Lord
-UPDATE creature_template SET mindmg = 3684, maxdmg = 4329, dmg_multiplier = 13,  mechanic_immune_mask = 1072918979 WHERE entry = 31750; -- Nexus Lord (1)
-UPDATE creature_template SET mechanic_immune_mask = 1072918979 WHERE entry IN (30249, 31751);
-UPDATE creature_template SET faction_A = 14, faction_H = 14 WHERE entry IN (31750, 31751);
-
--- Create entry for Heroic Malygos
-UPDATE creature_template SET flags_extra = flags_extra | 1 WHERE entry IN (28859);-- Aсadir 50000
-
--- Spawn Focusing.
-DELETE FROM gameobject WHERE id IN (193958, 193960);
-INSERT INTO gameobject VALUES
-(NULL, 193958, 616, 1, 1, 754.362, 1301.61, 266.171, 6.23742, 0, 0, 0.022883, -0.999738, 300, 0, 1), 
-(NULL, 193960, 616, 2, 1, 754.362, 1301.61, 266.171, 6.23742, 0, 0, 0.022883, -0.999738, 300, 0, 1); 
-
--- Aggro Malygos
-UPDATE creature_model_info SET combat_reach = '30' WHERE modelid = 26752;
-
--- Power spark  Malygos
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry`=56152;
-INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceEntry`,`ConditionTypeOrReference`,`ConditionValue1`,`ConditionValue2`) VALUES
-(13,56152,18,1,28859);
-
--- Script GO Focusing Iris
-UPDATE `gameobject_template` SET `ScriptName` = 'go_malygos_iris' WHERE `entry` IN (193960,193958); 
-UPDATE creature_template SET InhabitType = 4, VehicleId = 223 WHERE entry IN (30234, 30248);
-UPDATE creature_template SET spell6 = 57092, spell7 = 57403 WHERE entry IN (30161, 31752);
-UPDATE creature_template SET  flags_extra =  flags_extra | 0x2 WHERE entry = 31253; -- Alexstrazsa
-UPDATE creature_model_info SET combat_reach = 15 WHERE modelid = 26752;
-DELETE FROM script_texts WHERE entry = -1616035;
