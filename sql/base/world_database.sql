@@ -18073,6 +18073,12 @@ INSERT INTO `spell_linked_spell` (`spell_trigger`,`spell_effect`,`type`,`comment
 ( 66235, 66233, 0, 'Ardent Defender Visuals'),
 ( 58875, 58876, 1, 'Spirit Walk'),
 -- Quest
+( 26286, 44430, 0, 'Small Red Rocket - questcredit'),
+( 26292, 44430, 0, 'Small Green Rocket - questcredit'),
+( 26291, 44430, 0, 'Small Blue Rocket - questcredit'),
+( 26327, 44429, 0, 'Red Firework Cluster - questcredit'),
+( 26325, 44429, 0, 'Green Firework Cluster - questcredit'),
+( 26304, 44429, 0, 'Blue Firework Cluster - questcredit'),
 ( 40214, 40216, 2, 'Dragonmaw Illusion'),
 ( 40214, 42016, 2, 'Dragonmaw Illusion'),
 ( 66744, 66747, 0, 'Totem of the earthen ring'),
@@ -18178,7 +18184,6 @@ INSERT INTO `spell_linked_spell` (`spell_trigger`,`spell_effect`,`type`,`comment
 ( 71479, 71482, 1, 'Blood-Queen: Bloodbolt Splash'),
 ( 71480, 71483, 1, 'Blood-Queen: Bloodbolt Splash'),
 ( 71952, 70995, 1, 'Blood-Queen: Presence of the Darkfallen'),
-( 71390, 71341, 0, 'Blood-Queen: Pact of the Darkfallen'),
 -- Isle of Conquest
 ( 66548, 66550, 0, 'Isle of Conquest (IN>OUT)'),
 ( 66549, 66551, 0, 'Isle of Conquest (OUT>IN)'),
