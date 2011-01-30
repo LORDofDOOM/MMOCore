@@ -1,70 +1,42 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008 - 2010 Trinity <http://www.trinitycore.org/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Author: Bondiano
  */
-
+ 
 #include "ScriptPCH.h"
 #include "oculus.h"
 
 //Types of drake mounts: Ruby(Tank),  Amber(DPS),  Emerald(Healer)
 //Two Repeating phases
 
-enum Events
-{
-    EVENT_ARCANE_BARRAGE = 1,
-    EVENT_ARCANE_VOLLEY,
-    EVENT_ENRAGED_ASSAULT,
-    EVENT_SUMMON_LEY_WHELP
-};
-
-enum Says
-{
-    SAY_AGGRO = 0,
-    SAY_ENRAGE = 1,
-    SAY_DEATH = 2
-};
-
 enum Spells
 {
     SPELL_ARCANE_BARRAGE                          = 50804,
+    H_SPELL_ARCANE_BARRAGE                        = 59381,
     SPELL_ARCANE_VOLLEY                           = 51153,
+    H_SPELL_ARCANE_VOLLEY                         = 59382,
     SPELL_ENRAGED_ASSAULT                         = 51170,
     SPELL_PLANAR_ANOMALIES                        = 57959,
     SPELL_PLANAR_SHIFT                            = 51162,
-    SPELL_SUMMON_LEY_WHELP                        = 51175,
-    SPELL_SUMMON_PLANAR_ANOMALIES                 = 57963,
-    SPELL_PLANAR_BLAST                            = 57976
+    SPELL_ARCANE_SHIELD                           = 53813,
+    SPELL_PLANAR_BLAST                            = 57976,
 };
-
-enum Npcs
-{
-    NPC_PLANAR_ANOMALY = 30879
-};
-
-enum Phases
-{
-    PHASE_NORMAL = 1,
-    PHASE_FIRST_PLANAR = 2,
-    PHASE_SECOND_PLANAR = 3
-};
-
-enum Actions
-{
-    ACTION_SET_NORMAL_EVENTS = 1
-};
-
 /*Ruby Drake ,
 (npc 27756) (item 37860)
 (summoned by spell Ruby Essence = 37860 ---> Call Amber Drake == 49462 ---> Summon 27756)
@@ -94,7 +66,6 @@ enum AmberDrake
     //you do not have access to until you kill the  Mage-Lord Urom.
     SPELL_AMBER_TEMPORAL_RIFT                     = 49592         //(60 yds) - Channeled - Channels a temporal rift on an enemy dragon for 10 sec. While trapped in the rift, all damage done to the target is increased by 100%. In addition, for every 15,000 damage done to a target affected by Temporal Rift, 1 Shock Charge is generated.
 };
-
 /*Emerald Drake,
 (npc 27692)  (item 37815),
  (summoned by spell Emerald Essence = 37815 ---> Call Emerald Drake == 49345 ---> Summon 27692)
@@ -110,168 +81,206 @@ enum EmeraldDrake
     SPELL_EMERALD_DREAM_FUNNEL                    = 50344         //(60 yds) - Channeled - Transfers 5% of the caster's max health to a friendly drake every second for 10 seconds as long as the caster channels.
 };
 
+enum adds
+{
+	PLANAR_ANOMALY				= 30879
+};
+
 class boss_eregos : public CreatureScript
 {
-public:
-    boss_eregos() : CreatureScript("boss_eregos") { }
+    public:
+        boss_eregos(): CreatureScript("boss_eregos") {}
 
-    CreatureAI* GetAI(Creature* pCreature) const
+    struct boss_eregosAI : public ScriptedAI
     {
-        return new boss_eregosAI (pCreature);
-    }
+        boss_eregosAI(Creature *c) : ScriptedAI(c), lSummons(me)
+        {
+            pInstance = c->GetInstanceScript();
+        }
 
-    struct boss_eregosAI : public BossAI
-    {
-        boss_eregosAI(Creature* creature) : BossAI(creature, DATA_EREGOS_EVENT) { }
+        InstanceScript* pInstance;
+	    uint32 uiArcaneBarrage_Timer;
+	    uint32 uiArcaneVolley_Timer;
+	    uint32 uiEnragedAssault_Timer;
+	    bool hp1,hp2,started;
+	    int phase;
+	    SummonList lSummons;
 
         void Reset()
         {
-            _Reset();
-
-            phase = PHASE_NORMAL;
-
-            DoAction(ACTION_SET_NORMAL_EVENTS);
+            if (pInstance)
+		    {
+                pInstance->SetData(DATA_EREGOS_EVENT, NOT_STARTED);
+		    }
+		    uiArcaneBarrage_Timer   = 3000;
+		    uiArcaneVolley_Timer	= 10000;
+		    uiEnragedAssault_Timer	= 30000;
+		    hp1 = false;
+		    hp2 = false;
+		    phase = 1;
+		    started = false;
+		    lSummons.DespawnAll();
+		    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+		    me->SetUnitMovementFlags(MOVEMENTFLAG_CAN_FLY);
+		    me->GetMotionMaster()->Clear();
+		    me->GetMotionMaster()->MoveRandom(80.0f);
+		    me->SetReactState(REACT_PASSIVE);
         }
 
-        void EnterCombat(Unit* /*who*/)
+	    void SummonPlanarAnomaly()
+	    {
+		    std::list<HostileReference*>& m_threatlist = me->getThreatManager().getThreatList();
+		    std::list<HostileReference*>::const_iterator i = m_threatlist.begin();
+		    for (i = m_threatlist.begin(); i!= m_threatlist.end(); ++i)
+		    {
+			    Unit* pUnit = Unit::GetUnit((*me), (*i)->getUnitGuid());
+			    if (pUnit )
+			    {
+				    Creature* summon = DoSummon(PLANAR_ANOMALY, me, 3.0f, 30000, TEMPSUMMON_DEAD_DESPAWN);
+				    if(summon)
+				    {
+					    summon->Attack(pUnit,true);
+					    printf("PLANAR_ANOMALY attack uinit %s \n",pUnit->GetName());
+					    summon->SetVisible(true);
+					    summon->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+					    summon->SetUnitMovementFlags(MOVEMENTFLAG_CAN_FLY);
+				    }
+			    }
+		    }
+	    }
+
+        void EnterCombat(Unit* who)
         {
-            _EnterCombat();
-
-            Talk(SAY_AGGRO);
-        }
-   
-        void DoAction(const int32 action)
-        {
-            if (action != ACTION_SET_NORMAL_EVENTS)
-                return;
-
-            events.ScheduleEvent(EVENT_ARCANE_BARRAGE, urand(3,10) * IN_MILLISECONDS, 0, PHASE_NORMAL);
-            events.ScheduleEvent(EVENT_ARCANE_VOLLEY, urand(10,25) * IN_MILLISECONDS, 0, PHASE_NORMAL);
-            events.ScheduleEvent(EVENT_ENRAGED_ASSAULT, urand(35,50) * IN_MILLISECONDS, 0, PHASE_NORMAL);
-            events.ScheduleEvent(EVENT_SUMMON_LEY_WHELP, urand(15,30) * IN_MILLISECONDS, 0, PHASE_NORMAL);
-        }
-
-        void JustSummoned(Creature* summon)
-        {
-            BossAI::JustSummoned(summon);
-
-            if (summon->GetEntry() != NPC_PLANAR_ANOMALY)
-                return;
-            
-            summon->CombatStop(true);
-            summon->SetReactState(REACT_PASSIVE);
-            summon->GetMotionMaster()->MoveRandom(100.0f);
-        }
-
-        void SummonedCreatureDespawn(Creature* summon)
-        {
-            if (summon->GetEntry() != NPC_PLANAR_ANOMALY)
-                return;
-
-            // TO-DO: See why the spell is not casted
-            summon->CastSpell(summon,SPELL_PLANAR_BLAST,true);
+            if (pInstance)
+		    {
+                pInstance->SetData(DATA_EREGOS_EVENT, IN_PROGRESS);
+		    }
         }
 
-        void DamageTaken(Unit* /*attacker*/, uint32& /*damage*/)
+        void UpdateAI(const uint32 uiDiff)
         {
-            if (!me->GetMap()->IsHeroic())
-                return;
-
-            if ( (me->GetHealthPct() < 60.0f  && me->GetHealthPct() > 20.0f && phase < PHASE_FIRST_PLANAR)
-                || (me->GetHealthPct() < 20.0f && phase < PHASE_SECOND_PLANAR) )
-            {
-                events.Reset();
-                phase = (me->GetHealthPct() < 60.0f  && me->GetHealthPct() > 20.0f) ? PHASE_FIRST_PLANAR : PHASE_SECOND_PLANAR;
-
-                DoCast(SPELL_PLANAR_SHIFT);
-
-                // not sure about the amount, and if we should despawn previous spawns (dragon trashs)
-                summons.DespawnAll();
-                for (uint8 i = 0; i < 6; i++)
-                    DoCast(SPELL_PLANAR_ANOMALIES);
-            }
-        }
-
-        void UpdateAI(const uint32 diff)
-        {
+		    if(!started && pInstance->GetData(DATA_UROM_EVENT) == DONE)
+		    {
+			    me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
+			    me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+			    me->RemoveAllAuras();
+			    me->SetReactState(REACT_AGGRESSIVE);
+			    started=true;
+		    }
             //Return since we have no target
             if (!UpdateVictim())
                 return;
 
-            events.Update(diff);
+		    if(!hp1 && HealthBelowPct(60))
+		    {
+			    phase = 2;
+			    hp1=true;
+		    }
 
-            if (me->HasUnitState(UNIT_STAT_CASTING))
-                return;
+		    if(!hp2 && HealthBelowPct(20))
+		    {
+			    phase = 2;
+			    hp2=true;
+		    }
 
-            while (uint32 eventId = events.ExecuteEvent())
-            {
-                switch (eventId)
-                {
-                    case EVENT_ARCANE_BARRAGE:
-                        DoCast(me->getVictim(),SPELL_ARCANE_BARRAGE);
-                        events.ScheduleEvent(EVENT_ARCANE_BARRAGE, urand(3,10) * IN_MILLISECONDS, 0, PHASE_NORMAL);
-                        break;
-                    case EVENT_ARCANE_VOLLEY:
-                        DoCastAOE(SPELL_ARCANE_VOLLEY);
-                        events.ScheduleEvent(EVENT_ARCANE_VOLLEY, urand(10,25) * IN_MILLISECONDS, 0, PHASE_NORMAL);
-                        break;
-                    case EVENT_ENRAGED_ASSAULT:
-                        Talk(SAY_ENRAGE);
-                        DoCast(SPELL_ENRAGED_ASSAULT);
-                        events.ScheduleEvent(EVENT_ENRAGED_ASSAULT, urand(35,50) * IN_MILLISECONDS, 0, PHASE_NORMAL);
-                        break;
-                    case EVENT_SUMMON_LEY_WHELP:
-                        for (uint8 i = 0; i < 3; i++)
-                            DoCast(SPELL_SUMMON_LEY_WHELP);
-                        events.ScheduleEvent(EVENT_SUMMON_LEY_WHELP, urand(15,30) * IN_MILLISECONDS, 0, PHASE_NORMAL);
-                        break;
-                }
-            }
+		    switch(phase)
+		    {
+			    case 1:
+				    if(!me->HasAura(SPELL_PLANAR_SHIFT))
+				    {
+					    lSummons.DespawnAll();
+					    if(uiArcaneBarrage_Timer <= uiDiff)
+					    {
+						    uiArcaneBarrage_Timer = 3000;
+						    DoCast(me->getVictim(),DUNGEON_MODE(SPELL_ARCANE_BARRAGE,H_SPELL_ARCANE_BARRAGE)); 
+					    } else uiArcaneBarrage_Timer -= uiDiff;
 
-            DoMeleeAttackIfReady();
+					    if(uiArcaneVolley_Timer <= uiDiff)
+					    {
+						    uiArcaneVolley_Timer = 8000;
+						    DoCast(DUNGEON_MODE(SPELL_ARCANE_VOLLEY,H_SPELL_ARCANE_VOLLEY)); 
+					    } else uiArcaneVolley_Timer -= uiDiff;
+
+					    if(uiEnragedAssault_Timer <= uiDiff)
+					    {
+						    uiEnragedAssault_Timer = 30000;
+						    DoCast(SPELL_ENRAGED_ASSAULT); 
+					    } else uiEnragedAssault_Timer -= uiDiff;
+					    DoMeleeAttackIfReady();
+				    }
+				    break;
+			    case 2:
+				    SummonPlanarAnomaly();
+				    DoCast(SPELL_PLANAR_SHIFT);
+				    phase = 1;
+				    break;
+
+		    }
         }
 
-        void JustDied(Unit* /*killer*/)
+	    void JustSummoned(Creature* summoned)
         {
-            Talk(SAY_DEATH);
-
-            _JustDied();
+            lSummons.Summon(summoned);
         }
 
-    private:
-        uint8 phase;
+        void JustDied(Unit* killer)
+        {
+            if (pInstance)
+		    {
+                pInstance->SetData(DATA_EREGOS_EVENT, DONE);
+		    }
+		    lSummons.DespawnAll();
+        }
+    };
+
+    CreatureAI* GetAI(Creature* pCreature)
+    {
+        return new boss_eregosAI (pCreature);
     };
 };
 
-class spell_eregos_planar_shift : public SpellScriptLoader
+class npc_planar_anomaly : public CreatureScript
 {
     public:
-        spell_eregos_planar_shift() : SpellScriptLoader("spell_eregos_planar_shift") { }
+        npc_planar_anomaly(): CreatureScript("npc_planar_anomaly") {}
 
-        class spell_eregos_planar_shift_AuraScript : public AuraScript
+    struct npc_planar_anomalyAI : public ScriptedAI
+    {
+        npc_planar_anomalyAI(Creature* pCreature) : ScriptedAI(pCreature) {}
+
+        uint32 uiDeathTimer;
+
+        void Reset()
         {
-            PrepareAuraScript(spell_eregos_planar_shift_AuraScript);
+            me->SetReactState(REACT_PASSIVE);
+            me->GetMotionMaster()->MoveRandom(40.0f);
 
-            void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-            {
-                if (Creature* caster = GetCaster()->ToCreature())
-                    caster->AI()->DoAction(ACTION_SET_NORMAL_EVENTS);
-            }
-
-            void Register()
-            {
-                OnEffectRemove += AuraEffectRemoveFn(spell_eregos_planar_shift_AuraScript::OnRemove, EFFECT_0, SPELL_AURA_SCHOOL_IMMUNITY, AURA_EFFECT_HANDLE_REAL);
-            }
-        };
-
-        AuraScript* GetAuraScript() const
-        {
-            return new spell_eregos_planar_shift_AuraScript();
+            uiDeathTimer = 16000;
         }
+
+        void UpdateAI(const uint32 uiDiff)
+        {
+            if (uiDeathTimer <= uiDiff)
+            {
+                DoCast(SPELL_PLANAR_BLAST);
+                uiDeathTimer = 15*IN_MILLISECONDS;
+            } else uiDeathTimer -= uiDiff;
+
+            if (uiDeathTimer <= uiDiff)
+                me->DisappearAndDie();
+            else uiDeathTimer -= uiDiff;
+        }
+    };
+
+    CreatureAI* GetAI(Creature* pCreature)
+    {
+        return new npc_planar_anomalyAI (pCreature);
+    };
 };
 
 void AddSC_boss_eregos()
 {
     new boss_eregos();
-    new spell_eregos_planar_shift();
+    new npc_planar_anomaly();
 }

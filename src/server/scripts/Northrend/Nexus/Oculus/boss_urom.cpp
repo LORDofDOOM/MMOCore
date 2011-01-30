@@ -1,340 +1,399 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008 - 2010 Trinity <http://www.trinitycore.org/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 /* ScriptData
-SDName: Urom
-SD%Complete: 80
-SDComment: Is not working SPELL_ARCANE_SHIELD. SPELL_FROSTBOMB has some issues, the damage aura should not stack.
-SDCategory: Instance Script
+SDName: boss_urom
+SD%Complete: 90
+SDComment: Optimal script for boss Mage-Lord Urom(http://ru.wowhead.com/npc=27655)
+SDCategory: Oculus
+SDAuthor: Bondiano
 EndScriptData */
+ 
 
 #include "ScriptPCH.h"
 #include "oculus.h"
 
+struct Locations {
+	float x,y,z,o;
+};
+
+static Locations BossLocSpawn[]=
+{
+    {968.181213f, 1042.239502f, 527.321777f, 0.021777f},  // AT I° spawn
+	{1164.015747f, 1171.213989f, 527.321655f, 4.282561f}, // AT II° spawn
+	{1123.280151f, 1080.605347f, 508.360016f, 1.251068f}, // AT III° spawn
+	{1101.646729f, 1053.799927f, 509.237610f, 1.555070f}, // Oculus centre
+};
+
 enum Spells
 {
-
     SPELL_ARCANE_SHIELD                           = 53813, //Dummy --> Channeled, shields the caster from damage.
     SPELL_EMPOWERED_ARCANE_EXPLOSION              = 51110,
-    SPELL_EMPOWERED_ARCANE_EXPLOSION_2            = 59377,
+    H_SPELL_EMPOWERED_ARCANE_EXPLOSION            = 59377,
     SPELL_FROSTBOMB                               = 51103, //Urom throws a bomb, hitting its target with the highest aggro which inflict directly 650 frost damage and drops a frost zone on the ground. This zone deals 650 frost damage per second and reduce the movement speed by 35%. Lasts 1 minute.
-    SPELL_SUMMON_MENAGERIE                        = 50476, //Summons an assortment of creatures and teleports the caster to safety.
+    SPELL_SUMMON_MENAGERIE_1                      = 50476, //Summons an assortment of creatures and teleports the caster to safety.
     SPELL_SUMMON_MENAGERIE_2                      = 50495,
     SPELL_SUMMON_MENAGERIE_3                      = 50496,
     SPELL_TELEPORT                                = 51112, //Teleports to the center of Oculus
     SPELL_TIME_BOMB                               = 51121, //Deals arcane damage to a random player, and after 6 seconds, deals zone damage to nearby equal to the health missing of the target afflicted by the debuff.
-    SPELL_TIME_BOMB_2                             = 59376
+    H_SPELL_TIME_BOMB                             = 59376,
+	SPELL_PARACHUTE								  = 61243
 };
 
+//not in db
 enum Yells
 {
-    SAY_AGGRO_1                                   = -1578000,
-    SAY_AGGRO_2                                   = -1578001,
-    SAY_AGGRO_3                                   = -1578002,
-    SAY_AGGRO_4                                   = -1578003,
-    SAY_TELEPORT                                  = -1578004,
+    SAY_AGGRO                                     = -1578012,
+    SAY_KILL_1                                    = -1578013,
+    SAY_KILL_2                                    = -1578014,
+    SAY_KILL_3                                    = -1578015,
+    SAY_DEATH                                     = -1578016,
+    SAY_EXPLOSION_1                               = -1578017,
+    SAY_EXPLOSION_2                               = -1578018,
+    SAY_SUMMON_1                                  = -1578019,
+    SAY_SUMMON_2                                  = -1578020,
+    SAY_SUMMON_3                                  = -1578021,
 };
 
-enum eCreature
+enum Creatures
 {
-    NPC_PHANTASMAL_CLOUDSCRAPER                   = 27645,
-    NPC_PHANTASMAL_MAMMOTH                        = 27642,
-    NPC_PHANTASMAL_WOLF                           = 27644,
+	//I° spawn (2 fire, 1 water, 1 air)
+	NPC_PHANTASMAL_WATER						= 27653,  //ScriptedAI
+	NPC_PHANTASMAL_AIR   						= 27650,  //ScriptedAI
+	NPC_PHANTASMAL_FIRE							= 27651,  //ScriptedAI
 
-    NPC_PHANTASMAL_AIR                            = 27650,
-    NPC_PHANTASMAL_FIRE                           = 27651,
-    NPC_PHANTASMAL_WATER                          = 27653,
+	//II° spawn (2 ogres, 1 naga, 1 murloc)
+	NPC_PHANTASMAL_OGRE						= 27647,  //ScriptedAI
+	NPC_PHANTASMAL_NAGA   					= 27648,  //ScriptedAI
+	NPC_PHANTASMAL_MURLOC					= 27649,  //NO ABILITIES
 
-    NPC_PHANTASMAL_MURLOC                         = 27649,
-    NPC_PHANTASMAL_NAGAL                          = 27648,
-    NPC_PHANTASMAL_OGRE                           = 27647
+	//III° spawn (1 mammoth, 2 wolves, 2 cloudscrapers)
+	NPC_PHANTASMAL_MAMMOTH					= 27642,  //ScriptedAI
+	NPC_PHANTASMAL_WOLVE   					= 27644,  //ScriptedAI
+	NPC_PHANTASMAL_CLUODSCRAPER				= 27645,  //ScriptedAI
+
+
 };
 
-struct Summons
-{
-    uint32 entry[4];
-};
-
-static Summons Group[]=
-{
-    { {NPC_PHANTASMAL_CLOUDSCRAPER, NPC_PHANTASMAL_CLOUDSCRAPER, NPC_PHANTASMAL_MAMMOTH, NPC_PHANTASMAL_WOLF} },
-    { {NPC_PHANTASMAL_AIR, NPC_PHANTASMAL_AIR, NPC_PHANTASMAL_WATER, NPC_PHANTASMAL_FIRE} },
-    { {NPC_PHANTASMAL_OGRE, NPC_PHANTASMAL_OGRE, NPC_PHANTASMAL_NAGAL, NPC_PHANTASMAL_MURLOC} }
-};
-
-static uint32 TeleportSpells[]=
-{
-    SPELL_SUMMON_MENAGERIE,SPELL_SUMMON_MENAGERIE_2,SPELL_SUMMON_MENAGERIE_3
-};
-
-static int32 SayAggro[]=
-{
-    SAY_AGGRO_1,SAY_AGGRO_2,SAY_AGGRO_3,SAY_AGGRO_4
-};
+//range for adds spawn
+#define RANGE  25
 
 class boss_urom : public CreatureScript
 {
-public:
-    boss_urom() : CreatureScript("boss_urom") { }
+    public:
+        boss_urom(): CreatureScript("boss_urom") {}
+
+    struct boss_uromAI : public ScriptedAI
+    {
+        boss_uromAI(Creature *c) : ScriptedAI(c)
+        {
+            pInstance = c->GetInstanceScript();
+        }
+
+        InstanceScript* pInstance;
+	    uint8 phase;
+	    uint32 ui_SummonSimulation_Timer;
+	    uint32 ui_FrostBomb_Timer;
+	    uint32 ui_TimeBomb_Timer;
+	    uint32 ui_ArcaneExplosion_Timer;
+	    bool just_summoned;
+	    bool summoning_casted;
+	    bool casting_explosion;
+	    bool done_casting_explosion;
+	    bool started;
+	    bool waiting_teleport;
+	    uint32 ui_ArcaneExplosionDuration;
+	    Creature * temp_summ;
+
+        void Reset()
+        {
+            if (pInstance)
+                pInstance->SetData(DATA_UROM_EVENT, NOT_STARTED);
+		    phase = 0;
+		    temp_summ = 0;
+		    started = false;
+		    ui_SummonSimulation_Timer = 4000;
+		    just_summoned = false;
+		    summoning_casted = false;
+		    casting_explosion = false;
+		    done_casting_explosion = false;
+		    waiting_teleport = false;
+		    ui_ArcaneExplosionDuration = 6000;
+		    ui_FrostBomb_Timer = 10000;
+		    ui_TimeBomb_Timer = 15000;
+		    ui_ArcaneExplosion_Timer = 30000;
+		    ui_ArcaneExplosionDuration = DUNGEON_MODE(9000,7000);
+		    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            DoCast(SPELL_ARCANE_SHIELD);
+		    me->SetReactState(REACT_PASSIVE);
+
+        }
+
+	    bool PlayerInRange(float distance)
+	    {
+		    Map *map = me->GetMap();
+		    if (map->IsDungeon())
+		    {            
+			    Map::PlayerList const &PlayerList = map->GetPlayers();
+                 
+			    if (PlayerList.isEmpty())
+				    return false;
+                     
+			    for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+			    {
+
+				    if (i->getSource()->isAlive() && i->getSource()->GetDistance2d(me->GetPositionX(), me->GetPositionY()) <= distance)
+				    {
+					    return true;
+				    }
+			    }
+		    }
+		    return false;
+	    }
+
+        void EnterCombat(Unit* who)
+        {
+            DoScriptText(SAY_AGGRO, me);
+
+            if (pInstance)
+                pInstance->SetData(DATA_UROM_EVENT, IN_PROGRESS);
+        }
+
+	    void DismountPlayers()
+	    {
+		    std::list<HostileReference*>& m_threatlist = me->getThreatManager().getThreatList();
+		    std::list<HostileReference*>::const_iterator i = m_threatlist.begin();
+		    for (i = m_threatlist.begin(); i!= m_threatlist.end(); ++i)
+		    {
+			    Unit* pUnit = Unit::GetUnit((*me), (*i)->getUnitGuid());
+			    if (pUnit && (pUnit->GetTypeId() == TYPEID_PLAYER) )
+			    {
+				    Vehicle* v = pUnit->GetVehicle();
+				    if(v)
+				    {
+					    pUnit->ExitVehicle();
+					    v->Dismiss();
+					    DoCast(pUnit,SPELL_PARACHUTE);					
+				    }
+			    }
+		    }
+	    }
+
+        void UpdateAI(const uint32 uiDiff)
+        {
+		    if(!started && !waiting_teleport && PlayerInRange(30.0f) && pInstance->GetData(DATA_VAROS_EVENT) == DONE)
+		    {
+			    phase++;
+			    just_summoned = false;
+			    summoning_casted = false;
+			    ui_SummonSimulation_Timer = 3800;
+			    waiting_teleport = true;
+			    if(phase == 4)
+				    started=true;
+		    }
+		    switch(phase)
+		    {
+			    case 0:
+				    return;
+			    case 1:
+				    if(!summoning_casted)
+				    {
+					    DoScriptText(SAY_SUMMON_1,me);
+					    DoCast(SPELL_SUMMON_MENAGERIE_1);
+					    summoning_casted = true;
+				    }
+				    if (!just_summoned && ui_SummonSimulation_Timer <= uiDiff)
+				    {
+					    temp_summ = DoSummon(NPC_PHANTASMAL_WATER, me, (rand()%RANGE)+1, 30000, TEMPSUMMON_DEAD_DESPAWN);
+					    if(temp_summ)
+						    if (Unit *pTarget = SelectTarget(SELECT_TARGET_NEAREST, 0))
+							    temp_summ->Attack(pTarget,true);
+					    temp_summ = DoSummon(NPC_PHANTASMAL_AIR, me, (rand()%RANGE)+1, 30000, TEMPSUMMON_DEAD_DESPAWN);
+					    if(temp_summ)
+						    if (Unit *pTarget = SelectTarget(SELECT_TARGET_NEAREST, 0))
+							    temp_summ->Attack(pTarget,true);
+					    temp_summ = DoSummon(NPC_PHANTASMAL_FIRE, me, (rand()%RANGE)+1, 30000, TEMPSUMMON_DEAD_DESPAWN);
+					    if(temp_summ)
+						    if (Unit *pTarget = SelectTarget(SELECT_TARGET_NEAREST, 0))
+							    temp_summ->Attack(pTarget,true);
+					    temp_summ = DoSummon(NPC_PHANTASMAL_FIRE, me, (rand()%RANGE)+1, 30000, TEMPSUMMON_DEAD_DESPAWN);
+					    if(temp_summ)
+						    if (Unit *pTarget = SelectTarget(SELECT_TARGET_NEAREST, 0))
+							    temp_summ->Attack(pTarget,true);
+					    just_summoned = true;
+					    ui_SummonSimulation_Timer = 4000;
+					    me->GetMotionMaster()->Clear(false);
+					    DoResetThreat();
+					    me->CombatStop(true);
+					    me->NearTeleportTo(BossLocSpawn[0].x, BossLocSpawn[0].y, BossLocSpawn[0].z, BossLocSpawn[0].o);
+					    waiting_teleport = false;
+				    }else ui_SummonSimulation_Timer -= uiDiff;
+				    break;
+			    case 2:
+				    if(!summoning_casted)
+				    {
+					    DoScriptText(SAY_SUMMON_2,me);
+					    DoCast(SPELL_SUMMON_MENAGERIE_2);
+					    summoning_casted = true;
+				    }
+				    if (!just_summoned && ui_SummonSimulation_Timer <= uiDiff)
+				    {
+					    temp_summ = DoSummon(NPC_PHANTASMAL_NAGA, me, (rand()%RANGE)+1, 30000, TEMPSUMMON_DEAD_DESPAWN);
+					    if(temp_summ)
+						    if (Unit *pTarget = SelectTarget(SELECT_TARGET_NEAREST, 0))
+							    temp_summ->Attack(pTarget,true);
+					    temp_summ = DoSummon(NPC_PHANTASMAL_MURLOC, me, (rand()%RANGE)+1, 30000, TEMPSUMMON_DEAD_DESPAWN);
+					    if(temp_summ)
+						    if (Unit *pTarget = SelectTarget(SELECT_TARGET_NEAREST, 0))
+							    temp_summ->Attack(pTarget,true);
+					    temp_summ = DoSummon(NPC_PHANTASMAL_OGRE, me, (rand()%RANGE)+1, 30000, TEMPSUMMON_DEAD_DESPAWN);
+					    if(temp_summ)
+						    if (Unit *pTarget = SelectTarget(SELECT_TARGET_NEAREST, 0))
+							    temp_summ->Attack(pTarget,true);
+					    temp_summ = DoSummon(NPC_PHANTASMAL_OGRE, me, (rand()%RANGE)+1, 30000, TEMPSUMMON_DEAD_DESPAWN);
+					    if(temp_summ)
+						    if (Unit *pTarget = SelectTarget(SELECT_TARGET_NEAREST, 0))
+							    temp_summ->Attack(pTarget,true);
+					    just_summoned = true;
+					    ui_SummonSimulation_Timer = 4000;
+					    me->GetMotionMaster()->Clear(false);
+					    DoResetThreat();
+					    me->CombatStop(true);
+					    me->NearTeleportTo(BossLocSpawn[1].x, BossLocSpawn[1].y, BossLocSpawn[1].z, BossLocSpawn[1].o);
+					    waiting_teleport = false;
+				    }else ui_SummonSimulation_Timer -= uiDiff;
+				    break;
+			    case 3:
+				    if(!summoning_casted)
+				    {
+					    DoScriptText(SAY_SUMMON_3,me);
+					    DoCast(SPELL_SUMMON_MENAGERIE_3);
+					    summoning_casted = true;
+				    }
+				    if (!just_summoned && ui_SummonSimulation_Timer <= uiDiff)
+				    {
+					    temp_summ = DoSummon(NPC_PHANTASMAL_MAMMOTH, me, (rand()%RANGE)+1, 30000, TEMPSUMMON_DEAD_DESPAWN);
+					    if(temp_summ)
+						    if (Unit *pTarget = SelectTarget(SELECT_TARGET_NEAREST, 0))
+							    temp_summ->Attack(pTarget,true);
+					    temp_summ = DoSummon(NPC_PHANTASMAL_WOLVE, me, (rand()%RANGE)+1, 30000, TEMPSUMMON_DEAD_DESPAWN);
+					    if(temp_summ)
+						    if (Unit *pTarget = SelectTarget(SELECT_TARGET_NEAREST, 0))
+							    temp_summ->Attack(pTarget,true);
+					    temp_summ = DoSummon(NPC_PHANTASMAL_WOLVE, me, (rand()%RANGE)+1, 30000, TEMPSUMMON_DEAD_DESPAWN);
+					    if(temp_summ)
+						    if (Unit *pTarget = SelectTarget(SELECT_TARGET_NEAREST, 0))
+							    temp_summ->Attack(pTarget,true);
+					    temp_summ = DoSummon(NPC_PHANTASMAL_CLUODSCRAPER, me, (rand()%RANGE)+1, 30000, TEMPSUMMON_DEAD_DESPAWN);
+					    if(temp_summ)
+						    if (Unit *pTarget = SelectTarget(SELECT_TARGET_NEAREST, 0))
+							    temp_summ->Attack(pTarget,true);
+					    temp_summ = DoSummon(NPC_PHANTASMAL_CLUODSCRAPER, me, (rand()%RANGE)+1, 30000, TEMPSUMMON_DEAD_DESPAWN);
+					    if(temp_summ)
+						    if (Unit *pTarget = SelectTarget(SELECT_TARGET_NEAREST, 0))
+							    temp_summ->Attack(pTarget,true);
+					    just_summoned = true;
+					    ui_SummonSimulation_Timer = 4000;
+					    me->GetMotionMaster()->Clear(false);
+					    DoResetThreat();
+					    me->CombatStop(true);
+					    me->NearTeleportTo(BossLocSpawn[2].x, BossLocSpawn[2].y, BossLocSpawn[2].z, BossLocSpawn[2].o);
+					    waiting_teleport = false;
+				    }else ui_SummonSimulation_Timer -= uiDiff;
+				    break;
+			    case 4:
+				    me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
+				    me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+				    me->SetReactState(REACT_AGGRESSIVE);
+				    me->RemoveAllAuras();
+
+				    //Return since we have no target
+				    if (!UpdateVictim())
+					    return;
+				    if(casting_explosion && !done_casting_explosion)
+				    {
+					    me->SetUnitMovementFlags(MOVEMENTFLAG_LEVITATING);
+					    me->NearTeleportTo(BossLocSpawn[3].x, BossLocSpawn[3].y, BossLocSpawn[3].z, BossLocSpawn[3].o);
+					    DoScriptText(RAND(SAY_EXPLOSION_1,SAY_EXPLOSION_2), me);
+					    DoCast(SPELL_EMPOWERED_ARCANE_EXPLOSION);
+					    done_casting_explosion = true;
+				    }
+				    if(casting_explosion && ui_ArcaneExplosionDuration <= uiDiff){
+					    Unit* victim = me->getVictim();
+					    if(victim)
+						    me->NearTeleportTo(victim->GetPositionX()+4,victim->GetPositionY(),victim->GetPositionZ(),0);
+					    me->SetUnitMovementFlags(MOVEMENTFLAG_NONE);
+					    casting_explosion = false;
+				    }
+				    else if (casting_explosion)
+					    ui_ArcaneExplosionDuration -= uiDiff;
+
+				    if(ui_FrostBomb_Timer <= uiDiff)
+				    {
+					    DoCast(me->getVictim(),SPELL_FROSTBOMB);
+					    ui_FrostBomb_Timer = 60000;
+				    } else ui_FrostBomb_Timer -= uiDiff;
+
+				    if(ui_TimeBomb_Timer <= uiDiff)
+				    {
+					    if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
+                        {
+                                DoCast(pTarget, SPELL_TIME_BOMB);
+							    ui_TimeBomb_Timer = 15000;
+					    }
+				    } else ui_TimeBomb_Timer -= uiDiff;
+
+				    if(ui_ArcaneExplosion_Timer <= uiDiff)
+				    {
+					    casting_explosion = true;
+					    done_casting_explosion = false; 
+					    ui_ArcaneExplosion_Timer = 50000;
+					    ui_ArcaneExplosionDuration=DUNGEON_MODE(9000,7000);
+					    //DoCast(SPELL_TELEPORT); //NO WORK!
+				    } else ui_ArcaneExplosion_Timer -= uiDiff;
+				    DoMeleeAttackIfReady();
+				    DismountPlayers();
+				    break;
+
+		    }
+
+        }
+        void JustDied(Unit* killer)
+        {
+            DoScriptText(SAY_DEATH, me);
+
+            if (pInstance)
+                pInstance->SetData(DATA_UROM_EVENT, DONE);
+        }
+        void KilledUnit(Unit *victim)
+        {
+            if (victim == me)
+                return;
+            DoScriptText(RAND(SAY_KILL_1,SAY_KILL_2,SAY_KILL_3), me);
+        }
+    };
 
     CreatureAI* GetAI(Creature* pCreature) const
     {
         return new boss_uromAI (pCreature);
-    }
-
-    struct boss_uromAI : public BossAI
-    {
-        boss_uromAI(Creature* creature) : BossAI(creature,DATA_UROM_EVENT) {}
-
-        void Reset()
-        {
-            if (instance->GetBossState(DATA_VAROS_EVENT) != DONE)
-                DoCast(SPELL_ARCANE_SHIELD);
-
-            _Reset();
-
-            if (instance->GetData(DATA_UROM_PLATAFORM) == 0)
-            {
-                for (uint8 i = 0; i < 3; i++)
-                    group[i] = 0;
-            }
-
-            x = 0.0f;
-            y = 0.0f;
-            canCast = false;
-            canGoBack = false;
-
-            me->GetMotionMaster()->MoveIdle();
-
-            teleportTimer = urand(30000,35000);
-            arcaneExplosionTimer = 9000;
-            castArcaneExplosionTimer = 2000;
-            frostBombTimer = urand(5000,8000);
-            timeBombTimer = urand(20000,25000);
-        }
-
-        void EnterCombat(Unit* /*pWho*/)
-        {
-            _EnterCombat();
-
-            SetGroups();
-            SummonGroups();
-            CastTeleport();
-
-            if (instance->GetData(DATA_UROM_PLATAFORM) != 3)
-                instance->SetData(DATA_UROM_PLATAFORM,instance->GetData(DATA_UROM_PLATAFORM)+1);
-        }
-
-        void AttackStart(Unit* pWho)
-        {
-            if (!pWho)
-                return;
-
-            if (me->GetPositionZ() > 518.63f)
-                DoStartNoMovement(pWho);
-
-            if (me->GetPositionZ() < 518.63f)
-            {
-                if (me->Attack(pWho, true))
-                {
-                    DoScriptText(SayAggro[3],me);
-
-                    me->SetInCombatWith(pWho);
-                    pWho->SetInCombatWith(me);
-
-                    me->GetMotionMaster()->MoveChase(pWho, 0,0);
-                }
-            }
-        }
-
-        void SetGroups()
-        {
-            if (!instance || instance->GetData(DATA_UROM_PLATAFORM) != 0)
-                return;
-
-            while (group[0] == group[1] || group[0] == group[2] || group[1] == group[2])
-            {
-                for (uint8 i = 0; i < 3; i++)
-                    group[i] = urand(0,2);
-            }
-        }
-
-        void SetPosition(uint8 i)
-        {
-            switch(i)
-            {
-                case 0:
-                    x = me->GetPositionX() + 4;
-                    y = me->GetPositionY() - 4;
-                    break;
-                case 1:
-                    x = me->GetPositionX() + 4;
-                    y = me->GetPositionY() + 4;
-                    break;
-                case 2:
-                    x = me->GetPositionX() - 4;
-                    y = me->GetPositionY() + 4;
-                    break;
-                case 3:
-                    x = me->GetPositionX() - 4;
-                    y = me->GetPositionY() - 4;
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        void SummonGroups()
-        {
-            if (!instance || instance->GetData(DATA_UROM_PLATAFORM) > 2)
-                return;
-
-            for (uint8 i = 0; i < 4 ; i++)
-            {
-                SetPosition(i);
-                me->SummonCreature(Group[group[instance->GetData(DATA_UROM_PLATAFORM)]].entry[i],x,y,me->GetPositionZ(),me->GetOrientation());
-            }
-        }
-
-        void CastTeleport()
-        {
-            if (!instance || instance->GetData(DATA_UROM_PLATAFORM) > 2)
-                return;
-
-            DoScriptText(SayAggro[instance->GetData(DATA_UROM_PLATAFORM)],me);
-            DoCast(TeleportSpells[instance->GetData(DATA_UROM_PLATAFORM)]);
-        }
-
-        void UpdateAI(const uint32 uiDiff)
-        {
-            //Return since we have no target
-            if (!UpdateVictim())
-                return;
-
-            if (!instance || instance->GetData(DATA_UROM_PLATAFORM) < 2)
-                return;
-
-            if (teleportTimer <= uiDiff)
-            {
-                me->InterruptNonMeleeSpells(false);
-                DoScriptText(SAY_TELEPORT,me);
-                me->GetMotionMaster()->MoveIdle();
-                DoCast(SPELL_TELEPORT);
-                teleportTimer = urand(30000,35000);
-
-            } else teleportTimer -= uiDiff;
-
-            if (canCast && !me->FindCurrentSpellBySpellId(SPELL_EMPOWERED_ARCANE_EXPLOSION))
-            {
-                if (castArcaneExplosionTimer <= uiDiff)
-                {
-                    canCast = false;
-                    canGoBack = true;
-                    DoCastAOE(SPELL_EMPOWERED_ARCANE_EXPLOSION);
-                    castArcaneExplosionTimer = 2000;
-                }else castArcaneExplosionTimer -= uiDiff;
-            }
-
-            if (canGoBack)
-            {
-                if (arcaneExplosionTimer <= uiDiff)
-                {
-                    Position pPos;
-                    me->getVictim()->GetPosition(&pPos);
-
-                    me->NearTeleportTo(pPos.GetPositionX(),pPos.GetPositionY(),pPos.GetPositionZ(),pPos.GetOrientation());
-                    me->GetMotionMaster()->MoveChase(me->getVictim(),0,0);
-                    me->SetUnitMovementFlags(MOVEMENTFLAG_WALKING);
-
-                    canCast = false;
-                    canGoBack = false;
-                    arcaneExplosionTimer = 9000;
-                } else arcaneExplosionTimer -= uiDiff;
-            }
-
-            if (!me->IsNonMeleeSpellCasted(false, true, true))
-            {
-                if (frostBombTimer <= uiDiff)
-                {
-                    DoCastVictim(SPELL_FROSTBOMB);
-                    frostBombTimer = urand(5000,8000);
-                } else frostBombTimer -= uiDiff;
-
-                if (timeBombTimer <= uiDiff)
-                {
-                    if (Unit* pUnit = SelectTarget(SELECT_TARGET_RANDOM))
-                        DoCast(pUnit,SPELL_TIME_BOMB);
-
-                    timeBombTimer = urand(20000,25000);
-                } else timeBombTimer -= uiDiff;
-            }
-
-            DoMeleeAttackIfReady();
-        }
-
-        void JustDied(Unit* /*killer*/)
-        {
-            _JustDied();
-        }
-
-        void LeaveCombat()
-        {
-            me->RemoveAllAuras();
-            me->CombatStop(false);
-            me->DeleteThreatList();
-        }
-
-        void SpellHit(Unit* /*pCaster*/, const SpellEntry* pSpell)
-        {
-            switch(pSpell->Id)
-            {
-                case SPELL_SUMMON_MENAGERIE:
-                    me->SetHomePosition(968.66f,1042.53f,527.32f,0.077f);
-                    LeaveCombat();
-                    break;
-                case SPELL_SUMMON_MENAGERIE_2:
-                    me->SetHomePosition(1164.02f,1170.85f,527.321f,3.66f);
-                    LeaveCombat();
-                    break;
-                case SPELL_SUMMON_MENAGERIE_3:
-                    me->SetHomePosition(1118.31f,1080.377f,508.361f,4.25f);
-                    LeaveCombat();
-                    break;
-                case SPELL_TELEPORT:
-                    me->AddUnitMovementFlag(MOVEMENTFLAG_CAN_FLY); // with out it the npc will fall down while is casting
-                    canCast = true;
-                    break;
-                default:
-                    break;
-            }
-        }
-        private:
-            float x,y;
-
-            bool canCast;
-            bool canGoBack;
-
-            uint8 group[3];
-
-            uint32 teleportTimer;
-            uint32 arcaneExplosionTimer;
-            uint32 castArcaneExplosionTimer;
-            uint32 frostBombTimer;
-            uint32 timeBombTimer;
     };
 };
 
