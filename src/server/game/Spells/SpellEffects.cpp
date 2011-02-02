@@ -745,6 +745,17 @@ void Spell::SpellDamageSchoolDmg(SpellEffIndex effIndex)
                     damage += CalculatePctN(m_caster->GetShieldBlockValue(), SpellMgr::CalculateSpellEffectAmount(m_spellInfo, EFFECT_1));
                     break;
                 }
+		//Item - Icecrown 25 Normal Dagger Proc
+                if (m_spellInfo->Id == 71887 || m_spellInfo->Id == 71881)
+                    if (Aura * aur = m_caster->GetAura(71880))
+                        if (roll_chance_i(25))
+                        m_caster->CastSpell(m_caster, 71883, true);
+                break;
+		//Item - Icecrown 25 Heroic Dagger Proc
+		if (m_spellInfo->Id == 71886 || m_spellInfo->Id == 71882)
+                    if (Aura * aur = m_caster->GetAura(71892))
+                        if (roll_chance_i(35))
+                        m_caster->CastSpell(m_caster, 71888, true);
                 break;
             }
             case SPELLFAMILY_DEATHKNIGHT:
@@ -783,6 +794,15 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
         {
             switch (m_spellInfo->Id)
             {
+                case 54015: //Set Oracle Faction Honored
+                case 53487: //Set Wolvar Faction Honored
+                {
+                    if (effIndex==0)
+                    {
+                            unitTarget->ToPlayer()->SetReputation(m_spellInfo->EffectBasePoints[0]+1,21000);
+                    }
+                    return;
+                }
                 case 8593:                                  // Symbol of life (restore creature to life)
                 case 31225:                                 // Shimmering Vessel (restore creature to life)
                 {
@@ -1044,6 +1064,16 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                     m_caster->CastSpell(m_caster, 42337, true, NULL);
                     return;
                 }
+                case 45980:                                 // Re-Cursive Transmatter Injection
+                {
+                    if(!unitTarget)
+                        return;
+                    Player* pPlayer = m_caster->ToPlayer();
+                    pPlayer->CastSpell(pPlayer, 46022, false);
+                    if(Creature* pCreature = pPlayer->FindNearestCreature(25773, 10.0f, true))
+                        pPlayer->KilledMonsterCredit(pCreature->GetEntry(), pCreature->GetGUID()); // rest is done by EventAI
+                    unitTarget->DestroyForPlayer(pPlayer);
+                }
                 case 47170:                                 // Impale Leviroth
                 {
                     if (!unitTarget && unitTarget->GetEntry() != 26452 && unitTarget->HealthAbovePct(95))
@@ -1135,13 +1165,15 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                 }
                 case 51582:                                 //Rocket Boots Engaged (Rocket Boots Xtreme and Rocket Boots Xtreme Lite)
                 {
-                    if (m_caster->GetTypeId() != TYPEID_PLAYER)
+                    if (!m_CastItem) 
                         return;
 
                     if (Battleground* bg = m_caster->ToPlayer()->GetBattleground())
                         bg->EventPlayerDroppedFlag(m_caster->ToPlayer());
 
+                    ((Player*)m_caster)->RemoveSpellCooldown(30452, true);
                     m_caster->CastSpell(m_caster, 30452, true, NULL);
+                    ((Player*)m_caster)->AddSpellCooldown(30452,m_CastItem->GetEntry(), time(NULL)+300);
                     return;
                 }
                 case 52759:                                 // Ancestral Awakening
@@ -1151,7 +1183,16 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                     return;
                 case 54171:                                   //Divine Storm
                 {
-                    m_caster->CastCustomSpell(unitTarget, 54172, &damage, 0, 0, true);
+                    if (!damage)
+                        return;
+
+                    if (m_UniqueTargetInfo.size())
+                    {
+                        SpellEntry const * spellInfo = sSpellStore.LookupEntry(53385);
+                        int32 heal = SpellMgr::CalculateSpellEffectAmount(spellInfo, EFFECT_1) * damage / m_UniqueTargetInfo.size() / 100;
+
+                        m_caster->CastCustomSpell(unitTarget, 54172, &heal, NULL, NULL, true);
+                    }
                     return;
                 }
                 case 58418:                                 // Portal to Orgrimmar
@@ -1375,15 +1416,24 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
             break;
         case SPELLFAMILY_PALADIN:
             // Divine Storm
-            if (m_spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_PALADIN_DIVINESTORM && effIndex == 1)
+            if (m_spellInfo->SpellFamilyFlags[EFFECT_1] & SPELLFAMILYFLAG1_PALADIN_DIVINESTORM)
             {
-                int32 dmg = CalculatePctN(m_damage, damage);
-                if (!unitTarget)
-                    unitTarget = m_caster;
-                m_caster->CastCustomSpell(unitTarget, 54171, &dmg, 0, 0, true);
+                if (effIndex != EFFECT_0)
+                    return;
+
+                uint32 target_count = 0;
+                for (std::list<TargetInfo>::const_iterator itr = m_UniqueTargetInfo.begin(); itr != m_UniqueTargetInfo.end(); ++itr)
+                    if (itr->effectMask & (1 << EFFECT_2))
+                        ++target_count;
+
+                if (!target_count)
+                    return;
+
+                if (Aura * aura = m_caster->AddAura(199997, unitTarget))
+                    aura->SetCharges(target_count);
+
                 return;
             }
-
             switch(m_spellInfo->Id)
             {
                 case 31789:                                 // Righteous Defense (step 1)

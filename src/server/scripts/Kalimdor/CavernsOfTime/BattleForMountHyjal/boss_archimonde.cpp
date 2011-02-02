@@ -557,7 +557,7 @@ public:
                     me->GetMotionMaster()->MoveIdle();
 
                     //all members of raid must get this buff
-                    DoCast(me->getVictim(), SPELL_PROTECTION_OF_ELUNE);
+                    DoCastVictim(SPELL_PROTECTION_OF_ELUNE, true);
                     HasProtected = true;
                     Enraged = true;
                 }
