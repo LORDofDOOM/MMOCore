@@ -1,6 +1,4 @@
-﻿-- ALTER table world_version CHANGE column required_506_world_argenttournament required_514_world_pit_of_saron bit;
-
-DELETE FROM `achievement_criteria_data` WHERE `criteria_id`=12993 AND `type`=11;
+﻿DELETE FROM `achievement_criteria_data` WHERE `criteria_id`=12993 AND `type`=11;
 INSERT INTO `achievement_criteria_data` (`criteria_id`,`type`,`value1`,`value2`,`ScriptName`) VALUES
 (12993,11,0,0, 'achievement_doesnt_go_to_eleven');
 
