@@ -83,7 +83,7 @@ INSERT INTO creature_loot_template VALUES
 (31337, 37801, 0.1, 1, 0, 1, 1); -- Drakkari Bat
 
 -- set LootIDs to own CreatureID
-CALL `sp_set_npc_lootid_bylist` ('31339,31347,31337,31357,31363,31336,31359,31343,31355,31354,31342,31351,31345,31340,31352,31338,31346',NULL);
+-- CALL `sp_set_npc_lootid_bylist` ('31339,31347,31337,31357,31363,31336,31359,31343,31355,31354,31342,31351,31345,31340,31352,31338,31346',NULL);
 
 -- Make Drakkari Guardian ignoring Aggro
 UPDATE creature_template SET unit_flags = unit_flags | 2 WHERE entry IN (26620,31339);
