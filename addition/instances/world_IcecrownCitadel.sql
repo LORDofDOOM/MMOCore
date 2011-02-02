@@ -261,6 +261,7 @@ DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_valkyr_carry_can_cast
 DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_sindragosa_ice_tomb_effect';
 DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_sindragosa_ice_tomb_effect';
 DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_marrowgar_bone_spike_graveyard';
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_sindragosa_blistering_cold';
 
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (71412,'spell_putricide_ooze_summon'),

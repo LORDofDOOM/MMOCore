@@ -125,6 +125,10 @@ class instance_icecrown_citadel : public InstanceMapScript
                 uiCitadelTp             = 0;
                 uiSindragossaTp         = 0;
                 uiLichTp                = 0;
+                uiFrostwingMobsLeft     = 0;
+                uiFrostwingMobsRight    = 0;
+                uiRimefang              = 0;
+                uiSpinestalker          = 0;
 
                 isBonedEligible         = 0;
 				isOozeDanceEligible     = 0;
@@ -264,6 +268,29 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case CREATURE_TIRION_ICC:
                         uiTirion = creature->GetGUID();
                         break;
+                    case CREATURE_FROSTWING_WHELP:
+                        if (creature->isAlive())
+                            if (creature->GetPositionY() < 2480.0f)
+                                ++uiFrostwingMobsRight;
+                            else
+                                ++uiFrostwingMobsLeft;
+                        break;
+                    case CREATURE_FROSTWARDEN_HANDLER:
+                        if (creature->isAlive())
+                            if (creature->GetPositionY() < 2480.0f)
+                                ++uiFrostwingMobsRight;
+                            else
+                                ++uiFrostwingMobsLeft;
+                        break;
+                    case CREATURE_RIMEFANG:
+                        uiRimefang = creature->GetGUID();
+                        creature->SetReactState(REACT_PASSIVE);
+                        break;
+                    case CREATURE_SPINESTALKER:
+                        uiSpinestalker = creature->GetGUID();
+                        creature->SetReactState(REACT_PASSIVE);
+                        break;
+
                 }
             }
 
@@ -787,6 +814,22 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case DATA_PORTAL_JOCKEY_ACHIEVEMENT:
                         isPortalJockeyEligible = data ? true : false;
                         break;
+                    case DATA_FROSTWING_MOB_RIGHT:
+                    {
+                        uiFrostwingMobsRight = data;
+                        if (!uiFrostwingMobsRight)
+                            if (Creature *pRimefang = instance->GetCreature(uiRimefang))
+                                pRimefang->AI()->DoAction(ACTION_LAND);
+                        break;
+                    }
+                    case DATA_FROSTWING_MOB_LEFT:
+                    {
+                        uiFrostwingMobsLeft = data;
+                        if (!uiFrostwingMobsLeft)
+                            if (Creature *pSpinestalker = instance->GetCreature(uiSpinestalker))
+                                pSpinestalker->AI()->DoAction(ACTION_LAND);
+                        break;
+                    }
                 }
 
                 if (data == DONE)
@@ -823,6 +866,10 @@ class instance_icecrown_citadel : public InstanceMapScript
                     return uiEncounter[11];
                 case DATA_SPAWN:
                     return uiEncounter[12];
+                case DATA_FROSTWING_MOB_RIGHT:
+                    return uiFrostwingMobsRight;
+                case DATA_FROSTWING_MOB_LEFT:
+                    return uiFrostwingMobsLeft;
                 }
                 return 0;
             }
@@ -1001,6 +1048,10 @@ class instance_icecrown_citadel : public InstanceMapScript
             uint8 uiNeckDeep;
             uint8 uiNecroticStack;
             uint8 uiAngle;
+            uint8 uiFrostwingMobsLeft;
+            uint8 uiFrostwingMobsRight;
+            uint64 uiRimefang;
+            uint64 uiSpinestalker;
             uint8 isBonedEligible;
 			uint8 isOozeDanceEligible;
 			uint8 isNauseaEligible;

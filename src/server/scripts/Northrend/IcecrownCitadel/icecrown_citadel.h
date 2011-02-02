@@ -100,7 +100,10 @@ enum ePutricideActions
     ACTION_ROTFACE_DEATH        = -366272,
     ACTION_CHANGE_PHASE         = -366780
 };
-
+enum eAdditionalActions
+{
+    ACTION_LAND = 100500
+};
 enum Data
 {
     DATA_MARROWGAR_EVENT,
@@ -147,6 +150,8 @@ enum Data64
     DATA_BLOOD_PRINCES_CONTROL,
     DATA_NECROTIC_STACK,
     DATA_PUTRICIDE_TABLE,
+    DATA_FROSTWING_MOB_RIGHT,
+    DATA_FROSTWING_MOB_LEFT,
 	//Achievements
     DATA_BONED_ACHIEVEMENT,
 	DATA_OOZE_DANCE_ACHIEVEMENT,
@@ -269,7 +274,9 @@ enum eCreatures
     CREATURE_DEFILE                  = 38757,
     CREATURE_RAGING_SPIRIT           = 36701,
     CREATURE_TRIGGER                 = 38667,
-    CREATURE_VILE_SPIRIT             = 37799
+    CREATURE_VILE_SPIRIT             = 37799,
+    CREATURE_FROSTWING_WHELP         = 37532,
+    CREATURE_FROSTWARDEN_HANDLER     = 37531
 };
 
 enum eGameobjects
