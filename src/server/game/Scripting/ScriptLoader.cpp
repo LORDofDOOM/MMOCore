@@ -598,6 +598,7 @@ void AddSC_outdoorpvp_na();
 void AddSC_outdoorpvp_si();
 void AddSC_outdoorpvp_tf();
 void AddSC_outdoorpvp_zm();
+void AddSC_outdoorpvp_gh();
 void AddSC_outdoorpvp_wg();
 void AddSC_wintergrasp();
 
@@ -1219,6 +1220,7 @@ void AddOutdoorPvPScripts()
     AddSC_outdoorpvp_si();
     AddSC_outdoorpvp_tf();
     AddSC_outdoorpvp_zm();
+    AddSC_outdoorpvp_gh();
     AddSC_outdoorpvp_wg();
 #endif
 }
