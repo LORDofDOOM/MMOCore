@@ -112,3 +112,9 @@ INSERT INTO `spell_proc_event` VALUES (70730, 0, 9, 16384, 4096, 0, 262144, 0, 0
 -- fix Magister Hathorel and Arcanist Tybalin scriptname
 UPDATE `creature_template` SET `ScriptName` = 'npc_magister_hathorel' WHERE `entry` = 36670;
 UPDATE `creature_template` SET `ScriptName` = 'npc_arcanist_tybalin' WHERE `entry` = 36669;
+
+-- set visible intendants of The Sons of Hodir and Knights of the Ebon Blade
+UPDATE `creature` SET phaseMask=65535 WHERE `id` in (32538,32540);
+
+-- Open access to heroic ICC without achievement
+UPDATE `access_requirement` SET `completed_achievement`=0 WHERE `mapId`=631 and `difficulty` in (2,3);
