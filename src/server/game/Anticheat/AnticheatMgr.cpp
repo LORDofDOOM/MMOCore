@@ -14,6 +14,9 @@
  */
 
 #include "AnticheatMgr.h"
+#include "MapManager.h"
+
+#define CLIMB_ANGLE 1.9f
 
 AnticheatMgr::AnticheatMgr() 
 {
@@ -161,11 +164,39 @@ void AnticheatMgr::StartHackDetection(Player* player, MovementInfo movementInfo,
     WalkOnWaterHackDetection(player,movementInfo);
     JumpHackDetection(player,movementInfo,opcode);
     TeleportPlaneHackDetection(player, movementInfo);
+    ClimbHackDetection(player,movementInfo,opcode);
 
     player->anticheatData.lastMovementInfo = movementInfo;
     player->anticheatData.lastOpcode = opcode;
 }
 
+// basic detection
+void AnticheatMgr::ClimbHackDetection(Player *player, MovementInfo movementInfo, uint32 opcode)
+{
+    if (opcode != MSG_MOVE_HEARTBEAT ||
+        player->anticheatData.lastOpcode != MSG_MOVE_HEARTBEAT)
+        return;
+
+    if (player->IsInWater() || 
+        player->IsFlying() || 
+        player->IsFalling())
+        return;
+
+    Position playerPos;
+    player->GetPosition(&playerPos);
+
+    float deltaZ = fabs(playerPos.GetPositionZ() - movementInfo.pos.GetPositionZ());
+    float deltaXY = movementInfo.pos.GetExactDist2d(&playerPos);
+
+    float angle = MapManager::NormalizeOrientation(tan(deltaZ/deltaXY));
+
+    if (angle > CLIMB_ANGLE)
+    {
+        sLog->outError("Clibmhack Player %u || Angle %f || Opcode %u", player->GetGUIDLow(), angle, opcode);
+        BuildReport(player,CLIMB_HACK_REPORT);
+    } //else
+      //  sLog->outError("Angle %f || Opcode %u",angle,opcode);
+}
 
 void AnticheatMgr::SpeedHackDetection(Player* player,MovementInfo movementInfo)
 {

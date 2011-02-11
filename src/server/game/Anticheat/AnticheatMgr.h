@@ -22,11 +22,12 @@ enum ReportTypes
     WALK_WATER_HACK_REPORT,
     JUMP_HACK_REPORT,
     TELEPORT_PLANE_HACK_REPORT,
+    CLIMB_HACK_REPORT,
     
     MAX_REPORT_TYPES
 };
 
-const std::string report_types[MAX_REPORT_TYPES] = {"speed_reports", "fly_reports", "waterwalk_reports", "jump_reports", "teleportplane_reports" };
+const std::string report_types[MAX_REPORT_TYPES] = {"speed_reports", "fly_reports", "waterwalk_reports", "jump_reports", "teleportplane_reports", "climb_reports" };
 
 class AnticheatMgr
 {
@@ -45,6 +46,7 @@ class AnticheatMgr
         void WalkOnWaterHackDetection(Player* player, MovementInfo movementInfo);
         void JumpHackDetection(Player* player, MovementInfo movementInfo,uint32 opcode);
         void TeleportPlaneHackDetection(Player* player, MovementInfo);
+        void ClimbHackDetection(Player* player,MovementInfo movementInfo,uint32 opcode);
 
         void BuildReport(Player* player,uint8 reportType);
 };

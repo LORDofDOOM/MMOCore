@@ -196,7 +196,6 @@ public:
             return true;
         }
         
-
         uint32 average = player->anticheatData.average;
         uint32 total_reports = player->anticheatData.total_reports;
         uint32 speed_reports = player->anticheatData.type_reports[0];
@@ -204,11 +203,13 @@ public:
         uint32 jump_reports = player->anticheatData.type_reports[3];
         uint32 waterwalk_reports = player->anticheatData.type_reports[2];
         uint32 teleportplane_reports = player->anticheatData.type_reports[4];
+        uint32 climb_reports = player->anticheatData.type_reports[5];
 
         handler->PSendSysMessage("Information about player %s",player->GetName());
         handler->PSendSysMessage("Average: %u || Total Reports: %u ",average,total_reports);
         handler->PSendSysMessage("Speed Reports: %u || Fly Reports: %u || Jump Reports: %u ",speed_reports,fly_reports,jump_reports);
         handler->PSendSysMessage("Walk On Water Reports: %u  || Teleport To Plane Reports: %u",waterwalk_reports,teleportplane_reports);
+        handler->PSendSysMessage("Climb Reports: %u", climb_reports);
 
         return true;
     }
