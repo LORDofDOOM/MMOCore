@@ -19,9 +19,11 @@
 #include "icecrown_citadel.h"
 #include "Spell.h"
 
+#define GOSSIP_TEXT(id) sObjectMgr->GetGossipText(id)->Options[0].Text_0
+#define IS_TELEPORT_ENABLED(id) ((go->GetMap()->GetGameObject(instance->GetData64(id))->GetGoState() == GO_STATE_ACTIVE) ? true: false)
 enum Spells
 {
-    SPELL_ON_ORGRIMS_HAMMER_DECK   = 70121, //maybe for gunship battle
+    SPELL_ON_ORGRIMS_HAMMER_DECK    = 70121, //maybe for gunship battle
     SPELL_DARKMARTYRDOM_FANATIC     = 71236,
     SPELL_DARKMARTYRDOM_ADHERENT    = 70903,
     SPELL_DARKTRANSFORMATION        = 70900,
@@ -38,7 +40,13 @@ enum Spells
     SPELL_SHORUD_OF_THE_OCCULT      = 70768,
     SPELL_DARK_TRANSFORMATION_T     = 70895,
     SPELL_DARK_EMPOWERMENT_T        = 70896,
-    SPELL_STANDART_HORDE            = 69811
+    SPELL_STANDART_HORDE            = 69811,
+    SPELL_COLDFLAME_JETS            = 70460,
+    SPELL_SPIRIT_ALARM_1            = 70536,
+    SPELL_SPIRIT_ALARM_2            = 70545,
+    SPELL_SPIRIT_ALARM_3            = 70546,
+    SPELL_SPIRIT_ALARM_4            = 70547,
+
 };
 
 enum TeleportSpells
@@ -48,13 +56,31 @@ enum TeleportSpells
     RAMPART       = 70857,
     SAURFANG      = 70858,
     UPPER_SPIRE   = 70859,
-    PLAGUEWORKS   = 9995,
-    CRIMSONHALL   = 9996,
-    FWHALLS       = 9997,
-    QUEEN         = 70861,
+    //PLAGUEWORKS   = 9995,
+    //CRIMSONHALL   = 9996,
+    //FWHALLS       = 9997,
+    SINDRAGOSA    = 70861,
     LICHKING      = 70860
 };
-
+enum eTeleportGossips
+{
+    GOSSIP_TELEPORT_LIGHTS_HAMMER           = 800000,
+    GOSSIP_TELEPORT_ORATORY_OF_THE_DAMNED   = 800001,
+    GOSSIP_TELEPORT_RAMPART_OF_SKULLS       = 800002,
+    GOSSIP_TELEPORT_DEATHBRINGERS_RISE      = 800003,
+    GOSSIP_TELEPORT_UPPER_SPIRE             = 800004,
+    GOSSIP_TELEPORT_SINDRAGOSAS_LAIR        = 800005,
+    GOSSIP_TELEPORT_FROZEN_THRONE           = 800006
+};
+enum eTrapEvents
+{
+    EVENT_COLDFLAME_JETS = 1,
+    EVENT_REMOVE_COLDFLAME_JETS
+};
+enum eTrapActions
+{
+    ACTION_DISARM_FROST_TRAP = 2
+};
 //class npc_cult_fanatic_and_adherent : public CreatureScript
 //{
 //    public:
@@ -197,7 +223,6 @@ enum TeleportSpells
 //            return new npc_cult_fanatic_and_adherentAI(creature);
 //        }
 //};
-
 class go_icecrown_teleporter : public GameObjectScript
 {
     public:
@@ -208,27 +233,44 @@ class go_icecrown_teleporter : public GameObjectScript
             InstanceScript* instance = go->GetInstanceScript();
             if(!instance)
                 return false;
-
-            if(instance->GetData(DATA_MARROWGAR_EVENT) == DONE)
+            if (instance->IsEncounterInProgress())
+                return false;
+            if (go->GetEntry() == LICH_TELEPORT)
             {
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Молот света", GOSSIP_SENDER_MAIN, HAMMER);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Молельня проклятых", GOSSIP_SENDER_MAIN, ORATORY);
+                if (instance->GetData(DATA_PROFESSOR_PUTRICIDE_EVENT) == DONE && instance->GetData(DATA_BLOOD_QUEEN_LANA_THEL_EVENT) == DONE && instance->GetData(DATA_SINDRAGOSA_EVENT) == DONE)
+                {
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_FROZEN_THRONE), GOSSIP_SENDER_MAIN, LICHKING);
+                    player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, go->GetGUID());
+                    return true;
+                }
+                return false;
             }
-            if(instance->GetData(DATA_DEATHWHISPER_EVENT) == DONE)
+            instance->HandleGameObject(NULL, true, go);
+            if (go->GetEntry() != FIRST_TELEPORT)
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_LIGHTS_HAMMER), GOSSIP_SENDER_MAIN, HAMMER);
+            
+            if (go->GetEntry() != LORD_TELEPORT && instance->GetData(DATA_MARROWGAR_EVENT) == DONE && IS_TELEPORT_ENABLED(DATA_TELEPORT_ORATORY_OF_THE_DAMNED))
             {
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Черепной вал", GOSSIP_SENDER_MAIN, RAMPART);
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Подъем смертоносного", GOSSIP_SENDER_MAIN, SAURFANG);
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_ORATORY_OF_THE_DAMNED), GOSSIP_SENDER_MAIN, ORATORY);
             }
-            if(instance->GetData(DATA_SAURFANG_EVENT) == DONE)
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Шпиль", GOSSIP_SENDER_MAIN, UPPER_SPIRE);
-            if(instance->GetData(DATA_PROFESSOR_PUTRICIDE_EVENT) == DONE)
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Чумодельня", GOSSIP_SENDER_MAIN, PLAGUEWORKS);
-            if(instance->GetData(DATA_BLOOD_QUEEN_LANA_THEL_EVENT) == DONE)
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Багровый зал", GOSSIP_SENDER_MAIN, CRIMSONHALL);
-            if(instance->GetData(DATA_VALITHRIA_DREAMWALKER_EVENT) == DONE)
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Логово Королевы Льда", GOSSIP_SENDER_MAIN, QUEEN);
-            if(instance->GetData(DATA_SINDRAGOSA_EVENT) == DONE)
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Залы ледокрылых", GOSSIP_SENDER_MAIN, FWHALLS);
+            if (go->GetEntry() != GUNSHIP_TELEPORT && instance->GetData(DATA_DEATHWHISPER_EVENT) == DONE && IS_TELEPORT_ENABLED(DATA_TELEPORT_RAMPART_OF_SKULLS))
+            {
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_RAMPART_OF_SKULLS), GOSSIP_SENDER_MAIN, RAMPART);
+            }
+            if (go->GetEntry() != SAURFANG_TELEPORT
+             && instance->GetData(DATA_GUNSHIP_BATTLE_EVENT) == DONE
+             && instance->GetData(DATA_DEATHWHISPER_EVENT) == DONE
+             //&& IS_TELEPORT_ENABLED(DATA_TELEPORT_DEATHBRINGERS_RISE) //Disabled until Gunship Battle encounter is implemented
+             )
+            {
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_DEATHBRINGERS_RISE), GOSSIP_SENDER_MAIN, SAURFANG);
+            }
+            if (go->GetEntry() != CITADEL_TELEPORT &&
+                instance->GetData(DATA_SAURFANG_EVENT) == DONE && IS_TELEPORT_ENABLED(DATA_TELEPORT_UPPER_SPIRE))
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_UPPER_SPIRE), GOSSIP_SENDER_MAIN, UPPER_SPIRE);
+            if (go->GetEntry() != SINDRAGOSA_TELEPORT &&
+                instance->GetData(DATA_VALITHRIA_DREAMWALKER_EVENT) == DONE && IS_TELEPORT_ENABLED(DATA_TELEPORT_SINDRAGOSAS_LAIR))
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_SINDRAGOSAS_LAIR), GOSSIP_SENDER_MAIN, SINDRAGOSA);
 
             player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, go->GetGUID());
             return true;
@@ -257,9 +299,193 @@ class go_icecrown_teleporter : public GameObjectScript
         }
 };
 
+class spell_icc_spirit_alarm : public SpellScriptLoader
+{
+    public:
+        spell_icc_spirit_alarm() : SpellScriptLoader("spell_icc_spirit_alarm") { }
+
+        class spell_icc_spirit_alarm_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_icc_spirit_alarm_SpellScript);
+
+            void AwakenDeathboundWard(SpellEffIndex effIndex)
+            {
+                if (!GetCaster())
+                    return;
+                InstanceScript *instance = GetCaster()->GetInstanceScript();
+                GameObject *spiritAlarm = NULL;
+                Creature *pWard = NULL;
+                switch (GetSpellInfo()->Id)
+                {
+                    case SPELL_SPIRIT_ALARM_1:
+                        spiritAlarm = GetCaster()->GetMap()->GetGameObject(instance->GetData64(DATA_SPIRIT_ALARM1));
+                        pWard = spiritAlarm->GetMap()->GetCreature(instance->GetData64(DATA_DEATHBOUND_WARD1));
+                        //Preload Spirit Alarm traps near Lord Marrowgar
+                        spiritAlarm->GetMap()->LoadGrid(-273.845f, 2220.22f);
+                        spiritAlarm->GetMap()->GetGameObject(instance->GetData64(DATA_SPIRIT_ALARM3))->SetPhaseMask(1, true);
+                        break;
+                    case SPELL_SPIRIT_ALARM_2:
+                        spiritAlarm = GetCaster()->GetMap()->GetGameObject(instance->GetData64(DATA_SPIRIT_ALARM2));
+                        pWard = spiritAlarm->GetMap()->GetCreature(instance->GetData64(DATA_DEATHBOUND_WARD2));
+                        //Preload Spirit Alarm traps near Lord Marrowgar
+                        spiritAlarm->GetMap()->LoadGrid(-273.845f, 2220.22f);
+                        spiritAlarm->GetMap()->GetGameObject(instance->GetData64(DATA_SPIRIT_ALARM4))->SetPhaseMask(1, true);
+                        break;
+                    case SPELL_SPIRIT_ALARM_3:
+                        spiritAlarm = GetCaster()->GetMap()->GetGameObject(instance->GetData64(DATA_SPIRIT_ALARM3));
+                        pWard = spiritAlarm->GetMap()->GetCreature(instance->GetData64(DATA_DEATHBOUND_WARD3));
+                        break;
+                    case SPELL_SPIRIT_ALARM_4:
+                        spiritAlarm = GetCaster()->GetMap()->GetGameObject(instance->GetData64(DATA_SPIRIT_ALARM4));
+                        pWard = spiritAlarm->GetMap()->GetCreature(instance->GetData64(DATA_DEATHBOUND_WARD4));
+                        break;
+                }
+                spiritAlarm->setActive(false);
+                if (pWard && pWard->isAlive())
+                {
+                    pWard->SetReactState(REACT_AGGRESSIVE);
+                    pWard->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+                    pWard->AI()->AttackStart(GetTarget());
+                }
+            }
+            void Register()
+            {
+                OnEffect += SpellEffectFn(spell_icc_spirit_alarm_SpellScript::AwakenDeathboundWard, EFFECT_2, SPELL_EFFECT_SEND_EVENT);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_icc_spirit_alarm_SpellScript();
+        }
+};
+
+class npc_frost_freeze_trap : public CreatureScript
+{
+    public:
+        npc_frost_freeze_trap() : CreatureScript("npc_frost_freeze_trap") { }
+
+        struct npc_frost_freeze_trapAI : public Scripted_NoMovementAI
+        {
+            npc_frost_freeze_trapAI(Creature* creature) : Scripted_NoMovementAI(creature)
+            {
+            }
+
+            void DoAction(const int32 action)
+            {
+                switch (action)
+                {
+                    case ACTION_DISARM_FROST_TRAP:
+                        events.CancelEvent(EVENT_COLDFLAME_JETS);
+                        break;
+                    default:
+                        Scripted_NoMovementAI::DoAction(action);
+                        break;
+                }
+            }
+
+            void Reset()
+            {
+                //Let's give players an opportunity to pass trap within 1.5 seconds every 5 seconds
+                events.Reset();
+                events.ScheduleEvent(EVENT_COLDFLAME_JETS, 1000);
+                events.ScheduleEvent(EVENT_REMOVE_COLDFLAME_JETS, 6000);
+            }
+
+            void UpdateAI(const uint32 diff)
+            {
+                events.Update(diff);
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                        case EVENT_COLDFLAME_JETS:
+                        {
+                            DoCast(me, SPELL_COLDFLAME_JETS);
+                            events.ScheduleEvent(EVENT_COLDFLAME_JETS, 5000);
+                            break;
+                        }
+                        case EVENT_REMOVE_COLDFLAME_JETS:
+                        {
+                            me->RemoveAurasDueToSpell(SPELL_COLDFLAME_JETS);
+                            events.ScheduleEvent(EVENT_REMOVE_COLDFLAME_JETS, 5000);
+                            break;
+                        }
+
+                    }
+                }
+            }
+
+        private:
+            EventMap events;
+        };
+
+        CreatureAI* GetAI(Creature* creature) const
+        {
+            return new npc_frost_freeze_trapAI(creature);
+        }
+};
+
+class spell_coldflame_trap : public SpellScriptLoader
+{
+    public:
+        spell_coldflame_trap() : SpellScriptLoader("spell_coldflame_trap") { }
+
+        class spell_coldflame_trap_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_coldflame_trap_SpellScript);
+
+            void FilterTargets(std::list<Unit*>& unitList)
+            {
+                std::list<Unit*> nonTrapped;
+                if (Unit *pCaster = GetCaster())
+                {
+                    float x, y, z, angle, ux, uy;
+                    pCaster->GetPosition(x, y, z, angle);
+                    float opX = x + 25.0f * cos(angle);
+                    float opY = y + 25.0f * sin(angle);
+                    for (std::list<Unit*>::iterator it = unitList.begin(); it != unitList.end(); ++it)
+                    {
+                        Unit *curUnit = *it;
+                        float unitRadius = curUnit->GetObjectSize();
+                        ux = curUnit->GetPositionX();
+                        uy = curUnit->GetPositionY();
+                        if (   ux - unitRadius > std::max(x, opX)
+                            || ux + unitRadius < std::min(x, opX)
+                            || uy - unitRadius > std::max(y, opY)
+                            || uy + unitRadius < std::min(y, opY))
+                        {
+                            nonTrapped.push_back(curUnit);
+                            continue;
+                        }
+
+                        float angle = pCaster->GetAngle(curUnit) - pCaster->GetAngle(opX, opY);
+                        bool inBetween = abs(sin(angle)) * curUnit->GetExactDist2d(pCaster) < unitRadius;
+                        if (!inBetween)
+                            nonTrapped.push_back(curUnit);
+                    }
+                }
+                for (std::list<Unit*>::iterator it = nonTrapped.begin(); it != nonTrapped.end(); ++it)
+                    unitList.erase(std::find(unitList.begin(), unitList.end(), *it));
+            }
+
+            void Register()
+            {
+                OnUnitTargetSelect += SpellUnitTargetFn(spell_coldflame_trap_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_AREA_PATH);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_coldflame_trap_SpellScript();
+        }
+};
+
 void AddSC_icecrown_citadel()
 {
     //new npc_cult_fanatic_and_adherent();
     new go_icecrown_teleporter();
+    new npc_frost_freeze_trap();
+    new spell_icc_spirit_alarm();
+    new spell_coldflame_trap();
 }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    

@@ -113,8 +113,6 @@ class boss_lord_marrowgar : public CreatureScript
                 events.ScheduleEvent(EVENT_COLDFLAME, 5000, EVENT_GROUP_SPECIAL);
                 events.ScheduleEvent(EVENT_WARN_BONE_STORM, urand(45000, 50000));
                 events.ScheduleEvent(EVENT_ENRAGE, 600000);
-                instance->SetBossState(DATA_LORD_MARROWGAR, NOT_STARTED);
-				instance->SetData(DATA_MARROWGAR_EVENT, NOT_STARTED);
             }
 
             void EnterCombat(Unit* /*who*/)
@@ -122,30 +120,30 @@ class boss_lord_marrowgar : public CreatureScript
                 Talk(SAY_AGGRO);
 
                 instance->SetBossState(DATA_LORD_MARROWGAR, IN_PROGRESS);
-				instance->SetData(DATA_MARROWGAR_EVENT, IN_PROGRESS);
+                instance->SetData(DATA_MARROWGAR_EVENT, IN_PROGRESS);
             }
 
             void JustDied(Unit* killer)
             {
                 Talk(SAY_DEATH);
-				//Removing "Impaled" aura due to bug.
-				if (killer->GetTypeId() == TYPEID_PLAYER)
-				{
-					Player *pPlayer = (Player*)killer;
-					if (Group* pGroup = pPlayer->GetGroup())
-						for (GroupReference* pRef = pGroup->GetFirstMember(); pRef != NULL; pRef = pRef->next())
-							if (Player* pMember = pRef->getSource())
-								pMember->RemoveAurasDueToSpell(SPELL_IMPALED);
-				}
-				instance->SetBossState(DATA_LORD_MARROWGAR, DONE);
-				instance->SetData(DATA_MARROWGAR_EVENT, DONE);
-				summons.DespawnAll();
+                //Removing "Impaled" aura due to bug.
+                if (killer->GetTypeId() == TYPEID_PLAYER)
+                {
+                    Player *pPlayer = (Player*)killer;
+                    if (Group* pGroup = pPlayer->GetGroup())
+                        for (GroupReference* pRef = pGroup->GetFirstMember(); pRef != NULL; pRef = pRef->next())
+                            if (Player* pMember = pRef->getSource())
+                                pMember->RemoveAurasDueToSpell(SPELL_IMPALED);
+                }
+                instance->SetBossState(DATA_LORD_MARROWGAR, DONE);
+                instance->SetData(DATA_MARROWGAR_EVENT, DONE);
+                summons.DespawnAll();
             }
 
             void JustReachedHome()
             {
                 instance->SetBossState(DATA_LORD_MARROWGAR, FAIL);
-				instance->SetData(DATA_MARROWGAR_EVENT, FAIL);
+                instance->SetData(DATA_MARROWGAR_EVENT, FAIL);
                 instance->SetData(DATA_BONED_ACHIEVEMENT, uint32(true));    // reset
             }
 
@@ -294,6 +292,7 @@ class npc_coldflame : public CreatureScript
                 if (owner->GetTypeId() != TYPEID_UNIT)
                     return;
                 Creature* creOwner = owner->ToCreature();
+
                 DoCast(me, SPELL_COLDFLAME_PASSIVE, true);
                 // random target case
                 if (!owner->HasAura(SPELL_BONE_STORM))
@@ -398,13 +397,13 @@ class npc_bone_spike : public CreatureScript
                 if (TempSummon* summ = me->ToTempSummon())
                 {
                     if (Unit* trapped = summ->GetSummoner())
-					{
-						if (trapped->isDead())
-						{
-							trapped->RemoveAurasDueToSpell(SPELL_IMPALED);
-							summ->UnSummon();
-						}
-					}
+                    {
+                        if (trapped->isDead())
+                        {
+                            trapped->RemoveAurasDueToSpell(SPELL_IMPALED);
+                            summ->UnSummon();
+                        }
+                    }
                 }
             }
 
@@ -433,7 +432,7 @@ class spell_marrowgar_coldflame : public SpellScriptLoader
                 PreventHitDefaultEffect(effIndex);
                 Unit* caster = GetCaster();
                 uint8 count = 1;
-                if (GetSpellInfo()->Id == 72705)
+                if (GetSpellInfo()->Id == SPELL_COLDFLAME_BONE_STORM)
                     count = 4;
 
                 for (uint8 i = 0; i < count; ++i)

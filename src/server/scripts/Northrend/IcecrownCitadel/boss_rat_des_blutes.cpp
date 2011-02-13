@@ -224,9 +224,6 @@ class boss_blood_council_controller : public CreatureScript
                 events.Reset();
                 me->SetReactState(REACT_PASSIVE);
                 invocationStage = 0;
-
-                instance->SetBossState(DATA_BLOOD_PRINCES_CONTROL, NOT_STARTED);
-                instance->SetData(DATA_BLOOD_PRINCE_COUNCIL_EVENT, NOT_STARTED);
             }
 
             void EnterCombat(Unit* who)

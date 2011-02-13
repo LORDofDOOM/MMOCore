@@ -191,8 +191,6 @@ class boss_lady_deathwhisper : public CreatureScript
                 me->RemoveAurasDueToSpell(SPELL_MANA_BARRIER);
                 me->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, false);
                 me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_ATTACK_ME, false);
-                instance->SetBossState(DATA_LADY_DEATHWHISPER, NOT_STARTED);
-                instance->SetData(DATA_DEATHWHISPER_EVENT, NOT_STARTED);             
 			}
 
             void MoveInLineOfSight(Unit* who)

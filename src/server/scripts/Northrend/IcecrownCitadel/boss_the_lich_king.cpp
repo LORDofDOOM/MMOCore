@@ -22,6 +22,7 @@
 #include "SpellScript.h"
 #include "SpellAuraEffects.h"
 #include "icecrown_citadel.h"
+#include "Group.h"
 
 #define GOSSIP_MENU 10600
 //#define GOSSIP_MENU "Long have I waited for this day, hero. Are you and your allies prepared to bring the Lich King to justice? We charge on your command!"
@@ -123,7 +124,7 @@ enum Spells
     SPELL_VALKYR_TARGET_SEARCH       = 69030,
     SPELL_VALKYR_CHARGE              = 74399,
     SPELL_VALYR_EJECT_PASSANGER      = 68576,
-    SPELL_LIGH_EFFECT                = 71773,
+    SPELL_LIGHTS_BLESSING                = 71773,
     SPELL_EMOTE_SHOUT                = 73213,
     SPELL_RAGING_GHOUL_VISUAL        = 69636,
     SPELL_RISEN_WITCH_DOCTOR_SPAWN   = 69639,
@@ -449,7 +450,7 @@ class boss_the_lich_king : public CreatureScript
                     if (uiBerserkTimer < uiDiff)
                     {
                         DoScriptText(SAY_BERSERK, me);
-                        DoCast(me, SPELL_BERSERK);
+                        DoCast(me, SPELL_BERSERK2);
                         uiBerserkTimer = 900000;
                     } else uiBerserkTimer -= uiDiff;
                 }
@@ -795,7 +796,7 @@ class npc_tirion_icc : public CreatureScript
 
             void SpellHit(Unit* /*caster*/, const SpellEntry * spell)
             {
-                if(spell->Id == SPELL_LIGH_EFFECT)
+                if(spell->Id == SPELL_LIGHTS_BLESSING)
                     me->RemoveAurasDueToSpell(SPELL_ICEBLOCK_TRIGGER);
             }
 
@@ -902,7 +903,18 @@ class npc_tirion_icc : public CreatureScript
 
         bool OnGossipHello(Player* player, Creature* creature)
         {
-            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT, GOSSIP_SENDER_MAIN, 999999);
+            if ((!player->GetGroup() || !player->GetGroup()->IsLeader(player->GetGUID())) && !player->isGameMaster())
+            {
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Sorry, I'm not the raid leader", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
+                player->SEND_GOSSIP_MENU(GOSSIP_MENU, creature->GetGUID());
+                return true;
+            }
+
+            InstanceScript* instance = creature->GetInstanceScript();
+            if (!instance)
+                return false;
+
+            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+3);
             player->SEND_GOSSIP_MENU(GOSSIP_MENU, creature->GetGUID());
 
             return true;
@@ -910,11 +922,19 @@ class npc_tirion_icc : public CreatureScript
 
         bool OnGossipSelect(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 uiAction)
         {
-            if (uiAction == 999999)
+            switch (uiAction)
             {
-                CAST_AI(npc_tirion_icc::npc_tirion_iccAI, creature->AI())->DoAction(ACTION_START_EVENT);
-                creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-                player->CLOSE_GOSSIP_MENU();
+                case GOSSIP_ACTION_INFO_DEF+2:
+                    creature->MonsterSay("OK, I'll wait for raid leader", LANG_UNIVERSAL, player->GetGUID());
+                    break;
+                case GOSSIP_ACTION_INFO_DEF+3:
+                    CAST_AI(npc_tirion_icc::npc_tirion_iccAI, creature->AI())->DoAction(ACTION_START_EVENT);
+                    creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                    player->CLOSE_GOSSIP_MENU();
+                    break;
+                default:
+                    creature->MonsterSay("You've just found a bug. Contact server admin and explain what to do to reproduce this bug", LANG_UNIVERSAL, player->GetGUID());
+                    break;
             }
             return true;
         }
@@ -976,7 +996,7 @@ class npc_valkyr_icc : public CreatureScript
                     {
                         vehicle->RemoveAllPassengers();
                         float x,y,z = me->GetPositionZ();
-                        me->GetNearPoint2D(x, y, 50, me->GetAngle(me));
+                        me->GetNearPoint2D(x, y, z=50, me->GetAngle(me));
                         me->GetMotionMaster()->MovePoint(POINT_VALKYR_END,x,y,z+15);
                         break;
                     }

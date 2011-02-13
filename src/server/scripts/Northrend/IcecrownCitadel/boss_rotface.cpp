@@ -173,8 +173,6 @@ class boss_rotface : public CreatureScript
                     floodOrder[0] = floodOrder[j];
                     floodOrder[j] = temp;
                 }
-                instance->SetBossState(DATA_ROTFACE, NOT_STARTED);
-                instance->SetData(DATA_ROTFACE_EVENT, NOT_STARTED);
                 //Prevent dummies to attack players or keep them in combat
                 if (Creature* dummy = me->FindNearestCreature(CREATURE_OOZE_SPRAY_STALKER, 100.0f, true))
                     dummy->SetReactState(REACT_PASSIVE);

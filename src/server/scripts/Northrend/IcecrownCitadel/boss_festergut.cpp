@@ -132,9 +132,6 @@ class boss_festergut : public CreatureScript
                     gasDummyGUID = gasDummy->GetGUID();
                     _RemoveBlight();
                 }
-
-                instance->SetBossState(DATA_FESTERGUT, NOT_STARTED);
-                instance->SetData(DATA_FESTERGUT_EVENT, NOT_STARTED);
             }
 
             void EnterCombat(Unit* who)
