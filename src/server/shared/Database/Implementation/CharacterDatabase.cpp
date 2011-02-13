@@ -261,6 +261,10 @@ bool CharacterDatabaseConnection::Open()
     //GuildHouse
 	PREPARE_STATEMENT(CHAR_DEL_GUILD_GUILDHOUSE, "DELETE FROM gh_guildadd WHERE guildId = ?", CONNECTION_ASYNC)
 	
+    // Instance saves
+    PREPARE_STATEMENT(CHAR_ADD_INSTANCE_SAVE, "INSERT INTO instance (id,map,resettime,difficulty,completedEncounters,data) VALUES (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC)
+    PREPARE_STATEMENT(CHAR_UPDATE_INSTANCE_DATA, "UPDATE instance SET completedEncounters=?, data=? WHERE id=?", CONNECTION_ASYNC)
+
     for (PreparedStatementMap::const_iterator itr = m_queries.begin(); itr != m_queries.end(); ++itr)
     {
         PrepareStatement(itr->first, itr->second.first, itr->second.second);

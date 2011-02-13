@@ -53,6 +53,7 @@
 #include "SpellScript.h"
 #include "OutdoorPvPWG.h"
 #include "OutdoorPvPMgr.h"
+#include "InstanceScript.h"
 
 #define SPELL_CHANNEL_UPDATE_INTERVAL (1 * IN_MILLISECONDS)
 
@@ -1497,11 +1498,18 @@ SpellMissInfo Spell::DoSpellHitOnUnit(Unit *unit, const uint32 effectMask, bool 
 
                 ((UnitAura*)m_spellAura)->SetDiminishGroup(m_diminishGroup);
 
-                bool positive = IsPositiveSpell(m_spellAura->GetId());
+                bool positive = true;
                 AuraApplication * aurApp = m_spellAura->GetApplicationOfTarget(m_originalCaster->GetGUID());
                 if (aurApp)
                     positive = aurApp->IsPositive();
-
+                else
+                    for (uint32 effIndex = 0; effIndex < MAX_SPELL_EFFECTS; ++effIndex)
+                        if (effectMask & (1 << effIndex))
+                            if (!IsPositiveEffect(aurSpellInfo->Id, effIndex))
+                            {
+                                positive = false;
+                                break;
+                            }
                 duration = m_originalCaster->ModSpellDuration(aurSpellInfo, unit, duration, positive);
 
                 // Haste modifies duration of channeled spells
@@ -3004,6 +3012,8 @@ void Spell::prepare(SpellCastTargets const* targets, AuraEffect const * triggere
         m_caster->SetCurrentCastedSpell(this);
         SendSpellStart();
 
+        TriggerGlobalCooldown();
+
         if (m_caster->GetTypeId() == TYPEID_PLAYER)
             m_caster->ToPlayer()->AddGlobalCooldown(m_spellInfo,this);
 
@@ -3030,6 +3040,7 @@ void Spell::cancel()
     switch (oldState)
     {
         case SPELL_STATE_PREPARING:
+            CancelGlobalCooldown();
         case SPELL_STATE_DELAYED:
             SendInterrupted(0);
             SendCastResult(SPELL_FAILED_INTERRUPTED);
@@ -3722,12 +3733,9 @@ void Spell::finish(bool ok)
         // triggered spell pointer can be not set in some cases
         // this is needed for proper apply of triggered spell mods
         m_caster->ToPlayer()->SetSpellModTakingSpell(this, true);
-    }
 
-    // Take mods after trigger spell (needed for 14177 to affect 48664)
-    // mods are taken only on succesfull cast and independantly from targets of the spell
-    if (m_caster->GetTypeId() == TYPEID_PLAYER)
-    {
+        // Take mods after trigger spell (needed for 14177 to affect 48664)
+        // mods are taken only on succesfull cast and independantly from targets of the spell
         m_caster->ToPlayer()->RemoveSpellMods(this);
         m_caster->ToPlayer()->SetSpellModTakingSpell(this, false);
     }
@@ -4688,6 +4696,10 @@ SpellCastResult Spell::CheckCast(bool strict)
         }
     }
 
+    // check global cooldown
+    if (strict && !m_IsTriggeredSpell && HasGlobalCooldown())
+        return SPELL_FAILED_NOT_READY;
+
     // only allow triggered spells if at an ended battleground
     if (!m_IsTriggeredSpell && m_caster->GetTypeId() == TYPEID_PLAYER)
         if (Battleground * bg = m_caster->ToPlayer()->GetBattleground())
@@ -5015,6 +5027,56 @@ SpellCastResult Spell::CheckCast(bool strict)
         if (castResult != SPELL_CAST_OK)
             return castResult;
     }
+
+    // Dispel check - only if the first effect is dispel
+    if (!m_IsTriggeredSpell && (m_spellInfo->Effect[EFFECT_0] == SPELL_EFFECT_DISPEL))
+        if (Unit const * target = m_targets.getUnitTarget())
+            if (!GetSpellRadius(m_spellInfo, EFFECT_0, target->IsFriendlyTo(m_caster)))
+            {
+                bool check = true;
+                uint32 dispelMask = GetDispellMask(DispelType(m_spellInfo->EffectMiscValue[EFFECT_0]));
+
+                for (uint8 effIndex = EFFECT_1; effIndex < MAX_SPELL_EFFECTS; ++effIndex)
+                {
+                    if (m_spellInfo->Effect[effIndex] == SPELL_EFFECT_DISPEL)
+                        dispelMask |= GetDispellMask(DispelType(m_spellInfo->EffectMiscValue[effIndex]));
+                    // If there is any other effect don't check
+                    else if (m_spellInfo->Effect[effIndex])
+                    {
+                        check = false;
+                        break;
+                    }
+                }
+
+                if (check)
+                {
+                    bool failed = true;
+
+                    Unit::AuraMap const & auras = target->GetOwnedAuras();
+                    for (Unit::AuraMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+                    {
+                        Aura * aura = itr->second;
+                        AuraApplication * aurApp = aura->GetApplicationOfTarget(target->GetGUID());
+                        if (!aurApp)
+                            continue;
+
+                        if ((1 << aura->GetSpellProto()->Dispel) & dispelMask)
+                        {
+                            bool positive = aurApp->IsPositive() ? !(aura->GetSpellProto()->AttributesEx & SPELL_ATTR1_NEGATIVE) : false;
+
+                            // Can only dispel positive auras on enemies and negative on allies
+                            if (positive != target->IsFriendlyTo(m_caster))
+                            {
+                                failed = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (failed)
+                        return SPELL_FAILED_NOTHING_TO_DISPEL;
+                }
+            }
 
     for (int i = 0; i < MAX_SPELL_EFFECTS; i++)
     {
@@ -7303,4 +7365,62 @@ void Spell::CallScriptAfterUnitTargetSelectHandlers(std::list<Unit*>& unitTarget
 
         (*scritr)->_FinishScriptCall();
     }
+}
+
+bool Spell::HasGlobalCooldown()
+{
+    // global cooldown have only player or controlled units
+    if (m_caster->GetCharmInfo())
+        return m_caster->GetCharmInfo()->GetGlobalCooldownMgr().HasGlobalCooldown(m_spellInfo);
+    else if (m_caster->GetTypeId() == TYPEID_PLAYER)
+        return m_caster->ToPlayer()->GetGlobalCooldownMgr().HasGlobalCooldown(m_spellInfo);
+    else
+        return false;
+}
+
+void Spell::TriggerGlobalCooldown()
+{
+    int32 gcd = m_spellInfo->StartRecoveryTime;
+    if (!gcd)
+        return;
+
+    // global cooldown can't leave range 1..1.5 secs (if it it)
+    // exist some spells (mostly not player directly casted) that have < 1 sec and > 1.5 sec global cooldowns
+    // but its as test show not affected any spell mods.
+    if (m_spellInfo->StartRecoveryTime >= 1000 && m_spellInfo->StartRecoveryTime <= 1500)
+    {
+        // gcd modifier auras applied only to self spells and only player have mods for this
+        if (m_caster->GetTypeId() == TYPEID_PLAYER)
+            m_caster->ToPlayer()->ApplySpellMod(m_spellInfo->Id, SPELLMOD_GLOBAL_COOLDOWN, gcd, this);
+
+        // apply haste rating
+        gcd = int32(float(gcd) * m_caster->GetFloatValue(UNIT_MOD_CAST_SPEED));
+
+        if (gcd < 1000)
+            gcd = 1000;
+        else if (gcd > 1500)
+            gcd = 1500;
+    }
+
+    // global cooldown have only player or controlled units
+    if (m_caster->GetCharmInfo())
+        m_caster->GetCharmInfo()->GetGlobalCooldownMgr().AddGlobalCooldown(m_spellInfo, gcd);
+    else if (m_caster->GetTypeId() == TYPEID_PLAYER)
+        m_caster->ToPlayer()->GetGlobalCooldownMgr().AddGlobalCooldown(m_spellInfo, gcd);
+}
+
+void Spell::CancelGlobalCooldown()
+{
+    if (!m_spellInfo->StartRecoveryTime)
+        return;
+
+    // cancel global cooldown when interrupting current cast
+    if (m_caster->GetCurrentSpell(CURRENT_GENERIC_SPELL) != this)
+        return;
+
+    // global cooldown have only player or controlled units
+    if (m_caster->GetCharmInfo())
+        m_caster->GetCharmInfo()->GetGlobalCooldownMgr().CancelGlobalCooldown(m_spellInfo);
+    else if (m_caster->GetTypeId() == TYPEID_PLAYER)
+        m_caster->ToPlayer()->GetGlobalCooldownMgr().CancelGlobalCooldown(m_spellInfo);
 }

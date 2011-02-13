@@ -290,7 +290,15 @@ void Spell::EffectInstaKill(SpellEffIndex /*effIndex*/)
 
         m_caster->CastSpell(m_caster, spellID, true);
     }
-
+    //Death pact should affect only his ghoul
+    if (m_spellInfo->Id == 48743)
+    {
+        if (unitTarget->GetTypeId() != TYPEID_UNIT || unitTarget->GetEntry() != 26125)
+            return;
+        //Do not harm other ghouls
+        if (unitTarget->GetOwnerGUID() != m_caster->GetGUID())
+            return;
+    }
     if (m_caster == unitTarget)                              // prevent interrupt message
         finish();
 
@@ -628,58 +636,64 @@ void Spell::SpellDamageSchoolDmg(SpellEffIndex effIndex)
             case SPELLFAMILY_ROGUE:
             {
                 // Envenom
-                if (m_caster->GetTypeId() == TYPEID_PLAYER && (m_spellInfo->SpellFamilyFlags[1] & 0x8))
+                if (m_spellInfo->SpellFamilyFlags[EFFECT_1] & 0x8)
                 {
-                    // consume from stack dozes not more that have combo-points
-                    if (uint32 combo = m_caster->ToPlayer()->GetComboPoints())
-                    {
-                        // Lookup for Deadly poison (only attacker applied)
-                        if (AuraEffect const * aurEff = unitTarget->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_ROGUE, 0x10000, 0, 0, m_caster->GetGUID()))
+                    if (!m_caster->ToPlayer())
+                        return;
+
+                    uint32 combo = m_caster->ToPlayer()->GetComboPoints();
+                    if (!combo)
+                        return;
+
+                    AuraEffect const * aurEffA = unitTarget->GetAuraEffect(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_ROGUE, 0x10000, 0, 0, m_caster->GetGUID());
+                    if (!aurEffA)
+                        return;
+
+                    uint32 doses = aurEffA->GetBase()->GetStackAmount();
+                    if (doses > combo)
+                        doses = combo;
+
+                    // Master Poisoner
+                    bool needConsume = true;
+                    Unit::AuraEffectList const & auras = m_caster->ToPlayer()->GetAuraEffectsByType(SPELL_AURA_MOD_AURA_DURATION_BY_DISPEL_NOT_STACK);
+                    for (Unit::AuraEffectList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+                        if (((*itr)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_ROGUE) &&
+                            ((*itr)->GetSpellProto()->SpellIconID == 1960))
                         {
-                            // count consumed deadly poison doses at target
-                            bool needConsume = true;
-                            uint32 spellId = aurEff->GetId();
-                            uint32 doses = aurEff->GetBase()->GetStackAmount();
-                            if (doses > combo)
-                                doses = combo;
-                            // Master Poisoner
-                            Unit::AuraEffectList const& auraList = m_caster->ToPlayer()->GetAuraEffectsByType(SPELL_AURA_MOD_AURA_DURATION_BY_DISPEL_NOT_STACK);
-                            for (Unit::AuraEffectList::const_iterator iter = auraList.begin(); iter != auraList.end(); ++iter)
-                            {
-                                if ((*iter)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_ROGUE && (*iter)->GetSpellProto()->SpellIconID == 1960)
-                                {
-                                    uint32 chance = SpellMgr::CalculateSpellEffectAmount((*iter)->GetSpellProto(), 2, m_caster);
-
-                                    if (chance && roll_chance_i(chance))
-                                        needConsume = false;
-
-                                    break;
-                                }
-                            }
-
-                            if (needConsume)
-                                for (uint32 i = 0; i < doses; ++i)
-                                    unitTarget->RemoveAuraFromStack(spellId);
-                            damage *= doses;
-                            damage += int32(((Player*)m_caster)->GetTotalAttackPowerValue(BASE_ATTACK) * 0.09f * doses);
+                            uint32 chance = SpellMgr::CalculateSpellEffectAmount((*itr)->GetSpellProto(), EFFECT_2);
+                            if ((chance >= 100) || roll_chance_i(chance))
+                                needConsume = false;
+                            break;
                         }
-                        // Eviscerate and Envenom Bonus Damage (item set effect)
-                        if (m_caster->HasAura(37169))
-                            damage += ((Player*)m_caster)->GetComboPoints()*40;
-                    }
+                    if (needConsume)
+                        for (uint32 i = 0; i < doses; ++i)
+                            unitTarget->RemoveAuraFromStack(aurEffA->GetId());
+
+                    damage *= doses;
+                    damage += int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.09f * combo);
+
+                    // Eviscerate and Envenom Bonus Damage
+                    if (AuraEffect const * aurEffB = m_caster->GetAuraEffect(37169, EFFECT_0, m_caster->GetGUID()))
+                        damage += combo * aurEffB->GetAmount();
+                    break;
                 }
                 // Eviscerate
-                else if ((m_spellInfo->SpellFamilyFlags[0] & 0x00020000) && m_caster->GetTypeId() == TYPEID_PLAYER)
+                if (m_spellInfo->SpellFamilyFlags[EFFECT_0] & 0x20000)
                 {
-                    if (uint32 combo = ((Player*)m_caster)->GetComboPoints())
-                    {
-                        float ap = m_caster->GetTotalAttackPowerValue(BASE_ATTACK);
-                        damage += irand(int32(ap * combo * 0.03f), int32(ap * combo * 0.07f));
+                    if (!m_caster->ToPlayer())
+                        return;
 
-                        // Eviscerate and Envenom Bonus Damage (item set effect)
-                        if (m_caster->HasAura(37169))
-                            damage += combo*40;
-                    }
+                    uint32 combo = m_caster->ToPlayer()->GetComboPoints();
+                    if (!combo)
+                        return;
+
+                    float ap = m_caster->GetTotalAttackPowerValue(BASE_ATTACK);
+                    damage += irand(int32(ap * combo * 0.03f), int32(ap * combo * 0.07f));
+
+                    // Eviscerate and Envenom Bonus Damage
+                    if (AuraEffect const * aurEffB = m_caster->GetAuraEffect(37169, EFFECT_0, m_caster->GetGUID()))
+                        damage += combo * aurEffB->GetAmount();
+                    break;
                 }
                 break;
             }
@@ -1574,6 +1588,24 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                 spell_id = CalculateDamage(0, NULL);
                 break;
             }
+            break;
+        case SPELLFAMILY_ROGUE:
+            switch(GetSpellInfo()->Id)
+            {
+                case 45176: // Master Poisoner Proc Trigger (SERVERSIDE)
+                {
+                    uint32 spellId = damage;
+                    uint32 value = SpellMgr::CalculateSpellEffectAmount(m_triggeredByAuraSpell, EFFECT_0);
+
+                    if (AuraEffect * aurEff = unitTarget->GetAuraEffect(spellId, EFFECT_2, m_caster->GetGUID()))
+                        aurEff->SetAmount(value);
+                    return;
+                }
+                default:
+                    break;
+            }
+            break;
+        default:
             break;
     }
 
@@ -2608,17 +2640,15 @@ void Spell::EffectPersistentAA(SpellEffIndex effIndex)
             delete dynObj;
             return;
         }
-        caster->AddDynObject(dynObj);
         dynObj->GetMap()->Add(dynObj);
 
         if (Aura * aura = Aura::TryCreate(m_spellInfo, dynObj, caster, &m_spellValue->EffectBasePoints[0]))
-            m_spellAura = aura;
-        else
         {
-            ASSERT(false);
-            return;
+            m_spellAura = aura;
+            m_spellAura->_RegisterForTargets();
         }
-        m_spellAura->_RegisterForTargets();
+        else
+            return;
     }
     ASSERT(m_spellAura->GetDynobjOwner());
     m_spellAura->_ApplyEffectForTargets(effIndex);
@@ -2827,6 +2857,25 @@ void Spell::EffectOpenLock(SpellEffIndex effIndex)
 
     uint32 lockId = 0;
     uint64 guid = 0;
+
+    // selection by spell family
+    switch (m_spellInfo->SpellFamilyName)
+    {
+        case SPELLFAMILY_GENERIC:
+        {
+            switch (m_spellInfo->Id)
+            {
+                case 38790:
+                {
+                    if (!m_caster || m_caster->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    m_caster->ToPlayer()->KilledMonsterCredit(22112,0);
+                    return;
+                }
+            }
+        }
+    }
 
     // Get lockId
     if (gameObjTarget)
@@ -3439,14 +3488,10 @@ void Spell::EffectAddFarsight(SpellEffIndex effIndex)
     }
     dynObj->SetDuration(duration);
     dynObj->SetUInt32Value(DYNAMICOBJECT_BYTES, 0x80000002);
-    m_caster->AddDynObject(dynObj);
 
     dynObj->setActive(true);    //must before add to map to be put in world container
     dynObj->GetMap()->Add(dynObj); //grid will also be loaded
-
-    // Need to update visibility of object for client to accept farsight guid
-    m_caster->ToPlayer()->SetViewpoint(dynObj, true);
-    //m_caster->ToPlayer()->UpdateVisibilityOf(dynObj);
+    dynObj->SetCasterViewpoint();
 }
 
 void Spell::EffectUntrainTalents(SpellEffIndex /*effIndex*/)
@@ -4436,6 +4481,34 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
         {
             switch(m_spellInfo->Id)
             {
+                //Sunreaver Disguis
+                case 69672:
+                {
+                    if (unitTarget->GetTypeId() != TYPEID_PLAYER)
+                    return;
+
+                    if (unitTarget->ToPlayer()->getGender() == GENDER_FEMALE)
+                        unitTarget->CastSpell(unitTarget, 70973, false);
+                    else
+                        unitTarget->CastSpell(unitTarget, 70974, false);
+
+                    return;
+                        
+                }
+                //Silver Covenant Disguise
+                case 69673:
+                {
+                    if (unitTarget->GetTypeId() != TYPEID_PLAYER)
+                    return;
+
+                    if (unitTarget->ToPlayer()->getGender() == GENDER_FEMALE)
+                        unitTarget->CastSpell(unitTarget, 70971, false);
+                    else
+                        unitTarget->CastSpell(unitTarget, 70972, false);
+
+                    return;
+                        
+                }
                 //Teleport to Lake Wintergrasp
                 case 58622:
                    {

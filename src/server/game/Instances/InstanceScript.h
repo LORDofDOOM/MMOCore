@@ -21,6 +21,7 @@
 
 #include "ZoneScript.h"
 #include "World.h"
+#include "ObjectMgr.h"
 //#include "GameObject.h"
 //#include "Map.h"
 
@@ -134,7 +135,8 @@ class InstanceScript : public ZoneScript
 {
     public:
 
-        explicit InstanceScript(Map *map) : instance(map) {}
+        explicit InstanceScript(Map* map) : instance(map), completedEncounters(0) {}
+
         virtual ~InstanceScript() {}
 
         Map *instance;
@@ -206,9 +208,14 @@ class InstanceScript : public ZoneScript
         // Checks boss requirements (one boss required to kill other)
         virtual bool CheckRequiredBosses(uint32 /*bossId*/, Player const* /*player*/ = NULL) const { return true; }
 
+        // Checks encounter state at kill/spellcast
+        void UpdateEncounterState(EncounterCreditType type, uint32 creditEntry, Unit* source);
+
+        // Used only during loading
+        void SetCompletedEncountersMask(uint32 newMask) { completedEncounters = newMask; }
+
         // Returns completed encounters mask for packets
-        // NOTE: MUST USE ENCOUNTER IDS FROM DungeonEncounter.dbc 4th column
-        virtual uint32 GetCompletedEncounterMask() const { return 0; }
+        uint32 GetCompletedEncounterMask() const { return completedEncounters; }
 
         void SendEncounterUnit(uint32 type, Unit* unit = NULL, uint8 param1 = 0, uint8 param2 = 0);
 
@@ -229,6 +236,7 @@ class InstanceScript : public ZoneScript
         std::vector<BossInfo> bosses;
         DoorInfoMap doors;
         MinionInfoMap minions;
+        uint32 completedEncounters; // completed encounter mask, bit indexes are DungeonEncounter.dbc boss numbers, used for packets
 };
 #endif
 

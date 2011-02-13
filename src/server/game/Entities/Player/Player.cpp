@@ -70,6 +70,7 @@
 #include "WeatherMgr.h"
 #include "LFGMgr.h"
 #include "CharacterDatabaseCleaner.h"
+#include "InstanceScript.h"
 #include <cmath>
 
 #define ZONE_UPDATE_INTERVAL (1*IN_MILLISECONDS)
@@ -14291,52 +14292,6 @@ void Player::SendPreparedQuest(uint64 guid)
             }
         }
     }
-    // multiply entries
-    else
-    {
-        QEmote qe;
-        qe._Delay = 0;
-        qe._Emote = 0;
-        std::string title = "";
-
-        // need pet case for some quests
-        Creature *pCreature = ObjectAccessor::GetCreatureOrPetOrVehicle(*this,guid);
-        if (pCreature)
-        {
-            uint32 textid = GetGossipTextId(pCreature);
-            GossipText const* gossiptext = sObjectMgr->GetGossipText(textid);
-            if (!gossiptext)
-            {
-                qe._Delay = 0;                              //TEXTEMOTE_MESSAGE;              //zyg: player emote
-                qe._Emote = 0;                              //TEXTEMOTE_HELLO;                //zyg: NPC emote
-                title = "";
-            }
-            else
-            {
-                qe = gossiptext->Options[0].Emotes[0];
-
-                if (!gossiptext->Options[0].Text_0.empty())
-                {
-                    title = gossiptext->Options[0].Text_0;
-
-                    int loc_idx = GetSession()->GetSessionDbLocaleIndex();
-                    if (loc_idx >= 0)
-                        if (NpcTextLocale const *nl = sObjectMgr->GetNpcTextLocale(textid))
-                            sObjectMgr->GetLocaleString(nl->Text_0[0], loc_idx, title);
-                }
-                else
-                {
-                    title = gossiptext->Options[0].Text_1;
-
-                    int loc_idx = GetSession()->GetSessionDbLocaleIndex();
-                    if (loc_idx >= 0)
-                        if (NpcTextLocale const *nl = sObjectMgr->GetNpcTextLocale(textid))
-                            sObjectMgr->GetLocaleString(nl->Text_1[0], loc_idx, title);
-                }
-            }
-        }
-        PlayerTalkClass->SendQuestGiverQuestList(qe, title, guid);
-    }
 }
 
 bool Player::IsActiveQuest(uint32 quest_id) const
@@ -16452,8 +16407,8 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
             m_bgData.bgTypeID = currentBg->GetTypeID(true);
 
             //join player to battleground group
-            currentBg->EventPlayerLoggedIn(this, GetGUID());
-            currentBg->AddOrSetPlayerToCorrectBgGroup(this, GetGUID(), m_bgData.bgTeam);
+            currentBg->EventPlayerLoggedIn(this);
+            currentBg->AddOrSetPlayerToCorrectBgGroup(this, m_bgData.bgTeam);
 
             SetInviteForBattlegroundQueueType(bgQueueTypeId,currentBg->GetInstanceID());
         }
@@ -17805,6 +17760,10 @@ InstancePlayerBind* Player::BindToInstance(InstanceSave *save, bool permanent, b
 
 void Player::BindToInstance()
 {
+    // Player left the instance
+    if (_pendingBind->GetInstanceId() != GetInstanceId())
+        return;
+
     WorldPacket data(SMSG_INSTANCE_SAVE_CREATED, 4);
     data << uint32(0);
     GetSession()->SendPacket(&data);
@@ -22223,6 +22182,13 @@ bool Player::RewardPlayerAndGroupAtKill(Unit* pVictim)
                 KilledMonster(pVictim->ToCreature()->GetCreatureInfo(), pVictim->GetGUID());
         }
     }
+
+    // Credit encounter in instance
+    if (Creature* victim = pVictim->ToCreature())
+        if (victim->IsDungeonBoss())
+            if (InstanceScript* instance = pVictim->GetInstanceScript())
+                instance->UpdateEncounterState(ENCOUNTER_CREDIT_KILL_CREATURE, pVictim->GetEntry(), pVictim);
+
     return xp || honored_kill;
 }
 
