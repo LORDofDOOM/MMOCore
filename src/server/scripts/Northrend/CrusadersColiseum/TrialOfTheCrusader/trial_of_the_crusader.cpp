@@ -1367,7 +1367,7 @@ public:
         InstanceScript* pInstance = pCreature->GetInstanceScript();
         if (!pInstance)
         {
-            pCreature->MonsterSay("Brak instancji", LANG_UNIVERSAL, 0);
+            pCreature->MonsterSay("You have to be inside the instance to talk with me", LANG_UNIVERSAL, 0);
             return false;
         }
 
@@ -1398,7 +1398,7 @@ public:
             break;
 
         default:
-            pCreature->MonsterSay("Wybrano niezdefiniowana opcje", LANG_UNIVERSAL, 0);
+            pCreature->MonsterSay("Undefined selected option", LANG_UNIVERSAL, 0);
         }
 
         pPlayer->CLOSE_GOSSIP_MENU();
@@ -1437,7 +1437,7 @@ public:
         }
         else
         {
-            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Мы готовы к началу сотязания!", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Мы готовы к началу состязания!", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
         }
 
 

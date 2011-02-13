@@ -1,5 +1,4 @@
-﻿DELETE FROM `gameobject` WHERE `map`=649;
-INSERT INTO `gameobject` VALUES
+﻿REPLACE INTO `gameobject` VALUES
 (500000,195527,649,15,1,563.678,177.284,398.621,1.57047,0,0,0,0,0,100,0), -- Argent Coliseum Floor 
 (500001,195647,649,15,1,563.678,199.329,394.766,1.58619,0,0,0,0,0,100,1), -- Main Gate 
 (500002,195650,649,15,1,624.656,139.342,395.261,0.00202179,0,0,0,0,0,100,1), -- South Portcullis 
@@ -11,8 +10,7 @@ INSERT INTO `gameobject` VALUES
 (500052,195593,649,4,1,563.72,77.1442,396.336,1.559,0,0,0.715397,-0.698718,300,0,1); -- Portal 10 hc 
 
 -- Creatures 
-DELETE FROM `creature` WHERE `map`=649;
-INSERT INTO `creature` (`guid`,`id`,`map`,`spawnMask`,`phaseMask`,`modelid`,`equipment_id`,`position_x`,`position_y`,`position_z`,`orientation`,`spawntimesecs`,`spawndist`,`currentwaypoint`,`curhealth`,`curmana`,`DeathState`,`MovementType`) VALUES
+REPLACE INTO `creature` (`guid`,`id`,`map`,`spawnMask`,`phaseMask`,`modelid`,`equipment_id`,`position_x`,`position_y`,`position_z`,`orientation`,`spawntimesecs`,`spawndist`,`currentwaypoint`,`curhealth`,`curmana`,`DeathState`,`MovementType`) VALUES
 (604905,34990,649,15,1,0,0,624.633,139.386,418.209,3.15008,300,0,0,8367000,0,0,0), -- King Varian Wrynn 
 (604903,34996,649,15,1,0,547,563.697,78.3457, 418.21,1.55937,300,0,0,13945000,4258,0,0), -- Hight Lord Tirion Fordring 
 (604907,34995,649,15,1,0,0,502.825,139.407,418.211,0.0163429,300,0,0,1394500,0,0,0), -- Garrosh Hellscream 
@@ -323,8 +321,8 @@ INSERT INTO `gameobject_loot_template` (`entry`,`item`,`ChanceOrQuestChance`,`lo
 -- 25H mode (50 trys remaining)
 DELETE FROM `gameobject_loot_template` WHERE entry=27518;
 INSERT INTO `gameobject_loot_template` (`entry`,`item`,`ChanceOrQuestChance`,`lootmode`,`groupid`,`mincountOrRef`,`maxcount`) VALUES
-(27518,1,100,1,0,-@RefTribute,2), -- 2 Tokens
-(27518,2,100,1,0,-@RefTribute,2), -- 2 Tokens
+-- (27518,1,100,1,0,-@RefTribute,2), -- 2 Tokens
+-- (27518,2,100,1,0,-@RefTribute,2), -- 2 Tokens
 -- Alliance Loot (Handdle by conditions)
 (27518,47521,0,1,1,1,1),
 (27518,47526,0,1,1,1,1),
