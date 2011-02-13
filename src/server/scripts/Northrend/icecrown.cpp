@@ -2786,8 +2786,6 @@ void AddSC_icecrown()
     new npc_dame_evniki_kapsalis;
     new npc_squire_david;
     new npc_argent_valiant;
-    new npc_squire_danny;     
-    new npc_argent_champion;
     new npc_argent_tournament_post;
     new npc_alorah_and_grimmin;
     new npc_guardian_pavilion;
