@@ -12,3 +12,4 @@ merge_*
 push_*
 update_*
 commit
+*.patch
