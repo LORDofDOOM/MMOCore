@@ -1,115 +1,144 @@
+/*
+* Copyright (C) 2008 - 2010 Trinity <http://www.trinitycore.org/>
+*
+* Copyright (C) 2010 Myth Project <http://code.google.com/p/mythcore/>
+*
+* Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
 #include "ScriptPCH.h"
 #include "ScriptedEscortAI.h"
 #include "halls_of_reflection.h"
 
 enum
 {
-    /*INTRO - Pre Uther*/
-    SAY_JAINA_INTRO_01                 = -1668001,
-    SAY_SYLVANA_INTRO_01               = -1668021,
-    SAY_JAINA_INTRO_02                 = -1668002,
-    SAY_JAINA_INTRO_03                 = -1668003,
-    SAY_SYLVANA_INTRO_03               = -1668022,
-    SAY_JAINA_INTRO_04                 = -1668004,
-    SAY_SYLVANA_INTRO_04               = -1668023,
+	//Intro
+	SAY_JAINA_INTRO_01                 = -1668001,
+	SAY_JAINA_INTRO_02                 = -1668002,
+	SAY_JAINA_INTRO_03                 = -1668003,
+	SAY_JAINA_INTRO_04                 = -1668004,
 
-    /*INTRO - Uther Dialog*/
-    SAY_UTHER_A_01                     = -1668005, 
-    SAY_UTHER_H_01                     = -1668024,
-    SAY_JAINA_02                       = -1668006,
-    SAY_SYLVANA_02                     = -1668025,
-    SAY_UTHER_A_03                     = -1668007,
-    SAY_UTHER_H_03                     = -1668026,
-    SAY_JAINA_04                       = -1668008,
-    SAY_SYLVANA_04                     = -1668027,
-    SAY_UTHER_A_05                     = -1668009,
-    SAY_UTHER_H_05                     = -1668028,
-    SAY_JAINA_06                       = -1668010,
-    SAY_SYLVANA_06                     = -1668029,
-    SAY_UTHER_A_07                     = -1668011,
-    SAY_UTHER_H_07                     = -1668030,
-    SAY_JAINA_08                       = -1668012,
-    SAY_SYLVANA_08                     = -1668031,
-    SAY_UTHER_A_09                     = -1668013,
-    SAY_UTHER_H_09                     = -1668032,
-    SAY_JAINA_10                       = -1668014,
-    SAY_UTHER_A_11                     = -1668015,
-    SAY_UTHER_H_11                     = -1668033,
-    SAY_JAINA_12                       = -1668017,
-    SAY_SYLVANA_12                     = -1668034,
-    SAY_UTHER_A_13                     = -1668016,
-    SAY_UTHER_A_14                     = -1668018,
-    SAY_JAINA_15                       = -1668019,
+	SAY_SYLVANA_INTRO_01               = -1668021,
+	SAY_SYLVANA_INTRO_02               = -1668022,
+	SAY_SYLVANA_INTRO_03               = -1668023,
 
-    /*INTRO - Lich King Arrive*/
-    SAY_UTHER_A_16                     = -1668020,
-    SAY_UTHER_H_16                     = -1668035,
-    SAY_LICH_KING_17                   = -1668036,
-    SAY_LICH_KING_18                   = -1668037,
-    SAY_LICH_KING_19                   = -1668038,
-    SAY_JAINA_20                       = -1668042,
-    SAY_SYLVANA_20                     = -1668043,
-    SAY_LICH_KING_A_21                 = -1594473,//
-    SAY_LICH_KING_H_21                 = -1594474,//
-    SAY_FALRIC_INTRO                   = -1668039,
-    SAY_MARWYN_INTRO                   = -1668040,
-    SAY_FALRIC_INTRO2                  = -1668041,
+	//Dialog with Uter
+	SAY_UTHER_A_01                     = -1668005,
+	SAY_JAINA_02                       = -1668006,
+	SAY_UTHER_A_03                     = -1668007,
+	SAY_JAINA_04                       = -1668008,
+	SAY_UTHER_A_05                     = -1668009,
+	SAY_JAINA_06                       = -1668010,
+	SAY_UTHER_A_07                     = -1668011,
+	SAY_JAINA_08                       = -1668012,
+	SAY_UTHER_A_09                     = -1668013,
+	SAY_JAINA_10                       = -1668014,
+	SAY_UTHER_A_11                     = -1668015,
+	SAY_JAINA_12                       = -1668017,
+	SAY_UTHER_A_13                     = -1668016,
+	SAY_UTHER_A_14                     = -1668018,
+	SAY_JAINA_15                       = -1668019,
 
-    /*INTRO - Pre Escape*/
-    SAY_LICH_KING_AGGRO_A              = -1594477,
-    SAY_LICH_KING_AGGRO_H              = -1594478,
-    SAY_JAINA_AGGRO                    = -1594479,
-    SAY_SYLVANA_AGGRO                  = -1594480,
+	SAY_UTHER_H_01                     = -1668024,
+	SAY_SYLVANA_02                     = -1668025,
+	SAY_UTHER_H_03                     = -1668026,
+	SAY_SYLVANA_04                     = -1668027,
+	SAY_UTHER_H_05                     = -1668028,
+	SAY_SYLVANA_06                     = -1668029,
+	SAY_UTHER_H_07                     = -1668030,
+	SAY_SYLVANA_08                     = -1668031,
+	SAY_UTHER_H_09                     = -1668032,
+	SAY_UTHER_H_11                     = -1668033,
+	SAY_SYLVANA_12                     = -1668034,
 
-    /*ESCAPE*/
-    SAY_JAINA_WALL_01                  = -1594487,
-    SAY_SYLVANA_WALL_01                = -1594488,
-    SAY_JAINA_WALL_02                  = -1594489,
-    SAY_SYLVANA_WALL_02                = -1594490,
-    SAY_LICH_KING_WALL_02              = -1594491,
-    SAY_LICH_KING_WALL_03              = -1594492,
-    SAY_LICH_KING_WALL_04              = -1594493,
-    SAY_JAINA_WALL_03                  = -1594494,
-    SAY_JAINA_WALL_04                  = -1594495,
-    SAY_SYLVANA_WALL_03                = -1594496,
-    SAY_SYLVANA_WALL_04                = -1594497,
-    SAY_JAINA_ESCAPE_01                = -1594498,
-    SAY_JAINA_ESCAPE_02                = -1594499,
-    SAY_SYLVANA_ESCAPE_01              = -1594500,
-    SAY_SYLVANA_ESCAPE_02              = -1594501,
-    SAY_JAINA_TRAP                     = -1594502,
-    SAY_SYLVANA_TRAP                   = -1594503,
-    SAY_MATHEAS_JAINA                  = -1594505,
-    SAY_LICH_KING_END_01               = -1594506,
-    SAY_LICH_KING_END_02               = -1594507,
-    SAY_LICH_KING_END_03               = -1594508,
+	//Lich King dialog
+	SAY_UTHER_A_16                     = -1668020,
+	SAY_JAINA_20                       = -1668042,
 
-    /*SPELLS AND VISUAL EFFECTS*/
-    SPELL_TAKE_FROSTMOURNE             = 72729,
-    SPELL_FROSTMOURNE_DESPAWN          = 72726,
-    SPELL_FROSTMOURNE_SOUNDS           = 70667,
-    SPELL_CAST_VISUAL                  = 65633,  //Jaina And Sylavana cast this when summon uther.
-    SPELL_BOSS_SPAWN_AURA              = 72712,  //Falric and Marwyn
-    SPELL_UTHER_DESPAWN                = 70693,
-    SPELL_WINTER                       = 69780,
-    SPELL_FURY_OF_FROSTMOURNE          = 70063,
-    SPELL_SOUL_REAPER                  = 73797,
-    SPELL_RAISE_DEAD                   = 69818,
-    SPELL_ICE_PRISON                   = 69708,
-    SPELL_DARK_ARROW                   = 70194,
-    SPELL_ICE_BARRIER                  = 69787,
-    SPELL_DESTROY_ICE_WALL_01          = 69784, //Jaina
-    SPELL_DESTROY_ICE_WALL_02          = 70224, 
-    SPELL_DESTROY_ICE_WALL_03          = 70225, //Sylvana
-    SPELL_SUMMON_ICE_WALL              = 69784,
-    SPELL_SYLVANA_JUMP                 = 68339,
-    SPELL_SYLVANA_STEP                 = 69087,
-    SPELL_SILENCE                      = 69413,
-    SPELL_LICH_KING_CAST               = 57561,
-    SPELL_FROSTMOURNE_VISUAL           = 73220,
-    SPELL_SHIELD_DISRUPTION            = 58291,
 
-    FACTION                            = 2076,
+	SAY_UTHER_H_16                     = -1668035,
+	SAY_SYLVANA_20                     = -1668043,
+
+	SAY_LICH_KING_17                   = -1668036,
+	SAY_LICH_KING_18                   = -1668037,
+	SAY_LICH_KING_19                   = -1668038,
+	SAY_LICH_KING_A_21                 = -1594473,
+	SAY_LICH_KING_H_21                 = -1594474,
+
+	SAY_FALRIC_INTRO                   = -1668039,
+	SAY_MARWYN_INTRO                   = -1668040,
+	SAY_FALRIC_INTRO2                  = -1668041,
+
+	/*INTRO - Pre Escape*/
+	SAY_LICH_KING_AGGRO_A              = -1594477,
+	SAY_LICH_KING_AGGRO_H              = -1594478,
+	SAY_JAINA_AGGRO                    = -1594479,
+	SAY_SYLVANA_AGGRO                  = -1594480,
+
+	/*ESCAPE*/
+	SAY_JAINA_WALL_01                  = -1594487,
+	SAY_SYLVANA_WALL_01                = -1594488,
+	SAY_JAINA_WALL_02                  = -1594489,
+	SAY_SYLVANA_WALL_02                = -1594490,
+	SAY_LICH_KING_WALL_02              = -1594491,
+	SAY_LICH_KING_WALL_03              = -1594492,
+	SAY_LICH_KING_WALL_04              = -1594493,
+	SAY_JAINA_WALL_03                  = -1594494,
+	SAY_JAINA_WALL_04                  = -1594495,
+	SAY_SYLVANA_WALL_03                = -1594496,
+	SAY_SYLVANA_WALL_04                = -1594497,
+	SAY_JAINA_ESCAPE_01                = -1594498,
+	SAY_JAINA_ESCAPE_02                = -1594499,
+	SAY_SYLVANA_ESCAPE_01              = -1594500,
+	SAY_SYLVANA_ESCAPE_02              = -1594501,
+	SAY_JAINA_TRAP                     = -1594502,
+	SAY_SYLVANA_TRAP                   = -1594503,
+	SAY_MATHEAS_JAINA                  = -1594505,
+	SAY_LICH_KING_END_01               = -1594506,
+	SAY_LICH_KING_END_02               = -1594507,
+	SAY_LICH_KING_END_03               = -1594508,
+
+	/*SPELLS AND VISUAL EFFECTS*/
+	SPELL_TAKE_FROSTMOURNE             = 72729,
+	SPELL_FROSTMOURNE_DESPAWN          = 72726,
+	SPELL_FROSTMOURNE_SOUNDS           = 70667,
+	SPELL_CAST_VISUAL                  = 65633,  //Jaina And Sylavana cast this when summon uther.
+	SPELL_BOSS_SPAWN_AURA              = 72712,  //Falric and Marwyn
+	SPELL_UTHER_DESPAWN                = 70693,
+	SPELL_WINTER                       = 69780,
+	SPELL_FURY_OF_FROSTMOURNE          = 70063,
+	SPELL_SOUL_REAPER                  = 73797,
+	SPELL_RAISE_DEAD                   = 69818,
+	SPELL_ICE_PRISON                   = 71321,
+	SPELL_ICE_PRISON_VISUAL            = 69708,
+	SPELL_DARK_ARROW                   = 70194,
+	SPELL_ICE_BARRIER                  = 69787,
+	SPELL_DESTROY_ICE_WALL_01          = 69784, //Jaina
+	SPELL_DESTROY_ICE_WALL_02          = 70224,
+	SPELL_DESTROY_ICE_WALL_03          = 70225, //Sylvana
+	SPELL_SUMMON_ICE_WALL              = 69784,
+	SPELL_SYLVANA_JUMP                 = 68339,
+	SPELL_SYLVANA_STEP                 = 69087,
+	SPELL_SILENCE                      = 69413,
+	SPELL_LICH_KING_CAST               = 57561,
+	SPELL_FROSTMOURNE_VISUAL           = 73220,
+	SPELL_SHIELD_DISRUPTION            = 58291,
+
+	FACTION                            = 2076,
 };
 
 class npc_jaina_and_sylvana_HRintro : public CreatureScript
@@ -132,7 +161,7 @@ public:
                 break;
         }
 
-        if(pPlayer->GetTeam() == ALLIANCE) 
+        if(pPlayer->GetTeam() == ALLIANCE)
             m_pInstance->SetData(DATA_LIDER, 1);
         else
             m_pInstance->SetData(DATA_LIDER, 2);
@@ -154,9 +183,8 @@ public:
             case NPC_JAINA:
                 pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Леди Джайна, мы готовы к следующей миссии!", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
                 break;
-            case NPC_SYLVANA: 
-                pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Леди Сильвана, мы готовы к следующей миссии!", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);    
-                //pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Поехали!", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
+            case NPC_SYLVANA:
+                pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Леди Сильвана, мы готовы к следующей миссии!", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
                 break;
         }
 
@@ -229,7 +257,7 @@ public:
                         JumpNextStep(8000);
                     }
                     break;
-                case 3: 
+                case 3:
                     if(me->GetEntry() == NPC_JAINA)
                     {
                         DoScriptText(SAY_JAINA_INTRO_02, me);
@@ -259,7 +287,7 @@ public:
                     }
                     if(me->GetEntry() == NPC_SYLVANA)
                     {
-                        DoScriptText(SAY_SYLVANA_INTRO_03, me);
+                        DoScriptText(SAY_SYLVANA_INTRO_02, me);
                         JumpNextStep(6000);
                     }
                     break;
@@ -268,7 +296,7 @@ public:
                     if(me->GetEntry() == NPC_JAINA)
                         DoScriptText(SAY_JAINA_INTRO_04, me);
                     if(me->GetEntry() == NPC_SYLVANA)
-                        DoScriptText(SAY_SYLVANA_INTRO_04, me);
+                        DoScriptText(SAY_SYLVANA_INTRO_03, me);
                     JumpNextStep(3000);
                     break;
                 case 8:
@@ -347,7 +375,7 @@ public:
                     }
                     if(me->GetEntry() == NPC_SYLVANA && pUther)
                     {
-                        DoScriptText(SAY_UTHER_H_05, pUther); 
+                        DoScriptText(SAY_UTHER_H_05, pUther);
                         JumpNextStep(19000);
                     }
                     break;
@@ -359,14 +387,14 @@ public:
                     }
                     if(me->GetEntry() == NPC_SYLVANA)
                     {
-                        DoScriptText(SAY_SYLVANA_06, me); 
+                        DoScriptText(SAY_SYLVANA_06, me);
                         JumpNextStep(2000);
                     }
                     break;
                 case 15:
                     if(me->GetEntry() == NPC_JAINA && pUther)
                     {
-                        DoScriptText(SAY_UTHER_A_07, pUther); 
+                        DoScriptText(SAY_UTHER_A_07, pUther);
                         JumpNextStep(12000);
                     }
                     if(me->GetEntry() == NPC_SYLVANA && pUther)
@@ -378,7 +406,7 @@ public:
                 case 16:
                     if(me->GetEntry() == NPC_JAINA)
                     {
-                        DoScriptText(SAY_JAINA_08, me); 
+                        DoScriptText(SAY_JAINA_08, me);
                         JumpNextStep(6000);
                     }
                     if(me->GetEntry() == NPC_SYLVANA)
@@ -437,7 +465,7 @@ public:
                 case 21:
                     if(me->GetEntry() == NPC_JAINA && pUther)
                     {
-                        DoScriptText(SAY_UTHER_A_13, pUther); 
+                        DoScriptText(SAY_UTHER_A_13, pUther);
                         JumpNextStep(5000);
                     }
                     if(me->GetEntry() == NPC_SYLVANA)
@@ -448,7 +476,7 @@ public:
                 case 22:
                     if(me->GetEntry() == NPC_JAINA && pUther)
                     {
-                        DoScriptText(SAY_UTHER_A_14, pUther); 
+                        DoScriptText(SAY_UTHER_A_14, pUther);
                         JumpNextStep(12000);
                     }
                     if(me->GetEntry() == NPC_SYLVANA)
@@ -490,7 +518,7 @@ public:
                     if(pLichKing)
                     {
                         pLichKing->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                        pLichKing->AddUnitMovementFlag(MOVEMENTFLAG_WALKING); 
+                        pLichKing->AddUnitMovementFlag(MOVEMENTFLAG_WALKING);
                         pLichKing->GetMotionMaster()->MovePoint(0, 5314.881f, 2012.496f, 709.341f);
                     }
                     JumpNextStep(3000);
@@ -594,14 +622,14 @@ public:
                     break;
                 case 38:
                     if(GameObject* pGate = m_pInstance->instance->GetGameObject(m_uiMainGateGUID))
-                        pGate->SetGoState(GO_STATE_READY); 
+                        pGate->SetGoState(GO_STATE_READY);
                     JumpNextStep(5000);
                     break;
                 case 39:
                     me->SetVisible(false);
                     if(pLichKing)
                         pLichKing->SetVisible(false);
-                    m_pInstance->SetData(TYPE_PHASE, 2);  
+                    m_pInstance->SetData(TYPE_PHASE, 2);
                     JumpNextStep(1000);
                     break;
             }
@@ -715,7 +743,7 @@ public:
         uint32 m_chestID;
 
         void Reset()
-        {  
+        {
             if(!m_pInstance)
                 return;
 
@@ -796,7 +824,7 @@ public:
                     {
                         if(pWallTarget->isAlive())
                         {
-                            pWallTarget->DespawnOrUnsummon();
+                            pWallTarget->ForcedDespawn();
                             m_uipWallTargetGUID = 0;
                         }
                     }
@@ -830,7 +858,7 @@ public:
                     {
                         if(pWallTarget->isAlive())
                         {
-                            pWallTarget->DespawnOrUnsummon();
+                            pWallTarget->ForcedDespawn();
                             m_uipWallTargetGUID = 0;
                         }
                     }
@@ -864,7 +892,7 @@ public:
                     {
                         if(pWallTarget->isAlive())
                         {
-                            pWallTarget->DespawnOrUnsummon();
+                            pWallTarget->ForcedDespawn();
                             m_uipWallTargetGUID = 0;
                         }
                     }
@@ -891,13 +919,13 @@ public:
                         DoScriptText(SAY_JAINA_TRAP, me);
                     if(me->GetEntry() == NPC_SYLVANA_OUTRO)
                         DoScriptText(SAY_SYLVANA_TRAP, me);
-                    break;          
+                    break;
                 case 20:
                     if (Creature* pWallTarget = m_pInstance->instance->GetCreature(m_uipWallTargetGUID))
                     {
                         if(pWallTarget->isAlive())
                         {
-                            pWallTarget->DespawnOrUnsummon();
+                            pWallTarget->ForcedDespawn();
                             m_uipWallTargetGUID = 0;
                         }
                     }
@@ -983,7 +1011,7 @@ public:
                         me->AI()->AttackStart(pLichKing);
                     }
                     JumpNextStep(3000);
-                    break; 
+                    break;
                 case 2:
                     if(me->GetEntry() == NPC_SYLVANA_OUTRO)
                     {
@@ -1025,10 +1053,12 @@ public:
                     Fight = true;
 
                     if(pLichKing)
-                        me->CastSpell(pLichKing, me->GetEntry() == NPC_JAINA_OUTRO ? SPELL_ICE_PRISON : SPELL_DARK_ARROW,true);
-
+					{
+                        me->CastSpell(pLichKing, me->GetEntry() == NPC_JAINA_OUTRO ? SPELL_ICE_PRISON_VISUAL : SPELL_DARK_ARROW,true);
+						pLichKing->AttackStop();
+					}
                     JumpNextStep(2500);
-                    break; 
+                    break;
                 case 7:
                     if(pLichKing && !pLichKing->HasAura(SPELL_ICE_PRISON))
                         pLichKing->CastSpell(pLichKing,me->GetEntry() == NPC_JAINA_OUTRO ? SPELL_ICE_PRISON : SPELL_DARK_ARROW,true);
@@ -1046,18 +1076,18 @@ public:
                         DoScriptText(SAY_SYLVANA_AGGRO, me);
 
                     JumpNextStep(3000);
-                    break; 
+                    break;
                 case 8:
                     me->GetMotionMaster()->MovePoint(0, 5577.187f, 2236.003f, 733.012f);
                     if(pLichKing)
                         me->SetUInt64Value(UNIT_FIELD_TARGET, pLichKing->GetGUID());
                     JumpNextStep(10000);
-                    break; 
+                    break;
                 case 9:
                     me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
                     Count = 1;
                     JumpNextStep(100);
-                    break; 
+                    break;
             }
         }
 
@@ -1160,7 +1190,7 @@ public:
                 me->InterruptNonMeleeSpells(false);
                 SetEscortPaused(false);
                 if(GameObject* pGate = m_pInstance->instance->GetGameObject(m_uiIceWallGUID))
-                    pGate->SetGoState(GO_STATE_ACTIVE); 
+                    pGate->SetGoState(GO_STATE_ACTIVE);
                 ++Count;
                 switch(Count)
                 {
@@ -1238,8 +1268,8 @@ public:
         {
         }
 
-        void AttackStart(Unit* who) 
-        { 
+        void AttackStart(Unit* who)
+        {
             return;
         }
 
@@ -1299,7 +1329,7 @@ public:
             m_pInstance->SetData(TYPE_FROST_GENERAL, DONE);
         }
 
-        void MoveInLineOfSight(Unit* pWho) 
+        void MoveInLineOfSight(Unit* pWho)
         {
             if (!m_pInstance)
                 return;
@@ -1343,7 +1373,7 @@ public:
             else
                 m_uiShieldTimer -= uiDiff;
 
-            if (m_uiSpikeTimer < uiDiff) 
+            if (m_uiSpikeTimer < uiDiff)
             {
                 if(Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0))
                     DoCast(pTarget, SPELL_SPIKE);

@@ -1,3 +1,32 @@
+/*
+ * Copyright (C) 2008 - 2010 Trinity <http://www.trinitycore.org/>
+ *
+ * Copyright (C) 2010 Myth Project <http://code.google.com/p/mythcore/>
+ *
+ * Copyright (C) 2006 - 2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+ /* ScriptData
+ SDName: boss_Lich_king
+ SD%Complete: 0%
+ SDComment: new script for tc implementation.
+ SDCategory: Halls of Reflection
+ EndScriptData */
+
 #include "ScriptPCH.h"
 #include "halls_of_reflection.h"
 #include "ScriptedEscortAI.h"
@@ -11,7 +40,7 @@ enum
     SPELL_ICE_PRISON                   = 69708,
     SPELL_DARK_ARROW                   = 70194,
     SPELL_EMERGE_VISUAL                = 50142,
-    SPELL_DESTROY_ICE_WALL_02          = 70224, 
+    SPELL_DESTROY_ICE_WALL_02          = 70224,
     SPELL_SILENCE                      = 69413,
     SPELL_LICH_KING_CAST               = 57561,
     SPELL_GNOUL_JUMP                   = 70150,
@@ -29,7 +58,7 @@ enum
     SAY_LICH_KING_GNOUL                = -1594482,
     SAY_LICH_KING_ABON                 = -1594483,
     SAY_LICH_KING_WINTER               = -1594481,
-    SAY_LICH_KING_END_DUN              = -1594504, 
+    SAY_LICH_KING_END_DUN              = -1594504,
     SAY_LICH_KING_WIN                  = -1594485,
 };
 
@@ -58,9 +87,9 @@ public:
         bool IceWall01;
         bool NonFight;
         bool Finish;
- 
+
         void Reset()
-        { 
+        {
             if(!m_pInstance)
                 return;
             NonFight = false;
@@ -81,17 +110,17 @@ public:
                     m_pInstance->SetData(TYPE_LICH_KING, SPECIAL);
                     DoScriptText(SAY_LICH_KING_END_DUN, me);
                     if(Creature* pLider = ((Creature*)Unit::GetUnit((*me), m_pInstance->GetData64(DATA_ESCAPE_LIDER))))
-                    { 
+                    {
                         pLider->CastSpell(pLider, SPELL_SILENCE, false);
-                        pLider->SendMonsterMove(pLider->GetPositionX(), pLider->GetPositionY(), pLider->GetPositionZ() + 4, VICTIMSTATE_HIT, pLider->isInCombat(), 3000); 
+                        pLider->SendMonsterMove(pLider->GetPositionX(), pLider->GetPositionY(), pLider->GetPositionZ() + 4, VICTIMSTATE_HIT, pLider->isInCombat(), 3000);
                     }
                     me->setActive(false);
                     break;
             }
         }
 
-        void AttackStart(Unit* who) 
-        { 
+        void AttackStart(Unit* who)
+        {
             if (!m_pInstance || !who)
                 return;
 
@@ -114,7 +143,6 @@ public:
             summoned->setActive(true);
 
             m_pInstance->SetData(DATA_SUMMONS, 1);
-
             if (Unit* pLider = Unit::GetUnit((*me), m_pInstance->GetData64(DATA_ESCAPE_LIDER)))
             {
                 summoned->GetMotionMaster()->MoveChase(pLider);
@@ -139,7 +167,7 @@ public:
                     StepTimer = 2000;
                     ++Step;
                     break;
-                case 1:           
+                case 1:
                     StepTimer = 2000;
                     ++Step;
                     break;
@@ -249,7 +277,7 @@ public:
                     CallGuard(NPC_RISEN_WITCH_DOCTOR);
                     m_pInstance->SetData(TYPE_ICE_WALL_04, DONE);
                     ++Step;
-                    break;        
+                    break;
             }
         }
 
@@ -274,11 +302,9 @@ public:
             if(m_pInstance->GetData(TYPE_LICH_KING) == IN_PROGRESS && StartEscort != true)
             {
                 StartEscort = true;
-                me->RemoveAurasDueToSpell(SPELL_ICE_PRISON);
-                me->RemoveAurasDueToSpell(SPELL_DARK_ARROW);
+                me->RemoveAllAuras();
                 me->setActive(true);
                 me->CastSpell(me, SPELL_FROSTMOURNE_VISUAL, false);
-
                 NonFight = true;
                 me->AttackStop();
                 me->SetSpeed(MOVE_WALK, 2.5f, true);
@@ -289,7 +315,7 @@ public:
 
             if (Creature* pLider = ((Creature*)Unit::GetUnit((*me), m_pInstance->GetData64(DATA_ESCAPE_LIDER))))
             {
-                if (pLider->IsWithinDistInMap(me, 2.0f)) 
+                if (pLider->IsWithinDistInMap(me, 2.0f))
                 {
                     me->setActive(false);
                     SetEscortPaused(true);
@@ -358,7 +384,7 @@ public:
         uint64 m_uiLiderGUID;
 
         void Reset()
-        { 
+        {
             DoCast(me, SPELL_EMERGE_VISUAL);
             EmergeTimer = 4000;
             Emerge = false;
@@ -372,8 +398,8 @@ public:
             m_pInstance->SetData(DATA_SUMMONS, 0);
         }
 
-        void AttackStart(Unit* who) 
-        { 
+        void AttackStart(Unit* who)
+        {
             if (!who)
                 return;
 
@@ -440,7 +466,7 @@ public:
         uint64 m_uiLiderGUID;
 
         void Reset()
-        { 
+        {
             DoCast(me, SPELL_EMERGE_VISUAL);
             EmergeTimer = 5000;
             Emerge = false;
@@ -455,8 +481,8 @@ public:
 
         }
 
-        void AttackStart(Unit* who) 
-        { 
+        void AttackStart(Unit* who)
+        {
             if (!who)
                 return;
 
@@ -521,7 +547,7 @@ public:
         bool Walk;
 
         void Reset()
-        { 
+        {
             Walk = false;
         }
 
