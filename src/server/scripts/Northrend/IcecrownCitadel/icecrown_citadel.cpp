@@ -310,6 +310,8 @@ class spell_icc_spirit_alarm : public SpellScriptLoader
 
             void AwakenDeathboundWard(SpellEffIndex effIndex)
             {
+                if (!GetTargetUnit() || GetTargetUnit()->GetTypeId() != TYPEID_PLAYER)
+                    return;
                 if (!GetCaster())
                     return;
                 InstanceScript *instance = GetCaster()->GetInstanceScript();
@@ -345,7 +347,7 @@ class spell_icc_spirit_alarm : public SpellScriptLoader
                 {
                     pWard->SetReactState(REACT_AGGRESSIVE);
                     pWard->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
-                    //pWard->AI()->AttackStart(GetTarget());
+                    pWard->AI()->AttackStart(GetTargetUnit());
                 }
             }
             void Register()
