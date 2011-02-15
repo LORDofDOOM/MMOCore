@@ -189,7 +189,7 @@ class boss_rotface : public CreatureScript
                     professor->AI()->DoAction(ACTION_ROTFACE_COMBAT);
 
                 DoZoneInCombat(me);
-                instance->SetData(DATA_ROTFACE_EVENT, IN_PROGRESS);
+                //instance->SetData(DATA_ROTFACE_EVENT, IN_PROGRESS);
             }
 
             void JustDied(Unit* /*killer*/)

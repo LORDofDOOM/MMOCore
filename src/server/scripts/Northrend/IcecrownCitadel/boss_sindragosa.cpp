@@ -64,6 +64,7 @@ enum Spells
     SPELL_FROST_BOMB_VISUAL     = 70022,
     SPELL_FROST_BOMB            = 69845,
     SPELL_MYSTIC_BUFFET         = 70128,
+    SPELL_MYSTIC_BUFFET_VULNERABILITY = 70127,
 
     // Spinestalker
     SPELL_BELLOWING_ROAR        = 36922,
@@ -281,7 +282,7 @@ class boss_sindragosa : public CreatureScript
                         me->SetSpeed(MOVE_FLIGHT, 4.0f);
                         me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                         float moveTime = me->GetExactDist(&SindragosaFlyPos)/(me->GetSpeed(MOVE_FLIGHT)*0.001f);
-                        me->m_Events.AddEvent(new FrostwyrmLandEvent(*me, SindragosaLandPos), uint64(moveTime) + 250);
+                        me->m_Events.AddEvent(new FrostwyrmLandEvent(*me, SindragosaLandPos), me->m_Events.CalculateTime(uint64(moveTime) + 250));
                         me->GetMotionMaster()->MovePoint(POINT_FROSTWYRM_FLY_IN, SindragosaFlyPos);
                         DoCast(me, SPELL_SINDRAGOSA_S_FURY);
                         instance->HandleGameObject(instance->GetData64(DATA_SINDRAGOSA_ENTRANCE_DOOR), true);
@@ -326,6 +327,8 @@ class boss_sindragosa : public CreatureScript
                         DoZoneInCombat();
                         break;
                     case POINT_AIR_PHASE:
+                        me->RemoveAurasDueToSpell(SPELL_FROST_AURA);
+                        instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_FROST_AURA);
                         bombsLanded = 0;
                         //For debug purposes, just one target will be affected with Ice Tomb spell RAID_MODE<int32>(2, 5, 3, 6)
                         me->CastCustomSpell(SPELL_ICE_TOMB_TARGET, SPELLVALUE_MAX_TARGETS, 1, false);
@@ -367,6 +370,7 @@ class boss_sindragosa : public CreatureScript
                     events.ScheduleEvent(EVENT_ICE_TOMB, urand(7000, 10000));
                     events.RescheduleEvent(EVENT_ICY_GRIP, urand(35000, 40000));
                     DoCast(me, SPELL_MYSTIC_BUFFET, true);
+                    me->RemoveAurasDueToSpell(SPELL_MYSTIC_BUFFET_VULNERABILITY);
                     isThirdPhase = true;
                 }
             }
@@ -479,6 +483,7 @@ class boss_sindragosa : public CreatureScript
                         case EVENT_AIR_PHASE:
                             Talk(SAY_AIR_PHASE);
                             me->RemoveAurasDueToSpell(SPELL_FROST_AURA);
+                            instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_FROST_AURA);
                             me->SetFlying(true);
                             me->AddUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
                             me->SetReactState(REACT_PASSIVE);
@@ -502,21 +507,35 @@ class boss_sindragosa : public CreatureScript
 	                        me->GetPosition(myX, myY, myZ);
                             Position pos;
 	                        VMAP::IVMapManager *vMapManager = VMAP::VMapFactory::createOrGetVMapManager();
-                            while (true)
+                            int tryNumber = 0;
+                            while (tryNumber++ < 50)
                             {
                                 float destX, destY, destZ;
-                                destX = float(rand_norm()) * 110.25f + 4349.25f;
+                                destX = float(rand_norm()) * 95.25f + 4365.25f;
                                 if (destX > 4371.5f && destX < 4432.0f)
                                     destY = float(rand_norm()) * 100.0f + 2434.0f;
                                 else
                                     destY = float(rand_norm()) * 36.23f + 2457.64f;
                                 destZ = 205.0f; // random number close to ground, get exact in next call
                                 me->UpdateGroundPositionZ(destX, destY, destZ);
-	                            if (vMapManager->isInLineOfSight(me->GetMapId(), myX, myY, myZ+2.0f, destX, destY, destZ+2.0f))
-                                {
-                                    pos.Relocate(destX, destY, destZ+2.0f);
-	                                break;
-                                }
+
+                                std::list<Creature*> tomb_creatures;
+                                GetCreatureListWithEntryInGrid(tomb_creatures, me, NPC_ICE_TOMB, 150.0f);
+                                std::list<Unit*> tombs;
+                                bool bTooCloseOrTooFarFromBomb = false;
+                                //Try to put bomb not too close and not too far away from entombed players
+                                for (std::list<Creature*>::const_iterator itr = tomb_creatures.begin(); itr != tomb_creatures.end(); ++itr)
+                                    if ((*itr)->GetDistance2d(destX, destY) < 15.0f || (*itr)->GetDistance2d(destX, destY) > 50.0f)
+                                    {
+                                        bTooCloseOrTooFarFromBomb = true;
+                                        break;
+                                    }
+                                if (!bTooCloseOrTooFarFromBomb)
+                                    if (vMapManager->isInLineOfSight(me->GetMapId(), myX, myY, myZ+2.0f, destX, destY, destZ+2.0f))
+                                    {
+                                        pos.Relocate(destX, destY, destZ+2.0f);
+	                                    break;
+                                    }
                             }
                             if (TempSummon* summ = me->SummonCreature(NPC_FROST_BOMB, pos, TEMPSUMMON_TIMED_DESPAWN, 40000))
                             {
@@ -547,9 +566,12 @@ class boss_sindragosa : public CreatureScript
                         }
                         case EVENT_CHECK_MYSTIC_BUFFET:
                         {
+                            me->RemoveAurasDueToSpell(SPELL_MYSTIC_BUFFET_VULNERABILITY);
                             if (isThirdPhase)
                                 if (!me->HasAura(SPELL_MYSTIC_BUFFET))
+                                {
                                     DoCast(me, SPELL_MYSTIC_BUFFET, true);
+                                }
                             events.ScheduleEvent(EVENT_CHECK_MYSTIC_BUFFET, 1000);
                             break;
                         }
@@ -1188,11 +1210,14 @@ class spell_sindragosa_frost_beacon : public SpellScriptLoader
                 PreventDefaultAction();
                 if (Unit* caster = GetCaster())
                 {
-                    caster->RemoveAurasDueToSpell(SPELL_UNCHAINED_MAGIC);
-                    caster->RemoveAurasDueToSpell(SPELL_FROST_BREATH_P1);
-                    caster->RemoveAurasDueToSpell(SPELL_FROST_BREATH_P2);
-                    caster->RemoveAurasDueToSpell(SPELL_MYSTIC_BUFFET);
-                    caster->CastSpell(GetTarget(), SPELL_ICE_TOMB_DAMAGE, true);
+                    if (Unit *target = GetTarget())
+                    {
+                        target->RemoveAurasDueToSpell(SPELL_UNCHAINED_MAGIC);
+                        target->RemoveAurasDueToSpell(SPELL_FROST_BREATH_P1);
+                        target->RemoveAurasDueToSpell(SPELL_FROST_BREATH_P2);
+                        target->RemoveAurasDueToSpell(SPELL_MYSTIC_BUFFET);
+                        caster->CastSpell(target, SPELL_ICE_TOMB_DAMAGE, true);
+                    }
                 }
             }
 
@@ -1285,6 +1310,11 @@ class FrostBombTargetSelector
 
             for (std::list<Unit*>::const_iterator itr = collisionList.begin(); itr != collisionList.end(); ++itr)
                 if ((*itr)->IsInBetween(caster, unit, (*itr)->GetObjectSize() / 2.0f * 1.4142f))
+                    return true;
+
+            //Do not apply Mystic Buffet spell vulnerability to Sindragosa
+            if (Creature *pCreature = unit->ToCreature())
+                if (pCreature->GetEntry() == NPC_SINDRAGOSA)
                     return true;
 
             return false;
@@ -1619,6 +1649,7 @@ class achievement_all_you_can_eat : public AchievementCriteriaScript
             return target->GetAI()->GetData(DATA_MYSTIC_BUFFET_STACK) <= 5;
         }
 };
+
 
 void AddSC_boss_sindragosa()
 {

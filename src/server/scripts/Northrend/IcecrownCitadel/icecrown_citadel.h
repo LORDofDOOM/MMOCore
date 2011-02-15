@@ -24,7 +24,7 @@ enum eSharedSpells
 {
     SPELL_BERSERK   = 26662,
     SPELL_BERSERK2  = 47008
-}; 
+};
 
 enum eEnums
 {
@@ -87,8 +87,13 @@ enum eAchievementCriteria
     CRITERIA_ONCE_BITTEN_TWICE_SHY_25V  = 13013,
 };
 
-enum ePutricideActions
+enum eComonActions
 {
+    //Putricide actions
+    ACTION_ACTIVATE_ORANGE_DOOR = -366781,
+    ACTION_ACTIVATE_GREEN_DOOR  = -366782,
+    ACTION_OPEN_DOORS           = -366783,
+
     // Festergut
     ACTION_FESTERGUT_COMBAT     = -366260,
     ACTION_FESTERGUT_GAS        = -366261,
@@ -100,9 +105,9 @@ enum ePutricideActions
     ACTION_ROTFACE_DEATH        = -366272,
     ACTION_CHANGE_PHASE         = -366780,
 
-    // Sindragosa 
- 	ACTION_START_FROSTWYRM      = -368530, 
- 	ACTION_TRIGGER_ASPHYXIATION = -368531, 
+    // Sindragosa
+ 	ACTION_START_FROSTWYRM      = -368530,
+ 	ACTION_TRIGGER_ASPHYXIATION = -368531,
     ACTION_BOMB_LANDED          = -368532
 };
 enum eAdditionalActions
@@ -123,8 +128,7 @@ enum Data
     DATA_BLOOD_QUEEN_LANA_THEL_EVENT,
     DATA_VALITHRIA_DREAMWALKER_EVENT,
     DATA_SINDRAGOSA_EVENT,
-    DATA_LICH_KING_EVENT,
-    DATA_SPAWN
+    DATA_LICH_KING_EVENT
 };
 
 enum Data64
@@ -156,10 +160,12 @@ enum Data64
     DATA_BLOOD_PRINCES_CONTROL,
     DATA_NECROTIC_STACK,
     DATA_PUTRICIDE_TABLE,
-    DATA_SINDRAGOSA_FROSTWYRMS,  
+    DATA_SINDRAGOSA_FROSTWYRMS,
     DATA_SINDRAGOSA_ENTRANCE_DOOR,
-    DATA_SPINESTALKER,   
+    DATA_SPINESTALKER,
     DATA_RIMEFANG,
+    DATA_OOZE_VALVE_ACTIVATED,
+    DATA_GAS_VALVE_ACTIVATED,
 	//Achievements
     DATA_BONED_ACHIEVEMENT,
 	DATA_OOZE_DANCE_ACHIEVEMENT,
@@ -187,7 +193,9 @@ enum Data64
     DATA_DEATHBOUND_WARD1,
     DATA_DEATHBOUND_WARD2,
     DATA_DEATHBOUND_WARD3,
-    DATA_DEATHBOUND_WARD4
+    DATA_DEATHBOUND_WARD4,
+
+    DATA_INCONSPICUOUS_LEVER
 };
 
 enum eCreatures
@@ -207,7 +215,7 @@ enum eCreatures
     NPC_REANIMATED_ADHERENT                     = 38010,
     NPC_VENGEFUL_SHADE                          = 38222,
 
-    CREATURE_OOZE_COVERED_TENTACLE_STALKER      = 38308, 
+    CREATURE_OOZE_COVERED_TENTACLE_STALKER      = 38308,
     CREATURE_SLIMY_TENTACLE_STALKER             = 38309,
     CREATURE_GUNSHIP                            = 30343,
     CREATURE_KOR_KRON_GENERAL                   = 37189,
@@ -288,15 +296,15 @@ enum eCreatures
     CREATURE_COLUMN_OF_FROST                    = 37918,
     CREATURE_COMBAT_TRIGGER                     = 38752,
 
- 	// Sindragosa 
- 	NPC_SINDRAGOSA                              = 36853, 
- 	NPC_SPINESTALKER                            = 37534, 
- 	NPC_RIMEFANG                                = 37533, 
- 	NPC_FROSTWARDEN_HANDLER                     = 37531, 
- 	NPC_FROSTWING_WHELP                         = 37532, 
- 	NPC_ICY_BLAST                               = 38223, 
- 	NPC_FROST_BOMB                              = 37186, 
- 	NPC_ICE_TOMB                                = 36980, 
+ 	// Sindragosa
+ 	NPC_SINDRAGOSA                              = 36853,
+ 	NPC_SPINESTALKER                            = 37534,
+ 	NPC_RIMEFANG                                = 37533,
+ 	NPC_FROSTWARDEN_HANDLER                     = 37531,
+ 	NPC_FROSTWING_WHELP                         = 37532,
+ 	NPC_ICY_BLAST                               = 38223,
+ 	NPC_FROST_BOMB                              = 37186,
+ 	NPC_ICE_TOMB                                = 36980,
     CREATURE_ICY_BLAST                          = 36731,
 
     //CREATURE_SINDRAGOSA                         = 36853,
@@ -323,7 +331,9 @@ enum eCreatures
     //CREATURE_FROSTWING_WHELP                      = 37532,
     //CREATURE_FROSTWARDEN_HANDLER                  = 37531
     NPC_FROST_FREEZE_TRAP                         = 37744,
-    NPC_DEATHBOUND_WARD                           = 37007
+    NPC_DEATHBOUND_WARD                           = 37007,
+    CREATURE_SEVERED_ESSENCE                      = 38410,
+    CREATURE_VALKYR_HERALD                        = 37098
 };
 
 enum eGameobjects
@@ -341,20 +351,20 @@ enum eGameobjects
     BLOODWING_DOOR                 = 201920,
     FROSTWING_DOOR                 = 201919,
     CRIMSONHALL_DOOR               = 201376,
-    CRIMSONHALL_DOOR_1             = 201377,
-    CRIMSONHALL_DOOR_2             = 201378,
-    BLOODQUEEN_ELEVATOR            = 201755,
-    DRAGON_DOOR_1                  = 201375,
-    DRAGON_DOOR_2                  = 201374,
-    DRAGON_DOOR_3                  = 201379,
+    CRIMSONHALL_DOOR_RIGHT         = 201377,
+    CRIMSONHALL_DOOR_LEFT          = 201378,
+    BLOODQUEEN_GRATE               = 201755,
+    VALITHRIA_DOOR_ENTRANCE        = 201375,
+    VALITHRIA_DOOR_EXIT            = 201374,
+    SINDRAGOSA_SHORTCUT_EXIT_DOOR  = 201379,
     DREAMWALKER_DOOR_1             = 201380,
     DREAMWALKER_DOOR_2             = 201381,
     DREAMWALKER_DOOR_3             = 201382,
     DREAMWALKER_DOOR_4             = 201383,
     VALITHRIA_ELEVATOR             = 202234,
     SINDRAGOSA_ELEVATOR            = 196840,
-    SINDRAGOSA_DOOR_1              = 201373,
-    SINDRAGOSA_DOOR_2              = 201369,
+    SINDRAGOSA_ENTRANCE_DOOR       = 201373,
+    SINDRAGOSA_SHORTCUT_ENTRANCE_DOOR = 201369,
     PROF_COLLISION_DOOR            = 201612,
     GREEN_PIPE                     = 201618,
     ORANGE_PIPE                    = 201617,
@@ -388,7 +398,8 @@ enum eGameobjects
     GO_SPIRIT_ALARM1               = 201814,
     GO_SPIRIT_ALARM2               = 201815,
     GO_SPIRIT_ALARM3               = 201816,
-    GO_SPIRIT_ALARM4               = 201817
+    GO_SPIRIT_ALARM4               = 201817,
+    GO_INCONSPICUOUS_LEVER         = 201818
 };
 
 enum eGameobjects_TrinityCore
@@ -427,7 +438,7 @@ enum eGameobjects_TrinityCore
     GO_BLOOD_ELF_COUNCIL_DOOR_RIGHT         = 201377,
 
     // Blood-Queen Lana'thel
-    GO_DOODAD_ICECROWN_BLOODPRINCE_DOOR_01  = 201746,
+    GO_BLOOD_QUEEN_BLOOD_BARRIER            = 201746,
     GO_DOODAD_ICECROWN_GRATE_01             = 201755,
 
     // Valithria Dreamwalker
@@ -438,14 +449,13 @@ enum eGameobjects_TrinityCore
     GO_SINDRAGOSA_ENTRANCE_DOOR             = 201373,
     GO_SINDRAGOSA_SHORTCUT_ENTRANCE_DOOR    = 201369,
     GO_SINDRAGOSA_SHORTCUT_EXIT_DOOR        = 201379,
-    GO_SINDRAGOSA_ICE_WALL                  = 201385,
+    GO_SINDRAGOSA_ICE_WALL                  = 202396,
 
- 	GO_ICE_WALL                             = 202396, 
- 	GO_ICE_BLOCK                            = 201722, 
+ 	GO_ICE_BLOCK                            = 201722,
 };
 void DespawnAllCreaturesAround(Creature *ref, uint32 entry);
 void UnsummonSpecificCreaturesNearby(Creature *ref, uint32 entry, float radius);
 uint32 GetPhase(const EventMap &em);
-// Declaration 
-extern Position const SindragosaSpawnPos; 
+// Declaration
+extern Position const SindragosaSpawnPos;
 #endif

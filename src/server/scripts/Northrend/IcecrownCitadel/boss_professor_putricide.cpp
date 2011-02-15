@@ -158,6 +158,87 @@ static const uint32 oozeFloodSpells[4] = {69782, 69796, 69798, 69801};
 #define EXPERIMENT_STATE_OOZE   false
 #define EXPERIMENT_STATE_GAS    true
 
+class DeactivateValveEvent : public BasicEvent
+{
+    public:
+        DeactivateValveEvent(uint32 valveData, InstanceScript* is): uiValveType(valveData), instance(is) { }
+
+        bool Execute(uint64 /*eventTime*/, uint32 /*updateTime*/)
+        {
+            instance->SetData(uiValveType, FAIL);
+            return true;
+        }
+    private:
+        uint32 uiValveType;
+        InstanceScript *instance;
+};
+class ActivateValveEvent : public BasicEvent
+{
+    public:
+        ActivateValveEvent(uint32 valveData, InstanceScript* is, Unit *unit): uiValveType(valveData), instance(is), activator(unit) { }
+
+        bool Execute(uint64 /*eventTime*/, uint32 /*updateTime*/)
+        {
+            instance->SetData(uiValveType, IN_PROGRESS);
+            activator->m_Events.AddEvent(new DeactivateValveEvent(uiValveType, instance), activator->m_Events.CalculateTime(3000));
+            return true;
+        }
+    private:
+        Unit *activator;
+        uint32 uiValveType;
+        InstanceScript *instance;
+};
+class ActivateProfessorDoor : public BasicEvent
+{
+    public:
+        ActivateProfessorDoor(InstanceScript* is, uint32 valveType, uint32 valveData): instance(is), uiValveType(valveType), uiValveData(valveData) { }
+
+        bool Execute(uint64 /*eventTime*/, uint32 /*updateTime*/)
+        {
+            instance->SetData(uiValveType, uiValveData);
+            return true;
+        }
+    private:
+        uint32 uiValveType;
+        uint32 uiValveData;
+        InstanceScript *instance;
+};
+class go_icc_plagueworks_valve : public GameObjectScript
+{
+    public:
+        go_icc_plagueworks_valve() : GameObjectScript("go_icc_plagueworks_valve") { }
+
+        bool OnGossipHello(Player* player, GameObject* go)
+        {
+            InstanceScript* instance = go->GetInstanceScript(); 
+            if(!instance)
+                return false;
+            if (instance->IsEncounterInProgress())
+                return false;
+            if (go->GetGoState() == GO_STATE_ACTIVE)
+                return false;
+            if (instance->GetData(DATA_ROTFACE_EVENT) != DONE || instance->GetData(DATA_FESTERGUT_EVENT) != DONE)
+                return false;
+            if (go->GetEntry() == OOZE_VALVE)
+            {
+                if (Creature *pPutricide = go->GetMap()->GetCreature(instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
+                    pPutricide->m_Events.AddEvent(new DeactivateValveEvent(DATA_OOZE_VALVE_ACTIVATED, instance), pPutricide->m_Events.CalculateTime(3000));
+                instance->SetData(DATA_OOZE_VALVE_ACTIVATED, IN_PROGRESS);
+            }
+            else
+            {
+                if (Creature *pPutricide = go->GetMap()->GetCreature(instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
+                    pPutricide->m_Events.AddEvent(new DeactivateValveEvent(DATA_GAS_VALVE_ACTIVATED, instance),pPutricide->m_Events.CalculateTime(3000));
+                instance->SetData(DATA_GAS_VALVE_ACTIVATED, IN_PROGRESS);
+            }
+            //Prevent future usage of this valve
+            go->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
+            return true;
+        }
+
+};
+
+
 class StartMovementEvent : public BasicEvent
 {
     public:
@@ -362,6 +443,7 @@ class boss_professor_putricide : public CreatureScript
                 {
                     case POINT_FESTERGUT:
                         instance->SetBossState(DATA_FESTERGUT, IN_PROGRESS); // needed here for delayed gate close
+                        instance->SetData(DATA_FESTERGUT_EVENT, IN_PROGRESS);
                         me->SetSpeed(MOVE_RUN, baseSpeed, true);
                         //DoAction(ACTION_FESTERGUT_GAS);
                         //if (Creature* festergut = Unit::GetCreature(*me, instance->GetData64(DATA_FESTERGUT)))
@@ -369,6 +451,7 @@ class boss_professor_putricide : public CreatureScript
                         break;
                     case POINT_ROTFACE:
                         instance->SetBossState(DATA_ROTFACE, IN_PROGRESS);   // needed here for delayed gate close
+                        instance->SetData(DATA_ROTFACE_EVENT, IN_PROGRESS);
                         me->SetSpeed(MOVE_RUN, baseSpeed, true);
                         break;
                     case POINT_TABLE:
@@ -505,6 +588,15 @@ class boss_professor_putricide : public CreatureScript
                             default:
                                 break;
                         }
+                        break;
+                    case ACTION_ACTIVATE_ORANGE_DOOR:
+                        me->m_Events.AddEvent(new ActivateProfessorDoor(instance, DATA_GAS_VALVE_ACTIVATED, DONE), me->m_Events.CalculateTime(8000));
+                        break;
+                    case ACTION_ACTIVATE_GREEN_DOOR:
+                        me->m_Events.AddEvent(new ActivateProfessorDoor(instance, DATA_OOZE_VALVE_ACTIVATED, DONE), me->m_Events.CalculateTime(8000));
+                        break;
+                    case ACTION_OPEN_DOORS:
+                        me->m_Events.AddEvent(new ActivateProfessorDoor(instance, DATA_OOZE_VALVE_ACTIVATED, SPECIAL), me->m_Events.CalculateTime(5000));
                         break;
                     default:
                         break;
@@ -1386,4 +1478,5 @@ void AddSC_boss_professor_putricide()
     new spell_putricide_mutated_transformation();
     new spell_putricide_regurgitated_ooze();
     new spell_stinky_precious_decimate();
+    new go_icc_plagueworks_valve();
 }

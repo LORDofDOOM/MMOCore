@@ -144,7 +144,7 @@ class boss_festergut : public CreatureScript
                     gasDummyGUID = gasDummy->GetGUID();
                 if (Creature* professor = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
                     professor->AI()->DoAction(ACTION_FESTERGUT_COMBAT);
-                instance->SetData(DATA_FESTERGUT_EVENT, IN_PROGRESS);
+                //instance->SetData(DATA_FESTERGUT_EVENT, IN_PROGRESS);
                 instance->SetBossState(DATA_FESTERGUT, IN_PROGRESS);
                 DoZoneInCombat(me);
             }

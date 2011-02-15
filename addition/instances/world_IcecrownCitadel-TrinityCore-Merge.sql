@@ -307,6 +307,7 @@ INSERT INTO `spell_script_names` VALUES
 (70545, 'spell_icc_spirit_alarm'),
 (70547, 'spell_icc_spirit_alarm');
 REPLACE INTO `spell_script_names` VALUES (70461, 'spell_coldflame_trap');
+UPDATE `gameobject_template` SET `ScriptName` = 'go_icc_plagueworks_valve' WHERE `entry` IN (201615, 201616);
 
 -- The Lich King
 DELETE FROM `areatrigger_teleport` WHERE `id` = 5718;
@@ -336,3 +337,8 @@ UPDATE `creature_template` set `equipment_id` = 0 WHERE `Entry` IN (37970,37972,
 -- DELETE FROM `creature_addon` WHERE `GUID` IN (82289,88387,95000,138237,13828,138239,138287,138288,138289); 
 -- DELETE FROM `conditions` WHERE `SourceEntry` IN (62912,62910,62297,62907,65667,63475,62549,62546);
 
+-- Icecrown Citadel trash
+UPDATE `creature_template` SET `ScriptName` = 'npc_deathspeaker_high_priest' WHERE `entry` = 36829;
+UPDATE `creature_template` SET `ScriptName` = 'npc_val_kyr_herald' WHERE `entry` = 37098;
+UPDATE `creature_template` SET `ScriptName` = 'npc_severed_essence' WHERE `entry` = 38410;
+REPLACE INTO `spell_script_names` VALUES (69483, 'spell_icc_dark_reckoning');

@@ -345,8 +345,8 @@ class boss_the_lich_king : public CreatureScript
                         break;
                     case CREATURE_RAGING_SPIRIT:
                         summoned->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, true);
-                        //Crash is here
-                        summoned->getVictim()->CastSpell(summoned, SPELL_RAGING_VISUAL, true);
+                        if (Unit *victim = summoned->getVictim())
+                            victim->CastSpell(summoned, SPELL_RAGING_VISUAL, true);
                         summoned->CastSpell(summoned, SPELL_NECROTIC_PLAGUE_IMMUNITY, true);
                         break;
                     case CREATURE_VILE_SPIRIT:
@@ -804,27 +804,30 @@ class npc_tirion_icc : public CreatureScript
             {
                 if(!bIntro || !uiLichKingGUID)
                     return;
-
+                if (uiStage > 10)
+                    return;
                 if(uiIntroTimer <= diff)
                 {
                     switch(uiStage)
                     {
                         case 1:
+                        {
+                            if(Creature* lich = Unit::GetCreature(*me, uiLichKingGUID))
                             {
-                                if(Creature* lich = Unit::GetCreature(*me, uiLichKingGUID))
-                                {
-                                    lich->SetStandState(UNIT_STAND_STATE_STAND);
-                                    lich->GetMotionMaster()->MovePoint(POINT_START_EVENT_1, MovePos[0]);
-                                }
-                                me->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_READY2H);
-                                uiIntroTimer = 3000;
-                                break;
+                                lich->SetStandState(UNIT_STAND_STATE_STAND);
+                                lich->GetMotionMaster()->MovePoint(POINT_START_EVENT_1, MovePos[0]);
                             }
+                            me->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_READY2H);
+                            uiIntroTimer = 3000;
+                            break;
+                        }
                         case 2:
                         {
                             if(Creature* lich = Unit::GetCreature(*me, uiLichKingGUID))
+                            {
                                 lich->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_ONESHOT_TALK);
-                            DoScriptText(SAY_INTRO_1_KING, me);
+                                DoScriptText(SAY_INTRO_1_KING, lich);
+                            }
                             uiIntroTimer = 14000;
                             break;
                         }
@@ -838,9 +841,11 @@ class npc_tirion_icc : public CreatureScript
                         }
                         case 4:
                         {
-                            DoScriptText(SAY_INTRO_3_KING, me);
                             if(Creature* lich = Unit::GetCreature(*me, uiLichKingGUID))
+                            {
                                 lich->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_LAUGH);
+                                DoScriptText(SAY_INTRO_3_KING, me);
+                            }
                             uiIntroTimer = 3000;
                             break;
                         }
@@ -877,9 +882,9 @@ class npc_tirion_icc : public CreatureScript
                         }
                         case 10:
                         {
-                            DoScriptText(SAY_INTRO_5_KING, me);
                             if(Creature* lich = Unit::GetCreature(*me, uiLichKingGUID))
                             {
+                                DoScriptText(SAY_INTRO_5_KING, lich);
                                 lich->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                                 lich->SetReactState(REACT_AGGRESSIVE);
                                 if(Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true))
