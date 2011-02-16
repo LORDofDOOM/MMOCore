@@ -30,6 +30,7 @@ static const DoorData doorData[] =
     {GO_ICEWALL,                             DATA_MARROWGAR_EVENT,             DOOR_TYPE_PASSAGE, BOUNDARY_NONE},
     {GO_DOODAD_ICECROWN_ICEWALL02,           DATA_MARROWGAR_EVENT,             DOOR_TYPE_PASSAGE, BOUNDARY_NONE},
     {GO_ORATORY_OF_THE_DAMNED_ENTRANCE,      DATA_DEATHWHISPER_EVENT,          DOOR_TYPE_ROOM,    BOUNDARY_N   },
+    {GO_SAURFANG_S_DOOR,                     DATA_SAURFANG_EVENT,              DOOR_TYPE_PASSAGE, BOUNDARY_NONE},
     {GO_ORANGE_PLAGUE_MONSTER_ENTRANCE,      DATA_FESTERGUT_EVENT,             DOOR_TYPE_ROOM,    BOUNDARY_E   },
     {GO_GREEN_PLAGUE_MONSTER_ENTRANCE,       DATA_ROTFACE_EVENT,               DOOR_TYPE_ROOM,    BOUNDARY_E   },
     {GO_SCIENTIST_ENTRANCE,                  DATA_PROFESSOR_PUTRICIDE_EVENT,   DOOR_TYPE_ROOM,    BOUNDARY_E   },
@@ -156,6 +157,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                 isOrbWhispererEligible  = 0;
                 isPortalJockeyEligible  = 0;
 
+                coldflameJetsState      = NOT_STARTED;
                 memset(&uiEncounter, 0, sizeof(uiEncounter));
                 //While Gunship Battle is not implemented
                 uiEncounter[DATA_GUNSHIP_BATTLE_EVENT] = DONE;
@@ -242,6 +244,9 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case CREATURE_SAURFANG:
                         uiDeathbringerSaurfang = creature->GetGUID();
                         break;
+                    case NPC_FROST_FREEZE_TRAP:
+                        coldflameJets.insert(creature->GetGUID());
+                        break;
                     case CREATURE_FESTERGUT:
                         uiFestergut = creature->GetGUID();
                         break;
@@ -321,6 +326,12 @@ class instance_icecrown_citadel : public InstanceMapScript
                         break;
                     }
                 }
+            }
+
+            void OnCreatureRemove(Creature* creature)
+            {
+                if (creature->GetEntry() == NPC_FROST_FREEZE_TRAP)
+                    coldflameJets.erase(creature->GetGUID());
             }
 
             void OnGameObjectCreate(GameObject* go)
@@ -1148,7 +1159,18 @@ class instance_icecrown_citadel : public InstanceMapScript
                         else if (!data && !--rimefangTrash) 
                             if (Creature* rime = instance->GetCreature(rimefang)) 
                                 rime->AI()->DoAction(ACTION_START_FROSTWYRM);
+                        break;
                     }
+                    case DATA_COLDFLAME_JETS:
+                        coldflameJetsState = data;
+                        if (coldflameJetsState == DONE)
+                        {
+                            SaveToDB();
+                            for (std::set<uint64>::iterator itr = coldflameJets.begin(); itr != coldflameJets.end(); ++itr)
+                                if (Creature* trap = instance->GetCreature(*itr))
+                                    trap->AI()->DoAction(ACTION_STOP_TRAPS);
+                        }
+                        break;
                 }
 
                 SaveToDB();
@@ -1189,6 +1211,8 @@ class instance_icecrown_citadel : public InstanceMapScript
                         return spinestalkerTrash; 
                     case DATA_RIMEFANG: 
                         return rimefangTrash; 
+                    case DATA_COLDFLAME_JETS:
+                        return coldflameJetsState;
                     default: 
                         break; 
                 } 
@@ -1207,7 +1231,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                 << " " << uiEncounter[DATA_FESTERGUT_EVENT] << " " << uiEncounter[DATA_ROTFACE_EVENT] << " " << uiEncounter[DATA_PROFESSOR_PUTRICIDE_EVENT] << " " << uiEncounter[DATA_BLOOD_PRINCE_COUNCIL_EVENT] << " " << uiEncounter[DATA_BLOOD_QUEEN_LANA_THEL_EVENT]
                 << " " << uiEncounter[DATA_VALITHRIA_DREAMWALKER_EVENT] << " " << uiEncounter[DATA_SINDRAGOSA_EVENT] << " " << uiEncounter[DATA_LICH_KING_EVENT];
                 //Saving additional data
-                saveStream << " " << gasValveActivated << " " << oozeValveActivated;
+                saveStream << " " << gasValveActivated << " " << oozeValveActivated << " " << coldflameJetsState;
 
                 OUT_SAVE_INST_DATA_COMPLETE;
                 return saveStream.str();
@@ -1293,8 +1317,6 @@ class instance_icecrown_citadel : public InstanceMapScript
                     loadStream >> gasValveActivated >> oozeValveActivated;
                     for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
                     {
-                        loadStream >> uiEncounter[i];
-
                         if (uiEncounter[i] == IN_PROGRESS)
                             uiEncounter[i] = NOT_STARTED;
                     }
@@ -1304,6 +1326,11 @@ class instance_icecrown_citadel : public InstanceMapScript
                         gasValveActivated = NOT_STARTED;
                     if (oozeValveActivated == IN_PROGRESS || oozeValveActivated == DONE)
                         oozeValveActivated = NOT_STARTED;
+                    uint32 jets = 0;
+                    loadStream >> jets;
+                    if (jets)
+                        jets = DONE;
+                    coldflameJetsState = jets;
 
                 } else OUT_LOAD_INST_DATA_FAIL;
 
@@ -1397,7 +1424,9 @@ class instance_icecrown_citadel : public InstanceMapScript
             uint8 uiAngle;
             uint64 sindragosa; 
             uint64 spinestalker; 
-            uint64 rimefang; 
+            uint64 rimefang;
+            uint8 coldflameJetsState;
+            std::set<uint64> coldflameJets;
             uint8 frostwyrms; 
             uint8 spinestalkerTrash; 
             uint8 rimefangTrash; 

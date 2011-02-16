@@ -89,6 +89,9 @@ enum eAchievementCriteria
 
 enum eComonActions
 {
+    // Coldflame Traps
+    ACTION_STOP_TRAPS           = -377440,
+
     //Putricide actions
     ACTION_ACTIVATE_ORANGE_DOOR = -366781,
     ACTION_ACTIVATE_GREEN_DOOR  = -366782,
@@ -164,6 +167,7 @@ enum Data64
     DATA_SINDRAGOSA_ENTRANCE_DOOR,
     DATA_SPINESTALKER,
     DATA_RIMEFANG,
+    DATA_COLDFLAME_JETS,
     DATA_OOZE_VALVE_ACTIVATED,
     DATA_GAS_VALVE_ACTIVATED,
 	//Achievements

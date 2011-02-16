@@ -1,7 +1,4 @@
-﻿-- Cleanup
-UPDATE `creature_template` SET `ScriptName`='' WHERE `entry` IN (SELECT `id` FROM `creature` WHERE `map` = 631);
-
--- GameObject
+﻿-- GameObject
 UPDATE `gameobject_template` SET `ScriptName` = 'go_icecrown_teleporter' WHERE `entry` IN (202223,202235,202242,202243,202244,202245,202246);
 UPDATE `gameobject_template` SET `flags` = 32 WHERE `entry` IN (202235,202242,202243,202244,202245,202246);
 UPDATE `gameobject_template` SET `flags` = 52 WHERE `entry` = 202223;

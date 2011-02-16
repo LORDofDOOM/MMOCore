@@ -122,6 +122,7 @@ UPDATE `creature_template` SET `minlevel`=82,`maxlevel`=82,`unit_class`=2,`facti
 UPDATE `creature_template` SET `minlevel`=83,`maxlevel`=83,`unit_class`=1,`faction_A`=2068,`faction_H`=2068,`unit_flags`=0,`baseattacktime`=1500,`speed_walk`=4.8,`speed_run`=4.28571 WHERE `entry` IN (36853,38265,38266,38267); -- Sindragosa
 UPDATE `creature_template` SET `minlevel`=80,`maxlevel`=80,`unit_class`=2,`faction_A`=14,`faction_H`=14,`unit_flags`=`unit_flags`|33554944,`baseattacktime`=2000,`flags_extra`=`flags_extra`|128 WHERE `entry`=37186; -- Frost Bomb
 UPDATE `creature_template` SET `minlevel`=80,`maxlevel`=80,`unit_class`=1,`faction_A`=14,`faction_H`=14,`baseattacktime`=2000,`speed_run`=1 WHERE `entry` IN (36980,38320,38321,38322); -- Ice Tomb
+UPDATE `creature_template` SET `RegenHealth`=0 WHERE `entry` IN (36980,38320,38321,38322); -- Ice Tomb health regen
 
 -- Linked respawns
 -- SET @GUID := 151761;
@@ -208,7 +209,10 @@ INSERT INTO `achievement_criteria_data` (`criteria_id`,`type`,`value1`,`value2`,
 (13135,12,3,0, ''); -- Sindragosa kills (Heroic Icecrown 25 player)
 DELETE FROM `areatrigger_scripts` WHERE `entry`=5604;
 INSERT INTO `areatrigger_scripts` (`entry`,`ScriptName`) VALUES
-(5604,'at_sindragosa_lair');
+(5604,'at_sindragosa_lair'),
+(5698, 'at_icc_saurfang_portal'),
+(5649, 'at_icc_shutdown_traps');
+
 DELETE FROM `creature_text` WHERE `entry`=36853;
 INSERT INTO `creature_text` (`entry`,`groupid`,`id`,`text`,`type`,`language`,`probability`,`emote`,`duration`,`sound`,`comment`) VALUES
 (36853,0,0, 'You are fools to have come to this place! The icy winds of Northrend will consume your souls!',1,0,0,0,0,17007, 'Sindragosa - SAY_AGGRO'),
@@ -287,19 +291,20 @@ INSERT INTO `locales_npc_text` (`entry`, `Text0_0_loc8`) VALUES
 (800006, 'Ледяной трон');
 
 -- Traps
-DELETE FROM `creature_template` WHERE `entry` = 37744;
-INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid1`, `modelid2`, `modelid3`, `modelid4`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction_A`, `faction_H`, `npcflag`, `speed_walk`, `speed_run`, `scale`, `rank`, `mindmg`, `maxdmg`, `dmgschool`, `attackpower`, `dmg_multiplier`, `baseattacktime`, `rangeattacktime`, `unit_class`, `unit_flags`, `dynamicflags`, `family`, `trainer_type`, `trainer_spell`, `trainer_class`, `trainer_race`, `minrangedmg`, `maxrangedmg`, `rangedattackpower`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `resistance1`, `resistance2`, `resistance3`, `resistance4`, `resistance5`, `resistance6`, `spell1`, `spell2`, `spell3`, `spell4`, `spell5`, `spell6`, `spell7`, `spell8`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `InhabitType`, `Health_mod`, `Mana_mod`, `Armor_mod`, `RacialLeader`, `questItem1`, `questItem2`, `questItem3`, `questItem4`, `questItem5`, `questItem6`, `movementId`, `RegenHealth`, `equipment_id`, `mechanic_immune_mask`, `flags_extra`, `ScriptName`, `WDBVerified`) VALUES ('37744','0','0','0','0','0','1126','11686','0','0','Frost Freeze Trap','','','0','80','80','2','2102','2102','0','1','1.14286','1','0','420','630','0','157','1','2000','2000','1','33554432','8','0','0','0','0','0','336','504','126','10','1048576','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','','0','4','1','1','1','0','0','0','0','0','0','0','0','1','0','0','130','npc_frost_freeze_trap','12340');
-UPDATE `creature` SET `id` = 37744 WHERE `id` = 38879;
 UPDATE `gameobject_template` SET `ScriptName` = 'go_icc_spirit_alarm' WHERE `entry` IN (201814, 201815, 201816, 201817);
-UPDATE `areatrigger_teleport` SET `target_position_x` = 4126 WHERE `id` = 5698;
-DELETE FROM `creature` WHERE `guid` = 3860001;
-INSERT INTO `creature` values ('3860001',37744,631,15,1,0,0,4136.21,2779.04,352.203,4.85609,7200,0,0,1,0,0,2,0,0,0);
 DELETE FROM `creature_addon` WHERE `guid` IN (93950, 101906, 101936, 101937, 101939, 101951, 101995, 101996, 115554, 115555, 115742, 115743);
 DELETE FROM `waypoint_scripts` WHERE `dataint` = 38879;
 DELETE FROM `waypoint_data` WHERE `action` IN (716, 717, 718, 719, 70, 721, 722, 747, 748, 749, 750);
-UPDATE `creature` SET `orientation` = 4.71238 WHERE `guid` IN (115555, 101937, 3860001, 101995);
-UPDATE `creature` SET `orientation` = 0 WHERE `guid` IN (101939, 101951, 115554, 115743);
-UPDATE `creature` SET `orientation` = 3.14159 WHERE `guid` IN (101906, 115742, 101936, 101996);
+
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (70536, 70545, 70546, 70547);
+INSERT INTO `spell_script_names` VALUES
+(70546, 'spell_icc_spirit_alarm'),
+(70536, 'spell_icc_spirit_alarm'),
+(70545, 'spell_icc_spirit_alarm'),
+(70547, 'spell_icc_spirit_alarm');
+REPLACE INTO `spell_script_names` VALUES (70461, 'spell_coldflame_trap');]
+UPDATE `gameobject_template` SET `ScriptName` = 'go_icc_plagueworks_valve' WHERE `entry` IN (201615, 201616);
+
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (70536, 70545, 70546, 70547);
 INSERT INTO `spell_script_names` VALUES
 (70546, 'spell_icc_spirit_alarm'),
@@ -308,7 +313,6 @@ INSERT INTO `spell_script_names` VALUES
 (70547, 'spell_icc_spirit_alarm');
 REPLACE INTO `spell_script_names` VALUES (70461, 'spell_coldflame_trap');
 UPDATE `gameobject_template` SET `ScriptName` = 'go_icc_plagueworks_valve' WHERE `entry` IN (201615, 201616);
-
 -- The Lich King
 DELETE FROM `areatrigger_teleport` WHERE `id` = 5718;
 
