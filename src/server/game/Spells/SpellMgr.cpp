@@ -773,6 +773,11 @@ bool SpellMgr::_isPositiveEffect(uint32 spellId, uint32 effIndex, bool deep) con
             if (spellproto->SpellIconID == 45)
                 return true;
             break;
+        case SPELLFAMILY_WARRIOR:
+	     // Shockwave
+            if (spellId == 46968)
+                return false;
+            break;
         case SPELLFAMILY_PRIEST:
             switch (spellId)
             {
@@ -3850,6 +3855,13 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->EffectRadiusIndex[0] = 37;
             count++;
             break;
+        // Ghoul's explosion - fix wrong target(?) + make instakill
+	    case 47496:
+	    spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_AREA_ENEMY_DST;
+	    spellInfo->EffectImplicitTargetB[0] = 0;
+	    spellInfo->Effect[1] = SPELL_EFFECT_INSTAKILL;
+	    count++;
+	    break;
         // Master Shapeshifter: missing stance data for forms other than bear - bear version has correct data
         // To prevent aura staying on target after talent unlearned
         case 48420:
@@ -3984,13 +3996,6 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->EffectImplicitTargetB[0] = TARGET_UNIT_MASTER;
             count++;
             break;
-        case 71708: // Empowered Flare
-        case 72785: // Empowered Flare
-        case 72786: // Empowered Flare
-        case 72787: // Empowered Flare
-            spellInfo->AttributesEx3 |= SPELL_ATTR3_NO_DONE_BONUS;
-            count++;
-            break;
         // ICECROWN CITADEL SPELLS
         // THESE SPELLS ARE WORKING CORRECTLY EVEN WITHOUT THIS HACK
         // THE ONLY REASON ITS HERE IS THAT CURRENT GRID SYSTEM
@@ -4014,6 +4019,7 @@ void SpellMgr::LoadSpellCustomAttr()
         case 70834: // Bone Storm (Lord Marrowgar)
         case 70835: // Bone Storm (Lord Marrowgar)
         case 70836: // Bone Storm (Lord Marrowgar)
+        case 72864: // Death Plague (Rotting Frost Giant)
         case 72378: // Blood Nova (Deathbringer Saurfang)
         case 73058: // Blood Nova (Deathbringer Saurfang)
             spellInfo->EffectRadiusIndex[0] = 12;
@@ -4027,8 +4033,9 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->EffectImplicitTargetB[0] = 0;
             count++;
             break;
-        case 70460: // Coldflame Jets
+        case 70460: // Coldflame Jets (Traps after Saurfang)
             spellInfo->DurationIndex = 1;   // 10 seconds
+            count++;
             break;
         case 71413: // Green Ooze Summon (Professor Putricide)
         case 71414: // Orange Ooze Summon (Professor Putricide)
@@ -4072,6 +4079,13 @@ void SpellMgr::LoadSpellCustomAttr()
         case 72934: // Blood Infusion Quest Credit (Blood-Queen Lana'thel)
         case 72289: // Frost Infusion Quest Credit (Sindragosa)
             spellInfo->EffectRadiusIndex[0] = 28;   // another missing radius
+            count++;
+            break;
+        case 71708: // Empowered Flare (Blood Prince Council)
+        case 72785: // Empowered Flare (Blood Prince Council)
+        case 72786: // Empowered Flare (Blood Prince Council)
+        case 72787: // Empowered Flare (Blood Prince Council)
+            spellInfo->AttributesEx3 |= SPELL_ATTR3_NO_DONE_BONUS;
             count++;
             break;
         case 71340: // Pact of the Darkfallen (Blood-Queen Lana'thel)
