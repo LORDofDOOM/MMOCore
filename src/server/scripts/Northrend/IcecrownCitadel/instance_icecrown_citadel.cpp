@@ -125,7 +125,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                 uiFlightWarTp           = 0;
                 uiSaurfangTp            = 0;
                 uiCitadelTp             = 0;
-                uiSindragosaTp         = 0;
+                uiSindragosaTp          = 0;
                 uiLichTp                = 0;
 
                 uiSpiritAlarm1          = 0;
@@ -552,7 +552,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                     {
                         uiLichTp = go->GetGUID();
                         bool bAllOthersAreDone = true;
-                        for (uint8 i = 0; i <= 10 && bAllOthersAreDone; ++i)
+                        for (uint8 i = 0; i <= 11 && bAllOthersAreDone; ++i)
                             bAllOthersAreDone &= (uiEncounter[i] == DONE);
                         MakeObjectClickable(go, bAllOthersAreDone);
                         go->SetGoState(bAllOthersAreDone ? GO_STATE_ACTIVE : GO_STATE_READY);
@@ -1022,7 +1022,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                     {
                         if(data == DONE)
                         {
-                            HandleGameObject(uiBloodQueenGrate, false);
+                            HandleGameObject(uiBloodQueenGrate, true);
                             instance->LoadGrid(4412, 2769);
                             if (GameObject *go = instance->GetGameObject(uiBloodwingSigil))
                                 go->SetGoState(GO_STATE_READY);

@@ -146,7 +146,8 @@ enum eActions
 {
     ACTION_WIPE = 1
 };
-
+#define FACTION_STORMWIND 11
+#define FACTION_ORGRIMMAR 1612
 
 const Position Pos[] =
 {
@@ -201,6 +202,30 @@ class boss_valithria : public CreatureScript
                 me->SetSpeed(MOVE_WALK, 0.0f, true);
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNK_9); // 3.0.3 - makes you unable to attack everything
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
+
+                Map::PlayerList const &players = me->GetMap()->GetPlayers();
+                uint32 TeamInInstance = 0;
+                if (!players.isEmpty())
+                {
+                    if (Player* pPlayer = players.begin()->getSource())
+                        TeamInInstance = pPlayer->GetTeam();
+                }
+                if (TeamInInstance == ALLIANCE)
+                    me->setFaction(FACTION_STORMWIND);
+                else
+                    me->setFaction(FACTION_ORGRIMMAR);
+            }
+
+            void JustDied(Unit* killer)
+            {
+                me->Respawn();
+                DoCast(me, SPELL_CORRUPTION);
+                DoAction(ACTION_WIPE);
+            }
+
+            void JustRespawned()
+            {
+                me->SetHealth(me->GetMaxHealth() / 2);
             }
 
             void Reset()
@@ -235,6 +260,7 @@ class boss_valithria : public CreatureScript
                 }
                 if (action == ACTION_WIPE)
                 {
+                    Reset();
                     events.Reset();
                     DoScriptText(SAY_FAILURES, me);
                     DoCast(me, SPELL_RAGE);
@@ -916,6 +942,7 @@ class npc_icc_combat_stalker : public CreatureScript
                             {
                                 if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER)))
                                     valithria->AI()->DoAction(ACTION_WIPE);
+                                Reset();
                                 return;
                             }
                             else
