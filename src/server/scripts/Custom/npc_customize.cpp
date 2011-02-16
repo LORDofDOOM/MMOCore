@@ -20,28 +20,34 @@ enum ActNpcRename
 {
     ACT_RENAME                	= 1001,
     ACT_CUSTOMIZE             	= 1002,
-    ACT_CUSTOMIZE_RACE        	= 1003,	
-    ACT_CONFIRM_RENAME        	= 1004,
-    ACT_CONFIRM_CUSTOMIZE     	= 1005,
-    ACT_CONFIRM_CUSTOMIZE_RACE	= 1006
+    ACT_CUSTOMIZE_RACE             	= 1003,	
+    ACT_CUSTOMIZE_FACTION        	= 1004,	
+    ACT_CONFIRM_RENAME        	= 1005,
+    ACT_CONFIRM_CUSTOMIZE     	= 1006,
+    ACT_CONFIRM_CUSTOMIZE_RACE     	= 1007,	
+    ACT_CONFIRM_CUSTOMIZE_FACTION	= 1008
 };
 
-#define PRISE_RENAME_CHAR_AP    10000000
+#define PRISE_RENAME_CHAR_AP    25000000
 #define PRISE_CUSTOMIZE_CHAR_AP 25000000
-#define PRISE_CUSTOMIZE_RACE_CHAR_AP 75000000
+#define PRISE_CUSTOMIZE_RACE_CHAR_AP 50000000
+#define PRISE_CUSTOMIZE_FACTION_CHAR_AP 75000000
 
 #define GOSSIP_RENAME_HELLO "Ich möchte den Namen meines Charakters ändern"
 #define GOSSIP_CUSTOMIZE_HELLO "Ich möchte das Aussehen oder das Geschlecht meines Charakters ändern"
-#define GOSSIP_CUSTOMIZE_RACE_HELLO "Ich möchte meine Fraktion wechseln"
-#define GOSSIP_RENAME_CONFIRM "Für 1250 Gold umbenennen ?"
+#define GOSSIP_CUSTOMIZE_RACE_HELLO "Ich möchte meine Rasse wechseln"
+#define GOSSIP_CUSTOMIZE_FACTION_HELLO "Ich möchte meine Fraktion wechseln"
+#define GOSSIP_RENAME_CONFIRM "Für 2500 Gold umbenennen ?"
 #define GOSSIP_CUSTOMIZE_CONFIRM "Für 2500 Gold Aussehen ändern ?"
-#define GOSSIP_CUSTOMIZE_RACE_CONFIRM "Für 7500 Gold Fraktion ändern ?"
+#define GOSSIP_CUSTOMIZE_FACTION_RACE "Für 5000 Gold Rasse ändern ?"
+#define GOSSIP_CUSTOMIZE_FACTION_CONFIRM "Für 7500 Gold Fraktion ändern ?"
 
 
 #define MSG_NOT_MONEY_FOR_RENAME "Du hast nicht genug Gold!"
 #define MSG_COMPLETE_RENAME "Bei der nächsten Anmeldung, wirst du aufgefordert, einen neuen Namen einzugeben!"
 #define MSG_COMPLETE_CUSTOMIZE "Bei der nächsten Anmeldung, wirst du aufgefordert, deinen Namen und dein Aussehen zu verändern!"
-#define MSG_COMPLETE_RACE_CUSTOMIZE "Bei der nächsten Anmeldung, wirst du aufgefordert, deine Fraktion zu verändern!"
+#define MSG_COMPLETE_RACE_CUSTOMIZE "Bei der nächsten Anmeldung, wirst du aufgefordert, deine Rasse zu verändern!"
+#define MSG_COMPLETE_FACTION_CUSTOMIZE "Bei der nächsten Anmeldung, wirst du aufgefordert, deine Fraktion zu verändern!"
 
 class npc_customize : public CreatureScript
 {
@@ -52,7 +58,8 @@ public:
     {
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_RENAME_HELLO, GOSSIP_SENDER_MAIN, ACT_RENAME);
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_CUSTOMIZE_HELLO, GOSSIP_SENDER_MAIN, ACT_CUSTOMIZE);
-        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_CUSTOMIZE_RACE_HELLO, GOSSIP_SENDER_MAIN, ACT_CUSTOMIZE_RACE);		
+        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_CUSTOMIZE_RACE_HELLO, GOSSIP_SENDER_MAIN, ACT_CUSTOMIZE_RACE);			
+        //pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_CUSTOMIZE_FACTION_HELLO, GOSSIP_SENDER_MAIN, ACT_CUSTOMIZE_FACTION);		
         pPlayer->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, pCreature->GetGUID());
         return true;
     }
@@ -75,7 +82,11 @@ public:
             pPlayer->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, pCreature->GetGUID());
             break;
         case ACT_CUSTOMIZE_RACE:
-            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_CUSTOMIZE_RACE_CONFIRM, GOSSIP_SENDER_MAIN, ACT_CONFIRM_CUSTOMIZE_RACE);
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_CUSTOMIZE_FACTION_RACE, GOSSIP_SENDER_MAIN, ACT_CONFIRM_CUSTOMIZE_RACE);
+            pPlayer->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, pCreature->GetGUID());
+            break;				
+        case ACT_CUSTOMIZE_FACTION:
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_CUSTOMIZE_FACTION_CONFIRM, GOSSIP_SENDER_MAIN, ACT_CONFIRM_CUSTOMIZE_FACTION);
             pPlayer->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, pCreature->GetGUID());
             break;			
         case ACT_CONFIRM_RENAME:
@@ -107,6 +118,17 @@ public:
             }else{
                 pCreature->MonsterWhisper(MSG_COMPLETE_RACE_CUSTOMIZE, pPlayer->GetGUID());
                 pPlayer->ModifyMoney(-PRISE_CUSTOMIZE_RACE_CHAR_AP);
+                pPlayer->SetAtLoginFlag(AT_LOGIN_CHANGE_RACE);
+            }
+            pPlayer->CLOSE_GOSSIP_MENU();
+            break;				
+        case ACT_CONFIRM_CUSTOMIZE_FACTION:
+            if (pPlayer->GetMoney() < PRISE_CUSTOMIZE_FACTION_CHAR_AP)
+            {
+                pCreature->MonsterWhisper(MSG_NOT_MONEY_FOR_RENAME, pPlayer->GetGUID());
+            }else{
+                pCreature->MonsterWhisper(MSG_COMPLETE_FACTION_CUSTOMIZE, pPlayer->GetGUID());
+                pPlayer->ModifyMoney(-PRISE_CUSTOMIZE_FACTION_CHAR_AP);
                 pPlayer->SetAtLoginFlag(AT_LOGIN_CHANGE_FACTION);
             }
             pPlayer->CLOSE_GOSSIP_MENU();
