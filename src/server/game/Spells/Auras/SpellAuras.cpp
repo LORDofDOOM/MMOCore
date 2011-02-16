@@ -641,6 +641,11 @@ void Aura::UpdateOwner(uint32 diff, WorldObject * owner)
         }
     }
 
+		if (caster && caster->IsInWorld() && !caster->IsInMap(m_owner))
+			{
+			Remove();
+	    }	
+	
     Update(diff, caster);
 
     if (m_updateTargetMapInterval <= int32(diff))
