@@ -22,10 +22,10 @@
 #define GOSSIP_TEXT(id) sObjectMgr->GetGossipText(id)->Options[0].Text_0
 #define IS_TELEPORT_ENABLED(id) ((go->GetMap()->GetGameObject(instance->GetData64(id))->GetGoState() == GO_STATE_ACTIVE) ? true: false)
 // Weekly quest support
-//* Deprogramming
+//* Deprogramming                (DONE)
 //* Securing the Ramparts        (DONE)
 //* Residue Rendezvous
-//* Blood Quickening
+//* Blood Quickening                    // AreaTrigger 5729 starts the timer, pulling BQ before it runs out means success
 //* Respite for a Tormented Soul
 
 enum Texts
