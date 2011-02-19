@@ -63,16 +63,6 @@ enum DoorType
     MAX_DOOR_TYPES,
 };
 
-enum TeleporterSpells
-{
-    LIGHT_S_HAMMER_TELEPORT         = 70781,
-    ORATORY_OF_THE_DAMNED_TELEPORT  = 70856,
-    RAMPART_OF_SKULLS_TELEPORT      = 70857,
-    DEATHBRINGER_S_RISE_TELEPORT    = 70858,
-    UPPER_SPIRE_TELEPORT            = 70859,
-    FROZEN_THRONE_TELEPORT          = 70860,
-    SINDRAGOSA_S_LAIR_TELEPORT      = 70861
-};
 enum BoundaryType
 {
     BOUNDARY_NONE = 0,

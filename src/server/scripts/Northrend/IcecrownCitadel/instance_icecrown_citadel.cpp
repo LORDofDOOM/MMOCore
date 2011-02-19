@@ -26,11 +26,11 @@ const Position SpawnLoc[]=
 };
 static const DoorData doorData[] =
 {
-    {GO_LORD_MARROWGAR_S_ENTRANCE,           DATA_MARROWGAR_EVENT,             DOOR_TYPE_ROOM,    BOUNDARY_N   },
-    {GO_ICEWALL,                             DATA_MARROWGAR_EVENT,             DOOR_TYPE_PASSAGE, BOUNDARY_NONE},
-    {GO_DOODAD_ICECROWN_ICEWALL02,           DATA_MARROWGAR_EVENT,             DOOR_TYPE_PASSAGE, BOUNDARY_NONE},
+    {GO_LORD_MARROWGAR_S_ENTRANCE,           DATA_LORD_MARROWGAR_EVENT,        DOOR_TYPE_ROOM,    BOUNDARY_N   },
+    {GO_LORD_MARROWGAR_ICE_WALL,             DATA_LORD_MARROWGAR_EVENT,        DOOR_TYPE_PASSAGE, BOUNDARY_NONE},
+    {GO_LORD_MARROWGAR_ICE_WALL_1,           DATA_LORD_MARROWGAR_EVENT,        DOOR_TYPE_PASSAGE, BOUNDARY_NONE},
     {GO_ORATORY_OF_THE_DAMNED_ENTRANCE,      DATA_DEATHWHISPER_EVENT,          DOOR_TYPE_ROOM,    BOUNDARY_N   },
-    {GO_SAURFANG_S_DOOR,                     DATA_SAURFANG_EVENT,              DOOR_TYPE_PASSAGE, BOUNDARY_NONE},
+    {GO_DEATHBRINGER_S_DOOR,                 DATA_SAURFANG_EVENT,              DOOR_TYPE_PASSAGE, BOUNDARY_NONE},
     {GO_ORANGE_PLAGUE_MONSTER_ENTRANCE,      DATA_FESTERGUT_EVENT,             DOOR_TYPE_ROOM,    BOUNDARY_E   },
     {GO_GREEN_PLAGUE_MONSTER_ENTRANCE,       DATA_ROTFACE_EVENT,               DOOR_TYPE_ROOM,    BOUNDARY_E   },
     {GO_SCIENTIST_ENTRANCE,                  DATA_PROFESSOR_PUTRICIDE_EVENT,   DOOR_TYPE_ROOM,    BOUNDARY_E   },
@@ -44,8 +44,8 @@ static const DoorData doorData[] =
     {GO_SINDRAGOSA_ENTRANCE_DOOR,            DATA_SINDRAGOSA_EVENT,            DOOR_TYPE_ROOM,    BOUNDARY_S   },
     {GO_SINDRAGOSA_SHORTCUT_ENTRANCE_DOOR,   DATA_SINDRAGOSA_EVENT,            DOOR_TYPE_PASSAGE, BOUNDARY_E   },
     {GO_SINDRAGOSA_SHORTCUT_EXIT_DOOR,       DATA_SINDRAGOSA_EVENT,            DOOR_TYPE_PASSAGE, BOUNDARY_NONE},
-    {GO_SINDRAGOSA_ICE_WALL,                 DATA_SINDRAGOSA,                  DOOR_TYPE_ROOM,    BOUNDARY_SE  }, 
-    {GO_SINDRAGOSA_ICE_WALL,                 DATA_SINDRAGOSA,                  DOOR_TYPE_ROOM,    BOUNDARY_SW  }, 
+    {GO_SINDRAGOSA_ICE_WALL,                 DATA_SINDRAGOSA_EVENT,            DOOR_TYPE_ROOM,    BOUNDARY_SE  }, 
+    {GO_SINDRAGOSA_ICE_WALL,                 DATA_SINDRAGOSA_EVENT,            DOOR_TYPE_ROOM,    BOUNDARY_SW  }, 
     {0,                                      0,                                DOOR_TYPE_ROOM,    BOUNDARY_NONE} // END
 };
 class instance_icecrown_citadel : public InstanceMapScript
@@ -61,7 +61,6 @@ class instance_icecrown_citadel : public InstanceMapScript
                 uiDifficulty = pMap->GetDifficulty();
 
                 uiLordMarrowgar         = 0;
-                uiGunship               = 0;
                 uiDeathbringerSaurfang  = 0;
                 uiFestergut             = 0;
                 uiRotface               = 0;
@@ -77,11 +76,8 @@ class instance_icecrown_citadel : public InstanceMapScript
                 uiTirion                = 0;
                 uiSaurfangCache         = 0;
 
-                uiAngle                 = 0;
-                uiSpawn                 = 0;
-                uiAllYouCanEat          = 0;
                 uiNecroticStack         = 0;
-                uiBloodCouncilController = 0;
+                uiBloodCouncilController= 0;
                 uiBeenWaiting           = 0;
                 uiNeckDeep              = 0;
                 uiIceWall1              = 0;
@@ -117,7 +113,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                 uiRoostDoor3            = 0;
                 uiRoostDoor4            = 0;
                 uiValithriaTransporter  = 0;
-                uiSindragosaTransporter= 0;
+                uiSindragosaTransporter = 0;
                 uiSindragosaDoor1       = 0;
                 uiSindragosaShortcutEntranceDoor       = 0;
                 uiSindragosaIceWall     = 0;
@@ -141,9 +137,9 @@ class instance_icecrown_citadel : public InstanceMapScript
 
                 uiUpperSpireLever       = 0;
 
-                sindragosa              = 0; 
-                spinestalker            = 0; 
-                rimefang                = 0; 
+                uiSindragosa            = 0; 
+                uiSpinestalker          = 0; 
+                uiRimefang              = 0; 
                 frostwyrms              = 0; 
                 spinestalkerTrash       = 0; 
                 rimefangTrash           = 0; 
@@ -157,6 +153,13 @@ class instance_icecrown_citadel : public InstanceMapScript
                 isOrbWhispererEligible  = 0;
                 isPortalJockeyEligible  = 0;
 
+                uiTeleportToOratoryOfTheDamnedActivated = 0;
+                uiTeleportToRampartOfSkullsActivated = 0;
+                uiTeleportToDeathbringersRiseActivated = 0;
+                uiTeleportToUpperSpireActivated = 0;
+                uiTeleportToSindragosasLairActivated = 0;
+                uiTeleportToFrozenThroneActivated = 0;
+
                 coldflameJetsState      = NOT_STARTED;
                 memset(&uiEncounter, 0, sizeof(uiEncounter));
                 //While Gunship Battle is not implemented
@@ -165,12 +168,11 @@ class instance_icecrown_citadel : public InstanceMapScript
 
             bool IsEncounterInProgress() const
             {
+                if (!instance->GetPlayersCountExceptGMs())
+                    return false;
                 for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
-                {
                     if (uiEncounter[i] == IN_PROGRESS)
                         return true;
-                }
-
                 return false;
             }
 
@@ -187,101 +189,98 @@ class instance_icecrown_citadel : public InstanceMapScript
                 }
                 switch(creature->GetEntry())
                 {
-                    case CREATURE_OOZE_COVERED_TENTACLE_STALKER:
-                    case CREATURE_SLIMY_TENTACLE_STALKER:
-                    case CREATURE_ORANGE_GAS_STALKER:
-                    case CREATURE_TEAR_GAS_STALKER:
+                    case NPC_OOZE_COVERED_TENTACLE_STALKER:
+                    case NPC_SLIMY_TENTACLE_STALKER:
+                    case NPC_ORANGE_GAS_STALKER:
+                    case NPC_TEAR_GAS_STALKER:
                         creature->SetReactState(REACT_PASSIVE);
                         break;
-                    case CREATURE_KOR_KRON_GENERAL:
+                    case NPC_KOR_KRON_GENERAL:
                         if (TeamInInstance == ALLIANCE)
-                            creature->UpdateEntry(CREATURE_ALLIANCE_COMMANDER, ALLIANCE);
+                            creature->UpdateEntry(NPC_ALLIANCE_COMMANDER, ALLIANCE);
                         break;
-                    case CREATURE_TORTUNOK:
+                    case NPC_TORTUNOK:
                         if (TeamInInstance == ALLIANCE)
-                            creature->UpdateEntry(CREATURE_ALANA_MOONSTRIKE, ALLIANCE);
+                            creature->UpdateEntry(NPC_ALANA_MOONSTRIKE, ALLIANCE);
                         break;
-                    case CREATURE_GERARDO_THE_SUAVE:
+                    case NPC_GERARDO_THE_SUAVE:
                         if (TeamInInstance == ALLIANCE)
-                            creature->UpdateEntry(CREATURE_TALAN_MOONSTRIKE, ALLIANCE);
+                            creature->UpdateEntry(NPC_TALAN_MOONSTRIKE, ALLIANCE);
                         break;
-                    case CREATURE_UVLUS_BANEFIRE:
+                    case NPC_UVLUS_BANEFIRE:
                         if (TeamInInstance == ALLIANCE)
-                            creature->UpdateEntry(CREATURE_MALFUS_GRIMFROST, ALLIANCE);
+                            creature->UpdateEntry(NPC_MALFUS_GRIMFROST, ALLIANCE);
                         break;
-                    case CREATURE_IKFIRUS_THE_VILE:
+                    case NPC_IKFIRUS_THE_VILE:
                         if (TeamInInstance == ALLIANCE)
-                            creature->UpdateEntry(CREATURE_YILI, ALLIANCE);
+                            creature->UpdateEntry(NPC_YILI, ALLIANCE);
                         break;
-                    case CREATURE_VOL_GUK:
+                    case NPC_VOL_GUK:
                         if (TeamInInstance == ALLIANCE)
-                            creature->UpdateEntry(CREATURE_JEDEBIA, ALLIANCE);
+                            creature->UpdateEntry(NPC_JEDEBIA, ALLIANCE);
                         break;
-                    case CREATURE_HARAGG_THE_UNSEEN:
+                    case NPC_HARAGG_THE_UNSEEN:
                         if (TeamInInstance == ALLIANCE)
-                            creature->UpdateEntry(CREATURE_NIBY_THE_ALMIGHTY, ALLIANCE);
+                            creature->UpdateEntry(NPC_NIBY_THE_ALMIGHTY, ALLIANCE);
                         break;
-                    case CREATURE_GARROSH_HELLSCREAM:
+                    case NPC_GARROSH_HELLSCREAM:
                         if (TeamInInstance == ALLIANCE)
-                            creature->UpdateEntry(CREATURE_KING_VARIAN_WRYNN, ALLIANCE);
+                            creature->UpdateEntry(NPC_KING_VARIAN_WRYNN, ALLIANCE);
                         break;
-                    case CREATURE_SE_HIGH_OVERLORD_SAURFANG:
+                    case NPC_SE_HIGH_OVERLORD_SAURFANG:
                         if (TeamInInstance == ALLIANCE)
-                            creature->UpdateEntry(CREATURE_SE_MURADIN_BRONZEBEARD, ALLIANCE);
+                            creature->UpdateEntry(NPC_SE_MURADIN_BRONZEBEARD, ALLIANCE);
                          break;
-                    case CREATURE_SE_KOR_KRON_REAVER:
+                    case NPC_SE_KOR_KRON_REAVER:
                         if (TeamInInstance == ALLIANCE)
-                            creature->UpdateEntry(CREATURE_SE_SKYBREAKER_MARINE, ALLIANCE);
+                            creature->UpdateEntry(NPC_SE_SKYBREAKER_MARINE, ALLIANCE);
                         break;
                     case NPC_LORD_MARROWGAR:
                         uiLordMarrowgar = creature->GetGUID();
                         //Lord Marrowgar has lard hitbox
                         creature->SetFloatValue(UNIT_FIELD_COMBATREACH, 10.0f);
                         break;
-                    case CREATURE_GUNSHIP:
-                        uiGunship = creature->GetGUID();
-                        break;
-                    case CREATURE_SAURFANG:
+                    case NPC_SAURFANG:
                         uiDeathbringerSaurfang = creature->GetGUID();
                         break;
                     case NPC_FROST_FREEZE_TRAP:
                         coldflameJets.insert(creature->GetGUID());
                         break;
-                    case CREATURE_FESTERGUT:
+                    case NPC_FESTERGUT:
                         uiFestergut = creature->GetGUID();
                         break;
-                    case CREATURE_ROTFACE:
+                    case NPC_ROTFACE:
                         uiRotface = creature->GetGUID();
                         break;
-                    case CREATURE_PROFESSOR_PUTRICIDE:
+                    case NPC_PROFESSOR_PUTRICIDE:
                         uiProfessorPutricide = creature->GetGUID();
                         break;
-                    case CREATURE_PRINCE_VALANAR_ICC:
+                    case NPC_PRINCE_VALANAR_ICC:
                         uiPrinceValanar = creature->GetGUID();
                         creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
                         break;
-                    case CREATURE_PRINCE_KELESETH_ICC:
+                    case NPC_PRINCE_KELESETH_ICC:
                         uiPrinceKeleseth = creature->GetGUID();
                         creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
                         break;
-                    case CREATURE_PRINCE_TALDARAM_ICC:
+                    case NPC_PRINCE_TALDARAM_ICC:
                         uiPrinceTaldaram = creature->GetGUID();
                         creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
                         break;
-                    case CREATURE_BLOOD_ORB_CONTROLLER:
+                    case NPC_BLOOD_ORB_CONTROLLER:
                         uiBloodCouncilController = creature->GetGUID();
                         break;
-                    case CREATURE_BLOOD_QUEEN_LANA_THEL:
+                    case NPC_BLOOD_QUEEN_LANA_THEL:
                         uiBloodQueenLanathel = creature->GetGUID();
                         creature->SetReactState(REACT_DEFENSIVE);
                         break;
-                    case CREATURE_VALITHRIA_DREAMWALKER:
+                    case NPC_VALITHRIA_DREAMWALKER:
                         uiValithriaDreamwalker = creature->GetGUID();
                         break;
-                    case CREATURE_VALITHRIA_ALTERNATIVE:
+                    case NPC_VALITHRIA_ALTERNATIVE:
                         uiValithriaAlternative = creature->GetGUID();
                         break;
-                    case CREATURE_COMBAT_TRIGGER:
+                    case NPC_COMBAT_TRIGGER:
                     {
                         uiValithriaCombatTrigger = creature->GetGUID();
                         creature->SetReactState(REACT_AGGRESSIVE);
@@ -292,15 +291,15 @@ class instance_icecrown_citadel : public InstanceMapScript
                         break;
                     }
                     case NPC_SINDRAGOSA: 
-                        sindragosa = creature->GetGUID(); 
+                        uiSindragosa = creature->GetGUID(); 
                         break; 
                     case NPC_SPINESTALKER: 
-                        spinestalker = creature->GetGUID(); 
+                        uiSpinestalker = creature->GetGUID(); 
                         if (!creature->isDead()) 
                             ++frostwyrms; 
                         break; 
                     case NPC_RIMEFANG: 
-                        rimefang = creature->GetGUID(); 
+                        uiRimefang = creature->GetGUID(); 
                         if (!creature->isDead()) 
                             ++frostwyrms; 
                         break;
@@ -320,9 +319,14 @@ class instance_icecrown_citadel : public InstanceMapScript
                         creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
                         break;
                     }
-                    case CREATURE_LICH_KING:
+                    case NPC_LICH_KING:
                     {
                         uiLichKing = creature->GetGUID();
+                        break;
+                    }
+                    case NPC_TIRION_ICC:
+                    {
+                        uiTirion = creature->GetGUID();
                         break;
                     }
                 }
@@ -344,255 +348,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                 }
                 switch (go->GetEntry())
                 {
-                    case LORD_ICE_WALL_1:
-                        uiIceWall1 = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_MARROWGAR_EVENT] == DONE, go);
-                        break;
-                    case LORD_ICE_WALL_2:
-                        uiIceWall2 = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_MARROWGAR_EVENT] == DONE, go);
-                        break;
-                    case LORD_ENTRANCE:
-                        uiMarrowgarEntrance = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_MARROWGAR_EVENT] != IN_PROGRESS, go);
-                        break;
-                    case ORATORY_ENTRANCE:
-                        uiOratoryDoor = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_DEATHWHISPER_EVENT] != IN_PROGRESS && uiEncounter[DATA_MARROWGAR_EVENT] == DONE, go);
-                        break;
-                    case SAURFANG_DOOR:
-                        uiSaurfangDoor = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_SAURFANG_EVENT] == DONE, go);
-                        break;
-                    case BLOODWING_DOOR:
-                        uiBloodwingDoor = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_SAURFANG_EVENT] == DONE, go);
-                        break;
-                    case FROSTWING_DOOR:
-                        uiFrostwingDoor = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_SAURFANG_EVENT] == DONE, go);
-                        break;
-                    case CRIMSONHALL_DOOR:
-                        uiCrimsonHallDoor1 = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_BLOOD_PRINCE_COUNCIL_EVENT] != IN_PROGRESS, go);
-                        break;
-                    case CRIMSONHALL_DOOR_RIGHT:
-                        uiCrimsonHallDoorRight = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_BLOOD_PRINCE_COUNCIL_EVENT] == DONE, go);
-                        break;
-                    case CRIMSONHALL_DOOR_LEFT:
-                        uiCrimsonHallDoorLeft = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_BLOOD_PRINCE_COUNCIL_EVENT] == DONE, go);
-                        break;
-                    case VALITHRIA_DOOR_ENTRANCE:
-                        uiValithriaDoorEntrance = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_VALITHRIA_DREAMWALKER_EVENT] != IN_PROGRESS, go);
-                        break;
-                    case VALITHRIA_DOOR_EXIT:
-                        uiValithriaDoorExit = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_VALITHRIA_DREAMWALKER_EVENT] == DONE, go);
-                        break;
-                    case SINDRAGOSA_SHORTCUT_EXIT_DOOR:
-                        uiSindragosaShortcutExitDoor = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_SINDRAGOSA_EVENT] == DONE, go);
-                        break;
-                    case DREAMWALKER_DOOR_1:
-                        uiRoostDoor1 = go->GetGUID();
-                        break;
-                    case DREAMWALKER_DOOR_2:
-                        uiRoostDoor2 = go->GetGUID();
-                        break;
-                    case DREAMWALKER_DOOR_3:
-                        uiRoostDoor3 = go->GetGUID();
-                        break;
-                    case DREAMWALKER_DOOR_4:
-                        uiRoostDoor4 = go->GetGUID();
-                        break;
-                    case SINDRAGOSA_ENTRANCE_DOOR:
-                        uiSindragosaDoor1 = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_VALITHRIA_DREAMWALKER_EVENT] == DONE, go);
-                        break;
-                    case SINDRAGOSA_SHORTCUT_ENTRANCE_DOOR:
-                        uiSindragosaShortcutEntranceDoor = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_SINDRAGOSA_EVENT] == DONE, go);
-                        break;
-                    case GO_SINDRAGOSA_ICE_WALL:
-                        uiSindragosaIceWall = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_SINDRAGOSA_EVENT] != IN_PROGRESS, go);
-                        break;
-                    case PROF_COLLISION_DOOR:
-                        uiProfCollisionDoor = go->GetGUID();
-                        HandleGameObject(NULL, oozeValveActivated && gasValveActivated, go);
-                        break;
-                    case PROF_DOOR_ORANGE:
-                        uiProfDoorOrange = go->GetGUID();
-                        if (gasValveActivated == SPECIAL)
-                            go->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
-                        else
-                            go->SetGoState(GO_STATE_ACTIVE);
-                        break;
-                    case PROF_DOOR_GREEN:
-                        uiProfDoorGreen = go->GetGUID();
-                        if (oozeValveActivated == SPECIAL)
-                            go->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
-                        else
-                            go->SetGoState(GO_STATE_ACTIVE);
-                        break;
-                    case ORANGE_PIPE:
-                        uiOrangePipe = go->GetGUID();
-                        if (gasValveActivated == SPECIAL)
-                            go->SetGoState(GO_STATE_ACTIVE);
-                        else
-                            go->SetGoState(GO_STATE_READY);
-                        break;
-                    case GREEN_PIPE:
-                        uiGreenPipe = go->GetGUID();
-                        if (oozeValveActivated == SPECIAL)
-                            go->SetGoState(GO_STATE_ACTIVE);
-                        else
-                            go->SetGoState(GO_STATE_READY);
-                        break;
-                    case OOZE_VALVE:
-                        uiOozeValve = go->GetGUID();
-                        if (oozeValveActivated == SPECIAL)
-                            go->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
-                        else
-                            if (uiEncounter[DATA_FESTERGUT_EVENT] == DONE && uiEncounter[DATA_ROTFACE_EVENT] == DONE)
-                                go->SetGoState(GO_STATE_READY);
-                            else
-                                go->SetGoState(GO_STATE_ACTIVE);
-                        break;
-                    case GAS_VALVE:
-                        uiGasValve = go->GetGUID();
-                        if (gasValveActivated == SPECIAL)
-                            go->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
-                        else
-                            if (uiEncounter[DATA_FESTERGUT_EVENT] == DONE && uiEncounter[DATA_ROTFACE_EVENT] == DONE)
-                                go->SetGoState(GO_STATE_READY);
-                            else
-                                go->SetGoState(GO_STATE_ACTIVE);
-                        break;
-                    case ROTFACE_DOOR:
-                        uiGreenMonsterDoor = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_ROTFACE_EVENT] != IN_PROGRESS, go);
-                        break;
-                    case FESTERGUT_DOOR:
-                        uiOrangeMonsterDoor = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_FESTERGUT_EVENT] != IN_PROGRESS, go);
-                        break;
-                    case PROFESSOR_DOOR:
-                        uiProfessorDoor = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_PROFESSOR_PUTRICIDE_EVENT] != IN_PROGRESS, go);
-                        break;
-                    case DRINK_ME:
-                        uiPutricideTable = go->GetGUID();
-                        if (uiEncounter[DATA_PROFESSOR_PUTRICIDE_EVENT] == DONE)
-                            go->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
-                        break;
-                    case SAURFANG_CACHE_10_N:
-                    case SAURFANG_CACHE_25_N:
-                    case SAURFANG_CACHE_10_H:
-                    case SAURFANG_CACHE_25_H:
-                        uiSaurfangCache = go->GetGUID();
-                        break;
-                    case DREAMWALKER_CACHE_10_N:
-                    case DREAMWALKER_CACHE_25_N:
-                    case DREAMWALKER_CACHE_10_H:
-                    case DREAMWALKER_CACHE_25_H:
-                        uiDreamwalkerCache = go->GetGUID();
-                        break;
-                    case LADY_ELEVATOR:
-                        uiLadyDeathwisperTransporter = go->GetGUID();
-                        if (uiEncounter[DATA_DEATHWHISPER_EVENT] == DONE)
-                        {
-                            go->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
-                            go->SetGoState(GO_STATE_READY);
-                        }
-                        break;
-                    case BLOODQUEEN_GRATE:
-                        uiBloodQueenGrate = go->GetGUID();
-                        go->SetGoState(uiEncounter[DATA_BLOOD_QUEEN_LANA_THEL_EVENT] == DONE ? GO_STATE_ACTIVE : GO_STATE_READY);
-                        break;
-                    case VALITHRIA_ELEVATOR:
-                        uiValithriaTransporter = go->GetGUID();
-                        if (uiEncounter[DATA_VALITHRIA_DREAMWALKER_EVENT] == DONE)
-                        {
-                            go->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
-                            go->SetGoState(GO_STATE_READY);
-                        }
-                        break;
-                    case SINDRAGOSA_ELEVATOR:
-                        uiSindragosaTransporter = go->GetGUID();
-                        if (uiEncounter[DATA_SINDRAGOSA_EVENT] == DONE)
-                        {
-                            go->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
-                            go->SetGoState(GO_STATE_READY);
-                        }
-                        break;
-                    case FIRST_TELEPORT:
-                        uiFirstTp = go->GetGUID();
-                        MakeObjectClickable(go, uiEncounter[DATA_MARROWGAR_EVENT] == DONE);
-                        go->SetGoState(uiEncounter[DATA_MARROWGAR_EVENT] == DONE ? GO_STATE_ACTIVE : GO_STATE_READY);
-                        break;
-                    case LORD_TELEPORT:
-                        uiMarrowgarTp = go->GetGUID();
-                        MakeObjectClickable(go, uiEncounter[DATA_MARROWGAR_EVENT] == DONE);
-                        go->SetGoState(uiEncounter[DATA_MARROWGAR_EVENT] == DONE ? GO_STATE_ACTIVE : GO_STATE_READY);
-                        break;
-                    case GUNSHIP_TELEPORT:
-                        uiFlightWarTp = go->GetGUID();
-                        MakeObjectClickable(go, uiEncounter[DATA_DEATHWHISPER_EVENT] == DONE);
-                        go->SetGoState(uiEncounter[DATA_DEATHWHISPER_EVENT] == DONE ? GO_STATE_ACTIVE : GO_STATE_READY);
-                        break;
-                    case SAURFANG_TELEPORT:
-                        uiSaurfangTp = go->GetGUID();
-                        MakeObjectClickable(go, uiEncounter[DATA_DEATHWHISPER_EVENT] == DONE);
-                        go->SetGoState(uiEncounter[DATA_DEATHWHISPER_EVENT] == DONE ? GO_STATE_ACTIVE : GO_STATE_READY);
-                        break;
-                    case CITADEL_TELEPORT:
-                        uiCitadelTp = go->GetGUID();
-                        MakeObjectClickable(go, uiEncounter[DATA_SAURFANG_EVENT] == DONE);
-                        HandleGameObject(NULL, false, go);
-                        break;
-                    case SINDRAGOSA_TELEPORT:
-                        uiSindragosaTp = go->GetGUID();
-                        MakeObjectClickable(go, uiEncounter[DATA_VALITHRIA_DREAMWALKER_EVENT] == DONE);
-                        HandleGameObject(NULL, false, go);
-                        break;
-                    case LICH_TELEPORT:
-                    {
-                        uiLichTp = go->GetGUID();
-                        bool bAllOthersAreDone = true;
-                        for (uint8 i = 0; i <= 11 && bAllOthersAreDone; ++i)
-                            bAllOthersAreDone &= (uiEncounter[i] == DONE);
-                        MakeObjectClickable(go, bAllOthersAreDone);
-                        go->SetGoState(bAllOthersAreDone ? GO_STATE_ACTIVE : GO_STATE_READY);
-                        break;
-                    }
-                    case GO_BLOOD_QUEEN_BLOOD_BARRIER:
-                    {
-                        uiBloodQueenBloodBarrier = go->GetGUID();
-                        HandleGameObject(NULL, uiEncounter[DATA_BLOOD_QUEEN_LANA_THEL_EVENT] != IN_PROGRESS, go);
-                        break;
-                    }
-                    case PLAGUE_SIGIL:
-                    {
-                        uiPlagueSigil = go->GetGUID();
-                        go->SetGoState(uiEncounter[DATA_PROFESSOR_PUTRICIDE_EVENT] == DONE ? GO_STATE_READY : GO_STATE_ACTIVE);
-                        break;
-                    }
-                    case BLOODWING_SIGIL:
-                    {
-                        uiBloodwingSigil = go->GetGUID();
-                        go->SetGoState(uiEncounter[DATA_BLOOD_QUEEN_LANA_THEL_EVENT] == DONE ? GO_STATE_READY : GO_STATE_ACTIVE);
-                        break;
-                    }
-                    case FROSTWING_SIGIL:
-                    {
-                        uiFrostwingSigil = go->GetGUID();
-                        go->SetGoState(uiEncounter[DATA_SINDRAGOSA_EVENT] == DONE ? GO_STATE_READY : GO_STATE_ACTIVE);
-                        break;
-                    }
+                    //Lower Spire
                     case GO_SPIRIT_ALARM1:
                     {
                         uiSpiritAlarm1 = go->GetGUID();
@@ -615,10 +371,361 @@ class instance_icecrown_citadel : public InstanceMapScript
                         go->SetPhaseMask(2, true);
                         break;
                     }
+                    //Lord Marrowgar
+                    case GO_LORD_MARROWGAR_ICE_WALL:
+                    {
+                        uiIceWall1 = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_LORD_MARROWGAR_EVENT] == DONE, go);
+                        break;
+                    }
+                    case GO_LORD_MARROWGAR_ICE_WALL_1:
+                    {
+                        uiIceWall2 = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_LORD_MARROWGAR_EVENT] == DONE, go);
+                        break;
+                    }
+                    case GO_LORD_MARROWGAR_S_ENTRANCE:
+                    {
+                        uiMarrowgarEntrance = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_LORD_MARROWGAR_EVENT] != IN_PROGRESS, go);
+                        break;
+                    }
+                    //Lady Deathwhisper
+                    case GO_ORATORY_OF_THE_DAMNED_ENTRANCE:
+                    {
+                        uiOratoryDoor = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_DEATHWHISPER_EVENT] != IN_PROGRESS && uiEncounter[DATA_LORD_MARROWGAR_EVENT] == DONE, go);
+                        break;
+                    }
+                    case GO_LADY_DEATHWHISPER_ELEVATOR:
+                    {
+                        uiLadyDeathwisperTransporter = go->GetGUID();
+                        if (uiEncounter[DATA_DEATHWHISPER_EVENT] == DONE)
+                        {
+                            go->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
+                            go->SetGoState(GO_STATE_READY);
+                        }
+                        break;
+                    }
+                    //Deathbringer Saurfang
+                    case GO_DEATHBRINGER_S_DOOR:
+                    {
+                        uiSaurfangDoor = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_SAURFANG_EVENT] == DONE, go);
+                        break;
+                    }
+                    case GO_DEATHBRINGER_S_CACHE_10N:
+                    case GO_DEATHBRINGER_S_CACHE_25N:
+                    case GO_DEATHBRINGER_S_CACHE_10H:
+                    case GO_DEATHBRINGER_S_CACHE_25H:
+                    {
+                        uiSaurfangCache = go->GetGUID();
+                        break;
+                    }
+                    //Upper Reaches
+                    case GO_BLOODWING_DOOR:
+                    {
+                        uiBloodwingDoor = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_SAURFANG_EVENT] == DONE, go);
+                        break;
+                    }
+                    case GO_FROSTWING_DOOR:
+                    {
+                        uiFrostwingDoor = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_SAURFANG_EVENT] == DONE, go);
+                        break;
+                    }
+                    case GO_PLAGUE_SIGIL:
+                    {
+                        uiPlagueSigil = go->GetGUID();
+                        go->SetGoState(uiEncounter[DATA_PROFESSOR_PUTRICIDE_EVENT] == DONE ? GO_STATE_READY : GO_STATE_ACTIVE);
+                        break;
+                    }
+                    case GO_BLOODWING_SIGIL:
+                    {
+                        uiBloodwingSigil = go->GetGUID();
+                        go->SetGoState(uiEncounter[DATA_BLOOD_QUEEN_LANA_THEL_EVENT] == DONE ? GO_STATE_READY : GO_STATE_ACTIVE);
+                        break;
+                    }
+                    case GO_FROSTWING_SIGIL:
+                    {
+                        uiFrostwingSigil = go->GetGUID();
+                        go->SetGoState(uiEncounter[DATA_SINDRAGOSA_EVENT] == DONE ? GO_STATE_READY : GO_STATE_ACTIVE);
+                        break;
+                    }
                     case GO_INCONSPICUOUS_LEVER:
                     {
                         uiUpperSpireLever = go->GetGUID();
                         HandleGameObject(NULL, false, go);
+                        break;
+                    }
+
+                    //Plagueworks
+                    case GO_ORANGE_PLAGUE_MONSTER_ENTRANCE:
+                    {
+                        uiOrangeMonsterDoor = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_FESTERGUT_EVENT] != IN_PROGRESS, go);
+                        break;
+                    }
+                    case GO_GREEN_PLAGUE_MONSTER_ENTRANCE:
+                    {
+                        uiGreenMonsterDoor = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_ROTFACE_EVENT] != IN_PROGRESS, go);
+                        break;
+                    }
+                    case GO_SCIENTIST_AIRLOCK_DOOR_COLLISION:
+                    {
+                        uiProfCollisionDoor = go->GetGUID();
+                        HandleGameObject(NULL, oozeValveActivated && gasValveActivated, go);
+                        break;
+                    }
+                    case GO_SCIENTIST_AIRLOCK_DOOR_ORANGE:
+                    {
+                        uiProfDoorOrange = go->GetGUID();
+                        if (gasValveActivated == SPECIAL)
+                            go->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
+                        else
+                            go->SetGoState(GO_STATE_ACTIVE);
+                        break;
+                    }
+                    case GO_SCIENTIST_AIRLOCK_DOOR_GREEN:
+                    {
+                        uiProfDoorGreen = go->GetGUID();
+                        if (oozeValveActivated == SPECIAL)
+                            go->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
+                        else
+                            go->SetGoState(GO_STATE_ACTIVE);
+                        break;
+                    }
+                    case GO_DOODAD_ICECROWN_ORANGETUBES02:
+                    {
+                        uiOrangePipe = go->GetGUID();
+                        if (gasValveActivated == SPECIAL)
+                            go->SetGoState(GO_STATE_ACTIVE);
+                        else
+                            go->SetGoState(GO_STATE_READY);
+                        break;
+                    }
+                    case GO_DOODAD_ICECROWN_GREENTUBES02:
+                    {
+                        uiGreenPipe = go->GetGUID();
+                        if (oozeValveActivated == SPECIAL)
+                            go->SetGoState(GO_STATE_ACTIVE);
+                        else
+                            go->SetGoState(GO_STATE_READY);
+                        break;
+                    }
+                    case GO_SCIENTIST_ENTRANCE:
+                    {
+                        uiProfessorDoor = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_PROFESSOR_PUTRICIDE_EVENT] != IN_PROGRESS, go);
+                        break;
+                    }
+                    case GO_DRINK_ME:
+                    {
+                        uiPutricideTable = go->GetGUID();
+                        if (uiEncounter[DATA_PROFESSOR_PUTRICIDE_EVENT] == DONE)
+                            go->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
+                        break;
+                    }
+                    case GO_OOZE_VALVE:
+                    {
+                        uiOozeValve = go->GetGUID();
+                        if (oozeValveActivated == SPECIAL)
+                            go->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
+                        else
+                            if (uiEncounter[DATA_FESTERGUT_EVENT] == DONE && uiEncounter[DATA_ROTFACE_EVENT] == DONE)
+                                go->SetGoState(GO_STATE_READY);
+                            else
+                                go->SetGoState(GO_STATE_ACTIVE);
+                        break;
+                    }
+                    case GO_GAS_VALVE:
+                    {
+                        uiGasValve = go->GetGUID();
+                        if (gasValveActivated == SPECIAL)
+                            go->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
+                        else
+                            if (uiEncounter[DATA_FESTERGUT_EVENT] == DONE && uiEncounter[DATA_ROTFACE_EVENT] == DONE)
+                                go->SetGoState(GO_STATE_READY);
+                            else
+                                go->SetGoState(GO_STATE_ACTIVE);
+                        break;
+                    }
+
+                    //Crimson Hall
+                    //Blood Prince Council
+                    case GO_CRIMSON_HALL_DOOR:
+                    {
+                        uiCrimsonHallDoor1 = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_BLOOD_PRINCE_COUNCIL_EVENT] != IN_PROGRESS, go);
+                        break;
+                    }
+                    case GO_BLOOD_ELF_COUNCIL_DOOR:
+                    {
+                        uiCrimsonHallDoorLeft = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_BLOOD_PRINCE_COUNCIL_EVENT] == DONE, go);
+                        break;
+                    }
+                    case GO_BLOOD_ELF_COUNCIL_DOOR_RIGHT:
+                    {
+                        uiCrimsonHallDoorRight = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_BLOOD_PRINCE_COUNCIL_EVENT] == DONE, go);
+                        break;
+                    }
+                    //Blood Queen Lana'thel
+                    case GO_BLOOD_QUEEN_BLOOD_BARRIER:
+                    {
+                        uiBloodQueenBloodBarrier = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_BLOOD_QUEEN_LANA_THEL_EVENT] != IN_PROGRESS, go);
+                        break;
+                    }
+                    case GO_DOODAD_ICECROWN_GRATE_01:
+                    {
+                        uiBloodQueenGrate = go->GetGUID();
+                        go->SetGoState(uiEncounter[DATA_BLOOD_QUEEN_LANA_THEL_EVENT] == DONE ? GO_STATE_ACTIVE : GO_STATE_READY);
+                        break;
+                    }
+
+                    //Frostwing Halls
+                    //Valithria Dreamwalker
+                    case GO_DREAMWALKER_CACHE_10_N:
+                    case GO_DREAMWALKER_CACHE_25_N:
+                    case GO_DREAMWALKER_CACHE_10_H:
+                    case GO_DREAMWALKER_CACHE_25_H:
+                    {
+                        uiDreamwalkerCache = go->GetGUID();
+                        break;
+                    }
+                    case GO_GREEN_DRAGON_BOSS_ENTRANCE:
+                    {
+                        uiValithriaDoorEntrance = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_VALITHRIA_DREAMWALKER_EVENT] != IN_PROGRESS, go);
+                        break;
+                    }
+                    case GO_GREEN_DRAGON_BOSS_EXIT:
+                    {
+                        uiValithriaDoorExit = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_VALITHRIA_DREAMWALKER_EVENT] == DONE, go);
+                        break;
+                    }
+                    case GO_DREAMWALKER_DOOR_1:
+                    {
+                        uiRoostDoor1 = go->GetGUID();
+                        break;
+                    }
+                    case GO_DREAMWALKER_DOOR_2:
+                    {
+                        uiRoostDoor2 = go->GetGUID();
+                        break;
+                    }
+                    case GO_DREAMWALKER_DOOR_3:
+                    {
+                        uiRoostDoor3 = go->GetGUID();
+                        break;
+                    }
+                    case GO_DREAMWALKER_DOOR_4:
+                    {
+                        uiRoostDoor4 = go->GetGUID();
+                        break;
+                    }
+                    case GO_VALITHRIA_ELEVATOR:
+                    {
+                        uiValithriaTransporter = go->GetGUID();
+                        if (uiEncounter[DATA_VALITHRIA_DREAMWALKER_EVENT] == DONE)
+                        {
+                            go->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
+                            go->SetGoState(GO_STATE_READY);
+                        }
+                        break;
+                    }
+                    //Sindragosa                   
+                    case GO_SINDRAGOSA_ENTRANCE_DOOR:
+                    {
+                        uiSindragosaDoor1 = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_VALITHRIA_DREAMWALKER_EVENT] == DONE, go);
+                        break;
+                    }
+                    case GO_SINDRAGOSA_SHORTCUT_ENTRANCE_DOOR:
+                    {
+                        uiSindragosaShortcutEntranceDoor = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_SINDRAGOSA_EVENT] == DONE, go);
+                        break;
+                    }
+                    case GO_SINDRAGOSA_SHORTCUT_EXIT_DOOR:
+                    {
+                        uiSindragosaShortcutExitDoor = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_SINDRAGOSA_EVENT] == DONE, go);
+                        break;
+                    }
+                    case GO_SINDRAGOSA_ICE_WALL:
+                    {
+                        uiSindragosaIceWall = go->GetGUID();
+                        HandleGameObject(NULL, uiEncounter[DATA_SINDRAGOSA_EVENT] != IN_PROGRESS, go);
+                        break;
+                    }
+                    case GO_SINDRAGOSA_ELEVATOR:
+                    {
+                        uiSindragosaTransporter = go->GetGUID();
+                        if (uiEncounter[DATA_SINDRAGOSA_EVENT] == DONE)
+                        {
+                            go->SetUInt32Value(GAMEOBJECT_LEVEL, 0);
+                            go->SetGoState(GO_STATE_READY);
+                        }
+                        break;
+                    }
+                    //Teleports
+                    case GO_TELEPORT_LIGHT_S_HAMMER:
+                    {
+                        uiFirstTp = go->GetGUID();
+                        MakeObjectClickable(go, uiEncounter[DATA_LORD_MARROWGAR_EVENT] == DONE);
+                        go->SetGoState(uiEncounter[DATA_LORD_MARROWGAR_EVENT] == DONE ? GO_STATE_ACTIVE : GO_STATE_READY);
+                        break;
+                    }
+                    case GO_TELEPORT_ORATORY_OF_THE_DAMNED:
+                    {
+                        uiMarrowgarTp = go->GetGUID();
+                        MakeObjectClickable(go, uiEncounter[DATA_LORD_MARROWGAR_EVENT] == DONE);
+                        go->SetGoState(uiEncounter[DATA_LORD_MARROWGAR_EVENT] == DONE ? GO_STATE_ACTIVE : GO_STATE_READY);
+                        break;
+                    }
+                    case GO_TELEPORT_RAMPART_OF_SKULLS:
+                    {
+                        uiFlightWarTp = go->GetGUID();
+                        MakeObjectClickable(go, uiEncounter[DATA_DEATHWHISPER_EVENT] == DONE);
+                        go->SetGoState(uiEncounter[DATA_DEATHWHISPER_EVENT] == DONE ? GO_STATE_ACTIVE : GO_STATE_READY);
+                        break;
+                    }
+                    case GO_TELEPORT_DEATHBRINGER_RISE:
+                    {
+                        uiSaurfangTp = go->GetGUID();
+                        MakeObjectClickable(go, uiEncounter[DATA_DEATHWHISPER_EVENT] == DONE);
+                        go->SetGoState(uiEncounter[DATA_DEATHWHISPER_EVENT] == DONE ? GO_STATE_ACTIVE : GO_STATE_READY);
+                        break;
+                    }
+                    case GO_TELEPORT_UPPER_SPIRE:
+                    {
+                        uiCitadelTp = go->GetGUID();
+                        MakeObjectClickable(go, uiEncounter[DATA_SAURFANG_EVENT] == DONE);
+                        HandleGameObject(NULL, false, go);
+                        break;
+                    }
+                    case GO_TELEPORT_SINDRAGOSA_S_LAIR:
+                    {
+                        uiSindragosaTp = go->GetGUID();
+                        MakeObjectClickable(go, uiEncounter[DATA_VALITHRIA_DREAMWALKER_EVENT] == DONE);
+                        HandleGameObject(NULL, false, go);
+                        break;
+                    }
+                    case GO_TELEPORT_FROZEN_THRONE:
+                    {
+                        uiLichTp = go->GetGUID();
+                        bool bAllOthersAreDone = true;
+                        for (uint8 i = 0; i <= 11 && bAllOthersAreDone; ++i)
+                            bAllOthersAreDone &= (uiEncounter[i] == DONE);
+                        MakeObjectClickable(go, bAllOthersAreDone);
+                        go->SetGoState(bAllOthersAreDone ? GO_STATE_ACTIVE : GO_STATE_READY);
+                        break;
                     }
                 }
             }
@@ -627,98 +734,89 @@ class instance_icecrown_citadel : public InstanceMapScript
             {
                 switch(identifier)
                 {
-                    case DATA_LORD_MARROWGAR:                   return uiLordMarrowgar;
-                    case DATA_GUNSHIP_BATTLE:                   return uiGunship;
-                    case DATA_SAURFANG:                         return uiDeathbringerSaurfang;
-                    case DATA_FESTERGUT:                        return uiFestergut;
-                    case DATA_ROTFACE:                          return uiRotface;
-                    case DATA_PROFESSOR_PUTRICIDE:              return uiProfessorPutricide;
-                    case DATA_PRINCE_VALANAR_ICC:               return uiPrinceValanar;
-                    case DATA_PRINCE_KELESETH_ICC:              return uiPrinceKeleseth;
-                    case DATA_PRINCE_TALDARAM_ICC:              return uiPrinceTaldaram;
-                    case DATA_BLOOD_QUEEN_LANA_THEL:            return uiBloodQueenLanathel;
-                    case DATA_VALITHRIA_DREAMWALKER:            return uiValithriaDreamwalker;
-                    case DATA_VALITHRIA_ALTERNATIVE:            return uiValithriaAlternative;
-                    case DATA_VALITHRIA_COMBAT_TRIGGER:         return uiValithriaCombatTrigger;
-                    case DATA_SINDRAGOSA: 
-                                                                return sindragosa; 
-                    case DATA_SPINESTALKER: 
-                                                                return spinestalker; 
-                    case DATA_RIMEFANG: 
-                                                                return rimefang; 
-                    case DATA_LICH_KING:                        
+                    case GUID_LORD_MARROWGAR:                   return uiLordMarrowgar;
+                    case GUID_SAURFANG:                         return uiDeathbringerSaurfang;
+                    case GUID_FESTERGUT:                        return uiFestergut;
+                    case GUID_ROTFACE:                          return uiRotface;
+                    case GUID_PROFESSOR_PUTRICIDE:              return uiProfessorPutricide;
+                    case GUID_PRINCE_VALANAR_ICC:               return uiPrinceValanar;
+                    case GUID_PRINCE_KELESETH_ICC:              return uiPrinceKeleseth;
+                    case GUID_PRINCE_TALDARAM_ICC:              return uiPrinceTaldaram;
+                    case GUID_BLOOD_QUEEN_LANA_THEL:            return uiBloodQueenLanathel;
+                    case GUID_VALITHRIA_DREAMWALKER:            return uiValithriaDreamwalker;
+                    case GUID_VALITHRIA_ALTERNATIVE:            return uiValithriaAlternative;
+                    case GUID_VALITHRIA_COMBAT_TRIGGER:         return uiValithriaCombatTrigger;
+                    case GUID_SINDRAGOSA:                       return uiSindragosa; 
+                    case GUID_SPINESTALKER:                     return uiSpinestalker; 
+                    case GUID_RIMEFANG:                         return uiRimefang; 
+                    case GUID_LICH_KING:                        
                     {
                         if (!uiLichKing || !instance->GetCreature(uiLichKing))
                             instance->LoadGrid(428.6f, -2123.88f);
                         return uiLichKing;
                     }
-                    case DATA_TIRION:                           return uiTirion;
-                    case DATA_ANGLE:                            return uiAngle;
-                    case DATA_ALL_YOU_CAN_EAT:                  return uiAllYouCanEat;
-                    case DATA_BEEN_WAITING:                     return uiBeenWaiting;
-                    case DATA_NECK_DEEP:                        return uiNeckDeep;
-                    case DATA_BLOOD_PRINCES_CONTROL:            return uiBloodCouncilController;
-                    case DATA_NECROTIC_STACK:                   return uiNecroticStack;
-                    case DATA_PUTRICIDE_TABLE:                  return uiPutricideTable;
-                    case DATA_SINDRAGOSA_ENTRANCE_DOOR:         return uiSindragosaDoor1;
+                    case GUID_TIRION:                           return uiTirion;
+                    case GUID_BLOOD_PRINCES_CONTROL:            return uiBloodCouncilController;
+                    case GUID_PUTRICIDE_TABLE:                  return uiPutricideTable;
+                    case GUID_SINDRAGOSA_ENTRANCE_DOOR:         return uiSindragosaDoor1;
 
-                    case DATA_TELEPORT_LIGHTS_HAMMER:          
+                    case GUID_TELEPORT_LIGHTS_HAMMER:          
                     {
                         if (!uiFirstTp || !instance->GetGameObject(uiFirstTp))
                             instance->LoadGrid(-17.0711f, 2211.47f);
                         return uiFirstTp;
                     }
-                    case DATA_TELEPORT_ORATORY_OF_THE_DAMNED:   
+                    case GUID_TELEPORT_ORATORY_OF_THE_DAMNED:   
                     {
                         if (!uiMarrowgarTp || !instance->GetGameObject(uiMarrowgarTp))
                             instance->LoadGrid(-503.62f, 2211.47f);
                         return uiMarrowgarTp;
                     }
-                    case DATA_TELEPORT_RAMPART_OF_SKULLS:    
+                    case GUID_TELEPORT_RAMPART_OF_SKULLS:    
                     {
                         if (!uiFlightWarTp || !instance->GetGameObject(uiFlightWarTp))
                             instance->LoadGrid(-615.145f, 2211.47f);
                         return uiFlightWarTp;
                     }
-                    case DATA_TELEPORT_DEATHBRINGERS_RISE:    
+                    case GUID_TELEPORT_DEATHBRINGERS_RISE:    
                     {
                         if (!uiSaurfangTp || !instance->GetGameObject(uiSaurfangTp))
                             instance->LoadGrid(-549.131f, 2211.29f);
                         return uiSaurfangTp;
                     }
-                    case DATA_TELEPORT_UPPER_SPIRE:           
+                    case GUID_TELEPORT_UPPER_SPIRE:           
                     {
                         if (!uiCitadelTp || !instance->GetGameObject(uiCitadelTp))
                             instance->LoadGrid(4199.35f, 2769.42f);
                         return uiCitadelTp;
                     }
-                    case DATA_TELEPORT_SINDRAGOSAS_LAIR:      
+                    case GUID_TELEPORT_SINDRAGOSAS_LAIR:      
                     {
                         if (!uiSindragosaTp || !instance->GetGameObject(uiSindragosaTp))
                             instance->LoadGrid(4356.58f, 2565.75f);
                         return uiSindragosaTp;
                     }
-                    case DATA_TELEPORT_FROZEN_THRONE:         
+                    case GUID_TELEPORT_FROZEN_THRONE:         
                     {
                         if (!uiLichTp || !instance->GetGameObject(uiLichTp))
                             instance->LoadGrid(4356.93f, 2769.41f);
                         return uiLichTp;
                     }
-                    case DATA_PROF_COLLISION_DOOR:              return uiProfCollisionDoor;
-                    case DATA_PROF_ORANGE_DOOR:                 return uiOrangeMonsterDoor;
-                    case DATA_PROF_GREEN_DOOR:                  return uiGreenMonsterDoor;
+                    case GUID_PROF_COLLISION_DOOR:              return uiProfCollisionDoor;
+                    case GUID_PROF_ORANGE_DOOR:                 return uiOrangeMonsterDoor;
+                    case GUID_PROF_GREEN_DOOR:                  return uiGreenMonsterDoor;
 
-                    case DATA_SPIRIT_ALARM1:                    return uiSpiritAlarm1;
-                    case DATA_SPIRIT_ALARM2:                    return uiSpiritAlarm2;
-                    case DATA_SPIRIT_ALARM3:                    return uiSpiritAlarm3;
-                    case DATA_SPIRIT_ALARM4:                    return uiSpiritAlarm4;
+                    case GUID_SPIRIT_ALARM1:                    return uiSpiritAlarm1;
+                    case GUID_SPIRIT_ALARM2:                    return uiSpiritAlarm2;
+                    case GUID_SPIRIT_ALARM3:                    return uiSpiritAlarm3;
+                    case GUID_SPIRIT_ALARM4:                    return uiSpiritAlarm4;
 
-                    case DATA_DEATHBOUND_WARD1:                 return uiDeathboundWard1;
-                    case DATA_DEATHBOUND_WARD2:                 return uiDeathboundWard2;
-                    case DATA_DEATHBOUND_WARD3:                 return uiDeathboundWard3;
-                    case DATA_DEATHBOUND_WARD4:                 return uiDeathboundWard4;
+                    case GUID_DEATHBOUND_WARD1:                 return uiDeathboundWard1;
+                    case GUID_DEATHBOUND_WARD2:                 return uiDeathboundWard2;
+                    case GUID_DEATHBOUND_WARD3:                 return uiDeathboundWard3;
+                    case GUID_DEATHBOUND_WARD4:                 return uiDeathboundWard4;
 
-                    case DATA_INCONSPICUOUS_LEVER:
+                    case GUID_INCONSPICUOUS_LEVER:
                     {
                         if (!uiUpperSpireLever || !instance->GetGameObject(uiUpperSpireLever))
                             instance->LoadGrid(4231.39f, 2765.97f);
@@ -771,19 +869,19 @@ class instance_icecrown_citadel : public InstanceMapScript
             {
                 switch(type)
                 {
-                    case DATA_MARROWGAR_EVENT:
+                    case DATA_LORD_MARROWGAR_EVENT:
                     {
                         HandleGameObject(uiMarrowgarEntrance, data != IN_PROGRESS);
                         if(data == DONE)
                         {
-                            MakeObjectClickable(DATA_TELEPORT_LIGHTS_HAMMER);
-                            EnableObject(DATA_TELEPORT_LIGHTS_HAMMER, data == DONE ? GO_STATE_ACTIVE : GO_STATE_READY);
-                            MakeObjectClickable(DATA_TELEPORT_ORATORY_OF_THE_DAMNED);
+                            MakeObjectClickable(GUID_TELEPORT_LIGHTS_HAMMER);
+                            EnableObject(GUID_TELEPORT_LIGHTS_HAMMER, data == DONE ? GO_STATE_ACTIVE : GO_STATE_READY);
+                            MakeObjectClickable(GUID_TELEPORT_ORATORY_OF_THE_DAMNED);
                             HandleGameObject(uiIceWall1, true);
                             HandleGameObject(uiIceWall2, true);
                             HandleGameObject(uiOratoryDoor, true);
                         }
-                        uiEncounter[DATA_MARROWGAR_EVENT] = data;
+                        uiEncounter[DATA_LORD_MARROWGAR_EVENT] = data;
                         break;
                     }
                     case DATA_DEATHWHISPER_EVENT:
@@ -791,10 +889,10 @@ class instance_icecrown_citadel : public InstanceMapScript
                         HandleGameObject(uiOratoryDoor, data != IN_PROGRESS);
                         if(data == DONE)
                         {
-                            MakeObjectClickable(DATA_TELEPORT_RAMPART_OF_SKULLS);
-                            EnableObject(DATA_TELEPORT_RAMPART_OF_SKULLS, data == DONE ? GO_STATE_ACTIVE : GO_STATE_READY);
-                            MakeObjectClickable(DATA_TELEPORT_DEATHBRINGERS_RISE);
-                            EnableObject(DATA_TELEPORT_DEATHBRINGERS_RISE, data == DONE ? GO_STATE_ACTIVE : GO_STATE_READY);
+                            MakeObjectClickable(GUID_TELEPORT_RAMPART_OF_SKULLS);
+                            EnableObject(GUID_TELEPORT_RAMPART_OF_SKULLS, data == DONE ? GO_STATE_ACTIVE : GO_STATE_READY);
+                            MakeObjectClickable(GUID_TELEPORT_DEATHBRINGERS_RISE);
+                            EnableObject(GUID_TELEPORT_DEATHBRINGERS_RISE, data == DONE ? GO_STATE_ACTIVE : GO_STATE_READY);
                             HandleGameObject(uiOratoryDoor, true);
                             if (GameObject* go = instance->GetGameObject(uiLadyDeathwisperTransporter))
                             {
@@ -819,11 +917,11 @@ class instance_icecrown_citadel : public InstanceMapScript
                     {
                         //Preload the area around the Upper Spire teleport
                         instance->LoadGrid(4199.35f, 2769.42f);
-                        MakeObjectClickable(DATA_TELEPORT_DEATHBRINGERS_RISE, data != IN_PROGRESS);
-                        EnableObject(DATA_TELEPORT_DEATHBRINGERS_RISE, data == IN_PROGRESS ? GO_STATE_READY : GO_STATE_ACTIVE);
+                        MakeObjectClickable(GUID_TELEPORT_DEATHBRINGERS_RISE, data != IN_PROGRESS);
+                        EnableObject(GUID_TELEPORT_DEATHBRINGERS_RISE, data == IN_PROGRESS ? GO_STATE_READY : GO_STATE_ACTIVE);
                         if (data == DONE)
                         {
-                            MakeObjectClickable(DATA_TELEPORT_UPPER_SPIRE);
+                            MakeObjectClickable(GUID_TELEPORT_UPPER_SPIRE);
                             if (GameObject* pChest = instance->GetGameObject(uiSaurfangCache))
                                 pChest->SetRespawnTime(pChest->GetRespawnDelay());
                             HandleGameObject(uiSaurfangDoor, true);
@@ -1008,7 +1106,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                             if (GameObject* go = instance->GetGameObject(uiPlagueSigil))
                                 go->SetGoState(GO_STATE_READY);
                             if (uiEncounter[DATA_BLOOD_QUEEN_LANA_THEL_EVENT] == DONE && uiEncounter[DATA_SINDRAGOSA_EVENT] == DONE)
-                                MakeObjectClickable(DATA_TELEPORT_FROZEN_THRONE);
+                                MakeObjectClickable(GUID_TELEPORT_FROZEN_THRONE);
                         }
                         uiEncounter[DATA_PROFESSOR_PUTRICIDE_EVENT] = data;
                         break;
@@ -1021,11 +1119,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                             HandleGameObject(uiCrimsonHallDoorRight, true);
                             HandleGameObject(uiCrimsonHallDoorLeft, true);
                         }
-                        if(data == NOT_STARTED || data == FAIL)
-                            HandleGameObject(uiCrimsonHallDoor1, true);
-
-                        if(data == IN_PROGRESS)
-                            HandleGameObject(uiCrimsonHallDoor1, false);
+                        HandleGameObject(uiCrimsonHallDoor1, data != IN_PROGRESS);
                         uiEncounter[DATA_BLOOD_PRINCE_COUNCIL_EVENT] = data;
                         break;
                     }
@@ -1038,7 +1132,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                             if (GameObject *go = instance->GetGameObject(uiBloodwingSigil))
                                 go->SetGoState(GO_STATE_READY);
                             if (uiEncounter[DATA_PROFESSOR_PUTRICIDE_EVENT] == DONE && uiEncounter[DATA_SINDRAGOSA_EVENT] == DONE)
-                                MakeObjectClickable(DATA_TELEPORT_FROZEN_THRONE);
+                                MakeObjectClickable(GUID_TELEPORT_FROZEN_THRONE);
                         }
                         HandleGameObject(uiBloodQueenBloodBarrier, data != IN_PROGRESS);
                         uiEncounter[DATA_BLOOD_QUEEN_LANA_THEL_EVENT] = data;
@@ -1048,7 +1142,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                     {
                         if(data == DONE)
                         {
-                            MakeObjectClickable(DATA_TELEPORT_SINDRAGOSAS_LAIR);
+                            MakeObjectClickable(GUID_TELEPORT_SINDRAGOSAS_LAIR);
                             if (GameObject* pChest = instance->GetGameObject(uiDreamwalkerCache))
                                 pChest->SetRespawnTime(pChest->GetRespawnDelay());
                             if (GameObject* go = instance->GetGameObject(uiValithriaTransporter))
@@ -1100,7 +1194,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                                 go->SetGoState(GO_STATE_READY);
                         }
                         if (uiEncounter[DATA_PROFESSOR_PUTRICIDE_EVENT] == DONE && uiEncounter[DATA_BLOOD_QUEEN_LANA_THEL_EVENT] == DONE)
-                            MakeObjectClickable(DATA_TELEPORT_FROZEN_THRONE);
+                            MakeObjectClickable(GUID_TELEPORT_FROZEN_THRONE);
                         uiEncounter[DATA_SINDRAGOSA_EVENT] = data;
                         break;
                     }
@@ -1128,7 +1222,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                             frostwyrms = data; 
                         else if (data == 1) 
                             ++frostwyrms; 
-                        else if (!data && !--frostwyrms && GetBossState(DATA_SINDRAGOSA) != DONE) 
+                        else if (!data && !--frostwyrms && GetBossState(DATA_SINDRAGOSA_EVENT) != DONE) 
                         { 
                             instance->LoadGrid(SindragosaSpawnPos.GetPositionX(), SindragosaSpawnPos.GetPositionY()); 
                             if (Creature* boss = instance->SummonCreature(NPC_SINDRAGOSA, SindragosaSpawnPos)) 
@@ -1139,29 +1233,29 @@ class instance_icecrown_citadel : public InstanceMapScript
                         } 
                         break; 
                     }
-                    case DATA_SPINESTALKER:
+                    case DATA_SPINESTALKER_EVENT:
                     {
                         if (data > 1) 
                             spinestalkerTrash = data; 
                         else if (data == 1) 
                             ++spinestalkerTrash; 
                         else if (!data && !--spinestalkerTrash) 
-                            if (Creature* spinestalk = instance->GetCreature(spinestalker)) 
+                            if (Creature* spinestalk = instance->GetCreature(uiSpinestalker)) 
                                 spinestalk->AI()->DoAction(ACTION_START_FROSTWYRM); 
                         break;
                     }
-                    case DATA_RIMEFANG:
+                    case DATA_RIMEFANG_EVENT:
                     {
                         if (data > 1) 
                             rimefangTrash = data; 
                         else if (data == 1) 
                             ++rimefangTrash; 
                         else if (!data && !--rimefangTrash) 
-                            if (Creature* rime = instance->GetCreature(rimefang)) 
+                            if (Creature* rime = instance->GetCreature(uiRimefang)) 
                                 rime->AI()->DoAction(ACTION_START_FROSTWYRM);
                         break;
                     }
-                    case DATA_COLDFLAME_JETS:
+                    case DATA_COLDFLAME_JETS_EVENT:
                         coldflameJetsState = data;
                         if (coldflameJetsState == DONE)
                         {
@@ -1171,6 +1265,21 @@ class instance_icecrown_citadel : public InstanceMapScript
                                     trap->AI()->DoAction(ACTION_STOP_TRAPS);
                         }
                         break;
+                    //Teleports
+                    case DATA_TELEPORT_ORATORY_OF_THE_DAMNED_ACTIVATED:
+                        uiTeleportToOratoryOfTheDamnedActivated = data;
+                    case DATA_TELEPORT_RAMPART_OF_SKULLS_ACTIVATED:
+                        uiTeleportToRampartOfSkullsActivated = data;
+                    case DATA_TELEPORT_DEATHBRINGER_S_RISE_ACTIVATED:
+                        uiTeleportToDeathbringersRiseActivated = data;
+                    case DATA_TELEPORT_UPPER_SPIRE_ACTIVATED:
+                        uiTeleportToUpperSpireActivated = data;
+                    case DATA_TELEPORT_SINDRAGOSA_S_LAIR_ACTIVATED:
+                        uiTeleportToSindragosasLairActivated = data;
+                    case DATA_TELEPORT_FROZEN_THRONE_ACTIVATED:
+                        uiTeleportToFrozenThroneActivated = data;
+                    default: 
+                        break; 
                 }
 
                 SaveToDB();
@@ -1180,8 +1289,8 @@ class instance_icecrown_citadel : public InstanceMapScript
             {
                 switch(type)
                 {
-                    case DATA_MARROWGAR_EVENT:
-                        return uiEncounter[DATA_MARROWGAR_EVENT];
+                    case DATA_LORD_MARROWGAR_EVENT:
+                        return uiEncounter[DATA_LORD_MARROWGAR_EVENT];
                     case DATA_DEATHWHISPER_EVENT:
                         return uiEncounter[DATA_DEATHWHISPER_EVENT];
                     case DATA_GUNSHIP_BATTLE_EVENT:
@@ -1207,12 +1316,30 @@ class instance_icecrown_citadel : public InstanceMapScript
 
                     case DATA_SINDRAGOSA_FROSTWYRMS: 
                         return frostwyrms; 
-                    case DATA_SPINESTALKER: 
+                    case DATA_SPINESTALKER_EVENT: 
                         return spinestalkerTrash; 
-                    case DATA_RIMEFANG: 
+                    case DATA_RIMEFANG_EVENT: 
                         return rimefangTrash; 
-                    case DATA_COLDFLAME_JETS:
+                    case DATA_COLDFLAME_JETS_EVENT:
                         return coldflameJetsState;
+                    case DATA_NECK_DEEP_ACHIEVEMENT:         
+                        return uiNeckDeep;
+                    case DATA_NECROTIC_STACK:              
+                        return uiNecroticStack;
+
+                    //Teleports
+                    case DATA_TELEPORT_ORATORY_OF_THE_DAMNED_ACTIVATED:
+                        return uiTeleportToOratoryOfTheDamnedActivated;
+                    case DATA_TELEPORT_RAMPART_OF_SKULLS_ACTIVATED:
+                        return uiTeleportToRampartOfSkullsActivated;
+                    case DATA_TELEPORT_DEATHBRINGER_S_RISE_ACTIVATED:
+                        return uiTeleportToDeathbringersRiseActivated;
+                    case DATA_TELEPORT_UPPER_SPIRE_ACTIVATED:
+                        return uiTeleportToUpperSpireActivated;
+                    case DATA_TELEPORT_SINDRAGOSA_S_LAIR_ACTIVATED:
+                        return uiTeleportToSindragosasLairActivated;
+                    case DATA_TELEPORT_FROZEN_THRONE_ACTIVATED:
+                        return uiTeleportToFrozenThroneActivated;
                     default: 
                         break; 
                 } 
@@ -1227,11 +1354,17 @@ class instance_icecrown_citadel : public InstanceMapScript
                 //While Gunship Battle isn't implemented
                 uiEncounter[DATA_GUNSHIP_BATTLE_EVENT] = DONE;
                 std::ostringstream saveStream;
-                saveStream << "I C" << uiEncounter[DATA_MARROWGAR_EVENT] << " " << uiEncounter[DATA_DEATHWHISPER_EVENT] << " " << uiEncounter[DATA_GUNSHIP_BATTLE_EVENT] << " " << uiEncounter[DATA_SAURFANG_EVENT]
+                saveStream << "I C" << uiEncounter[DATA_LORD_MARROWGAR_EVENT] << " " << uiEncounter[DATA_DEATHWHISPER_EVENT] << " " << uiEncounter[DATA_GUNSHIP_BATTLE_EVENT] << " " << uiEncounter[DATA_SAURFANG_EVENT]
                 << " " << uiEncounter[DATA_FESTERGUT_EVENT] << " " << uiEncounter[DATA_ROTFACE_EVENT] << " " << uiEncounter[DATA_PROFESSOR_PUTRICIDE_EVENT] << " " << uiEncounter[DATA_BLOOD_PRINCE_COUNCIL_EVENT] << " " << uiEncounter[DATA_BLOOD_QUEEN_LANA_THEL_EVENT]
                 << " " << uiEncounter[DATA_VALITHRIA_DREAMWALKER_EVENT] << " " << uiEncounter[DATA_SINDRAGOSA_EVENT] << " " << uiEncounter[DATA_LICH_KING_EVENT];
                 //Saving additional data
                 saveStream << " " << gasValveActivated << " " << oozeValveActivated << " " << coldflameJetsState;
+                saveStream << " " << uiTeleportToOratoryOfTheDamnedActivated;
+                saveStream << " " << uiTeleportToRampartOfSkullsActivated;
+                saveStream << " " << uiTeleportToDeathbringersRiseActivated;
+                saveStream << " " << uiTeleportToUpperSpireActivated;
+                saveStream << " " << uiTeleportToSindragosasLairActivated;
+                saveStream << " " << uiTeleportToFrozenThroneActivated;
 
                 OUT_SAVE_INST_DATA_COMPLETE;
                 return saveStream.str();
@@ -1299,7 +1432,7 @@ class instance_icecrown_citadel : public InstanceMapScript
 
                 if (dataHead1 == 'I' && dataHead2 == 'C')
                 {
-                    loadStream >> uiEncounter[DATA_MARROWGAR_EVENT];
+                    loadStream >> uiEncounter[DATA_LORD_MARROWGAR_EVENT];
                     loadStream >> uiEncounter[DATA_DEATHWHISPER_EVENT];
                     loadStream >> uiEncounter[DATA_GUNSHIP_BATTLE_EVENT];
                     //While not implemented
@@ -1331,7 +1464,12 @@ class instance_icecrown_citadel : public InstanceMapScript
                     if (jets)
                         jets = DONE;
                     coldflameJetsState = jets;
-
+                    loadStream >> uiTeleportToOratoryOfTheDamnedActivated;
+                    loadStream >> uiTeleportToRampartOfSkullsActivated;
+                    loadStream >> uiTeleportToDeathbringersRiseActivated;
+                    loadStream >> uiTeleportToUpperSpireActivated;
+                    loadStream >> uiTeleportToSindragosasLairActivated;
+                    loadStream >> uiTeleportToFrozenThroneActivated;
                 } else OUT_LOAD_INST_DATA_FAIL;
 
                 OUT_LOAD_INST_DATA_COMPLETE;
@@ -1339,7 +1477,6 @@ class instance_icecrown_citadel : public InstanceMapScript
 
         private:
             uint64 uiLordMarrowgar;
-            uint64 uiGunship;
             uint64 uiDeathbringerSaurfang;
             uint64 uiFestergut;
             uint64 uiRotface;
@@ -1416,15 +1553,12 @@ class instance_icecrown_citadel : public InstanceMapScript
             uint64 uiUpperSpireLever;
 
             uint8 uiDifficulty;
-            uint8 uiSpawn;
-            uint8 uiAllYouCanEat;
             uint8 uiBeenWaiting;
             uint8 uiNeckDeep;
             uint8 uiNecroticStack;
-            uint8 uiAngle;
-            uint64 sindragosa; 
-            uint64 spinestalker; 
-            uint64 rimefang;
+            uint64 uiSindragosa; 
+            uint64 uiSpinestalker; 
+            uint64 uiRimefang;
             uint8 coldflameJetsState;
             std::set<uint64> coldflameJets;
             uint8 frostwyrms; 
@@ -1438,6 +1572,14 @@ class instance_icecrown_citadel : public InstanceMapScript
             uint8 isNauseaEligible;
             uint8 isOrbWhispererEligible;
             uint8 isPortalJockeyEligible;
+
+            uint8 uiTeleportToOratoryOfTheDamnedActivated;
+            uint8 uiTeleportToRampartOfSkullsActivated;
+            uint8 uiTeleportToDeathbringersRiseActivated;
+            uint8 uiTeleportToUpperSpireActivated;
+            uint8 uiTeleportToSindragosasLairActivated;
+            uint8 uiTeleportToFrozenThroneActivated;
+
             uint32 uiEncounter[MAX_ENCOUNTER];
             std::map<uint64, Position> gameObjectPositions;
         };
@@ -1488,4 +1630,3 @@ void AddSC_instance_icecrown_citadel()
 {
     new instance_icecrown_citadel();
 }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          

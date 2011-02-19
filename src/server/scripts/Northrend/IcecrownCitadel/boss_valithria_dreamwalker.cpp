@@ -102,40 +102,40 @@ enum Spells
 enum eEvents
 {
     EVENT_SUMMON_DREAM_CLOUD        = 1,
-    EVENT_DESPAWN                   = 3,
-    EVENT_DESPAWN_AND_FAIL_ACHIEVEMENT = 20,
+    EVENT_DESPAWN,
+    EVENT_DESPAWN_AND_FAIL_ACHIEVEMENT,
     //Events played when boss is healed up to 100%
-    EVENT_BERSERK                   = 4,
-    EVENT_EVADE_TO_DREAM_SLIP       = 5,
+    EVENT_BERSERK,
+    EVENT_EVADE_TO_DREAM_SLIP,
 
     //Adds
-    EVENT_SUMMON_ARCHMAGE           = 8,
-    EVENT_SUMMON_ZOMBIE             = 17,
-    EVENT_SUMMON_ABOMINATION        = 18,
-    EVENT_SUMMON_SUPPRESSOR          = 9,
-    EVENT_SUMMON_BLAZING_SKELETON   = 10,
-    EVENT_CAST_COLUMN_OF_FROST      = 11,
-    EVENT_HASTEN_SUMMON_TIMER       = 12,
+    EVENT_SUMMON_ARCHMAGE,
+    EVENT_SUMMON_ZOMBIE,
+    EVENT_SUMMON_ABOMINATION,
+    EVENT_SUMMON_SUPPRESSOR,
+    EVENT_SUMMON_BLAZING_SKELETON,
+    EVENT_CAST_COLUMN_OF_FROST,
+    EVENT_HASTEN_SUMMON_TIMER,
 
     //Portals
-    EVENT_SUMMON_PORTALS_TO_DREAM   = 2,
-    EVENT_OPEN_PORTAL_TO_DREAM      = 6,
-    EVENT_EXPLODE                   = 13,
-    EVENT_CLOUD_EMULATE_DESPAWN     = 14,
-    EVENT_CLOUD_EMULATE_RESPAWN     = 15,
-    EVENT_INTRO                     = 7,
+    EVENT_SUMMON_PORTALS_TO_DREAM,
+    EVENT_OPEN_PORTAL_TO_DREAM,
+    EVENT_EXPLODE,
+    EVENT_CLOUD_EMULATE_DESPAWN,
+    EVENT_CLOUD_EMULATE_RESPAWN,
+    EVENT_INTRO,
 
-    EVENT_CHECK_WIPE                = 16,
-    EVENT_CAST_ROT_WORM_SPAWN_ANIMATION = 19,
+    EVENT_CHECK_WIPE,
+    EVENT_CAST_ROT_WORM_SPAWN_ANIMATION,
 
-    EVENT_GUT_SPRAY                 = 21,
-    EVENT_ENABLE_CASTING            = 22, 
-    EVENT_FROSTBOLT_VOLLEY          = 23,
-    EVENT_SUMMON_MANA_VOID          = 24,
-    EVENT_CAST_SUPPRESSION          = 25,
+    EVENT_GUT_SPRAY,
+    EVENT_ENABLE_CASTING, 
+    EVENT_FROSTBOLT_VOLLEY,
+    EVENT_SUMMON_MANA_VOID,
+    EVENT_CAST_SUPPRESSION,
 
-    EVENT_CAST_FIREBALL             = 26,
-    EVENT_CAST_LAY_WASTE            = 27
+    EVENT_CAST_FIREBALL,
+    EVENT_CAST_LAY_WASTE
 };
 enum eValithriaData
 {
@@ -160,23 +160,23 @@ const Position Pos[] =
 void Cleanup(Creature *me, InstanceScript *instance, float radius)
 {
     //Despawn heroic mode-specific mobs
-    UnsummonSpecificCreaturesNearby(me, CREATURE_PORTAL_HEROIC_MODE_PRE, radius);
-    UnsummonSpecificCreaturesNearby(me, CREATURE_PORTAL_HEROIC_MODE_NPC, radius);
-    UnsummonSpecificCreaturesNearby(me, CREATURE_NIGHTMARE_CLOUD, radius);
+    UnsummonSpecificCreaturesNearby(me, NPC_PORTAL_HEROIC_MODE_PRE, radius);
+    UnsummonSpecificCreaturesNearby(me, NPC_PORTAL_HEROIC_MODE_NPC, radius);
+    UnsummonSpecificCreaturesNearby(me, NPC_NIGHTMARE_CLOUD, radius);
     
     //Despawn normal mode-specific mobs
-    UnsummonSpecificCreaturesNearby(me, CREATURE_PORTAL_NORMAL_MODE_PRE, radius);
-    UnsummonSpecificCreaturesNearby(me, CREATURE_PORTAL_NORMAL_MODE_NPC, radius);
-    UnsummonSpecificCreaturesNearby(me, CREATURE_DREAM_CLOUD, radius);
+    UnsummonSpecificCreaturesNearby(me, NPC_PORTAL_NORMAL_MODE_PRE, radius);
+    UnsummonSpecificCreaturesNearby(me, NPC_PORTAL_NORMAL_MODE_NPC, radius);
+    UnsummonSpecificCreaturesNearby(me, NPC_DREAM_CLOUD, radius);
 
-    UnsummonSpecificCreaturesNearby(me, CREATURE_ZOMBIE, radius);
-    UnsummonSpecificCreaturesNearby(me, CREATURE_SKELETON, radius);
-    UnsummonSpecificCreaturesNearby(me, CREATURE_ARCHMAGE, radius);
-    UnsummonSpecificCreaturesNearby(me, CREATURE_SUPPRESSOR, radius);
-    UnsummonSpecificCreaturesNearby(me, CREATURE_ABOMINATION, radius);
-    UnsummonSpecificCreaturesNearby(me, CREATURE_ROT_WORM, radius);
-    UnsummonSpecificCreaturesNearby(me, CREATURE_COLUMN_OF_FROST, radius);
-    UnsummonSpecificCreaturesNearby(me, CREATURE_MANA_VOID, radius);
+    UnsummonSpecificCreaturesNearby(me, NPC_ZOMBIE, radius);
+    UnsummonSpecificCreaturesNearby(me, NPC_SKELETON, radius);
+    UnsummonSpecificCreaturesNearby(me, NPC_ARCHMAGE, radius);
+    UnsummonSpecificCreaturesNearby(me, NPC_SUPPRESSOR, radius);
+    UnsummonSpecificCreaturesNearby(me, NPC_ABOMINATION, radius);
+    UnsummonSpecificCreaturesNearby(me, NPC_ROT_WORM, radius);
+    UnsummonSpecificCreaturesNearby(me, NPC_COLUMN_OF_FROST, radius);
+    UnsummonSpecificCreaturesNearby(me, NPC_MANA_VOID, radius);
 
     instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_VIGOR);
     instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_TWISTED_NIGHTMARES);
@@ -194,7 +194,7 @@ class boss_valithria : public CreatureScript
 
         struct boss_valithriaAI : public BossAI
         {
-            boss_valithriaAI(Creature* pCreature) : BossAI(pCreature, DATA_VALITHRIA_DREAMWALKER)
+            boss_valithriaAI(Creature* pCreature) : BossAI(pCreature, DATA_VALITHRIA_DREAMWALKER_EVENT)
             {
                 //Make Valithria immune to column of frost in case it's spawned near her
                 me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
@@ -250,7 +250,7 @@ class boss_valithria : public CreatureScript
                 if (action == EVENT_INTRO)
                 {
                     Reset();
-                    if (Creature* combatTrigger = me->GetCreature(*me, instance->GetData64(DATA_VALITHRIA_COMBAT_TRIGGER)))
+                    if (Creature* combatTrigger = me->GetCreature(*me, instance->GetData64(GUID_VALITHRIA_COMBAT_TRIGGER)))
                         me->getThreatManager().addThreat(combatTrigger, 1.0f);
                     
                     me->GetInstanceScript()->SetData(DATA_PORTAL_JOCKEY_ACHIEVEMENT, (uint32)true);
@@ -264,9 +264,10 @@ class boss_valithria : public CreatureScript
                     events.Reset();
                     DoScriptText(SAY_FAILURES, me);
                     DoCast(me, SPELL_RAGE);
+                    instance->SetBossState(DATA_VALITHRIA_DREAMWALKER_EVENT, FAIL);
                     instance->SetData(DATA_VALITHRIA_DREAMWALKER_EVENT, FAIL);
                     Cleanup(me, instance, 100.0f);
-                    if (Creature* combatTrigger = me->GetCreature(*me, instance->GetData64(DATA_VALITHRIA_COMBAT_TRIGGER)))
+                    if (Creature* combatTrigger = me->GetCreature(*me, instance->GetData64(GUID_VALITHRIA_COMBAT_TRIGGER)))
                         combatTrigger->AI()->EnterEvadeMode();
                     me->RemoveAllAuras();
                     DoCast(me, SPELL_CORRUPTION);
@@ -303,7 +304,7 @@ class boss_valithria : public CreatureScript
                     case NOT_STARTED:
                     {
                         //Disallow healing while encounter isn't in progress
-                        if (Creature* combatTrigger = me->GetCreature(*me, instance->GetData64(DATA_VALITHRIA_COMBAT_TRIGGER)))
+                        if (Creature* combatTrigger = me->GetCreature(*me, instance->GetData64(GUID_VALITHRIA_COMBAT_TRIGGER)))
                             combatTrigger->AI()->EnterEvadeMode();
                         break;
                     }
@@ -391,7 +392,7 @@ class boss_valithria : public CreatureScript
                             //Need to check, maybe, this isn't required
                             for(uint8 p = 0; p < RAID_MODE<uint8>(3, 8, 3, 8); ++p)
                                 DoCast(RAID_MODE(SPELL_PORTAL_N_PRE,SPELL_PORTAL_N_PRE,SPELL_PORTAL_H_PRE,SPELL_PORTAL_H_PRE));
-                            if (Creature* valithriaAlternative = Unit::GetCreature(*me, instance->GetData64(DATA_VALITHRIA_ALTERNATIVE)))
+                            if (Creature* valithriaAlternative = Unit::GetCreature(*me, instance->GetData64(GUID_VALITHRIA_ALTERNATIVE)))
                                 valithriaAlternative->AI()->DoAction(EVENT_SUMMON_DREAM_CLOUD);
                             events.ScheduleEvent(EVENT_SUMMON_PORTALS_TO_DREAM, 50000);
                             break;
@@ -413,7 +414,7 @@ class boss_valithria : public CreatureScript
                         {
                             Cleanup(me, instance, 100.0f);
                             instance->SetData(DATA_VALITHRIA_DREAMWALKER_EVENT, DONE);
-                            if (Creature* combatTrigger = me->GetCreature(*me, instance->GetData64(DATA_VALITHRIA_COMBAT_TRIGGER)))
+                            if (Creature* combatTrigger = me->GetCreature(*me, instance->GetData64(GUID_VALITHRIA_COMBAT_TRIGGER)))
                                 combatTrigger->DespawnOrUnsummon();
                             me->DespawnOrUnsummon();
                             break;
@@ -451,6 +452,7 @@ class npc_valithria_alternative : public CreatureScript
             {
                 pInstance = pCreature->GetInstanceScript();
                 numberOfClouds = RAID_MODE<uint8>(15, 50, 15, 50);
+                distMax = RAID_MODE<float>(35.0f, 50.0f, 35.0f, 50.0f);
             }
 
             void Reset()
@@ -472,9 +474,9 @@ class npc_valithria_alternative : public CreatureScript
                 if (action == EVENT_SUMMON_DREAM_CLOUD && !(IsHeroic() && bAlreadySummonedClouds))
                 {
                     bAlreadySummonedClouds = true;
-                    const uint32 cloudEntry = IsHeroic() ? CREATURE_NIGHTMARE_CLOUD : CREATURE_DREAM_CLOUD;
+                    const uint32 cloudEntry = IsHeroic() ? NPC_NIGHTMARE_CLOUD : NPC_DREAM_CLOUD;
                     UnsummonSpecificCreaturesNearby(me, cloudEntry, 80.0f);
-                    float angle, summonX, summonY, summonZ, distMin = 20.0f, distMax = 35.0f, zVariation = 15.0f, summonDist;
+                    float angle, summonX, summonY, summonZ, distMin = 20.0f, zVariation = 15.0f, summonDist;
                     //Summon Dream clouds in a circle pattern, but randomize their positions a little (random angle and random Z coordinate)
                     for(uint8 i = 0; i <= numberOfClouds; ++i) //need correct count
                     {
@@ -495,7 +497,7 @@ class npc_valithria_alternative : public CreatureScript
         private:
             InstanceScript* pInstance;
             bool bAlreadySummonedClouds;
-            float x, y, z;
+            float x, y, z, distMax;
             uint8 numberOfClouds;
             EventMap events;
         };
@@ -525,7 +527,7 @@ class npc_dreamportal_icc : public CreatureScript
                 me->SetSpeed(MOVE_RUN, 0.0f);
                 me->SetReactState(REACT_PASSIVE);
                 events.Reset();
-                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER)))
+                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(GUID_VALITHRIA_DREAMWALKER)))
                     if (valithria->GetAI()->GetData(DATA_SUMMONED_LAST_PORTALS))
                         //Last 3 portals should be opened almost immediately after they were summoned
                         events.ScheduleEvent(EVENT_OPEN_PORTAL_TO_DREAM, 1000);
@@ -546,18 +548,18 @@ class npc_dreamportal_icc : public CreatureScript
                     {
                         case EVENT_OPEN_PORTAL_TO_DREAM:
                         {
-                            if(me->GetEntry() == CREATURE_PORTAL_NORMAL_MODE_PRE)
+                            if(me->GetEntry() == NPC_PORTAL_NORMAL_MODE_PRE)
                             {
-                                me->UpdateEntry(CREATURE_PORTAL_NORMAL_MODE_NPC);
+                                me->UpdateEntry(NPC_PORTAL_NORMAL_MODE_NPC);
                                 if (urand(0, 1))
                                     DoCast(me, SPELL_DREAM_PORTAL_VISUAL);
                                 else
                                     DoCast(me, SPELL_DREAM_PORTAL_VISUAL_2);
                             }
                             else
-                                if(me->GetEntry() == CREATURE_PORTAL_HEROIC_MODE_PRE)
+                                if(me->GetEntry() == NPC_PORTAL_HEROIC_MODE_PRE)
                                 {
-                                    me->UpdateEntry(CREATURE_PORTAL_HEROIC_MODE_NPC);
+                                    me->UpdateEntry(NPC_PORTAL_HEROIC_MODE_NPC);
                                     if (urand(0, 1))
                                         DoCast(me, SPELL_DREAM_PORTAL_VISUAL);
                                     else
@@ -846,7 +848,7 @@ class npc_icc_combat_stalker : public CreatureScript
             }
             void JustDied(Unit* killer)
             {
-                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER)))
+                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(GUID_VALITHRIA_DREAMWALKER)))
                     DoScriptText(SAY_FAILURES, me);
             }
             void EnterCombat(Unit* who)
@@ -860,24 +862,26 @@ class npc_icc_combat_stalker : public CreatureScript
 
                 events.Reset();
                 events.ScheduleEvent(EVENT_CHECK_WIPE, 1000);
-                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER)))
+                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(GUID_VALITHRIA_DREAMWALKER)))
                     AttackStart(valithria);
                 me->getThreatManager().addThreat(who, 5000);
                 DoZoneInCombat(me);
                 m_uiSummonSkeletonTimer = 60000;
                 m_uiSummonSuppressorTimer = 60000;
-                events.ScheduleEvent(EVENT_SUMMON_ZOMBIE, 17000);
-                events.ScheduleEvent(EVENT_SUMMON_ARCHMAGE, 2000);
-                events.ScheduleEvent(EVENT_SUMMON_ABOMINATION, 10000);
-                events.ScheduleEvent(EVENT_SUMMON_SUPPRESSOR, 20000);
-                events.ScheduleEvent(EVENT_SUMMON_BLAZING_SKELETON, 5000);
+                uint32 delayForKill4Mages = 0;
+                if (me->FindNearestCreature(NPC_ARCHMAGE, 100.0f, true))
+                    delayForKill4Mages = 90000;
+                events.ScheduleEvent(EVENT_SUMMON_ZOMBIE, delayForKill4Mages+50000);
+                events.ScheduleEvent(EVENT_SUMMON_ARCHMAGE, delayForKill4Mages+20000);
+                events.ScheduleEvent(EVENT_SUMMON_ABOMINATION, delayForKill4Mages+40000);
+                events.ScheduleEvent(EVENT_SUMMON_SUPPRESSOR, delayForKill4Mages+2000);
+                events.ScheduleEvent(EVENT_SUMMON_BLAZING_SKELETON, delayForKill4Mages+50000);
 
-                events.ScheduleEvent(EVENT_HASTEN_SUMMON_TIMER, 30000);
-                events.ScheduleEvent(EVENT_CHECK_WIPE, 1000);
+                events.ScheduleEvent(EVENT_HASTEN_SUMMON_TIMER, delayForKill4Mages+30000);
+                events.ScheduleEvent(EVENT_CHECK_WIPE, 2000);
                 pInstance->SetData(DATA_VALITHRIA_DREAMWALKER_EVENT, IN_PROGRESS);
-                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER)))
+                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(GUID_VALITHRIA_DREAMWALKER)))
                     valithria->AI()->DoAction(EVENT_INTRO);
-
             }
 
             void MoveInLineOfSight(Unit *who)
@@ -902,28 +906,20 @@ class npc_icc_combat_stalker : public CreatureScript
 
             void JustSummoned(Creature* pSummoned)
             {
-                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER)))
+                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(GUID_VALITHRIA_DREAMWALKER)))
                     pSummoned->AI()->AttackStart(valithria);
                 summons.Summon(pSummoned);
             }
 
             void KilledUnit(Unit* /*victim*/)
             {
-                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER)))
+                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(GUID_VALITHRIA_DREAMWALKER)))
                     DoScriptText(SAY_PDEATH, valithria);
             }
 
             void SummonCreature(uint32 entry, uint8 probability)
             {
-                bool bSuccessfully = false;
-                for (int i = 0; i < RAID_MODE(2,4,2,4); ++i)
-                    if (urand(0, 100) < probability)
-                    {
-                        bSuccessfully = true;
-                        DoSummon(entry, Pos[i]);
-                    }
-                //Nobody was summoned - summon at least one
-                if (!bSuccessfully)
+                if (urand(0, 100) < probability)
                     DoSummon(entry, Pos[urand(0, RAID_MODE(1,3,1,3))]);
             }
 
@@ -940,7 +936,7 @@ class npc_icc_combat_stalker : public CreatureScript
                         {
                             if (!SelectTarget(SELECT_TARGET_RANDOM, 0, 60.0f, true))
                             {
-                                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER)))
+                                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(GUID_VALITHRIA_DREAMWALKER)))
                                     valithria->AI()->DoAction(ACTION_WIPE);
                                 Reset();
                                 return;
@@ -952,50 +948,52 @@ class npc_icc_combat_stalker : public CreatureScript
                         case EVENT_SUMMON_ZOMBIE:
                         {
                             if (bSummonZombies)
-                            {
-                                SummonCreature(CREATURE_ZOMBIE, 50);
-                            }
-                            events.ScheduleEvent(EVENT_SUMMON_ZOMBIE, 30000);
+                                for (uint8 i = 0; i < RAID_MODE(3, 5, 3, 5); ++i)
+                                    SummonCreature(NPC_ZOMBIE, 101);
+                            events.ScheduleEvent(EVENT_SUMMON_ZOMBIE, 10000);
                             break;
                         }
                         case EVENT_SUMMON_ARCHMAGE:
                         {
                             if (bSummonArchmages)
-                                SummonCreature(CREATURE_ARCHMAGE, 75);
-                            events.ScheduleEvent(EVENT_SUMMON_ARCHMAGE, 60000);
+                                SummonCreature(NPC_ARCHMAGE, 101);
+                            events.ScheduleEvent(EVENT_SUMMON_ARCHMAGE, 20000);
                             break;
                         }
                         case EVENT_SUMMON_ABOMINATION:
                         {
                             if (bSummonAbominations)
-                                SummonCreature(CREATURE_ABOMINATION, 80);
-                            events.ScheduleEvent(EVENT_SUMMON_ABOMINATION, 60000);
+                                SummonCreature(NPC_ABOMINATION, 101);
+                            events.ScheduleEvent(EVENT_SUMMON_ABOMINATION, 30000);
                             break;
                         }
                         case EVENT_SUMMON_SUPPRESSOR:
                         {
                             if (bSummonSuppressors)
-                                SummonCreature(CREATURE_SUPPRESSOR, 60);
+                                for (uint8 i = 0; i < RAID_MODE(5, 7, 5, 7); ++i)
+                                    SummonCreature(NPC_SUPPRESSOR, 101);
+                            m_uiSummonSuppressorTimer -= 2000;
                             events.ScheduleEvent(EVENT_SUMMON_SUPPRESSOR, urand(m_uiSummonSuppressorTimer-2000, m_uiSummonSuppressorTimer+2000));
                             break;
                         }
                         case EVENT_SUMMON_BLAZING_SKELETON:
                         {
                             if (bSummonSkeletons)
-                                SummonCreature(CREATURE_SKELETON, 80);
+                                SummonCreature(NPC_SKELETON, 101);
+                            m_uiSummonSkeletonTimer -= 5000;
                             events.ScheduleEvent(EVENT_SUMMON_BLAZING_SKELETON, urand(m_uiSummonSkeletonTimer-2000, m_uiSummonSkeletonTimer+2000));
                             break;
-                        }
+                        }       
                         case EVENT_HASTEN_SUMMON_TIMER:
                         {
                             //After 7/? (10/25 player) minutes, Suppressors and Blazing Skeletons start to spawn continuously
                             //(which usually leads to a quick wipe)
-                            m_uiSummonSuppressorTimer -= 5000;
-                            m_uiSummonSkeletonTimer -= 5000;
-                            if (m_uiSummonSuppressorTimer < 2000)
-                                m_uiSummonSuppressorTimer = 2000;
-                            if (m_uiSummonSkeletonTimer < 2000)
-                                m_uiSummonSkeletonTimer = 2000;
+                            m_uiSummonSuppressorTimer -= 2000;
+                            m_uiSummonSkeletonTimer -= 2000;
+                            if (m_uiSummonSuppressorTimer < 10000)
+                                m_uiSummonSuppressorTimer = 10000;
+                            if (m_uiSummonSkeletonTimer < 10000)
+                                m_uiSummonSkeletonTimer = 10000;
                             events.ScheduleEvent(EVENT_HASTEN_SUMMON_TIMER, 30000);
                             break;
                         }
@@ -1072,7 +1070,7 @@ class npc_icc_valithria_gluttonous_abomination : public CreatureScript
             npc_icc_valithria_gluttonous_abominationAI(Creature* pCreature) : ScriptedAI(pCreature)
             {
                 pInstance = pCreature->GetInstanceScript();
-                valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER));
+                valithria = Unit::GetCreature(*me, pInstance->GetData64(GUID_VALITHRIA_DREAMWALKER));
             }
             void Reset()
             {
@@ -1083,7 +1081,7 @@ class npc_icc_valithria_gluttonous_abomination : public CreatureScript
             {
                 Position pos;
                 me->GetPosition(&pos);
-                Creature *rotSummoner = DoSummon(CREATURE_TRIGGER, pos, 3000, TEMPSUMMON_TIMED_DESPAWN);
+                Creature *rotSummoner = DoSummon(NPC_TRIGGER, pos, 3000, TEMPSUMMON_TIMED_DESPAWN);
                 rotSummoner->CastSpell(rotSummoner, SPELL_SUMMON_ROT_WORMS_AURA, true);
                 rotSummoner->SetVisible(false);
                 rotSummoner->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -1182,11 +1180,21 @@ class npc_icc_valithria_blistering_zombie : public CreatureScript
             npc_icc_valithria_blistering_zombieAI(Creature* pCreature) : ScriptedAI(pCreature)
             {
                 pInstance = pCreature->GetInstanceScript();
-                valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER));
+                valithria = Unit::GetCreature(*me, pInstance->GetData64(GUID_VALITHRIA_DREAMWALKER));
+                isAlreadyExploding = false;
             }
             void Reset()
             {
                 events.Reset();
+            }
+            void DamageTaken(Unit * /*done_by*/, uint32& /*damage*/)
+            {
+                if (HealthBelowPct(11) && !isAlreadyExploding)
+                {
+                    isAlreadyExploding = true;
+                    DoCast(me, RAID_MODE<uint32>(SPELL_ACID_BURST_10N, SPELL_ACID_BURST_25N, SPELL_ACID_BURST_10H, SPELL_ACID_BURST_25H));
+                    events.ScheduleEvent(EVENT_DESPAWN, 1000);
+                }
             }
             void DamageDealt(Unit* target, uint32& damage, DamageEffectType damageType)
             {
@@ -1213,10 +1221,6 @@ class npc_icc_valithria_blistering_zombie : public CreatureScript
                 {
                     switch (eventId)
                     {
-                        case EVENT_EXPLODE:
-                            DoCast(me, RAID_MODE<uint32>(SPELL_ACID_BURST_10N, SPELL_ACID_BURST_25N, SPELL_ACID_BURST_10H, SPELL_ACID_BURST_25H));
-                            events.ScheduleEvent(EVENT_EXPLODE, 25000);
-                            break;
                         case EVENT_DESPAWN:
                             me->DespawnOrUnsummon();
                             break;
@@ -1229,6 +1233,7 @@ class npc_icc_valithria_blistering_zombie : public CreatureScript
             EventMap events;
             InstanceScript *pInstance;
             Creature *valithria;
+            bool isAlreadyExploding;
         };
 
         CreatureAI* GetAI(Creature* pCreature) const
@@ -1248,7 +1253,7 @@ class npc_icc_valithria_risen_archmage : public CreatureScript
             npc_icc_valithria_risen_archmageAI(Creature* pCreature) : ScriptedAI(pCreature)
             {
                 pInstance = pCreature->GetInstanceScript();
-                valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER));
+                valithria = Unit::GetCreature(*me, pInstance->GetData64(GUID_VALITHRIA_DREAMWALKER));
             }
             void Reset()
             {
@@ -1257,9 +1262,9 @@ class npc_icc_valithria_risen_archmage : public CreatureScript
             void EnterCombat(Unit *who)
             {
                 events.Reset();
-                events.ScheduleEvent(EVENT_CAST_COLUMN_OF_FROST, 4000);
-                events.ScheduleEvent(EVENT_FROSTBOLT_VOLLEY, 8000);
-                events.ScheduleEvent(EVENT_SUMMON_MANA_VOID, 14000);
+                events.ScheduleEvent(EVENT_CAST_COLUMN_OF_FROST, 20000);
+                events.ScheduleEvent(EVENT_FROSTBOLT_VOLLEY, 15000);
+                events.ScheduleEvent(EVENT_SUMMON_MANA_VOID, 20000);
             }
             void KilledUnit(Unit* victim)
             {
@@ -1287,13 +1292,13 @@ class npc_icc_valithria_risen_archmage : public CreatureScript
                             break;
                         case EVENT_FROSTBOLT_VOLLEY:
                             DoCast(me, SPELL_FROSTBOLT_VOLLEY);
-                            events.ScheduleEvent(EVENT_FROSTBOLT_VOLLEY, 5000);
+                            events.ScheduleEvent(EVENT_FROSTBOLT_VOLLEY, 15000);
                             break;
                         case EVENT_SUMMON_MANA_VOID:
                         {
                             if(Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true))
                                 DoCast(pTarget, SPELL_SUMMON_MANA_VOID);
-                            events.ScheduleEvent(EVENT_SUMMON_MANA_VOID, 15000);
+                            events.ScheduleEvent(EVENT_SUMMON_MANA_VOID, 40000);
                             break;
                         }
                     }
@@ -1323,7 +1328,7 @@ class npc_icc_valithria_supressor : public CreatureScript
             npc_icc_valithria_supressorAI(Creature* pCreature) : ScriptedAI(pCreature)
             {
                 pInstance = pCreature->GetInstanceScript();
-                valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER));
+                valithria = Unit::GetCreature(*me, pInstance->GetData64(GUID_VALITHRIA_DREAMWALKER));
             }
             void Reset()
             {
@@ -1380,7 +1385,7 @@ class npc_icc_valithria_blazing_skeleton : public CreatureScript
             npc_icc_valithria_blazing_skeletonAI(Creature* pCreature) : ScriptedAI(pCreature)
             {
                 pInstance = pCreature->GetInstanceScript();
-                valithria = Unit::GetCreature(*me, pInstance->GetData64(DATA_VALITHRIA_DREAMWALKER));
+                valithria = Unit::GetCreature(*me, pInstance->GetData64(GUID_VALITHRIA_DREAMWALKER));
             }
             void Reset()
             {
@@ -1390,7 +1395,7 @@ class npc_icc_valithria_blazing_skeleton : public CreatureScript
             {
                 events.Reset();
                 events.ScheduleEvent(EVENT_CAST_FIREBALL, 4000);
-                events.ScheduleEvent(EVENT_CAST_LAY_WASTE, 8000);
+                events.ScheduleEvent(EVENT_CAST_LAY_WASTE, 20000);
             }
             void UpdateAI(const uint32 diff)
             {
@@ -1411,8 +1416,10 @@ class npc_icc_valithria_blazing_skeleton : public CreatureScript
                             events.ScheduleEvent(EVENT_CAST_FIREBALL, 5000);
                             break;
                         case EVENT_CAST_LAY_WASTE:
+                            //continue using it until killed
+                            events.CancelEvent(EVENT_CAST_FIREBALL);
                             DoCast(SPELL_LAY_WASTE);
-                            events.ScheduleEvent(EVENT_CAST_LAY_WASTE, 20000);
+                            events.ScheduleEvent(EVENT_CAST_LAY_WASTE, 11000);
                             break;
                     }
                 }

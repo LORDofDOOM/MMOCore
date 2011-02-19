@@ -10,9 +10,9 @@ INSERT INTO `spell_script_names` VALUES
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (69075, 70834, 70835, 70836);
 INSERT INTO `spell_script_names` VALUES 
 (69075, 'spell_marrowgar_bone_storm'),
-(70834,	'spell_marrowgar_bone_storm'),
-(70835,	'spell_marrowgar_bone_storm'),
-(70836,	'spell_marrowgar_bone_storm');
+(70834,    'spell_marrowgar_bone_storm'),
+(70835,    'spell_marrowgar_bone_storm'),
+(70836,    'spell_marrowgar_bone_storm');
 
 -- UPDATEs for Lady Deathwhisper
 
@@ -302,7 +302,7 @@ INSERT INTO `spell_script_names` VALUES
 (70536, 'spell_icc_spirit_alarm'),
 (70545, 'spell_icc_spirit_alarm'),
 (70547, 'spell_icc_spirit_alarm');
-REPLACE INTO `spell_script_names` VALUES (70461, 'spell_coldflame_trap');]
+REPLACE INTO `spell_script_names` VALUES (70461, 'spell_coldflame_trap');
 UPDATE `gameobject_template` SET `ScriptName` = 'go_icc_plagueworks_valve' WHERE `entry` IN (201615, 201616);
 
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (70536, 70545, 70546, 70547);
@@ -315,6 +315,8 @@ REPLACE INTO `spell_script_names` VALUES (70461, 'spell_coldflame_trap');
 UPDATE `gameobject_template` SET `ScriptName` = 'go_icc_plagueworks_valve' WHERE `entry` IN (201615, 201616);
 -- The Lich King
 DELETE FROM `areatrigger_teleport` WHERE `id` = 5718;
+UPDATE `creature_template` SET `ScriptName` = 'npc_shambling_horror_icc' WHERE `entry` = 37698;
+UPDATE `creature_template` SET `ScriptName` = 'npc_raging_spirit_icc' WHERE `entry` = 36701;
 
 -- Blood Prince entries FROM TrinityCore
 DELETE FROM `creature_template` WHERE `entry` IN (37970, 37972, 37973, 38401, 38784, 38785, 38399, 38769, 38770, 38400, 38771, 38772);
@@ -346,3 +348,16 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_deathspeaker_high_priest' WHE
 UPDATE `creature_template` SET `ScriptName` = 'npc_val_kyr_herald' WHERE `entry` = 37098;
 UPDATE `creature_template` SET `ScriptName` = 'npc_severed_essence' WHERE `entry` = 38410;
 REPLACE INTO `spell_script_names` VALUES (69483, 'spell_icc_dark_reckoning');
+UPDATE `creature_template` SET `ScriptName` = 'npc_the_damned' WHERE `entry` = 37011;
+UPDATE `creature_template` SET `ScriptName` = 'npc_servant_of_the_throne' WHERE `entry` = 36724;
+UPDATE `creature_template` SET `ScriptName` = 'npc_blighted_abomination' WHERE `entry` = 37022;
+UPDATE `creature_template` SET `ScriptName` = 'npc_plague_scientist' WHERE `entry` = 37023;
+UPDATE `creature_template` SET `ScriptName` = 'npc_decaying_colossus' WHERE `entry` = 36880;
+UPDATE `creature_template` SET `ScriptName` = 'npc_pustulating_horror' WHERE `entry` = 10404;
+-- Set immunes on Spinestalker, Rimefang, Stinky, Precious, Decaying Colossus, Sister Svalna, Deathbound Ward
+UPDATE `creature_template` SET `mechanic_immune_mask` = 667631615 WHERE `entry` IN (37533, 37534, 38219, 38220, 37217, 38103, 37025, 38064, 36880, 37655, 37126, 38258, 37007, 38031);
+
+-- Putricide Mutated Abomination spell fix for 10h, 25n and 25h modes
+UPDATE `creature_template` SET `spell1` = 70360, `spell2`= 72457, `spell3`= 70542, `VehicleId` = 591 WHERE `entry` = 38788;
+UPDATE `creature_template` SET `spell1` = 70360, `spell2`= 72875, `spell3`= 70542, `VehicleId` = 591 WHERE `entry` = 38789;
+UPDATE `creature_template` SET `spell1` = 70360, `spell2`= 72876, `spell3`= 70542, `VehicleId` = 591 WHERE `entry` = 38790;

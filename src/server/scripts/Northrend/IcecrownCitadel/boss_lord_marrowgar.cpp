@@ -85,7 +85,7 @@ class boss_lord_marrowgar : public CreatureScript
 
         struct boss_lord_marrowgarAI : public BossAI
         {
-            boss_lord_marrowgarAI(Creature* creature) : BossAI(creature, DATA_LORD_MARROWGAR)
+            boss_lord_marrowgarAI(Creature* creature) : BossAI(creature, DATA_LORD_MARROWGAR_EVENT)
             {
                 boneStormDuration = RAID_MODE<uint32>(20000, 30000, 20000, 30000);
                 baseSpeed = creature->GetSpeedRate(MOVE_RUN);
@@ -119,8 +119,8 @@ class boss_lord_marrowgar : public CreatureScript
             {
                 Talk(SAY_AGGRO);
 
-                instance->SetBossState(DATA_LORD_MARROWGAR, IN_PROGRESS);
-                instance->SetData(DATA_MARROWGAR_EVENT, IN_PROGRESS);
+                instance->SetBossState(DATA_LORD_MARROWGAR_EVENT, IN_PROGRESS);
+                instance->SetData(DATA_LORD_MARROWGAR_EVENT, IN_PROGRESS);
             }
 
             void JustDied(Unit* killer)
@@ -135,15 +135,15 @@ class boss_lord_marrowgar : public CreatureScript
                             if (Player* pMember = pRef->getSource())
                                 pMember->RemoveAurasDueToSpell(SPELL_IMPALED);
                 }
-                instance->SetBossState(DATA_LORD_MARROWGAR, DONE);
-                instance->SetData(DATA_MARROWGAR_EVENT, DONE);
+                instance->SetBossState(DATA_LORD_MARROWGAR_EVENT, DONE);
+                instance->SetData(DATA_LORD_MARROWGAR_EVENT, DONE);
                 summons.DespawnAll();
             }
 
             void JustReachedHome()
             {
-                instance->SetBossState(DATA_LORD_MARROWGAR, FAIL);
-                instance->SetData(DATA_MARROWGAR_EVENT, FAIL);
+                instance->SetBossState(DATA_LORD_MARROWGAR_EVENT, FAIL);
+                instance->SetData(DATA_LORD_MARROWGAR_EVENT, FAIL);
                 instance->SetData(DATA_BONED_ACHIEVEMENT, uint32(true));    // reset
             }
 
@@ -558,6 +558,106 @@ class spell_marrowgar_coldflame_damage : public SpellScriptLoader
         }
 };
 
+class npc_the_damned : public CreatureScript
+{
+    enum eSpells
+    {
+        SPELL_BONE_FLURRY       = 70960,
+        SPELL_SHATTERED_BONES    = 70961,
+    };
+
+public:
+    npc_the_damned() : CreatureScript("npc_the_damned") { }
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new npc_the_damnedAI (pCreature);
+    }
+
+    struct npc_the_damnedAI : public ScriptedAI
+    {
+        npc_the_damnedAI(Creature *c) : ScriptedAI(c) {}
+
+        void JustDied(Unit* /*Killer*/)
+        {
+            DoCast(me, SPELL_SHATTERED_BONES);
+        }
+  
+        void DamageTaken(Unit* /*attacker*/, uint32& /*damage*/)
+        {
+            if(HealthBelowPct(25) && !me->HasAura(SPELL_BONE_FLURRY))
+                DoCast(me, SPELL_BONE_FLURRY);
+        }
+    };
+};
+
+class npc_servant_of_the_throne : public CreatureScript
+{
+    enum eEvents
+    {
+        EVENT_GLACIAL_BLAST = 1,
+    };
+    enum eSpells
+    {
+        SPELL_GLACIAL_BLAST  = 71029,
+    };
+
+public:
+    npc_servant_of_the_throne() : CreatureScript("npc_servant_of_the_throne") { }
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new npc_servant_of_the_throneAI (pCreature);
+    }
+
+    struct npc_servant_of_the_throneAI : public ScriptedAI
+    {
+        npc_servant_of_the_throneAI(Creature *c) : ScriptedAI(c)
+        {
+            instance = me->GetInstanceScript();
+        }
+
+        void Reset()
+        {
+            events.Reset();
+        }
+
+        void EnterCombat(Unit* /*who*/)
+        {
+            events.Reset();
+            events.ScheduleEvent(EVENT_GLACIAL_BLAST, 3000);
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
+            if (!UpdateVictim())
+                return;
+            if (me->HasUnitState(UNIT_STAT_CASTING))
+                return;
+            events.Update(diff);
+            while (uint32 eventId = events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case EVENT_GLACIAL_BLAST:  
+                    {
+                        DoCast(me, SPELL_GLACIAL_BLAST);
+                        events.ScheduleEvent(EVENT_GLACIAL_BLAST, 5000);
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            DoMeleeAttackIfReady();
+        }
+    private:
+        InstanceScript *instance;
+        EventMap events;
+    };
+
+}; 
+
 void AddSC_boss_lord_marrowgar()
 {
     new boss_lord_marrowgar();
@@ -567,4 +667,6 @@ void AddSC_boss_lord_marrowgar()
     new spell_marrowgar_coldflame_damage();
     new spell_marrowgar_bone_spike_graveyard();
     new spell_marrowgar_bone_storm();
+    new npc_the_damned();
+    new npc_servant_of_the_throne(); 
 }

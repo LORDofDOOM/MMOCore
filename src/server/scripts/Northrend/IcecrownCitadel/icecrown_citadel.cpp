@@ -22,10 +22,10 @@
 #define GOSSIP_TEXT(id) sObjectMgr->GetGossipText(id)->Options[0].Text_0
 #define IS_TELEPORT_ENABLED(id) ((go->GetMap()->GetGameObject(instance->GetData64(id))->GetGoState() == GO_STATE_ACTIVE) ? true: false)
 // Weekly quest support
-//* Deprogramming                (DONE)
+//* Deprogramming
 //* Securing the Ramparts        (DONE)
 //* Residue Rendezvous
-//* Blood Quickening                    // AreaTrigger 5729 starts the timer, pulling BQ before it runs out means success
+//* Blood Quickening
 //* Respite for a Tormented Soul
 
 enum Texts
@@ -52,11 +52,11 @@ enum Spells
     SPELL_SPIRIT_ALARM_2            = 70546,
     SPELL_SPIRIT_ALARM_3            = 70545,
     SPELL_SPIRIT_ALARM_4            = 70547,
-	SPELL_DARK_RECKONING			= 69483,
+    SPELL_DARK_RECKONING            = 69483,
     SPELL_DARK_RECKONING_SIPHON_LIFE= 69482,
-	SPELL_AURA_OF_DARKNESS			= 69491,
-	SPELL_SEVERED_ESSENCE_10		= 71906,
-	SPELL_SEVERED_ESSENCE_25		= 71942,
+    SPELL_AURA_OF_DARKNESS            = 69491,
+    SPELL_SEVERED_ESSENCE_10        = 71906,
+    SPELL_SEVERED_ESSENCE_25        = 71942,
     //Severed essence spells
     SPELL_CLONE_PLAYER              = 57507,
     //Druid spells
@@ -153,19 +153,7 @@ enum eData
 {
     DATA_PLAYER_CLASS = 2,
 };
-enum TeleportSpells
-{
-    HAMMER        = 70781,
-    ORATORY       = 70856,
-    RAMPART       = 70857,
-    SAURFANG      = 70858,
-    UPPER_SPIRE   = 70859,
-    //PLAGUEWORKS   = 9995,
-    //CRIMSONHALL   = 9996,
-    //FWHALLS       = 9997,
-    SINDRAGOSA    = 70861,
-    LICHKING      = 70860
-};
+
 enum eTeleportGossips
 {
     GOSSIP_TELEPORT_LIGHTS_HAMMER           = 800000,
@@ -334,7 +322,7 @@ class TeleportToFrozenThrone : public BasicEvent
 
         bool Execute(uint64 /*eventTime*/, uint32 /*updateTime*/)
         {
-            pPlayer->CastSpell(pPlayer, LICHKING, true);
+            pPlayer->CastSpell(pPlayer, SPELL_TELEPORT_ICC_FROZEN_THRONE, true);
             if (--attemptsLeft)
                 pPlayer->m_Events.AddEvent(new TeleportToFrozenThrone(pPlayer, attemptsLeft), pPlayer->m_Events.CalculateTime(uint64(5000)));
             return true;
@@ -345,58 +333,80 @@ class TeleportToFrozenThrone : public BasicEvent
 };
 class go_icecrown_teleporter : public GameObjectScript
 {
-    public:
-        go_icecrown_teleporter() : GameObjectScript("go_icecrown_teleporter") { }
 
-        bool OnGossipHello(Player* player, GameObject* go)
+public:
+    go_icecrown_teleporter() : GameObjectScript("go_icecrown_teleporter") { }
+
+    bool OnGossipHello(Player* player, GameObject* go)
+    {
+        InstanceScript* instance = go->GetInstanceScript();
+        if(!instance)
+            return false;
+        if (instance->IsEncounterInProgress())
+            return false;
+        if (go->GetEntry() == GO_TELEPORT_FROZEN_THRONE)
         {
-            InstanceScript* instance = go->GetInstanceScript();
-            if(!instance)
-                return false;
-            if (instance->IsEncounterInProgress())
-                return false;
-            if (go->GetEntry() == LICH_TELEPORT)
+            if (instance->GetData(DATA_PROFESSOR_PUTRICIDE_EVENT) == DONE &&
+                instance->GetData(DATA_BLOOD_QUEEN_LANA_THEL_EVENT) == DONE && 
+                instance->GetData(DATA_SINDRAGOSA_EVENT) == DONE)
             {
-                if (instance->GetData(DATA_PROFESSOR_PUTRICIDE_EVENT) == DONE && instance->GetData(DATA_BLOOD_QUEEN_LANA_THEL_EVENT) == DONE && instance->GetData(DATA_SINDRAGOSA_EVENT) == DONE)
-                {
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_FROZEN_THRONE), GOSSIP_SENDER_MAIN, LICHKING);
-                    player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, go->GetGUID());
-                    return true;
-                }
-                return false;
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_FROZEN_THRONE), GOSSIP_SENDER_MAIN, SPELL_TELEPORT_ICC_FROZEN_THRONE);
+                player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, go->GetGUID());
+                return true;
             }
-            instance->HandleGameObject(NULL, true, go);
-            if (go->GetEntry() != FIRST_TELEPORT)
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_LIGHTS_HAMMER), GOSSIP_SENDER_MAIN, HAMMER);
-
-            if (go->GetEntry() != LORD_TELEPORT && instance->GetData(DATA_MARROWGAR_EVENT) == DONE && IS_TELEPORT_ENABLED(DATA_TELEPORT_ORATORY_OF_THE_DAMNED))
-            {
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_ORATORY_OF_THE_DAMNED), GOSSIP_SENDER_MAIN, ORATORY);
-            }
-            if (go->GetEntry() != GUNSHIP_TELEPORT && instance->GetData(DATA_DEATHWHISPER_EVENT) == DONE && IS_TELEPORT_ENABLED(DATA_TELEPORT_RAMPART_OF_SKULLS))
-            {
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_RAMPART_OF_SKULLS), GOSSIP_SENDER_MAIN, RAMPART);
-            }
-            if (go->GetEntry() != SAURFANG_TELEPORT
-             && instance->GetData(DATA_GUNSHIP_BATTLE_EVENT) == DONE
-             && instance->GetData(DATA_DEATHWHISPER_EVENT) == DONE
-             //&& IS_TELEPORT_ENABLED(DATA_TELEPORT_DEATHBRINGERS_RISE) //Disabled until Gunship Battle encounter is implemented
-             )
-            {
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_DEATHBRINGERS_RISE), GOSSIP_SENDER_MAIN, SAURFANG);
-            }
-            if (go->GetEntry() != CITADEL_TELEPORT &&
-                instance->GetData(DATA_SAURFANG_EVENT) == DONE && IS_TELEPORT_ENABLED(DATA_TELEPORT_UPPER_SPIRE))
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_UPPER_SPIRE), GOSSIP_SENDER_MAIN, UPPER_SPIRE);
-            if (go->GetEntry() != SINDRAGOSA_TELEPORT &&
-                instance->GetData(DATA_VALITHRIA_DREAMWALKER_EVENT) == DONE && IS_TELEPORT_ENABLED(DATA_TELEPORT_SINDRAGOSAS_LAIR))
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_SINDRAGOSAS_LAIR), GOSSIP_SENDER_MAIN, SINDRAGOSA);
-
-            player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, go->GetGUID());
-            return true;
+            return false;
         }
+        switch (go->GetEntry())
+        {
+            case GO_TELEPORT_ORATORY_OF_THE_DAMNED:
+                instance->SetData(DATA_TELEPORT_ORATORY_OF_THE_DAMNED_ACTIVATED, DONE);
+                break;
+            case GO_TELEPORT_RAMPART_OF_SKULLS:
+                instance->SetData(DATA_TELEPORT_RAMPART_OF_SKULLS_ACTIVATED, DONE);
+                instance->SetData(DATA_TELEPORT_DEATHBRINGER_S_RISE_ACTIVATED, DONE);
+                break;
+            case GO_TELEPORT_DEATHBRINGER_RISE:
+                instance->SetData(DATA_TELEPORT_DEATHBRINGER_S_RISE_ACTIVATED, DONE);
+                break;
+            case GO_TELEPORT_UPPER_SPIRE:
+                instance->SetData(DATA_TELEPORT_UPPER_SPIRE_ACTIVATED, DONE);
+                break;
+            case GO_TELEPORT_SINDRAGOSA_S_LAIR:
+                instance->SetData(DATA_TELEPORT_SINDRAGOSA_S_LAIR_ACTIVATED, DONE);
+                break;
+            case GO_TELEPORT_FROZEN_THRONE:
+                instance->SetData(DATA_TELEPORT_FROZEN_THRONE_ACTIVATED, DONE);
+                break;
+        }
+        instance->HandleGameObject(NULL, true, go);
+        if (go->GetEntry() != GO_TELEPORT_LIGHT_S_HAMMER)
+            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_LIGHTS_HAMMER), GOSSIP_SENDER_MAIN, SPELL_TELEPORT_ICC_LIGHT_S_HAMMER);
 
-        bool OnGossipSelect(Player* player, GameObject* /*go*/, uint32 uiSender, uint32 uiAction)
+        if (go->GetEntry() != GO_TELEPORT_ORATORY_OF_THE_DAMNED && instance->GetData(DATA_LORD_MARROWGAR_EVENT) == DONE && instance->GetData(DATA_TELEPORT_ORATORY_OF_THE_DAMNED_ACTIVATED) == DONE)
+            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_ORATORY_OF_THE_DAMNED), GOSSIP_SENDER_MAIN, SPELL_TELEPORT_ICC_ORATORY_OF_THE_DAMNED);
+        if (go->GetEntry() != GO_TELEPORT_RAMPART_OF_SKULLS && instance->GetData(DATA_DEATHWHISPER_EVENT) == DONE && instance->GetData(DATA_TELEPORT_RAMPART_OF_SKULLS_ACTIVATED) == DONE)
+            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_RAMPART_OF_SKULLS), GOSSIP_SENDER_MAIN, SPELL_TELEPORT_ICC_RAMPART_OF_SKULLS);
+        if (go->GetEntry() != GO_TELEPORT_DEATHBRINGER_RISE
+            && instance->GetData(DATA_GUNSHIP_BATTLE_EVENT) == DONE
+            && instance->GetData(DATA_DEATHWHISPER_EVENT) == DONE
+            && instance->GetData(DATA_TELEPORT_DEATHBRINGER_S_RISE_ACTIVATED) == DONE
+            //&& IS_TELEPORT_ENABLED(DATA_TELEPORT_DEATHBRINGERS_RISE) //Disabled until Gunship Battle encounter is implemented
+            )
+        {
+            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_DEATHBRINGERS_RISE), GOSSIP_SENDER_MAIN, SPELL_TELEPORT_ICC_DEATHBRINGER_S_RISE);
+        }
+        if (go->GetEntry() != GO_TELEPORT_UPPER_SPIRE &&
+            instance->GetData(DATA_SAURFANG_EVENT) == DONE && instance->GetData(DATA_TELEPORT_UPPER_SPIRE_ACTIVATED) == DONE)
+            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_UPPER_SPIRE), GOSSIP_SENDER_MAIN, SPELL_TELEPORT_ICC_UPPER_SPIRE);
+        if (go->GetEntry() != GO_TELEPORT_SINDRAGOSA_S_LAIR &&
+            instance->GetData(DATA_VALITHRIA_DREAMWALKER_EVENT) == DONE && instance->GetData(DATA_TELEPORT_SINDRAGOSA_S_LAIR_ACTIVATED) == DONE)
+            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT(GOSSIP_TELEPORT_SINDRAGOSAS_LAIR), GOSSIP_SENDER_MAIN, SPELL_TELEPORT_ICC_SINDRAGOSA_S_LAIR);
+
+        player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, go->GetGUID());
+        return true;
+    }
+
+    bool OnGossipSelect(Player* player, GameObject* /*go*/, uint32 uiSender, uint32 uiAction)
         {
             //player->PlayerTalkClass->ClearMenus();
             if(!player->getAttackers().empty())
@@ -415,11 +425,11 @@ class go_icecrown_teleporter : public GameObjectScript
             if (uiSender == GOSSIP_SENDER_MAIN)
             {
                 //Preload the Lich King's platform before teleporting player to there
-                if (uiAction == LICHKING)
+                if (uiAction == SPELL_TELEPORT_ICC_FROZEN_THRONE)
                     player->GetMap()->LoadGrid(530.3f, -2122.67f);
                 player->CastSpell(player, spell, true);
                 //Give him 2 tries, just in case if player will fall through the ground
-                if (uiAction == LICHKING)
+                if (uiAction == SPELL_TELEPORT_ICC_FROZEN_THRONE)
                     player->m_Events.AddEvent(new TeleportToFrozenThrone(player, 2), player->m_Events.CalculateTime(uint64(5000)));
             }
             return true;
@@ -447,26 +457,26 @@ class spell_icc_spirit_alarm : public SpellScriptLoader
                 switch (GetSpellInfo()->Id)
                 {
                     case SPELL_SPIRIT_ALARM_1:
-                        spiritAlarm = GetCaster()->GetMap()->GetGameObject(instance->GetData64(DATA_SPIRIT_ALARM1));
-                        pWard = spiritAlarm->GetMap()->GetCreature(instance->GetData64(DATA_DEATHBOUND_WARD1));
+                        spiritAlarm = GetCaster()->GetMap()->GetGameObject(instance->GetData64(GUID_SPIRIT_ALARM1));
+                        pWard = spiritAlarm->GetMap()->GetCreature(instance->GetData64(GUID_DEATHBOUND_WARD1));
                         //Preload Spirit Alarm traps near Lord Marrowgar
                         spiritAlarm->GetMap()->LoadGrid(-273.845f, 2220.22f);
-                        spiritAlarm->GetMap()->GetGameObject(instance->GetData64(DATA_SPIRIT_ALARM3))->SetPhaseMask(1, true);
+                        spiritAlarm->GetMap()->GetGameObject(instance->GetData64(GUID_SPIRIT_ALARM3))->SetPhaseMask(1, true);
                         break;
                     case SPELL_SPIRIT_ALARM_2:
-                        spiritAlarm = GetCaster()->GetMap()->GetGameObject(instance->GetData64(DATA_SPIRIT_ALARM2));
-                        pWard = spiritAlarm->GetMap()->GetCreature(instance->GetData64(DATA_DEATHBOUND_WARD2));
+                        spiritAlarm = GetCaster()->GetMap()->GetGameObject(instance->GetData64(GUID_SPIRIT_ALARM2));
+                        pWard = spiritAlarm->GetMap()->GetCreature(instance->GetData64(GUID_DEATHBOUND_WARD2));
                         //Preload Spirit Alarm traps near Lord Marrowgar
                         spiritAlarm->GetMap()->LoadGrid(-273.845f, 2220.22f);
-                        spiritAlarm->GetMap()->GetGameObject(instance->GetData64(DATA_SPIRIT_ALARM4))->SetPhaseMask(1, true);
+                        spiritAlarm->GetMap()->GetGameObject(instance->GetData64(GUID_SPIRIT_ALARM4))->SetPhaseMask(1, true);
                         break;
                     case SPELL_SPIRIT_ALARM_3:
-                        spiritAlarm = GetCaster()->GetMap()->GetGameObject(instance->GetData64(DATA_SPIRIT_ALARM3));
-                        pWard = spiritAlarm->GetMap()->GetCreature(instance->GetData64(DATA_DEATHBOUND_WARD3));
+                        spiritAlarm = GetCaster()->GetMap()->GetGameObject(instance->GetData64(GUID_SPIRIT_ALARM3));
+                        pWard = spiritAlarm->GetMap()->GetCreature(instance->GetData64(GUID_DEATHBOUND_WARD3));
                         break;
                     case SPELL_SPIRIT_ALARM_4:
-                        spiritAlarm = GetCaster()->GetMap()->GetGameObject(instance->GetData64(DATA_SPIRIT_ALARM4));
-                        pWard = spiritAlarm->GetMap()->GetCreature(instance->GetData64(DATA_DEATHBOUND_WARD4));
+                        spiritAlarm = GetCaster()->GetMap()->GetGameObject(instance->GetData64(GUID_SPIRIT_ALARM4));
+                        pWard = spiritAlarm->GetMap()->GetCreature(instance->GetData64(GUID_DEATHBOUND_WARD4));
                         break;
                 }
                 spiritAlarm->setActive(false);
@@ -762,17 +772,19 @@ class at_icc_saurfang_portal : public AreaTriggerScript
             if (!instance || instance->GetData(DATA_SAURFANG_EVENT) != DONE)
                 return true;
 
-            player->GetMap()->LoadGrid(4126.35f, 2769.23f);
+            player->GetMap()->LoadGrid(4207.0f, 2769.23f);
             player->TeleportTo(631, 4126.35f, 2769.23f, 350.963f, 0.0f);
 
-            if (instance->GetData(DATA_COLDFLAME_JETS) == NOT_STARTED)
+            if (instance->GetData(DATA_COLDFLAME_JETS_EVENT) == NOT_STARTED)
             {
                 // Process relocation now, to preload the grid and initialize traps
                 player->GetMap()->PlayerRelocation(player, 4126.35f, 2769.23f, 350.963f, 0.0f);
 
-                instance->SetData(DATA_COLDFLAME_JETS, IN_PROGRESS);
+                instance->SetData(DATA_COLDFLAME_JETS_EVENT, IN_PROGRESS);
+
                 std::list<Creature*> traps;
-                GetCreatureListWithEntryInGrid(traps, player, NPC_FROST_FREEZE_TRAP, 200.0f);
+                if (GameObject *go = player->GetMap()->GetGameObject(instance->GetData64(GUID_TELEPORT_UPPER_SPIRE)))
+                    GetCreatureListWithEntryInGrid(traps, go, NPC_FROST_FREEZE_TRAP, 200.0f);
                 traps.sort(Trinity::ObjectDistanceOrderPred(player));
                 bool instant = false;
                 for (std::list<Creature*>::iterator itr = traps.begin(); itr != traps.end(); ++itr)
@@ -793,8 +805,8 @@ class at_icc_shutdown_traps : public AreaTriggerScript
         bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/)
         {
             if (InstanceScript* instance = player->GetInstanceScript())
-                if (instance->GetData(DATA_COLDFLAME_JETS) == IN_PROGRESS)
-                    instance->SetData(DATA_COLDFLAME_JETS, DONE);
+                if (instance->GetData(DATA_COLDFLAME_JETS_EVENT) == IN_PROGRESS)
+                    instance->SetData(DATA_COLDFLAME_JETS_EVENT, DONE);
             return true;
         }
 };
@@ -814,8 +826,8 @@ public:
     {
 
         npc_deathspeaker_high_priestAI(Creature *c) : ScriptedAI(c)
-		{
-		}
+        {
+        }
 
         void Reset()
         {
@@ -824,10 +836,10 @@ public:
 
         void EnterCombat(Unit* /*who*/)
         {
-			DoCast(me, SPELL_AURA_OF_DARKNESS);
+            DoCast(me, SPELL_AURA_OF_DARKNESS);
             events.Reset();
-			events.ScheduleEvent(EVENT_DARK_RECKONING, 10000);
-		}
+            events.ScheduleEvent(EVENT_DARK_RECKONING, 10000);
+        }
 
         void UpdateAI(const uint32 diff)
         {
@@ -853,8 +865,8 @@ public:
             }
             DoMeleeAttackIfReady();
         }
-		private:
-			EventMap events;
+        private:
+            EventMap events;
     };
 
 };
@@ -907,14 +919,12 @@ public:
     }
 
     struct npc_val_kyr_heraldAI : public ScriptedAI
-
-
     {
 
-        npc_val_kyr_heraldAI(Creature *c) : ScriptedAI(c)
-		{
-			instance = c->GetInstanceScript();
-		}
+        npc_val_kyr_heraldAI(Creature *c) : ScriptedAI(c), summons(c)
+        {
+            instance = c->GetInstanceScript();
+        }
 
         void Reset()
         {
@@ -924,22 +934,26 @@ public:
         void EnterCombat(Unit* /*who*/)
         {
             events.Reset();
-			events.ScheduleEvent(EVENT_SEVERED_ESSENCE, 8000);
-		}
+            events.ScheduleEvent(EVENT_SEVERED_ESSENCE, 8000);
+        }
+
+        void JustSummoned(Creature* summon)
+        {
+            summons.Summon(summon);
+        }
+
+        void JustDied (Unit *killer)
+        {
+            summons.DespawnAll();
+        }
 
         void SpellHitTarget(Unit *pTarget, const SpellEntry *spell)
         {
             // Not good target or too many players
             if (pTarget->GetTypeId() != TYPEID_PLAYER || !pTarget->isAlive())
                 return;
-            Player *player = (Player*)pTarget;
             // Summon clone
-            if (Creature *summon = me->SummonCreature(CREATURE_SEVERED_ESSENCE, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), me->GetOrientation(),TEMPSUMMON_CORPSE_DESPAWN,0))
-            {
-                // clone
-                player->CastSpell(summon, SPELL_CLONE_PLAYER, true);
-                summon->AI()->SetData(DATA_PLAYER_CLASS, player->getClass());
-            }
+            me->SummonCreature(NPC_SEVERED_ESSENCE, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), pTarget->GetOrientation(),TEMPSUMMON_CORPSE_DESPAWN, 0);
         }
         void UpdateAI(const uint32 diff)
         {
@@ -955,7 +969,7 @@ public:
                     case EVENT_SEVERED_ESSENCE:
                     {
                         if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM,0, 100.0f, true))
-						{
+                        {
                             DoCast(me, RAID_MODE<uint32>(SPELL_SEVERED_ESSENCE_10, SPELL_SEVERED_ESSENCE_25, SPELL_SEVERED_ESSENCE_10, SPELL_SEVERED_ESSENCE_25));
                         }
                         events.ScheduleEvent(EVENT_SEVERED_ESSENCE, 40000);
@@ -967,9 +981,10 @@ public:
             }
             DoMeleeAttackIfReady();
         }
-		private:
-			InstanceScript *instance;
-			EventMap events;
+        private:
+            InstanceScript *instance;
+            EventMap events;
+            SummonList summons;
     };
 
 };
@@ -989,10 +1004,10 @@ public:
     struct npc_severed_essenceAI : public ScriptedAI
     {
         npc_severed_essenceAI(Creature *c) : ScriptedAI(c)
-		{
-			instance = me->GetInstanceScript();
+        {
+            instance = me->GetInstanceScript();
             playerClass = 0;
-		}
+        }
 
         void Reset()
         {
@@ -1001,7 +1016,7 @@ public:
 
         void IsSummonedBy(Unit* owner)
         {
-            if (owner->GetTypeId() != TYPEID_UNIT || owner->GetEntry() != CREATURE_VALKYR_HERALD)
+            if (owner->GetTypeId() != TYPEID_UNIT || owner->GetEntry() != NPC_VALKYR_HERALD)
                 return;
             uiOwnerId = owner->GetGUID();
         }
@@ -1014,6 +1029,16 @@ public:
 
         void EnterCombat(Unit* /*who*/)
         {
+            if (Unit *player = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true))
+            {
+                player->CastSpell(me, SPELL_CLONE_PLAYER, true);
+                SetData(DATA_PLAYER_CLASS, player->getClass());
+            }
+            else
+            {
+                me->DespawnOrUnsummon();
+                return;
+            }
             ASSERT(playerClass != 0);
             events.Reset();
             switch (playerClass)
@@ -1083,7 +1108,7 @@ public:
                 }
             }
             }
-		}
+        }
         void DamageTaken(Unit* /*done_by*/, uint32& /*damage*/)
         {
             switch (playerClass)
@@ -1128,7 +1153,7 @@ public:
                         bCanCastRadianceAura = false;
                     }
             }
-		}
+        }
 
         void SetData(uint32 type, uint32 data)
         {
@@ -1296,6 +1321,7 @@ public:
 
         void HandlePaladinEvents()
         {
+            Creature *valkyrHerald;
             switch (uint32 eventId = events.ExecuteEvent())
             {
                 case EVENT_CAN_CAST_RADIANCE_AURA:
@@ -1305,20 +1331,20 @@ public:
                 }
                 case EVENT_FLASH_OF_LIGHT:
                 {
-                    if (urand(0, 1) && me->GetOwner()->isAlive() && me->GetOwner()->GetDistance(me) < 40.0f)
+                    if ((valkyrHerald = me->FindNearestCreature(NPC_VALKYR_HERALD, 40.0f)) && urand(0, 1))
                     {
-                        DoCast(me->GetOwner(), SPELL_FLASH_OF_LIGHT);
+                        DoCast(valkyrHerald, SPELL_FLASH_OF_LIGHT);
                     }
                     else
                     {
                         std::list<Creature*> others;
-                        GetCreatureListWithEntryInGrid(others, me, CREATURE_SEVERED_ESSENCE, 40.0f);
+                        GetCreatureListWithEntryInGrid(others, me, NPC_SEVERED_ESSENCE, 40.0f);
                         Unit *pMob = 0;
                         for (std::list<Creature*>::const_iterator itr = others.begin(); itr != others.end(); ++itr)
                             if (!pMob || pMob->GetHealthPct() < (*itr)->GetHealthPct())
                                 pMob = (*itr);
-                        if (!pMob && me->GetOwner() && me->GetOwner()->isAlive())
-                            pMob = me->GetOwner();
+                        if (!pMob)
+                            pMob = valkyrHerald;
                         if (pMob)
                             DoCast(pMob, SPELL_FLASH_OF_LIGHT);
                     }
@@ -1327,20 +1353,9 @@ public:
                 }
                 case EVENT_CLEANSE:
                 {
-                    if (urand(0, 1) && me->GetOwner()->isAlive() && me->GetOwner()->GetDistance(me) < 30.0f)
-                    {
-                        DoCast(me->GetOwner(), SPELL_CLEANSE);
-                    }
-                    else
-                    {
-                        std::list<Creature*> others;
-                        GetCreatureListWithEntryInGrid(others, me, CREATURE_SEVERED_ESSENCE, 40.0f);
-                        std::list<Creature*>::iterator itr = others.begin();
-                        std::advance(itr, urand(0, others.size()-1));
-                        //DoCast(pMob, SPELL_CLEANSE);
-
-                    }
-                    events.ScheduleEvent(EVENT_CLEANSE, 4000);
+                    if (valkyrHerald = me->FindNearestCreature(NPC_VALKYR_HERALD, 30.0f))
+                        DoCast(valkyrHerald, SPELL_CLEANSE);
+                    events.ScheduleEvent(EVENT_CLEANSE, 5000);
                     break;
                 }
                 case EVENT_RADIANCE_AURA:
@@ -1353,18 +1368,19 @@ public:
 
         void HandlePriestEvents()
         {
+            Creature *valkyrHerald;
             switch (uint32 eventId = events.ExecuteEvent())
             {
                 case EVENT_RENEW:
                 {
-                    if (urand(0, 1) && me->GetOwner()->isAlive() && me->GetOwner()->GetDistance(me) < 40.0f && me->GetOwner()->HasAura(SPELL_RENEW))
+                    if ((valkyrHerald = me->FindNearestCreature(NPC_VALKYR_HERALD, 40.0f)) && urand(0, 1))
                     {
-                        DoCast(me->GetOwner(), SPELL_RENEW);
+                        DoCast(valkyrHerald, SPELL_RENEW);
                     }
                     else
                     {
                         std::list<Creature*> others;
-                        GetCreatureListWithEntryInGrid(others, me, CREATURE_SEVERED_ESSENCE, 40.0f);
+                        GetCreatureListWithEntryInGrid(others, me, NPC_SEVERED_ESSENCE, 40.0f);
                         Unit *pMob = 0;
                         for (std::list<Creature*>::const_iterator itr = others.begin(); itr != others.end(); ++itr)
                             if (!((*itr)->HasAura(SPELL_RENEW)) && (!pMob || pMob->GetHealthPct() < (*itr)->GetHealthPct()))
@@ -1384,8 +1400,8 @@ public:
                                     pMob = (*itr);
                             }
                         }
-                        if (!pMob && me->GetOwner() && me->GetOwner()->isAlive())
-                            pMob = me->GetOwner();
+                        if (!pMob)
+                            pMob = valkyrHerald;
                         if (pMob)
                             DoCast(pMob, SPELL_RENEW);
                     }
@@ -1394,20 +1410,20 @@ public:
                 }
                 case EVENT_GREATER_HEAL:
                 {
-                    if (urand(0, 1) && me->GetOwner()->isAlive() && me->GetOwner()->GetDistance(me) < 40.0f)
+                    if ((valkyrHerald = me->FindNearestCreature(NPC_VALKYR_HERALD, 40.0f)) && urand(0, 1))
                     {
-                        DoCast(me->GetOwner(), SPELL_GREATER_HEAL);
+                        DoCast(valkyrHerald, SPELL_GREATER_HEAL);
                     }
                     else
                     {
                         std::list<Creature*> others;
-                        GetCreatureListWithEntryInGrid(others, me, CREATURE_SEVERED_ESSENCE, 40.0f);
+                        GetCreatureListWithEntryInGrid(others, me, NPC_SEVERED_ESSENCE, 40.0f);
                         Unit *pMob = 0;
                         for (std::list<Creature*>::const_iterator itr = others.begin(); itr != others.end(); ++itr)
                             if (!pMob || pMob->GetHealthPct() < (*itr)->GetHealthPct())
                                 pMob = (*itr);
-                        if (!pMob && me->GetOwner() && me->GetOwner()->isAlive())
-                            pMob = me->GetOwner();
+                        if (!pMob)
+                            pMob = valkyrHerald;
                         if (pMob)
                             DoCast(pMob, SPELL_GREATER_HEAL);
                     }
@@ -1454,10 +1470,10 @@ public:
             }
             DoMeleeAttackIfReady();
         }
-		private:
+        private:
             uint8 playerClass;
-			InstanceScript *instance;
-			EventMap events;
+            InstanceScript *instance;
+            EventMap events;
             uint64 uiOwnerId;
             bool bCanCastReplenishingRains;
             bool bCanCastDisengage;
@@ -1473,9 +1489,9 @@ void AddSC_icecrown_citadel()
     new npc_frost_freeze_trap();
     new spell_icc_spirit_alarm();
     new spell_coldflame_trap();
-	new npc_deathspeaker_high_priest();
+    new npc_deathspeaker_high_priest();
     new spell_icc_dark_reckoning();
-	new npc_val_kyr_herald();
+    new npc_val_kyr_herald();
     new npc_severed_essence();
     new npc_rotting_frost_giant();
     new spell_frost_giant_death_plague();

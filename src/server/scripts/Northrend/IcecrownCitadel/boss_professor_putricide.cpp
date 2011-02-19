@@ -219,16 +219,16 @@ class go_icc_plagueworks_valve : public GameObjectScript
                 return false;
             if (instance->GetData(DATA_ROTFACE_EVENT) != DONE || instance->GetData(DATA_FESTERGUT_EVENT) != DONE)
                 return false;
-            if (go->GetEntry() == OOZE_VALVE)
+            if (go->GetEntry() == GO_OOZE_VALVE)
             {
-                if (Creature *pPutricide = go->GetMap()->GetCreature(instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
+                if (Creature *pPutricide = go->GetMap()->GetCreature(instance->GetData64(GUID_PROFESSOR_PUTRICIDE)))
                     pPutricide->m_Events.AddEvent(new DeactivateValveEvent(DATA_OOZE_VALVE_ACTIVATED, instance), pPutricide->m_Events.CalculateTime(3000));
                 instance->SetData(DATA_OOZE_VALVE_ACTIVATED, IN_PROGRESS);
             }
             else
             {
-                if (Creature *pPutricide = go->GetMap()->GetCreature(instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
-                    pPutricide->m_Events.AddEvent(new DeactivateValveEvent(DATA_GAS_VALVE_ACTIVATED, instance),pPutricide->m_Events.CalculateTime(3000));
+                if (Creature *pPutricide = go->GetMap()->GetCreature(instance->GetData64(GUID_PROFESSOR_PUTRICIDE)))
+                    pPutricide->m_Events.AddEvent(new DeactivateValveEvent(DATA_GAS_VALVE_ACTIVATED, instance), pPutricide->m_Events.CalculateTime(3000));
                 instance->SetData(DATA_GAS_VALVE_ACTIVATED, IN_PROGRESS);
             }
             //Prevent future usage of this valve
@@ -260,7 +260,7 @@ class boss_professor_putricide : public CreatureScript
 
         struct boss_professor_putricideAI : public BossAI
         {
-            boss_professor_putricideAI(Creature* creature) : BossAI(creature, DATA_PROFESSOR_PUTRICIDE),
+            boss_professor_putricideAI(Creature* creature) : BossAI(creature, GUID_PROFESSOR_PUTRICIDE),
                 baseSpeed(creature->GetSpeedRate(MOVE_RUN)), experimentState(EXPERIMENT_STATE_OOZE)
             {
                 phase = PHASE_NONE;
@@ -293,7 +293,7 @@ class boss_professor_putricide : public CreatureScript
                 me->RemoveUnitMovementFlag(MOVEMENTFLAG_WALKING);
                 if (me->GetMotionMaster()->GetCurrentMovementGeneratorType() == POINT_MOTION_TYPE)
                     me->GetMotionMaster()->MovementExpired();
-                if (GameObject* table = ObjectAccessor::GetGameObject(*me, instance->GetData64(DATA_PUTRICIDE_TABLE)))
+                if (GameObject* table = ObjectAccessor::GetGameObject(*me, instance->GetData64(GUID_PUTRICIDE_TABLE)))
                     table->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
             }
 
@@ -302,11 +302,11 @@ class boss_professor_putricide : public CreatureScript
                 if (events.GetPhaseMask() & PHASE_MASK_NOT_SELF)
                     return;
 
-                if (!(events.GetPhaseMask() & PHASE_MASK_NOT_SELF) && //!instance->CheckRequiredBosses(DATA_PROFESSOR_PUTRICIDE, who->ToPlayer())
+                if (!(events.GetPhaseMask() & PHASE_MASK_NOT_SELF) && //!instance->CheckRequiredBosses(GUID_PROFESSOR_PUTRICIDE, who->ToPlayer())
                     (instance->GetData(DATA_FESTERGUT_EVENT) != DONE || instance->GetData(DATA_ROTFACE_EVENT) != DONE)
                     )
                 {
-                    instance->DoCastSpellOnPlayers(LIGHT_S_HAMMER_TELEPORT);
+                    instance->DoCastSpellOnPlayers(SPELL_TELEPORT_ICC_LIGHT_S_HAMMER);
                     EnterEvadeMode();
                     return;
                 }
@@ -323,9 +323,9 @@ class boss_professor_putricide : public CreatureScript
                 if (IsHeroic())
                     events.ScheduleEvent(EVENT_UNBOUND_PLAGUE, 20000);
 
-                instance->SetBossState(DATA_PROFESSOR_PUTRICIDE, IN_PROGRESS);
+                instance->SetBossState(GUID_PROFESSOR_PUTRICIDE, IN_PROGRESS);
                 instance->SetData(DATA_PROFESSOR_PUTRICIDE_EVENT, IN_PROGRESS);
-                if (GameObject* table = ObjectAccessor::GetGameObject(*me, instance->GetData64(DATA_PUTRICIDE_TABLE)))
+                if (GameObject* table = ObjectAccessor::GetGameObject(*me, instance->GetData64(GUID_PUTRICIDE_TABLE)))
                     table->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
             }
 
@@ -335,10 +335,10 @@ class boss_professor_putricide : public CreatureScript
                 me->RemoveUnitMovementFlag(MOVEMENTFLAG_WALKING);
                 if (events.GetPhaseMask() & PHASE_MASK_COMBAT)
                 {
-                    instance->SetBossState(DATA_PROFESSOR_PUTRICIDE, FAIL);
+                    instance->SetBossState(GUID_PROFESSOR_PUTRICIDE, FAIL);
                     instance->SetData(DATA_PROFESSOR_PUTRICIDE_EVENT, FAIL);
                 }
-                if (GameObject* table = ObjectAccessor::GetGameObject(*me, instance->GetData64(DATA_PUTRICIDE_TABLE)))
+                if (GameObject* table = ObjectAccessor::GetGameObject(*me, instance->GetData64(GUID_PUTRICIDE_TABLE)))
                     table->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
                 instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_MUTATED_PLAGUE);
                 Cleanup();
@@ -353,7 +353,7 @@ class boss_professor_putricide : public CreatureScript
             void JustDied(Unit* /*killer*/)
             {
                 Talk(SAY_DEATH);
-                instance->SetBossState(DATA_PROFESSOR_PUTRICIDE, DONE);
+                instance->SetBossState(GUID_PROFESSOR_PUTRICIDE, DONE);
                 instance->SetData(DATA_PROFESSOR_PUTRICIDE_EVENT, DONE);
                 instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_MUTATED_PLAGUE);
                 Cleanup();
@@ -442,15 +442,15 @@ class boss_professor_putricide : public CreatureScript
                 switch (id)
                 {
                     case POINT_FESTERGUT:
-                        instance->SetBossState(DATA_FESTERGUT, IN_PROGRESS); // needed here for delayed gate close
+                        instance->SetBossState(DATA_FESTERGUT_EVENT, IN_PROGRESS); // needed here for delayed gate close
                         instance->SetData(DATA_FESTERGUT_EVENT, IN_PROGRESS);
                         me->SetSpeed(MOVE_RUN, baseSpeed, true);
                         //DoAction(ACTION_FESTERGUT_GAS);
-                        //if (Creature* festergut = Unit::GetCreature(*me, instance->GetData64(DATA_FESTERGUT)))
+                        //if (Creature* festergut = Unit::GetCreature(*me, instance->GetData64(GUID_FESTERGUT)))
                         //    festergut->CastSpell(festergut, SPELL_GASEOUS_BLIGHT_LARGE, false, NULL, NULL, festergut->GetGUID());
                         break;
                     case POINT_ROTFACE:
-                        instance->SetBossState(DATA_ROTFACE, IN_PROGRESS);   // needed here for delayed gate close
+                        instance->SetBossState(DATA_ROTFACE_EVENT, IN_PROGRESS);   // needed here for delayed gate close
                         instance->SetData(DATA_ROTFACE_EVENT, IN_PROGRESS);
                         me->SetSpeed(MOVE_RUN, baseSpeed, true);
                         break;
@@ -458,7 +458,7 @@ class boss_professor_putricide : public CreatureScript
                         // stop attack
                         me->GetMotionMaster()->MoveIdle();
                         me->SetSpeed(MOVE_RUN, baseSpeed, true);
-                        if (GameObject* table = ObjectAccessor::GetGameObject(*me, instance->GetData64(DATA_PUTRICIDE_TABLE)))
+                        if (GameObject* table = ObjectAccessor::GetGameObject(*me, instance->GetData64(GUID_PUTRICIDE_TABLE)))
                             me->SetFacingToObject(table);
                         // operating on new phase already
                         switch (phase)
@@ -582,7 +582,7 @@ class boss_professor_putricide : public CreatureScript
                                 events.CancelEvent(EVENT_SLIME_PUDDLE);
                                 instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_MUTATED_TRANSFORMATION);
                                 instance->DoRemoveAurasDueToSpellOnPlayers(71503);  // SPELL_MUTATED_TRANSFORMATION2
-                                if (GameObject* table = ObjectAccessor::GetGameObject(*me, instance->GetData64(DATA_PUTRICIDE_TABLE)))
+                                if (GameObject* table = ObjectAccessor::GetGameObject(*me, instance->GetData64(GUID_PUTRICIDE_TABLE)))
                                     table->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
                                 break;
                             default:
@@ -644,7 +644,7 @@ class boss_professor_putricide : public CreatureScript
                             EnterEvadeMode();
                             break;
                         case EVENT_ROTFACE_VILE_GAS:
-                        if (Creature* rotface = Unit::GetCreature(*me, instance->GetData64(DATA_ROTFACE)))
+                        if (Creature* rotface = Unit::GetCreature(*me, instance->GetData64(GUID_ROTFACE)))
                             if (rotface->isAlive())
                             {
                                 std::list<Unit*> targetList;
@@ -716,7 +716,7 @@ class boss_professor_putricide : public CreatureScript
                             }
                             else
                             {
-                                if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, -7.0f, true))
+                                if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, -7.0f, true))
                                 {
                                     Talk(EMOTE_MALLEABLE_GOO);
                                     DoCast(target, SPELL_MALLEABLE_GOO);
@@ -913,7 +913,7 @@ class spell_putricide_expunged_gas : public SpellScriptLoader
                 if (!instance)
                     return;
 
-                Creature* professor = Unit::GetCreature(*GetCaster(), instance->GetData64(DATA_PROFESSOR_PUTRICIDE));
+                Creature* professor = Unit::GetCreature(*GetCaster(), instance->GetData64(GUID_PROFESSOR_PUTRICIDE));
                 if (!professor)
                     return;
 
@@ -1151,7 +1151,7 @@ class spell_putricide_unbound_plague : public SpellScriptLoader
                 Creature* professor = NULL;
                 if (InstanceScript* instance = GetCaster()->GetInstanceScript())
                 {
-                    professor = Unit::GetCreature(*GetCaster(), instance->GetData64(DATA_PROFESSOR_PUTRICIDE));
+                    professor = Unit::GetCreature(*GetCaster(), instance->GetData64(GUID_PROFESSOR_PUTRICIDE));
                     if (professor)
                     {
                         plague = sSpellMgr->GetSpellForDifficultyFromSpell(plague, professor);
@@ -1299,7 +1299,7 @@ class spell_putricide_mutation_init : public SpellScriptLoader
             void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
                 if (InstanceScript* instance = GetTarget()->GetInstanceScript())
-                    if (GameObject* table = ObjectAccessor::GetGameObject(*GetTarget(), instance->GetData64(DATA_PUTRICIDE_TABLE)))
+                    if (GameObject* table = ObjectAccessor::GetGameObject(*GetTarget(), instance->GetData64(GUID_PUTRICIDE_TABLE)))
                         table->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
                 uint32 spellId = 70311;
                 if (GetTarget()->GetMap()->GetSpawnMode() & 1)
@@ -1335,7 +1335,7 @@ class spell_putricide_mutated_transformation_dismiss : public SpellScriptLoader
                     veh->RemoveAllPassengers();
                 if (InstanceScript* instance = GetTarget()->GetInstanceScript())
                 {
-                    if (GameObject* table = ObjectAccessor::GetGameObject(*GetTarget(), instance->GetData64(DATA_PUTRICIDE_TABLE)))
+                    if (GameObject* table = ObjectAccessor::GetGameObject(*GetTarget(), instance->GetData64(GUID_PUTRICIDE_TABLE)))
                         table->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
                 }
             }
@@ -1458,7 +1458,319 @@ class spell_stinky_precious_decimate : public SpellScriptLoader
             return new spell_stinky_precious_decimate_SpellScript();
         }
 };
+class npc_blighted_abomination : public CreatureScript
+{
+    enum eEvents
+    {
+        EVENT_CLEAVE = 1,
+        EVENT_PLAGUE_CLOUD,
+        EVENT_SCOURGE_HOOK
+    };
+    enum eSpells
+    {
+        SPELL_CLEAVE        = 40504,
+        SPELL_PLAGUE_CLOUD    = 71150,
+        SPELL_SCOURGE_HOOK    = 71140
+    };
 
+public:
+    npc_blighted_abomination() : CreatureScript("npc_blighted_abomination") { }
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new npc_blighted_abominationAI (pCreature);
+    }
+
+    struct npc_blighted_abominationAI : public ScriptedAI
+    {
+        npc_blighted_abominationAI(Creature *c) : ScriptedAI(c)
+        {
+            instance = me->GetInstanceScript();
+        }
+
+        void Reset()
+        {
+            events.Reset();
+        }
+
+        void EnterCombat(Unit* /*who*/)
+        {
+            events.Reset();
+            events.ScheduleEvent(EVENT_SCOURGE_HOOK, 1000);
+            events.ScheduleEvent(EVENT_CLEAVE, 15000);
+            events.ScheduleEvent(EVENT_PLAGUE_CLOUD, 15000);
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
+            if (!UpdateVictim())
+                return;
+            if (me->HasUnitState(UNIT_STAT_CASTING))
+                return;
+            events.Update(diff);
+            while (uint32 eventId = events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case EVENT_CLEAVE: 
+                    {
+                        DoCast(me->getVictim(), SPELL_CLEAVE);
+                        events.ScheduleEvent(EVENT_CLEAVE, 8000);
+                        break;
+                    }
+                    case EVENT_PLAGUE_CLOUD:  
+                    {
+                        DoCast(SPELL_PLAGUE_CLOUD);
+                        events.ScheduleEvent(EVENT_PLAGUE_CLOUD, 20000);
+                        break;
+                    }
+                    case EVENT_SCOURGE_HOOK:
+                    {
+                        if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, -8.0f, true))
+                            DoCast(target, SPELL_SCOURGE_HOOK);
+                        events.ScheduleEvent(EVENT_SCOURGE_HOOK, 20000);
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            DoMeleeAttackIfReady();
+        }
+    private:
+        InstanceScript *instance;
+        EventMap events;
+    };
+
+};
+
+class npc_plague_scientist : public CreatureScript
+{
+    enum eEvents
+    {
+        EVENT_COMBOBULATING_SPRAY = 1,
+        EVENT_PLAGUE_BLAST,
+        EVENT_PLAGUE_STREAM 
+    };
+    enum eSpells
+    {
+        SPELL_COMBOBULATING_SPRAY  = 71103,
+        SPELL_PLAGUE_BLAST         = 73079,
+        SPELL_PLAGUE_STREAM        = 69871
+    };
+
+public:
+    npc_plague_scientist() : CreatureScript("npc_plague_scientist") { }
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new npc_plague_scientistAI (pCreature);
+    }
+
+    struct npc_plague_scientistAI : public ScriptedAI
+    {
+        npc_plague_scientistAI(Creature *c) : ScriptedAI(c)
+        {
+            instance = me->GetInstanceScript();
+        }
+
+        void Reset()
+        {
+            events.Reset();
+        }
+
+        void EnterCombat(Unit* /*who*/)
+        {
+            events.Reset();
+            events.ScheduleEvent(EVENT_COMBOBULATING_SPRAY, 1000);
+            events.ScheduleEvent(EVENT_PLAGUE_BLAST, 100);
+            events.ScheduleEvent(EVENT_PLAGUE_STREAM, 15000);
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
+            if (!UpdateVictim())
+                return;
+            if (me->HasUnitState(UNIT_STAT_CASTING))
+                return;
+            events.Update(diff);
+            while (uint32 eventId = events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case EVENT_COMBOBULATING_SPRAY: 
+                    {
+                        if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, -5.0f, true))
+                            DoCast(target, SPELL_COMBOBULATING_SPRAY);
+                        events.ScheduleEvent(EVENT_COMBOBULATING_SPRAY, 40000);
+                        break;
+                    }
+                    case EVENT_PLAGUE_BLAST:  
+                    {
+                        DoCast(me->getVictim(), SPELL_PLAGUE_BLAST);
+                        events.ScheduleEvent(EVENT_PLAGUE_BLAST, 11000);
+                        break;
+                    }
+                    case EVENT_PLAGUE_STREAM:
+                    {
+                        DoCast(SPELL_PLAGUE_STREAM);
+                        events.ScheduleEvent(EVENT_PLAGUE_STREAM, 40000);
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            DoMeleeAttackIfReady();
+        }
+        private:
+            InstanceScript *instance;
+            EventMap events;
+    };
+};
+
+class npc_decaying_colossus : public CreatureScript
+{
+    enum eEvents
+    {
+        EVENT_MASSIVE_STOMP = 1,
+        
+    };
+    enum eSpells
+    {
+        SPELL_MASSIVE_STOMP_10  = 71114,
+        SPELL_MASSIVE_STOMP_25  = 71115,
+    };
+
+public:
+    npc_decaying_colossus() : CreatureScript("npc_decaying_colossus") { }
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new npc_decaying_colossusAI (pCreature);
+    }
+
+    struct npc_decaying_colossusAI : public ScriptedAI
+    {
+        npc_decaying_colossusAI(Creature *c) : ScriptedAI(c)
+        {
+            instance = me->GetInstanceScript();
+        }
+
+        void Reset()
+        {
+            events.Reset();
+        }
+
+        void EnterCombat(Unit* /*who*/)
+        {
+            events.Reset();
+            events.ScheduleEvent(EVENT_MASSIVE_STOMP, 1000);
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
+            if (!UpdateVictim())
+                return;
+            if (me->HasUnitState(UNIT_STAT_CASTING))
+                return;
+            events.Update(diff);
+            while (uint32 eventId = events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case EVENT_MASSIVE_STOMP: 
+                    {
+                        DoCast(RAID_MODE(SPELL_MASSIVE_STOMP_10, SPELL_MASSIVE_STOMP_25, SPELL_MASSIVE_STOMP_10, SPELL_MASSIVE_STOMP_25));
+                        events.ScheduleEvent(EVENT_MASSIVE_STOMP, 20000);
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            DoMeleeAttackIfReady();
+        }
+        private:
+            InstanceScript *instance;
+            EventMap events;
+    };
+};
+
+class npc_pustulating_horror : public CreatureScript 
+{
+    enum eEvents
+    {
+        EVENT_BUBBLING_PUS = 1, 
+    };
+    enum eSpells
+    {
+        SPELL_BUBBLING_PUS_10  = 71089,
+        SPELL_BUBBLING_PUS_25  = 71090,
+        SPELL_BLIGHT_BOMB       = 71088,
+    };
+
+public:
+    npc_pustulating_horror() : CreatureScript("npc_pustulating_horror") { }
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new npc_pustulating_horrorAI (pCreature);
+    }
+
+    struct npc_pustulating_horrorAI : public ScriptedAI
+    {
+        npc_pustulating_horrorAI(Creature *c) : ScriptedAI(c)
+        {
+            instance = me->GetInstanceScript();
+        }
+
+        void Reset()
+        {
+            events.Reset();
+        }
+
+        void EnterCombat(Unit* /*who*/)
+        {
+            events.Reset();
+            events.ScheduleEvent(EVENT_BUBBLING_PUS, 1000);
+        }
+
+        void DamageTaken(Unit* , uint32& )
+        {
+            if(HealthBelowPct(15))
+                DoCast(me, SPELL_BLIGHT_BOMB);
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
+            if (!UpdateVictim())
+                return;
+            if (me->HasUnitState(UNIT_STAT_CASTING))
+                return;
+            events.Update(diff);
+            while (uint32 eventId = events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case EVENT_BUBBLING_PUS: 
+                    {
+                        DoCast(RAID_MODE(SPELL_BUBBLING_PUS_10, SPELL_BUBBLING_PUS_25, SPELL_BUBBLING_PUS_10, SPELL_BUBBLING_PUS_25));
+                        events.ScheduleEvent(EVENT_BUBBLING_PUS, 20000);
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            DoMeleeAttackIfReady();
+        }
+        private:
+            InstanceScript *instance;
+            EventMap events;
+    };
+};
+ 
 void AddSC_boss_professor_putricide()
 {
     new boss_professor_putricide();
@@ -1479,4 +1791,8 @@ void AddSC_boss_professor_putricide()
     new spell_putricide_regurgitated_ooze();
     new spell_stinky_precious_decimate();
     new go_icc_plagueworks_valve();
+    new npc_blighted_abomination();
+    new npc_plague_scientist();
+    new npc_decaying_colossus();
+    new npc_pustulating_horror();
 }

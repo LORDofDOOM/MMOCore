@@ -125,7 +125,7 @@ class boss_blood_queen_lana_thel : public CreatureScript
 
         struct boss_blood_queen_lana_thelAI : public BossAI
         {
-            boss_blood_queen_lana_thelAI(Creature* creature) : BossAI(creature, DATA_BLOOD_QUEEN_LANA_THEL)
+            boss_blood_queen_lana_thelAI(Creature* creature) : BossAI(creature, DATA_BLOOD_QUEEN_LANA_THEL_EVENT)
             { 
             }
 
@@ -155,17 +155,17 @@ class boss_blood_queen_lana_thel : public CreatureScript
 
             void EnterCombat(Unit* who)
             {
-                if (!instance->CheckRequiredBosses(DATA_BLOOD_QUEEN_LANA_THEL, who->ToPlayer()))
+                if (!instance->CheckRequiredBosses(DATA_BLOOD_QUEEN_LANA_THEL_EVENT, who->ToPlayer()))
                 {
                     EnterEvadeMode();
-                    instance->DoCastSpellOnPlayers(LIGHT_S_HAMMER_TELEPORT);
+                    instance->DoCastSpellOnPlayers(SPELL_TELEPORT_ICC_LIGHT_S_HAMMER);
                     return;
                 }
 
                 me->setActive(true);
                 DoZoneInCombat();
                 Talk(SAY_AGGRO);
-                instance->SetBossState(DATA_BLOOD_QUEEN_LANA_THEL, IN_PROGRESS);
+                instance->SetBossState(DATA_BLOOD_QUEEN_LANA_THEL_EVENT, IN_PROGRESS);
                 instance->SetData(DATA_BLOOD_QUEEN_LANA_THEL_EVENT, IN_PROGRESS);
                 DoCast(me, SPELL_SHROUD_OF_SORROW, true);
                 DoCast(me, SPELL_FRENZIED_BLOODTHIRST_VISUAL, true);
@@ -185,7 +185,7 @@ class boss_blood_queen_lana_thel : public CreatureScript
                 instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_DELIRIOUS_SLASH);
                 instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_PACT_OF_THE_DARKFALLEN);
                 instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_SWARMING_SHADOWS);
-                DespawnAllCreaturesAround(me, CREATURE_SWARMING_SHADOWS);
+                DespawnAllCreaturesAround(me, NPC_SWARMING_SHADOWS);
                 instance->SetData(DATA_BLOOD_QUEEN_LANA_THEL_EVENT, DONE);
             }
 
@@ -194,7 +194,7 @@ class boss_blood_queen_lana_thel : public CreatureScript
                 events.Reset();
                 _JustReachedHome();
                 Talk(SAY_WIPE);
-                instance->SetBossState(DATA_BLOOD_QUEEN_LANA_THEL, FAIL);
+                instance->SetBossState(DATA_BLOOD_QUEEN_LANA_THEL_EVENT, FAIL);
                 instance->SetData(DATA_BLOOD_QUEEN_LANA_THEL_EVENT, FAIL);
             }
 
@@ -477,7 +477,7 @@ class spell_blood_queen_vampiric_bite : public SpellScriptLoader
                     }
                 }
                 if (InstanceScript* instance = GetCaster()->GetInstanceScript())
-                    if (Creature* bloodQueen = ObjectAccessor::GetCreature(*GetCaster(), instance->GetData64(DATA_BLOOD_QUEEN_LANA_THEL)))
+                    if (Creature* bloodQueen = ObjectAccessor::GetCreature(*GetCaster(), instance->GetData64(GUID_BLOOD_QUEEN_LANA_THEL)))
                         bloodQueen->AI()->SetGUID(GetHitUnit()->GetGUID(), GUID_VAMPIRE);
             }
 
@@ -505,7 +505,7 @@ class spell_blood_queen_frenzied_bloodthirst : public SpellScriptLoader
             void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
                 if (InstanceScript* instance = GetTarget()->GetInstanceScript())
-                    if (Creature* bloodQueen = ObjectAccessor::GetCreature(*GetTarget(), instance->GetData64(DATA_BLOOD_QUEEN_LANA_THEL)))
+                    if (Creature* bloodQueen = ObjectAccessor::GetCreature(*GetTarget(), instance->GetData64(GUID_BLOOD_QUEEN_LANA_THEL)))
                         bloodQueen->AI()->Talk(EMOTE_BLOODTHIRST);
             }
 
@@ -514,7 +514,7 @@ class spell_blood_queen_frenzied_bloodthirst : public SpellScriptLoader
                 Unit* target = GetTarget();
                 if (GetTargetApplication()->GetRemoveMode() == AURA_REMOVE_BY_EXPIRE)
                     if (InstanceScript* instance = target->GetInstanceScript())
-                        if (Creature* bloodQueen = ObjectAccessor::GetCreature(*target, instance->GetData64(DATA_BLOOD_QUEEN_LANA_THEL)))
+                        if (Creature* bloodQueen = ObjectAccessor::GetCreature(*target, instance->GetData64(GUID_BLOOD_QUEEN_LANA_THEL)))
                         {
                             // this needs to be done BEFORE charm aura or we hit an assert in Unit::SetCharmedBy
                             if (target->GetVehicleKit())

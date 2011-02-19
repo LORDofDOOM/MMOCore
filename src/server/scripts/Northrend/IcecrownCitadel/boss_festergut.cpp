@@ -89,13 +89,13 @@ class boss_festergut : public CreatureScript
 
         struct boss_festergutAI : public BossAI
         {
-            boss_festergutAI(Creature* creature) : BossAI(creature, DATA_FESTERGUT)
+            boss_festergutAI(Creature* creature) : BossAI(creature, DATA_FESTERGUT_EVENT)
             {
                 maxInoculatedStack = 0;
                 inhaleCounter = 0;
                 gasDummyGUID = 0;
                 //Prevent dummies to attack players or keep them in combat
-                if (Creature* gasDummy = me->FindNearestCreature(CREATURE_ORANGE_GAS_STALKER, 100.0f, true))
+                if (Creature* gasDummy = me->FindNearestCreature(NPC_ORANGE_GAS_STALKER, 100.0f, true))
                 {
                     gasDummy->SetReactState(REACT_PASSIVE);
                     gasDummyGUID = gasDummy->GetGUID();
@@ -126,7 +126,7 @@ class boss_festergut : public CreatureScript
                 inhaleCounter = 0;
                 me->RemoveAurasDueToSpell(SPELL_BERSERK2);
                 //Prevent dummies to attack players or keep them in combat
-                if (Creature* gasDummy = me->FindNearestCreature(CREATURE_ORANGE_GAS_STALKER, 100.0f, true))
+                if (Creature* gasDummy = me->FindNearestCreature(NPC_ORANGE_GAS_STALKER, 100.0f, true))
                 {
                     gasDummy->SetReactState(REACT_PASSIVE);
                     gasDummyGUID = gasDummy->GetGUID();
@@ -136,31 +136,32 @@ class boss_festergut : public CreatureScript
 
             void EnterCombat(Unit* who)
             {
-                if (Creature* gasDummy = me->FindNearestCreature(CREATURE_ORANGE_GAS_STALKER, 100.0f, true))
+                if (Creature* gasDummy = me->FindNearestCreature(NPC_ORANGE_GAS_STALKER, 100.0f, true))
                     gasDummy->Attack(who, false);
                 _RemoveDebuffsFromRaid();
                 Talk(SAY_AGGRO);
-                if (Creature* gasDummy = me->FindNearestCreature(CREATURE_ORANGE_GAS_STALKER, 100.0f, true))
+                if (Creature* gasDummy = me->FindNearestCreature(NPC_ORANGE_GAS_STALKER, 100.0f, true))
                     gasDummyGUID = gasDummy->GetGUID();
-                if (Creature* professor = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
+                if (Creature* professor = ObjectAccessor::GetCreature(*me, instance->GetData64(GUID_PROFESSOR_PUTRICIDE)))
                     professor->AI()->DoAction(ACTION_FESTERGUT_COMBAT);
                 //instance->SetData(DATA_FESTERGUT_EVENT, IN_PROGRESS);
-                instance->SetBossState(DATA_FESTERGUT, IN_PROGRESS);
+                //instance->SetBossState(DATA_FESTERGUT_EVENT, IN_PROGRESS);
                 DoZoneInCombat(me);
             }
 
             void JustDied(Unit* killer)
             {
                 Talk(SAY_DEATH);
-                instance->SetBossState(DATA_FESTERGUT, DONE);
+                instance->SetBossState(DATA_FESTERGUT_EVENT, DONE);
                 instance->SetData(DATA_FESTERGUT_EVENT, DONE);
-                if (Creature* professor = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
+                if (Creature* professor = ObjectAccessor::GetCreature(*me, instance->GetData64(GUID_PROFESSOR_PUTRICIDE)))
                     professor->AI()->DoAction(ACTION_FESTERGUT_DEATH);
                 //Prevent dummies to attack players or keep them in combat
-                if (Creature* gasDummy = me->FindNearestCreature(CREATURE_ORANGE_GAS_STALKER, 100.0f, true))
+                if (Creature* gasDummy = me->FindNearestCreature(NPC_ORANGE_GAS_STALKER, 100.0f, true))
                 {
                     gasDummy->AI()->EnterEvadeMode();
                     gasDummy->SetReactState(REACT_PASSIVE);
+                    gasDummy->Kill(gasDummy);
                 }
                 _RemoveBlight();
                 _RemoveDebuffsFromRaid();
@@ -173,9 +174,9 @@ class boss_festergut : public CreatureScript
             }
             void JustReachedHome()
             {
-                instance->SetBossState(DATA_FESTERGUT, FAIL);
+                instance->SetBossState(DATA_FESTERGUT_EVENT, FAIL);
                 instance->SetData(DATA_FESTERGUT_EVENT, FAIL);
-                if (Creature* professor = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
+                if (Creature* professor = ObjectAccessor::GetCreature(*me, instance->GetData64(GUID_PROFESSOR_PUTRICIDE)))
                     professor->AI()->EnterEvadeMode();
                 _RemoveDebuffsFromRaid();
             }
@@ -183,7 +184,7 @@ class boss_festergut : public CreatureScript
             void EnterEvadeMode()
             {
                 ScriptedAI::EnterEvadeMode();
-                if (Creature* professor = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
+                if (Creature* professor = ObjectAccessor::GetCreature(*me, instance->GetData64(GUID_PROFESSOR_PUTRICIDE)))
                     professor->AI()->EnterEvadeMode();
                 _RemoveDebuffsFromRaid();
             }
@@ -231,7 +232,7 @@ class boss_festergut : public CreatureScript
                         case EVENT_GASEOUS_BLIGHT:
                         {
                             _RemoveBlight();
-                            if (Creature* professor = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
+                            if (Creature* professor = ObjectAccessor::GetCreature(*me, instance->GetData64(GUID_PROFESSOR_PUTRICIDE)))
                                 professor->AI()->DoAction(ACTION_FESTERGUT_GAS);
                             if (Creature* gasDummy = ObjectAccessor::GetCreature(*me, gasDummyGUID))
                                 gasDummy->CastSpell(gasDummy, gaseousBlight[0], true, NULL, NULL, me->GetGUID());
@@ -402,14 +403,12 @@ class npc_stinky_icc : public CreatureScript
                             break;
                     }
                 }
-
                 DoMeleeAttackIfReady();
             }
 
             void JustDied(Unit* /*who*/)
             {
-                uint64 festergutGUID = instance ? instance->GetData64(DATA_FESTERGUT) : 0;
-                if (Creature* festergut = me->GetCreature(*me, festergutGUID))
+                if (Creature* festergut = me->GetCreature(*me, instance->GetData64(GUID_FESTERGUT)))
                     if (festergut->isAlive())
                         festergut->AI()->Talk(SAY_STINKY_DEAD);
             }

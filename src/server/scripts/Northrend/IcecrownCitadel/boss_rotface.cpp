@@ -37,8 +37,8 @@ enum eTexts
     SAY_BERSERK                 = 7,
     SAY_DEATH                   = 8,
 
-	SAY_PUTRI_SLIME            = -1631091,
-	SAY_PUTRI_SLIME_2          = -1631092,
+    SAY_PUTRI_SLIME            = -1631091,
+    SAY_PUTRI_SLIME_2          = -1631092,
     SOUND_PUTRI_SLIME          = 17126,
     SOUND_PUTRI_SLIME_2        = 17123
 };
@@ -130,7 +130,7 @@ class boss_rotface : public CreatureScript
             //For debug reasons only - remove it after you find out good parameters
             uint8 bSprayVariant;
             uint32 sprayCooldown;
-            boss_rotfaceAI(Creature* creature) : BossAI(creature, DATA_ROTFACE)
+            boss_rotfaceAI(Creature* creature) : BossAI(creature, DATA_ROTFACE_EVENT)
             {
                 bSprayVariant = true;
                 sprayCooldown = 20000;
@@ -174,18 +174,18 @@ class boss_rotface : public CreatureScript
                     floodOrder[j] = temp;
                 }
                 //Prevent dummies to attack players or keep them in combat
-                if (Creature* dummy = me->FindNearestCreature(CREATURE_OOZE_SPRAY_STALKER, 100.0f, true))
+                if (Creature* dummy = me->FindNearestCreature(NPC_OOZE_SPRAY_STALKER, 100.0f, true))
                     dummy->SetReactState(REACT_PASSIVE);
-                if (Creature* dummy = me->FindNearestCreature(CREATURE_PUDDLE_STALKER, 100.0f, true))
+                if (Creature* dummy = me->FindNearestCreature(NPC_PUDDLE_STALKER, 100.0f, true))
                     dummy->SetReactState(REACT_PASSIVE);
-                if (Creature* dummy = me->FindNearestCreature(CREATURE_GREEN_GAS_STALKER, 100.0f, true))
+                if (Creature* dummy = me->FindNearestCreature(NPC_GREEN_GAS_STALKER, 100.0f, true))
                     dummy->SetReactState(REACT_PASSIVE);
             }
 
             void EnterCombat(Unit* /*who*/)
             {
                 Talk(SAY_AGGRO);
-                if (Creature* professor = Unit::GetCreature(*me, instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
+                if (Creature* professor = Unit::GetCreature(*me, instance->GetData64(GUID_PROFESSOR_PUTRICIDE)))
                     professor->AI()->DoAction(ACTION_ROTFACE_COMBAT);
 
                 DoZoneInCombat(me);
@@ -195,9 +195,9 @@ class boss_rotface : public CreatureScript
             void JustDied(Unit* /*killer*/)
             {
                 Talk(SAY_DEATH);
-                instance->SetBossState(DATA_ROTFACE, DONE);
+                instance->SetBossState(GUID_ROTFACE, DONE);
                 instance->SetData(DATA_ROTFACE_EVENT, DONE);
-                if (Creature* professor = Unit::GetCreature(*me, instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
+                if (Creature* professor = Unit::GetCreature(*me, instance->GetData64(GUID_PROFESSOR_PUTRICIDE)))
                     professor->AI()->DoAction(ACTION_ROTFACE_DEATH);
                 instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_MUTATED_INFECTION);
                 DespawnOozes();
@@ -206,14 +206,14 @@ class boss_rotface : public CreatureScript
             {
                 summons.DespawnAll();
                 //Sometimes it's not enough - despawn all oozes forcefully
-                while (Creature *littleOoze = me->FindNearestCreature(CREATURE_LITTLE_OOZE, 200.0f, true))
+                while (Creature *littleOoze = me->FindNearestCreature(NPC_LITTLE_OOZE, 200.0f, true))
                     littleOoze->DespawnOrUnsummon(); 
-                while (Creature *bigOoze = me->FindNearestCreature(CREATURE_BIG_OOZE, 200.0f, true))
+                while (Creature *bigOoze = me->FindNearestCreature(NPC_BIG_OOZE, 200.0f, true))
                     bigOoze->DespawnOrUnsummon(); 
             }
             void JustReachedHome()
             {
-                instance->SetBossState(DATA_ROTFACE, FAIL);
+                instance->SetBossState(GUID_ROTFACE, FAIL);
                 instance->SetData(DATA_OOZE_DANCE_ACHIEVEMENT, uint32(true));   // reset
                 instance->SetData(DATA_ROTFACE_EVENT, FAIL);
                 instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_MUTATED_INFECTION);
@@ -230,7 +230,7 @@ class boss_rotface : public CreatureScript
             void EnterEvadeMode()
             {
                 ScriptedAI::EnterEvadeMode();
-                if (Creature* professor = Unit::GetCreature(*me, instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
+                if (Creature* professor = Unit::GetCreature(*me, instance->GetData64(GUID_PROFESSOR_PUTRICIDE)))
                     professor->AI()->EnterEvadeMode();
             }
 
@@ -254,7 +254,7 @@ class boss_rotface : public CreatureScript
                         Creature *summon = Unit::GetCreature(*me, *itr);
                         if (!summon)
                             summons.erase(itr++);
-                        else if (summon->GetEntry() == CREATURE_OOZE_SPRAY_STALKER)
+                        else if (summon->GetEntry() == NPC_OOZE_SPRAY_STALKER)
                             return summon;
                         else
                             ++itr;
@@ -334,23 +334,23 @@ class boss_rotface : public CreatureScript
                             if(uiStage > 3)
                                 uiStage = 0;
 
-                            uint64 uiPutricide = (instance ? instance->GetData64(DATA_PROFESSOR_PUTRICIDE) : 0);
+                            uint64 uiPutricide = (instance ? instance->GetData64(GUID_PROFESSOR_PUTRICIDE) : 0);
                             if (uiStage & 1)
                             {
-					            if (Creature *pPutricide = me->GetCreature(*me, uiPutricide))
-						            DoScriptText(SAY_PUTRI_SLIME, pPutricide);
+                                if (Creature *pPutricide = me->GetCreature(*me, uiPutricide))
+                                    DoScriptText(SAY_PUTRI_SLIME, pPutricide);
                             }
                             else
                             {
-					            if (Creature *pPutricide = me->GetCreature(*me, uiPutricide))
-						            DoScriptText(SAY_PUTRI_SLIME_2, pPutricide);
+                                if (Creature *pPutricide = me->GetCreature(*me, uiPutricide))
+                                    DoScriptText(SAY_PUTRI_SLIME_2, pPutricide);
                             }
                             
-                            uiOoozeStream1 = me->SummonCreature(CREATURE_GREEN_GAS_STALKER, SpawnLocOozeStream[floodOrder[uiStage]*2], TEMPSUMMON_TIMED_DESPAWN, 4000)->GetGUID();
-                            uiOoozeStream2 = me->SummonCreature(CREATURE_GREEN_GAS_STALKER, SpawnLocOozeStream[floodOrder[uiStage]*2 + 1], TEMPSUMMON_TIMED_DESPAWN, 4000)->GetGUID();
+                            uiOoozeStream1 = me->SummonCreature(NPC_GREEN_GAS_STALKER, SpawnLocOozeStream[floodOrder[uiStage]*2], TEMPSUMMON_TIMED_DESPAWN, 4000)->GetGUID();
+                            uiOoozeStream2 = me->SummonCreature(NPC_GREEN_GAS_STALKER, SpawnLocOozeStream[floodOrder[uiStage]*2 + 1], TEMPSUMMON_TIMED_DESPAWN, 4000)->GetGUID();
                             
-                            uiPuddleStalker1 = me->SummonCreature(CREATURE_PUDDLE_STALKER, SpawnLocPuddle[floodOrder[uiStage]*2], TEMPSUMMON_TIMED_DESPAWN, 24000)->GetGUID();
-                            uiPuddleStalker2 = me->SummonCreature(CREATURE_PUDDLE_STALKER, SpawnLocPuddle[floodOrder[uiStage]*2 + 1], TEMPSUMMON_TIMED_DESPAWN, 24000)->GetGUID();
+                            uiPuddleStalker1 = me->SummonCreature(NPC_PUDDLE_STALKER, SpawnLocPuddle[floodOrder[uiStage]*2], TEMPSUMMON_TIMED_DESPAWN, 24000)->GetGUID();
+                            uiPuddleStalker2 = me->SummonCreature(NPC_PUDDLE_STALKER, SpawnLocPuddle[floodOrder[uiStage]*2 + 1], TEMPSUMMON_TIMED_DESPAWN, 24000)->GetGUID();
                             ++uiStage;
                             uiFloodStage = 1;
                             bFlood = true;
@@ -364,7 +364,7 @@ class boss_rotface : public CreatureScript
                             {
                                 Position pos;
                                 target->GetPosition(&pos);
-                                Creature *pSprayStalker = DoSummon(CREATURE_OOZE_SPRAY_STALKER, pos, 8000, TEMPSUMMON_TIMED_DESPAWN);
+                                Creature *pSprayStalker = DoSummon(NPC_OOZE_SPRAY_STALKER, pos, 8000, TEMPSUMMON_TIMED_DESPAWN);
                                 Talk(EMOTE_SLIME_SPRAY);
                                 me->SetFacingToObject(pSprayStalker);
                                 me->CastSpell(pSprayStalker, SPELL_SLIME_SPRAY_1, true);
@@ -436,7 +436,7 @@ class npc_little_ooze : public CreatureScript
                 me->AddThreat(summoner, 500000.0f);
                 // register in Rotface's summons - not summoned with Rotface as owner
                 if (InstanceScript* instance = me->GetInstanceScript())
-                    if (Creature* rotface = Unit::GetCreature(*me, instance->GetData64(DATA_ROTFACE)))
+                    if (Creature* rotface = Unit::GetCreature(*me, instance->GetData64(GUID_ROTFACE)))
                         rotface->AI()->JustSummoned(me);
                 //Slow Little Oozes a bit
                 me->SetSpeed(MOVE_WALK, me->GetSpeedRate(MOVE_RUN) * 0.9f);
@@ -452,7 +452,7 @@ class npc_little_ooze : public CreatureScript
             {
                 me->DespawnOrUnsummon();
                 if (InstanceScript* instance = me->GetInstanceScript())
-                    if (Creature* rotface = Unit::GetCreature(*me, instance->GetData64(DATA_ROTFACE)))
+                    if (Creature* rotface = Unit::GetCreature(*me, instance->GetData64(GUID_ROTFACE)))
                         rotface->AI()->SummonedCreatureDespawn(me);
             }
 
@@ -503,7 +503,7 @@ class npc_big_ooze : public CreatureScript
                 events.ScheduleEvent(EVENT_STICKY_OOZE, 5000);
                 // register in Rotface's summons - not summoned with Rotface as owner
                 if (InstanceScript* instance = me->GetInstanceScript())
-                    if (Creature* rotface = Unit::GetCreature(*me, instance->GetData64(DATA_ROTFACE)))
+                    if (Creature* rotface = Unit::GetCreature(*me, instance->GetData64(GUID_ROTFACE)))
                         rotface->AI()->JustSummoned(me);
                 //Big Oozes deal high melee damage, move at HALF speed and have a normal aggro table -- thus they can be kited.
                 //Source: wowwiki.com
@@ -515,7 +515,7 @@ class npc_big_ooze : public CreatureScript
             {
                 me->DespawnOrUnsummon();
                 if (InstanceScript* instance = me->GetInstanceScript())
-                    if (Creature* rotface = Unit::GetCreature(*me, instance->GetData64(DATA_ROTFACE)))
+                    if (Creature* rotface = Unit::GetCreature(*me, instance->GetData64(GUID_ROTFACE)))
                         rotface->AI()->SummonedCreatureDespawn(me);
             }
 
@@ -641,7 +641,7 @@ class npc_precious_icc : public CreatureScript
 
             void JustDied(Unit* /*who*/)
             {
-                uint64 rotfaceGUID = instance ? instance->GetData64(DATA_ROTFACE) : 0;
+                uint64 rotfaceGUID = instance ? instance->GetData64(GUID_ROTFACE) : 0;
                 if (Creature* rotface = Unit::GetCreature(*me, rotfaceGUID))
                     if (rotface->isAlive())
                         rotface->AI()->Talk(SAY_PRECIOUS_DIES);
@@ -715,7 +715,7 @@ class spell_rotface_little_ooze_combine : public SpellScriptLoader
                 GetHitUnit()->CastSpell(GetCaster(), SPELL_OOZE_MERGE, true);
                 Creature *rotface = 0;
                 if (InstanceScript* instance = GetCaster()->GetInstanceScript())
-                    rotface = Unit::GetCreature(*GetCaster(), instance->GetData64(DATA_ROTFACE));
+                    rotface = Unit::GetCreature(*GetCaster(), instance->GetData64(GUID_ROTFACE));
                         
                 if (TempSummon* summ = GetHitUnit()->ToTempSummon())
                 {
@@ -781,7 +781,7 @@ class spell_rotface_large_ooze_combine : public SpellScriptLoader
 
                 Creature *rotface = 0;
                 if (InstanceScript* instance = GetCaster()->GetInstanceScript())
-                    rotface = Unit::GetCreature(*GetCaster(), instance->GetData64(DATA_ROTFACE));
+                    rotface = Unit::GetCreature(*GetCaster(), instance->GetData64(GUID_ROTFACE));
                         
                 if (TempSummon* summ = GetHitUnit()->ToTempSummon())
                 {
@@ -837,24 +837,23 @@ class spell_rotface_large_ooze_buff_combine : public SpellScriptLoader
                         GetCaster()->RemoveAurasDueToSpell(SPELL_LARGE_OOZE_BUFF_COMBINE);
                         GetCaster()->RemoveAurasDueToSpell(SPELL_LARGE_OOZE_COMBINE);
                         if (InstanceScript* instance = GetCaster()->GetInstanceScript())
-                            if (Creature* rotface = Unit::GetCreature(*GetCaster(), instance->GetData64(DATA_ROTFACE)))
+                            if (Creature* rotface = Unit::GetCreature(*GetCaster(), instance->GetData64(GUID_ROTFACE)))
                                 if (rotface->isAlive())
                                 {
                                     rotface->AI()->Talk(EMOTE_UNSTABLE_EXPLOSION);
                                     rotface->AI()->Talk(SAY_UNSTABLE_EXPLOSION);
                                 }
 
-                        if (InstanceScript* instance = GetCaster()->GetInstanceScript())
-                            if (BossAI* rotface = (BossAI*)Unit::GetCreature(*GetCaster(), instance->GetData64(DATA_ROTFACE)))
-                                GetCaster()->CastSpell(GetCaster(), SPELL_UNSTABLE_OOZE_EXPLOSION, true);
+                        GetCaster()->CastSpell(GetCaster(), SPELL_UNSTABLE_OOZE_EXPLOSION, true);
                         if (InstanceScript* instance = GetCaster()->GetInstanceScript())
                             instance->SetData(DATA_OOZE_DANCE_ACHIEVEMENT, uint32(false));
+                        return;
                     }
                 }
 
                 Creature *rotface = 0;
                 if (InstanceScript* instance = GetCaster()->GetInstanceScript())
-                    rotface = Unit::GetCreature(*GetCaster(), instance->GetData64(DATA_ROTFACE));
+                    rotface = Unit::GetCreature(*GetCaster(), instance->GetData64(GUID_ROTFACE));
 
                 if (TempSummon* summ = GetHitUnit()->ToTempSummon())
                 {
@@ -945,7 +944,7 @@ class spell_rotface_unstable_ooze_explosion : public SpellScriptLoader
                 GetTargetUnit()->GetPosition(x, y, z);
                 // let Rotface handle the cast - caster dies before this executes
                 if (InstanceScript* script = GetTargetUnit()->GetInstanceScript())
-                    if (Creature* rotface = script->instance->GetCreature(script->GetData64(DATA_ROTFACE)))
+                    if (Creature* rotface = script->instance->GetCreature(script->GetData64(GUID_ROTFACE)))
                         rotface->CastSpell(x, y, z, triggered_spell_id, true, NULL, NULL, GetCaster()->GetGUID(), GetTargetUnit());
             }
 
