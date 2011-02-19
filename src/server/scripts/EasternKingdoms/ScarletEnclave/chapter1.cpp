@@ -667,7 +667,7 @@ public:
                         {
                             CAST_PLR(charmer)->GroupEventHappens(12687, me);
                             charmer->RemoveAurasDueToSpell(SPELL_EFFECT_OVERTAKE);
-                            CAST_CRE(who)->ForcedDespawn();
+                            CAST_CRE(who)->DespawnOrUnsummon();
                             //CAST_CRE(who)->Respawn(true);
                         }
 
@@ -763,15 +763,18 @@ public:
                     if (owner->GetTypeId() == TYPEID_PLAYER)
                     {
                         if (CAST_PLR(owner)->GetQuestStatus(12698) == QUEST_STATUS_INCOMPLETE)
+						{
+							CAST_PLR(owner)->KilledMonsterCredit(GHOULS, me->GetGUID());
                             CAST_CRE(who)->CastSpell(owner, 52517, true);
-
+						}
+						
                         //Todo: Creatures must not be removed, but, must instead
                         //      stand next to Gothik and be commanded into the pit
                         //      and dig into the ground.
-                        CAST_CRE(who)->ForcedDespawn();
+                        CAST_CRE(who)->DespawnOrUnsummon();
 
-                        if (CAST_PLR(owner)->GetQuestStatus(12698) == QUEST_STATUS_COMPLETE)
-                            owner->RemoveAllMinionsByEntry(GHOULS);
+                       /* if (CAST_PLR(owner)->GetQuestStatus(12698) == QUEST_STATUS_COMPLETE)
+                            owner->RemoveAllMinionsByEntry(GHOULS);*/
                     }
                 }
             }

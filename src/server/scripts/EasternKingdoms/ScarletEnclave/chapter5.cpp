@@ -18,7 +18,7 @@
 #include "ScriptPCH.h"
 #include "ScriptedEscortAI.h"
 
-#define LESS_MOB // if you do not have a good server and do not want it to be laggy as hell
+//#define LESS_MOB // if you do not have a good server and do not want it to be laggy as hell
 //Light of Dawn
 enum mograine
 {
@@ -307,7 +307,7 @@ public:
             pPlayer->PrepareQuestMenu(pCreature->GetGUID());
 
         if (pPlayer->GetQuestStatus(12801) == QUEST_STATUS_INCOMPLETE)
-            pPlayer->ADD_GOSSIP_ITEM(0, "I am ready.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
+            pPlayer->ADD_GOSSIP_ITEM(0, "Мы готовы.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
 
         pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
 
@@ -389,7 +389,7 @@ public:
 
                 me->SetStandState(UNIT_STAND_STATE_STAND);
                 me->Mount(25279);
-                me->SetVisible(true);
+                me->SetVisible(true);         
 
                 UpdateWorldState(me->GetMap(), WORLD_STATE_REMAINS, 0);
                 //UpdateWorldState(me->GetMap(), WORLD_STATE_COUNTDOWN, 0);
