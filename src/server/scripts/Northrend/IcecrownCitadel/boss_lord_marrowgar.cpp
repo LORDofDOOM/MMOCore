@@ -657,7 +657,72 @@ public:
     };
 
 }; 
+class npc_ancient_skeletal_soldier : public CreatureScript
+{
+    enum eEvents
+    {
+        EVENT_SHIELD_BASH = 1,
+    };
+    enum eSpells
+    {
+        SPELL_SHIELD_BASH  = 70964,
+    };
 
+public:
+    npc_ancient_skeletal_soldier() : CreatureScript("npc_ancient_skeletal_soldier") { }
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new npc_ancient_skeletal_soldierAI (pCreature);
+    }
+
+    struct npc_ancient_skeletal_soldierAI : public ScriptedAI
+    {
+        npc_ancient_skeletal_soldierAI(Creature *c) : ScriptedAI(c)
+        {
+            instance = me->GetInstanceScript();
+        }
+
+        void Reset()
+        {
+            events.Reset();
+        }
+
+        void EnterCombat(Unit* /*who*/)
+        {
+            events.Reset();
+            events.ScheduleEvent(EVENT_SHIELD_BASH, 3000);
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
+            if (!UpdateVictim())
+                return;
+            if (me->HasUnitState(UNIT_STAT_CASTING))
+                return;
+            events.Update(diff);
+            while (uint32 eventId = events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case EVENT_SHIELD_BASH:  
+                    {
+                        DoCastVictim(SPELL_SHIELD_BASH);
+                        events.ScheduleEvent(EVENT_SHIELD_BASH, 7000);
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            DoMeleeAttackIfReady();
+        }
+    private:
+        InstanceScript *instance;
+        EventMap events;
+    };
+
+}; 
 void AddSC_boss_lord_marrowgar()
 {
     new boss_lord_marrowgar();
@@ -668,5 +733,6 @@ void AddSC_boss_lord_marrowgar()
     new spell_marrowgar_bone_spike_graveyard();
     new spell_marrowgar_bone_storm();
     new npc_the_damned();
-    new npc_servant_of_the_throne(); 
+    new npc_servant_of_the_throne();
+    new npc_ancient_skeletal_soldier();
 }

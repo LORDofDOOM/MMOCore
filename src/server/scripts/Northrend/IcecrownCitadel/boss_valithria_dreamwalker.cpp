@@ -124,6 +124,7 @@ enum eEvents
     EVENT_CLOUD_EMULATE_DESPAWN,
     EVENT_CLOUD_EMULATE_RESPAWN,
     EVENT_INTRO,
+    EVENT_START_INTRO,
 
     EVENT_CHECK_WIPE,
     EVENT_CAST_ROT_WORM_SPAWN_ANIMATION,
@@ -870,7 +871,7 @@ class npc_icc_combat_stalker : public CreatureScript
                 m_uiSummonSuppressorTimer = 60000;
                 uint32 delayForKill4Mages = 0;
                 if (me->FindNearestCreature(NPC_ARCHMAGE, 100.0f, true))
-                    delayForKill4Mages = 90000;
+                    delayForKill4Mages = 40000;
                 events.ScheduleEvent(EVENT_SUMMON_ZOMBIE, delayForKill4Mages+50000);
                 events.ScheduleEvent(EVENT_SUMMON_ARCHMAGE, delayForKill4Mages+20000);
                 events.ScheduleEvent(EVENT_SUMMON_ABOMINATION, delayForKill4Mages+40000);
@@ -880,8 +881,7 @@ class npc_icc_combat_stalker : public CreatureScript
                 events.ScheduleEvent(EVENT_HASTEN_SUMMON_TIMER, delayForKill4Mages+30000);
                 events.ScheduleEvent(EVENT_CHECK_WIPE, 2000);
                 pInstance->SetData(DATA_VALITHRIA_DREAMWALKER_EVENT, IN_PROGRESS);
-                if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(GUID_VALITHRIA_DREAMWALKER)))
-                    valithria->AI()->DoAction(EVENT_INTRO);
+                events.ScheduleEvent(EVENT_START_INTRO, delayForKill4Mages);
             }
 
             void MoveInLineOfSight(Unit *who)
@@ -932,6 +932,12 @@ class npc_icc_combat_stalker : public CreatureScript
                 {
                     switch (eventId)
                     {
+                        case EVENT_START_INTRO:
+                        {
+                            if (Creature* valithria = Unit::GetCreature(*me, pInstance->GetData64(GUID_VALITHRIA_DREAMWALKER)))
+                                valithria->AI()->DoAction(EVENT_INTRO);
+                            break;
+                        }
                         case EVENT_CHECK_WIPE:
                         {
                             if (!SelectTarget(SELECT_TARGET_RANDOM, 0, 60.0f, true))

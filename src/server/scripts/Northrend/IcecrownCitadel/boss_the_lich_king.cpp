@@ -106,6 +106,7 @@ enum Spells
     SPELL_INFEST                     = 70541,
     SPELL_NECROTIC_PLAGUE            = 70337, //70337 - initial cast
     SPELL_NECROTIC_PLAGUE_IMMUNITY   = 72846,
+    SPELL_NECROTIC_PLAGUE_EFFECT     = 70338,
     SPELL_PLAGUE_SIPHON              = 74074,
     SPELL_REMORSELES_WINTER          = 68981,
     SPELL_REMORSELES_WINTER_DAMAGE   = 68983,
@@ -572,8 +573,12 @@ class boss_the_lich_king : public CreatureScript
                                 case EVENT_SHADOW_TRAP:
                                 {
                                     ASSERT(IsHeroic());
-                                    if(Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 100.0f, true))
-                                        DoCast(target, SPELL_SUMMON_SHADOW_TRAP, true);
+                                    //First, try to select somebody far away from the boss
+                                    Unit *target = NULL;
+                                    target = SelectTarget(SELECT_TARGET_RANDOM, 0, -5.0f, true);
+                                    if (!target)
+                                        target = SelectTarget(SELECT_TARGET_RANDOM, 1, 100.0f, true);
+                                    DoCast(target, SPELL_SUMMON_SHADOW_TRAP, true);
                                     events.ScheduleEvent(EVENT_SHADOW_TRAP, 30000, 0, PHASE_1);
                                 }
                             }
@@ -1068,9 +1073,6 @@ class npc_tirion_icc : public CreatureScript
                             {
                                 lich->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
                                 lich->SetReactState(REACT_AGGRESSIVE);
-                            }
-                            if(Creature* lich = Unit::GetCreature(*me, uiLichKingGUID))
-                            {
                                 if(Unit* target = lich->FindNearestPlayer(100.0f))
                                     lich->AI()->AttackStart(target);
                             }
@@ -1322,7 +1324,12 @@ class spell_lich_king_necrotic_plague : public SpellScriptLoader
                     WorldObject const* i_obj;
                     float i_range;
             };
-
+            void OnPeriodic(AuraEffect const*aurEff)
+            {
+                PreventDefaultAction();
+                if (GetTarget() && GetTarget()->isAlive() && GetCaster() && GetCaster()->isAlive())
+                    GetCaster()->CastSpell(GetTarget(), SPELL_NECROTIC_PLAGUE_EFFECT, true);
+            }
             void OnRemove(AuraEffect const * aurEff, AuraEffectHandleModes mode)
             {
                 CellPair p(Trinity::ComputeCellPair(GetTarget()->GetPositionX(), GetTarget()->GetPositionY()));
@@ -1367,6 +1374,7 @@ class spell_lich_king_necrotic_plague : public SpellScriptLoader
 
             void Register()
             {
+                OnEffectPeriodic += AuraEffectPeriodicFn(spell_lich_king_necrotic_plague_AuraScript::OnPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
                 OnEffectApply += AuraEffectApplyFn(spell_lich_king_necrotic_plague_AuraScript::OnApply, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE, AURA_EFFECT_HANDLE_REAL);
                 OnEffectRemove += AuraEffectRemoveFn(spell_lich_king_necrotic_plague_AuraScript::OnRemove, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE, AURA_EFFECT_HANDLE_REAL);
             }
