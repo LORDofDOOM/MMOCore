@@ -94,7 +94,7 @@ INSERT INTO `disables` VALUES (0, 698, (1+16+32), "489,529,529,566", "4572,4571,
 
 -- Fizzcrank Recon Pilot
 DELETE FROM `creature_ai_scripts` WHERE creature_id = 25841;
-UPDATE `creature_template` SET IconName = 'Speak', npcflag = 1, gossip_menu_id = 0, AIName = '', ScriptName = 'npc_fizzcrank_recon_pilot', unit_flags = 0x00000000, flags_extra = 2, dynamicflags = 36  WHERE entry = 25841;
+UPDATE `creature_template` SET IconName = 'Speak', npcflag = 1, gossip_menu_id = 0, AIName = '', ScriptName = 'npc_recon_pilot', unit_flags = 0x00000000, flags_extra = 2, dynamicflags = 36  WHERE entry = 25841;
 DELETE FROM `creature_template_addon` WHERE entry = 25841;
 INSERT INTO `creature_template_addon` VALUES (25841, 0, 0, 7, 0, 65, '');
 UPDATE `creature` SET DeathState = 0 WHERE id = 25841;
@@ -183,12 +183,53 @@ UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` = 36774;
 -- DB/Achievements: Fix achievement "Lonely?"
 UPDATE `gameobject_template` SET `data10`=45123 WHERE `entry`=187267;
 
- -- Dangerous Love achievement
- -- Alliance
- UPDATE quest_template SET prevQuestID = 0 where ExclusiveGroup = 24638;
- -- Horde
- UPDATE quest_template SET prevQuestID = 0 where ExclusiveGroup = 24658;
- -- Alliance
- UPDATE quest_template SET prevQuestID = 24576 where ExclusiveGroup = 24638;
- -- Horde
- UPDATE quest_template SET prevQuestID = 24657 where ExclusiveGroup = 24658;
+-- Dangerous Love achievement
+-- Alliance
+UPDATE quest_template SET prevQuestID = 0 where ExclusiveGroup = 24638;
+-- Horde
+UPDATE quest_template SET prevQuestID = 0 where ExclusiveGroup = 24658;
+-- Alliance
+UPDATE quest_template SET prevQuestID = 24576 where ExclusiveGroup = 24638;
+-- Horde
+UPDATE quest_template SET prevQuestID = 24657 where ExclusiveGroup = 24658;
+
+-- Cinderglacier
+UPDATE `spell_proc_event` SET `SpellFamilyName` = '15', `SpellFamilyMask0` = 0x42002, `SpellFamilyMask1` = 0x6, `SpellFamilyMask2` = 0x80 WHERE `entry` = 53386;
+
+-- Druid Berserk fix
+DELETE FROM `spell_script_names` WHERE `spell_id`=50334 AND `ScriptName`='spell_dru_berserk';
+INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES
+(50334, 'spell_dru_berserk');
+
+-- Fix spell 66926 for quest "They Grow Up So Fast"
+DELETE FROM `spell_script_names` WHERE `spell_id`=66926;
+INSERT INTO `spell_script_names` VALUES
+(66926, 'spell_gen_venomhide_check');
+
+-- Lifebloom final bloom fix
+UPDATE `spell_bonus_data` SET `direct_bonus`=0.3857 WHERE `entry`=33778 ;
+UPDATE `spell_bonus_data` SET `dot_bonus`=0.0653 WHERE `entry` IN (48450, 48451, 48628);
+
+-- Ashbringer sound effect fix
+DELETE FROM `spell_script_names` WHERE `spell_id`=28441;
+INSERT INTO `spell_script_names` VALUES
+(28441, 'spell_ashbringer_sound_effect');
+
+-- fix some quests in Borean Tundra
+UPDATE creature_template SET scriptname = 'vehicle_wyrmrest_skytalon' WHERE entry = 32535;
+
+-- Add script for Archmage Vargoth NPC(19481)
+UPDATE creature_template SET scriptname = 'npc_archmage_vargoth' WHERE entry = 19481;
+
+-- Add scripts for some NPC in Dragon Blight
+UPDATE creature_template SET scriptname = 'vehicle_forsaken_blight_spreader' WHERE entry = 26523;
+UPDATE creature_template SET scriptname = 'npc_warsong_battle_standard' WHERE entry = 36738;
+UPDATE creature_template SET scriptname = 'npc_emissary_brighthoof' WHERE entry = 26181;
+UPDATE creature_template SET scriptname = 'npc_wintergarde_mine_bomb' WHERE entry = 27435;
+UPDATE creature_template SET scriptname = 'npc_devout_bodyguard' WHERE entry = 27247;
+UPDATE creature_template SET scriptname = 'npc_high_abbot_landgren' WHERE entry = 27245;
+UPDATE creature_template SET scriptname = 'npc_agent_skully' WHERE entry = 27350;
+UPDATE creature_template SET scriptname = 'npc_7th_legion_siege_engineer' WHERE entry = 27163;
+UPDATE creature_template SET scriptname = 'vehicle_alliance_steamtank' WHERE entry = 27587;
+UPDATE creature_template SET scriptname = 'mob_woodlands_walker' WHERE entry = 26421;
+
