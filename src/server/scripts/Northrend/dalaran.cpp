@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
  *
@@ -72,7 +71,7 @@ public:
 
             Player *pPlayer = pWho->GetCharmerOrOwnerPlayerOrPlayerItself();
 
-            if (!pPlayer || pPlayer->isGameMaster() || pPlayer->IsBeingTeleported())
+            if (!pPlayer || pPlayer->isGameMaster() || pPlayer->IsBeingTeleported() || pWho->HasAura(70971) || pWho->HasAura(70972) || pWho->HasAura(70973) || pWho->HasAura(70974))
                 return;
 
             switch (me->GetEntry())
@@ -159,9 +158,68 @@ public:
     }
 };
 
+#define GOSSIP_TEXT_ARCANIST_TYBALIN "I'm ready to deliver the tome, Arcanist Tybalin"
+class npc_arcanist_tybalin : public CreatureScript
+{
+public:
+    npc_arcanist_tybalin() : CreatureScript("npc_arcanist_tybalin") { }
+
+    bool OnGossipHello(Player* pPlayer, Creature* pCreature)
+    {
+	     if (pCreature->isQuestGiver())
+            	pPlayer->PrepareQuestMenu(pCreature->GetGUID());
+
+	     if (pPlayer->GetQuestStatus(24451)!=QUEST_STATUS_NONE){
+		pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT_ARCANIST_TYBALIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_TRAIN);
+	}
+	pPlayer->TalkedToCreature(pCreature->GetEntry(), pCreature->GetGUID());
+	pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
+	
+        return true;
+    }
+
+    bool OnGossipSelect(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
+    {
+        pPlayer->PlayerTalkClass->ClearMenus();
+        if (uiAction == GOSSIP_ACTION_TRAIN)
+            pPlayer->CastSpell(pPlayer, 69722, true);
+
+        return true;
+    }
+};
+
+#define GOSSIP_TEXT_MAGISTER_HATHOREL "I'm ready to deliver the tome, Magister Hathorel"
+class npc_magister_hathorel : public CreatureScript
+{
+public:
+    npc_magister_hathorel() : CreatureScript("npc_magister_hathorel") { }
+
+    bool OnGossipHello(Player* pPlayer, Creature* pCreature)
+    {
+	     if (pCreature->isQuestGiver())
+            	pPlayer->PrepareQuestMenu(pCreature->GetGUID());
+
+	     if (pPlayer->GetQuestStatus(20439)!=QUEST_STATUS_NONE){
+		pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT_MAGISTER_HATHOREL, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_TRAIN);
+	}
+	pPlayer->TalkedToCreature(pCreature->GetEntry(), pCreature->GetGUID());
+	pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
+	
+        return true;
+    }
+
+    bool OnGossipSelect(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
+    {
+        pPlayer->PlayerTalkClass->ClearMenus();
+        if (uiAction == GOSSIP_ACTION_TRAIN)
+            pPlayer->CastSpell(pPlayer, 69722, true);
+
+        return true;
+    }
+};
+
 /*######
 ## npc_archmage_vargoth http://www.wowhead.com/item=44738
-
 ######*/
 
 enum eArchmageVargoth
@@ -214,110 +272,12 @@ public:
     }
 };
 
-/*######
-## npc_steampowered_auctioneer
-######*/
-
-#define GOSSIP_TEXT_ID_STEAM  14764 
-
-class npc_steampowered_auctioneer : public CreatureScript
-{
-public:
-    npc_steampowered_auctioneer() : CreatureScript("npc_steampowered_auctioneer") { }
-
-    bool OnGossipHello(Player* pPlayer, Creature* pCreature)
-    {
-        if (!pCreature->isAuctioner())
-            return false;
-
-        if (pPlayer->GetSkillValue(SKILL_ENGINERING) > 349)
-            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_VENDOR, GOSSIP_TEXT_BROWSE_GOODS, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_AUCTION);
-
-        pPlayer->SEND_GOSSIP_MENU(GOSSIP_TEXT_ID_STEAM, pCreature->GetGUID());
-
-        return true;
-    }
-
-    bool OnGossipSelect(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
-    {
-        pPlayer->PlayerTalkClass->ClearMenus();
-
-        if (uiAction == GOSSIP_ACTION_AUCTION)
-            pPlayer->GetSession()->SendAuctionHello(pCreature->GetGUID(), pCreature);
-
-        return true;
-    }
-};
-
-/*
-* Npc Magister Hathorel (36670)
-*/
-
-#define GOSSIP_TEXT_ARCANIST_TYBALIN "I'm ready to deliver the tome, Magister Tybalin"
-class npc_arcanist_tybalin : public CreatureScript
-{
-public:
-    npc_arcanist_tybalin() : CreatureScript("npc_arcanist_tybalin") { }
-
-    bool OnGossipHello(Player* pPlayer, Creature* pCreature)
-    {
-	     if (pCreature->isQuestGiver())
-            	pPlayer->PrepareQuestMenu(pCreature->GetGUID());
-
-	     if (pPlayer->GetQuestStatus(24451)== QUEST_STATUS_INCOMPLETE){
-		pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT_ARCANIST_TYBALIN, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
-	}
-	pPlayer->TalkedToCreature(pCreature->GetEntry(), pCreature->GetGUID());
-	pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
-	
-        return true;
-    }
-
-    bool OnGossipSelect(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
-    {
-        pPlayer->PlayerTalkClass->ClearMenus();
-        if (uiAction == GOSSIP_ACTION_INFO_DEF+1)
-            pPlayer->CastSpell(pPlayer, 69722, true);
-
-        return true;
-    }
-};
-
-#define GOSSIP_TEXT_ARCANIST_HATHOREL "I'm ready to deliver the tome, Magister Hathorel"
-class npc_arcanist_hathorel : public CreatureScript
-{
-public:
-    npc_arcanist_hathorel() : CreatureScript("npc_arcanist_hathorel") { }
-
-    bool OnGossipHello(Player* pPlayer, Creature* pCreature)
-    {
-	     if (pCreature->isQuestGiver())
-            	pPlayer->PrepareQuestMenu(pCreature->GetGUID());
-
-	     if (pPlayer->GetQuestStatus(20439)==QUEST_STATUS_INCOMPLETE){
-		pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT_ARCANIST_HATHOREL, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
-	}
-	pPlayer->TalkedToCreature(pCreature->GetEntry(), pCreature->GetGUID());
-	pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
-	
-        return true;
-    }
-
-    bool OnGossipSelect(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
-    {
-        pPlayer->PlayerTalkClass->ClearMenus();
-        if (uiAction == GOSSIP_ACTION_INFO_DEF+1)
-            pPlayer->CastSpell(pPlayer, 69722, true);
-
-        return true;
-    }
-};
-
 void AddSC_dalaran()
 {
     new npc_mageguard_dalaran;
     new npc_hira_snowdawn;
+    new npc_arcanist_tybalin;
+    new npc_magister_hathorel;
     new npc_archmage_vargoth;
-    new npc_steampowered_auctioneer;
-    new npc_arcanist_hathorel;
 }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         

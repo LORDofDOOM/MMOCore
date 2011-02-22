@@ -1111,7 +1111,7 @@ bool OutdoorPvPWG::UpdateQuestGiverPosition(uint32 guid, Creature *creature)
             creature->getHostileRefManager().deleteReferences();
         }
         creature->SetHomePosition(pos);
-        if (creature->GetEntry() != 30400 || creature->GetEntry() != 30499)
+       if (creature->GetEntry() != 30400 || creature->GetEntry() != 30499)
            creature->SetReactState(REACT_AGGRESSIVE);
         creature->DestroyForNearbyPlayers();
         if (!creature->GetMap()->IsLoaded(pos.GetPositionX(), pos.GetPositionY()))
@@ -1352,9 +1352,9 @@ void OutdoorPvPWG::UpdateTenacityStack()
 
     if (allianceNum && hordeNum)
         if (allianceNum < hordeNum)
-            newStack = int32((float(hordeNum) / float(allianceNum) - 1)*4); // positive, should cast on alliance
+            newStack = int32((float(((hordeNum) - (allianceNum))/9.5))); // positive, should cast on alliance
         else if (allianceNum > hordeNum)
-            newStack = int32((1 - float(allianceNum) / float(hordeNum))*4); // negative, should cast on horde
+            newStack = int32((float(((allianceNum) - (hordeNum))/9.5))); // negative, should cast on horde
  
     if (newStack == m_tenacityStack)
         return;
@@ -1413,14 +1413,10 @@ void OutdoorPvPWG::UpdateClock()
         UpdateClockDigit(timer, 1, 10);
     else
         UpdateClockDigit(timer, 0, 10);
-
-    //Announce in all world, comment it if you don't like/need it
-    // Announce 30 minutes left
-    if ((m_timer>1800000) && (m_timer<1802000) && (m_wartime==false))
+        
+    if ((m_timer == 1800000) && (m_wartime == false))
         sWorld->SendWorldText(LANG_BG_WG_WORLD_ANNOUNCE_30);
-
-    // Announce 10 minutes left
-    if ((m_timer>600000) && (m_timer<602000) && (m_wartime==false))
+    else if ((m_timer == 600000) && (m_wartime == false))
         sWorld->SendWorldText(LANG_BG_WG_WORLD_ANNOUNCE_10);
 }
 
@@ -1695,6 +1691,12 @@ bool OutdoorPvPWG::Update(uint32 diff)
             m_changeDefender = false;
             m_defender = getAttackerTeam();
             entry = LANG_BG_WG_CAPTURED;
+           if (m_changeAlly == true || m_changeHorde == true) // If wg is switching (.wg switch)
+           {
+           RebuildAllBuildings();
+           m_changeAlly = false;
+           m_changeHorde = false;
+           }
         }
         if (isWarTime())
         {
@@ -1757,6 +1759,9 @@ void OutdoorPvPWG::forceChangeTeam()
 {
     m_changeDefender = true;
     m_timer = 1;
+    m_changeAlly = true;
+    m_changeHorde = true;
+
     sWorld->SendZoneText(ZONE_WINTERGRASP, fmtstring(sObjectMgr->GetTrinityStringForDBCLocale(LANG_BG_WG_SWITCH_FACTION), sObjectMgr->GetTrinityStringForDBCLocale(getAttackerTeam() == TEAM_ALLIANCE ? LANG_BG_AB_ALLY : LANG_BG_AB_HORDE)));
     if (isWarTime())
         forceStartBattle();
@@ -2299,7 +2304,7 @@ void OPvPCapturePointWG::ChangeTeam(TeamId oldTeam)
     else if (m_engineer)
         m_engineer->SetVisible(false);
 
-    sLog->outDebug("Wintergrasp workshop now belongs to %u.", (uint32)m_buildingState->GetTeam());
+    sLog->outDebug(LOG_FILTER_BATTLEGROUND, "Wintergrasp workshop now belongs to %u.", (uint32)m_buildingState->GetTeam());
 }
 
 class OutdoorPvP_wintergrasp : public OutdoorPvPScript

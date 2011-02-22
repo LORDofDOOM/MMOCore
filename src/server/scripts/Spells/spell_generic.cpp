@@ -746,6 +746,110 @@ class spell_gen_dungeon_credit : public SpellScriptLoader
         }
 };
 
+enum ModelPerQuestProgress
+
+{
+    // PROG_0_4   = native,
+    PROG_5_9   = 29809,
+    PROG_10_14 = 29275,
+    PROG_15_20 = 29276,
+};
+
+// 66926 Venomhide Raptor Spawn Check
+class spell_gen_venomhide_check : public SpellScriptLoader
+{
+public:
+    spell_gen_venomhide_check() : SpellScriptLoader("spell_gen_venomhide_check") { }
+
+    class spell_gen_venomhide_check_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_gen_venomhide_check_AuraScript)
+        
+        void HandleEffectApply(AuraEffect const * /*aurEff*/, AuraEffectHandleModes /*mode*/)
+
+        {
+            Unit* target = GetTarget();
+            if (!target)
+                return;
+
+            Unit* owner = target->GetCharmerOrOwner();
+            if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            // get queststatus
+            QuestStatusMap::const_iterator itr = owner->ToPlayer()->getQuestStatusMap().find(13906);
+            if (itr->second.m_status != QUEST_STATUS_INCOMPLETE)
+                return;
+
+            switch(uint8(itr->second.m_itemcount[1]/5))
+            {
+            case 1: target->SetDisplayId(PROG_5_9);   break;
+            case 2: target->SetDisplayId(PROG_10_14); break;
+            case 3: 
+            case 4: target->SetDisplayId(PROG_15_20); break;
+            default: return;
+            }
+        }
+
+        void Register()
+        {
+            OnEffectApply += AuraEffectApplyFn(spell_gen_venomhide_check_AuraScript::HandleEffectApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    AuraScript* GetAuraScript() const
+    {
+        return new spell_gen_venomhide_check_AuraScript();
+    }
+};
+
+enum AshbringerSpell
+{
+    SPELL_ASHBRINGER_EFFECT  = 28441,
+};
+
+class spell_ashbringer_sound_effect : public SpellScriptLoader
+{
+public:
+    spell_ashbringer_sound_effect() : SpellScriptLoader("spell_ashbringer_sound_effect") {}
+
+    class spell_ashbringer_sound_effect_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_ashbringer_sound_effect_SpellScript)
+            bool Validate(SpellEntry const * /*spellEntry*/)
+        {
+            if (!sSpellStore.LookupEntry(SPELL_ASHBRINGER_EFFECT))
+                return false;
+            return true;
+        }
+
+        void HandleScript(SpellEffIndex /*effIndex*/)
+        {
+            Player* caster = GetCaster()->ToPlayer();
+            if (!caster)
+                return;
+            if (urand(0,100) < 2)
+            {
+                uint8 prob = urand(0,11);
+                if (prob > 8)
+                    caster->PlayDirectSound(8906 + prob - 9, caster);
+                else
+                    caster->PlayDirectSound(8920 + prob, caster);
+            }
+        }
+
+        void Register()
+        {
+            OnEffect += SpellEffectFn(spell_ashbringer_sound_effect_SpellScript::HandleScript, EFFECT_0, SPELL_EFFECT_DUMMY);
+        }
+    };
+
+    SpellScript* GetSpellScript() const
+    {
+        return new spell_ashbringer_sound_effect_SpellScript();
+    }
+};
+
 void AddSC_generic_spell_scripts()
 {
     new spell_gen_absorb0_hitlimit1();
@@ -765,4 +869,6 @@ void AddSC_generic_spell_scripts()
     new spell_gen_parachute_ic();
     new spell_gen_gunship_portal();
     new spell_gen_dungeon_credit();
+    new spell_gen_venomhide_check();
+    new spell_ashbringer_sound_effect();
 }
