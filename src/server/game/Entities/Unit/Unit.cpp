@@ -538,7 +538,7 @@ bool Unit::HasAuraTypeWithFamilyFlags(AuraType auraType, uint32 familyName, uint
 
 void Unit::DealDamageMods(Unit *pVictim, uint32 &damage, uint32* absorb)
 {
-    if (!pVictim->isAlive() || pVictim->HasUnitState(UNIT_STAT_IN_FLIGHT) || (pVictim->HasUnitState(UNIT_STAT_ONVEHICLE) && pVictim->GetVehicleBase() != this) || (pVictim->GetTypeId() == TYPEID_UNIT && pVictim->ToCreature()->IsInEvadeMode()))
+    if (!pVictim->isAlive() || pVictim->HasUnitState(UNIT_STAT_IN_FLIGHT) || (pVictim->GetTypeId() == TYPEID_UNIT && pVictim->ToCreature()->IsInEvadeMode()))
     {
             if (absorb)
                 *absorb += damage;
@@ -14291,6 +14291,13 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit * pTarget, uint32 procFlag,
                     break;
             }
         }
+        // Bone Shield DropCharge Cooldown
+        if (GetTypeId() == TYPEID_PLAYER && cooldown && spellInfo->Id == 49222)
+            if (this->ToPlayer()->HasSpellCooldown(250000))
+                takeCharges = false;
+            else
+                this->ToPlayer()->AddSpellCooldown(250000, 0, time(NULL) + cooldown);
+
         // Remove charge (aura can be removed by triggers)
         if (useCharges && takeCharges)
             i->aura->DropCharge();
