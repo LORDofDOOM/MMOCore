@@ -223,7 +223,7 @@ public:
         {
             if(!m_pInstance)
                 return
-            sLog->outDebug("EventMGR: creature %u received signal %u ",me->GetEntry(),m_pInstance->GetData(TYPE_EVENT));
+            sLog->outDebug(LOG_FILTER_TSCR, "EventMGR: creature %u received signal %u ",me->GetEntry(),m_pInstance->GetData(TYPE_EVENT));
             m_pInstance->SetData(TYPE_PHASE, 1);
             m_pInstance->SetData(TYPE_EVENT, 0);
             Step = 1;
