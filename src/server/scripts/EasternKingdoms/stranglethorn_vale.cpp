@@ -28,7 +28,6 @@ mob_yenniku
 EndContentData */
 
 #include "ScriptPCH.h"
-#include "GameEventMgr.h"
 
 /*######
 ## mob_yenniku
@@ -119,100 +118,10 @@ public:
 };
 
 /*######
-## npc_riggle_bassbait Evento Stranglethorn Fishing Extravaganza
+##
 ######*/
-
-enum Riggle
-{
-    SAY_START               = -1000356,
-    SAY_WINNER              = -1000357,
-    SAY_END                 = -1000358,
-    QUEST_MASTER_ANGLER     = 8193
-};
-
-class npc_riggle_bassbait : public CreatureScript
-{
-public:
-    npc_riggle_bassbait() : CreatureScript("npc_riggle_bassbait") {}
-
-    struct npc_riggle_bassbaitAI : public ScriptedAI
-    {
-        npc_riggle_bassbaitAI(Creature* pCreature) : ScriptedAI(pCreature)
-        {
-            bEventoEmpieza = bEventoTerminado = bEventoGanadorBusqueda = false;
-            Reset();        
-        }
-
-        bool bEventoEmpieza;
-        bool bEventoTerminado;
-        bool bEventoGanadorBusqueda;
-
-        void Reset() {}
-
-        void Aggro(Unit *who) {}
-
-        void UpdateAI(const uint32 diff)
-        {
-            if (!bEventoEmpieza && time(NULL) % 60 == 0 && IsHolidayActive(HOLIDAY_FISHING_EXTRAVAGANZA))
-            {
-                sLog->outDebug("Extravaganza: npc_riggle_bassbait Anuncia Comienzo HOLIDAY_FISHING_EXTRAVAGANZA");
-                DoScriptText(SAY_START, me);
-                me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
-                bEventoEmpieza = true;
-            }
-
-            if (bEventoEmpieza && !bEventoTerminado && time(NULL) % 60 == 0 && !IsHolidayActive(HOLIDAY_FISHING_EXTRAVAGANZA))
-            {
-                sLog->outDebug("Extravaganza: npc_riggle_bassbait Anuncia Termino HOLIDAY_FISHING_EXTRAVAGANZA");
-                DoScriptText(SAY_END, me);
-                bEventoTerminado = true;
-            }
-            return;
-            DoMeleeAttackIfReady();
-        }
-    };
-
-    bool OnGossipHello(Player* pPlayer, Creature* pCreature)
-    {
-        if (pCreature->isQuestGiver())
-        {
-            pPlayer->PrepareQuestMenu(pCreature->GetGUID());
-            pPlayer->SEND_GOSSIP_MENU(7614, pCreature->GetGUID());//Gossip DB
-            return true;
-        }
-
-        pPlayer->SEND_GOSSIP_MENU(7714, pCreature->GetGUID());//Gossip DB
-        return true;
-    }
-
-    bool ChooseReward(Player* pPlayer, Creature* pCreature, const Quest *pQuest, uint32 item)
-    {
-        if (pQuest->GetQuestId() == QUEST_MASTER_ANGLER && ((npc_riggle_bassbaitAI*)(pCreature->AI()))->bEventoGanadorBusqueda == false)
-        {
-            DoScriptText(SAY_WINNER, pCreature,pPlayer);
-            pCreature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
-            ((npc_riggle_bassbaitAI*)(pCreature->AI()))->bEventoGanadorBusqueda = true;
-            Unit* creature2 = Unit::GetUnit((*pCreature),MAKE_NEW_GUID(54687,15078,HIGHGUID_UNIT));
-            if (creature2)
-            {
-                creature2->SetFlag(UNIT_NPC_FLAGS,UNIT_NPC_FLAG_QUESTGIVER);
-            }
-            else
-            {
-                sLog->outDebug("Extravaganza:No se puede cambiar la flag de Jank Creature2");
-            }
-            return true;
-       }
-    }
-
-    CreatureAI* GetAI(Creature* pCreature) const
-    {
-        return new npc_riggle_bassbaitAI (pCreature);
-    }
-};
 
 void AddSC_stranglethorn_vale()
 {
     new mob_yenniku();
-    new npc_riggle_bassbait();
 }
