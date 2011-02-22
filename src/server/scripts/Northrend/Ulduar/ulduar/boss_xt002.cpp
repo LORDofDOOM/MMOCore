@@ -21,12 +21,11 @@
 enum Spells
 {
     SPELL_TYMPANIC_TANTRUM                      = 62776,
-    SPELL_SEARING_LIGHT                         = 63018,
-
-    SPELL_GRAVITY_BOMB                          = 63024,
-
+    SPELL_SEARING_LIGHT_10                      = 63018,
+    SPELL_SEARING_LIGHT_25                      = 65121,
+    SPELL_GRAVITY_BOMB_10                       = 63024,
+    SPELL_GRAVITY_BOMB_25                       = 64234,
     SPELL_HEARTBREAK                            = 65737,
-
     SPELL_ENRAGE                                = 26662,
 
     //------------------VOID ZONE--------------------
@@ -294,7 +293,7 @@ public:
                 {
                     if (Unit* pTarget = SelectUnit(SELECT_TARGET_RANDOM, 0))
                     {
-                        me->AddAura(SPELL_SEARING_LIGHT, pTarget);
+                        me->AddAura(RAID_MODE(SPELL_SEARING_LIGHT_10, SPELL_SEARING_LIGHT_25), pTarget);
                         uiSearingLightTarget = pTarget->GetGUID();
                     }
                     uiSpawnLifeSparkTimer = TIMER_SPAWN_LIFE_SPARK;
@@ -307,7 +306,7 @@ public:
                 {
                     if (Unit* pTarget = SelectUnit(SELECT_TARGET_RANDOM, 0))
                     {
-                        me->AddAura(SPELL_GRAVITY_BOMB, pTarget);
+                        me->AddAura(RAID_MODE(SPELL_GRAVITY_BOMB_10, SPELL_GRAVITY_BOMB_25), pTarget);
                         uiGravityBombTarget = pTarget->GetGUID();
                     }
                     uiGravityBombTimer = TIMER_GRAVITY_BOMB;
@@ -427,7 +426,7 @@ public:
                 DoMeleeAttackIfReady();
             }
 
-            //Enrage stuff
+            // Enrage stuff
             if (!enraged)
                 if (uiEnrageTimer <= diff)
                 {
@@ -439,25 +438,24 @@ public:
 
         void exposeHeart()
         {
-            //Make untargetable
+            // Make untargetable
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_DISABLE_MOVE);
             me->SetReactState(REACT_PASSIVE);
             me->SetStandState(UNIT_STAND_STATE_SUBMERGED);
             me->AttackStop();
 
-            //Summon the heart npc
-            if (Creature* Heart = me->SummonCreature(NPC_XT002_HEART, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), 0,
-                TEMPSUMMON_TIMED_DESPAWN, TIMER_HEART_PHASE))
-                Heart->EnterVehicle(me, 0);
+            // Expose the heart npc
+            if (Unit *Heart = vehicle->GetPassenger(0))
+                Heart->ToCreature()->AI()->DoAction(0);
              
             // Start "end of phase 2 timer"
             uiHeartPhaseTimer = TIMER_HEART_PHASE;
 
-            //Phase 2 has offically started
+            // Phase 2 has offically started
             phase = 2;
             heart_exposed++;
 
-            //Reset the add spawning timer
+            // Reset the add spawning timer
             uiSpawnAddTimer = TIMER_SPAWN_ADD;
 
             DoScriptText(SAY_HEART_OPENED, me);
@@ -500,72 +498,74 @@ public:
     {
         mob_xt002_heartAI(Creature* pCreature) : ScriptedAI(pCreature)
         {
-            m_pInstance = pCreature->GetInstanceScript();
             me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
             me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
-            me->SetReactState(REACT_PASSIVE);
         }
 
-        InstanceScript* m_pInstance;
-
         uint32 uiExposeTimer;
-        uint32 uiEndExposedTimer;
         bool Exposed;
-        bool EndExposed;
 
         void JustDied(Unit* /*victim*/)
         {
-            if (m_pInstance)
-                if (Creature* pXT002 = me->GetCreature(*me, m_pInstance->GetData64(DATA_XT002)))
-                    pXT002->AI()->DoAction(ACTION_ENTER_HARD_MODE);
+            if (Unit* pXT002 = me->ToTempSummon()->GetSummoner())
+                pXT002->ToCreature()->AI()->DoAction(ACTION_ENTER_HARD_MODE);
 
             me->DespawnOrUnsummon();
         }
 
         void UpdateAI(const uint32 diff)
         {
-            if (!Exposed)
+            if (Exposed)
             {
-                if (uiExposeTimer <= diff)
+                if (!me->HasAura(SPELL_EXPOSED_HEART))
                 {
-                    me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
-                    me->ChangeSeat(1);
-                    DoCast(me, SPELL_EXPOSED_HEART, true);
-                    Exposed = true;
-                }
-                else uiExposeTimer -= diff;
-            }
-            
-            if (!EndExposed)
-            {
-                if (uiEndExposedTimer <= diff)
-                {
+                    Exposed = false;
                     me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                     me->RemoveAllAuras();
+                    me->SetFullHealth();
                     me->ChangeSeat(0);
-                    EndExposed = true;
                 }
-                else uiEndExposedTimer -= diff;
+            }
+            else
+            {
+                if (!me->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
+                {
+                    if (uiExposeTimer <= diff)
+                    {
+                        Exposed = true;
+                        me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                        DoCast(me, SPELL_EXPOSED_HEART, true);
+                    }
+                    else uiExposeTimer -= diff;
+                }
             }
         }
-    
+
         void Reset()
         {
-            uiExposeTimer = 3000;
-            uiEndExposedTimer = 33000;
             Exposed = false;
-            EndExposed = false;
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
         }
 
         void DamageTaken(Unit *pDone, uint32 &damage)
         {
-            if (Creature* pXT002 = me->GetCreature(*me, m_pInstance->GetData64(DATA_XT002)))
+            if (Unit *pXT002 = me->ToTempSummon()->GetSummoner())
             {
                 if (damage > me->GetHealth())
                     damage = me->GetHealth();
                 
                 if (pDone)
                     pDone->DealDamage(pXT002, damage);
+            }
+        }
+
+        void DoAction(const int32 action)
+        {
+            if (action == 0)
+            {
+                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                me->ChangeSeat(1);
+                uiExposeTimer = 3500;
             }
         }
     };
@@ -839,6 +839,33 @@ public:
 
 };
 
+class spell_xt002_gravity_bomb : public SpellScriptLoader
+{
+    public:
+        spell_xt002_gravity_bomb() : SpellScriptLoader("spell_xt002_gravity_bomb") { }
+
+        class spell_xt002_gravity_bomb_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_xt002_gravity_bomb_SpellScript);
+
+            void FilterTargets(std::list<Unit*>& unitList)
+            {
+                unitList.remove(GetTargetUnit());
+            }
+
+            void Register()
+            {
+                OnUnitTargetSelect += SpellUnitTargetFn(spell_xt002_gravity_bomb_SpellScript::FilterTargets, EFFECT_0, TARGET_DST_CASTER);
+            }
+        };
+
+        SpellScript *GetSpellScript() const
+        {
+            return new spell_xt002_gravity_bomb_SpellScript();
+        }
+};
+
+
 void AddSC_boss_xt002()
 {
     new mob_xt002_heart();
@@ -848,7 +875,8 @@ void AddSC_boss_xt002()
     new mob_void_zone();
     new mob_life_spark();
     new boss_xt002();
-    
-    if (VehicleSeatEntry* vehSeat = const_cast<VehicleSeatEntry*>(sVehicleSeatStore.LookupEntry(3004)))
+    new spell_xt002_gravity_bomb();
+
+    if (VehicleSeatEntry* vehSeat = const_cast<VehicleSeatEntry*>(sVehicleSeatStore.LookupEntry(3846)))
         vehSeat->m_flags |= 0x400;
-}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+}
