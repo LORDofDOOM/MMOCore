@@ -1377,7 +1377,8 @@ class spell_putricide_mutated_transformation : public SpellScriptLoader
                 TempSummon* summon = caster->GetMap()->SummonCreature(entry, pos, properties, duration, caster);
                 if (!summon || !summon->IsVehicle())
                     return;
-
+                //Disallow abomination's growth
+                summon->ApplySpellImmune(SPELL_GROW_ABOMINATION, IMMUNITY_ID, SPELL_GROW_ABOMINATION, true);
                 caster->CastSpell(summon, SPELL_MUTATED_TRANSFORMATION_NAME, true);
                 summon->CastSpell(summon, SPELL_ABOMINATION_VEHICLE_POWER_DRAIN, true);
                 summon->CastSpell(summon, SPELL_MUTATED_TRANSFORMATION_DAMAGE, true);

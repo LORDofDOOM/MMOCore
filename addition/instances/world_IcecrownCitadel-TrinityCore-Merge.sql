@@ -68,6 +68,7 @@ DELETE FROM `creature_template` WHERE `entry` = 38752;
 INSERT INTO `creature_template` VALUES (38752, 0, 0, 0, 0, 0, 26623, 0, 0, 0, 'Green Dragon Combat Trigger', '', '', 0, 80, 
 80, 2, 16, 16, 0, 1, 1.14286, 1, 1, 1, 2, 0, 1, 1, 2000, 2000, 1, 32832, 8, 0, 0, 0, 0, 0, 1, 2, 126, 7, 8, 0, 0, 0, 
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, '', 0, 3, 1.35, 1, 1, 0, 0, 0, 0, 0, 0, 0,  0, 1, 358, 803160063, 0, 'npc_icc_combat_stalker', 12340);
+REPLACE INTO `spell_script_names` VALUES (70766, 'spell_dream_state');
 
 -- Valithria Dreamwalker UPDATEs
 UPDATE `creature_template` SET `ScriptName` = 'npc_column_of_frost_icc' WHERE `entry` = 37918;
@@ -317,6 +318,10 @@ UPDATE `gameobject_template` SET `ScriptName` = 'go_icc_plagueworks_valve' WHERE
 DELETE FROM `areatrigger_teleport` WHERE `id` = 5718;
 UPDATE `creature_template` SET `ScriptName` = 'npc_shambling_horror_icc' WHERE `entry` = 37698;
 UPDATE `creature_template` SET `ScriptName` = 'npc_raging_spirit_icc' WHERE `entry` = 36701;
+REPLACE INTO `spell_script_names` VALUES
+(72754, 'spell_lich_king_defile'),
+(72429, 'spell_lich_king_tirion_mass_resurrection'),
+(74115, 'spell_lich_king_pain_and_suffering');
 
 -- Blood Prince entries FROM TrinityCore
 DELETE FROM `creature_template` WHERE `entry` IN (37970, 37972, 37973, 38401, 38784, 38785, 38399, 38769, 38770, 38400, 38771, 38772);
@@ -355,6 +360,7 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_plague_scientist' WHERE `entr
 UPDATE `creature_template` SET `ScriptName` = 'npc_decaying_colossus' WHERE `entry` = 36880;
 UPDATE `creature_template` SET `ScriptName` = 'npc_pustulating_horror' WHERE `entry` = 10404;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ancient_skeletal_soldier' WHERE `entry` = 37012;
+REPLACE INTO `spell_script_names` VALUES (70964, 'spell_valithria_vigor'); -- Just to ensure that auras stack
 -- Set immunes on Spinestalker, Rimefang, Stinky, Precious, Decaying Colossus, Sister Svalna, Deathbound Ward
 UPDATE `creature_template` SET `mechanic_immune_mask` = 667631615 WHERE `entry` IN (37533, 37534, 38219, 38220, 37217, 38103, 37025, 38064, 36880, 37655, 37126, 38258, 37007, 38031);
 

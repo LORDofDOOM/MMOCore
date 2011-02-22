@@ -47,9 +47,14 @@ enum eSpells
     //SPELL_GASTRIC_BLOAT         = 72219, // 72214 is the proper way (with proc) but atm procs can't have cooldown for creatures
     SPELL_GASTRIC_EXPLOSION     = 72227,
     SPELL_GAS_SPORE             = 69278,
+    SPELL_GAS_SPORE1            = 69279,
+    SPELL_GAS_SPORE2            = 71221,
+
     //SPELL_VILE_GAS              = 69240,
     SPELL_INOCULATED            = 69291,
-
+    SPELL_INOCULATED1           = 72101,
+    SPELL_INOCULATED2           = 72102,
+    SPELL_INOCULATED3           = 72103,
     // Stinky
     SPELL_MORTAL_WOUND          = 71127,
     SPELL_DECIMATE              = 71123,
@@ -168,8 +173,14 @@ class boss_festergut : public CreatureScript
             }
             void _RemoveDebuffsFromRaid()
             {
+                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_GAS_SPORE);
+                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_GAS_SPORE1);
+                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_GAS_SPORE2);
                 instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_GASTRIC_BLOAT);
                 instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_INOCULATED);
+                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_INOCULATED1);
+                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_INOCULATED2);
+                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_INOCULATED3);
                 instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_VILE_GAS);
             }
             void JustReachedHome()

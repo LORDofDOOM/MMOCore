@@ -783,6 +783,35 @@ class spell_valithria_vigor : public SpellScriptLoader
         }
 };
 
+class spell_dream_state : public SpellScriptLoader
+{
+    public:
+        spell_dream_state() : SpellScriptLoader("spell_dream_state") { }
+
+        class spell_dream_state_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_dream_state_SpellScript);
+
+            void OnEnterDreamState()
+            {
+                if (!(GetHitUnit() && GetHitUnit()->isAlive()))
+                    return;
+                //Clear threat list before entering Dream State
+                GetHitUnit()->getThreatManager().clearReferences();
+            }
+
+            void Register()
+            {
+                BeforeHit += SpellHitFn(spell_dream_state_SpellScript::OnEnterDreamState);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_dream_state_SpellScript();
+        }
+};
+
 //End of Dream related NPCs and spells
 class npc_column_of_frost_icc : public CreatureScript 
 {
@@ -1453,6 +1482,7 @@ void AddSC_boss_valithria()
     new npc_valithria_alternative();
     new spell_valithria_summon_portal();
     new spell_valithria_vigor();
+    new spell_dream_state();
     new npc_column_of_frost_icc();
     new npc_icc_valithria_gluttonous_abomination();
     new npc_icc_valithria_mana_void();
