@@ -23,6 +23,7 @@
 
 struct VehicleEntry;
 struct VehicleSeatEntry;
+struct Position;
 class Unit;
 
 enum PowerType
@@ -86,7 +87,7 @@ struct VehicleSeat
 
 struct VehicleAccessory
 {
-    explicit VehicleAccessory(uint32 _uiAccessory, int8 _uiSeat, bool _bMinion, uint8 _uiSummonType, uint32 _uiSummonTime) : 
+    explicit VehicleAccessory(uint32 _uiAccessory, int8 _uiSeat, bool _bMinion, uint8 _uiSummonType, uint32 _uiSummonTime) :
         uiAccessory(_uiAccessory), uiSeat(_uiSeat), bMinion(_bMinion), uiSummonType(_uiSummonType), uiSummonTime(_uiSummonTime) {}
     uint32 uiAccessory;
     int8 uiSeat;
@@ -136,6 +137,7 @@ class Vehicle
         void RelocatePassengers(float x, float y, float z, float ang);
         void RemoveAllPassengers();
         void Dismiss();
+        void Relocate(Position pos);
         bool IsVehicleInUse() { return m_Seats.begin() != m_Seats.end(); }
 
         SeatMap m_Seats;
