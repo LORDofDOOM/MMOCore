@@ -224,16 +224,34 @@ class boss_blood_council_controller : public CreatureScript
                 else if (!me->isDead())
                     Reset();
             }
+
             void JustSummoned(Creature* summon)
             {
                 if (summon->GetEntry() == NPC_DARK_NUCLEUS)
                     summons.Summon(summon);
             }
+
             void Reset()
             {
                 events.Reset();
                 me->SetReactState(REACT_PASSIVE);
                 invocationStage = 0;
+            }
+
+            void EnterEvadeMode()
+            {
+                BossAI::EnterEvadeMode();
+                if (Creature* keleseth = ObjectAccessor::GetCreature(*me, instance->GetData64(GUID_PRINCE_KELESETH_ICC)))
+                    if (keleseth->isInCombat() && !keleseth->IsInEvadeMode())
+                        keleseth->AI()->EnterEvadeMode();
+
+                if (Creature* taldaram = ObjectAccessor::GetCreature(*me, instance->GetData64(GUID_PRINCE_TALDARAM_ICC)))
+                    if (taldaram->isInCombat() && !taldaram->IsInEvadeMode())
+                        taldaram->AI()->EnterEvadeMode();
+
+                if (Creature* valanar = ObjectAccessor::GetCreature(*me, instance->GetData64(GUID_PRINCE_VALANAR_ICC)))
+                    if (valanar->isInCombat() && !valanar->IsInEvadeMode())
+                        valanar->AI()->EnterEvadeMode();
             }
 
             void EnterCombat(Unit* who)
@@ -314,6 +332,7 @@ class boss_blood_council_controller : public CreatureScript
                 }
                 BossAI::MoveInLineOfSight(who);
             }
+
             void JustReachedHome()
             {
                 CleanupBloodPrinceCouncil(instance, this);
@@ -523,12 +542,17 @@ class boss_prince_keleseth_icc : public CreatureScript
                 if (victim->GetTypeId() == TYPEID_PLAYER)
                     Talk(SAY_KELESETH_KILL);
             }
+
             void EnterEvadeMode()
             {
                 ScriptedAI::EnterEvadeMode();
+                if (Creature* controller = ObjectAccessor::GetCreature(*me, instance->GetData64(GUID_BLOOD_PRINCES_CONTROL)))
+                    if (controller->isInCombat() && controller->IsInEvadeMode())
+                        controller->AI()->EnterEvadeMode();
                 removeFeignDeath(me);
                 evadeToHome(me);
             }
+
             void DoAction(const int32 action)
             {
                 switch (action)
@@ -727,9 +751,13 @@ class boss_prince_taldaram_icc : public CreatureScript
             void EnterEvadeMode()
             {
                 ScriptedAI::EnterEvadeMode();
+                if (Creature* controller = ObjectAccessor::GetCreature(*me, instance->GetData64(GUID_BLOOD_PRINCES_CONTROL)))
+                    if (controller->isInCombat() && controller->IsInEvadeMode())
+                        controller->AI()->EnterEvadeMode();
                 removeFeignDeath(me);
                 evadeToHome(me);
             }
+
             void DoAction(const int32 action)
             {
                 switch (action)
@@ -941,9 +969,13 @@ class boss_prince_valanar_icc : public CreatureScript
             void EnterEvadeMode()
             {
                 ScriptedAI::EnterEvadeMode();
+                if (Creature* controller = ObjectAccessor::GetCreature(*me, instance->GetData64(GUID_BLOOD_PRINCES_CONTROL)))
+                    if (controller->isInCombat() && controller->IsInEvadeMode())
+                        controller->AI()->EnterEvadeMode();
                 removeFeignDeath(me);
                 evadeToHome(me);
             }
+
             void DoAction(const int32 action)
             {
                 switch (action)

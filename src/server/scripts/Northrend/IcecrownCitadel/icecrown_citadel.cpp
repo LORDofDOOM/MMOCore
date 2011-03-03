@@ -315,22 +315,7 @@ enum eTrapActions
 //            return new npc_cult_fanatic_and_adherentAI(creature);
 //        }
 //};
-class TeleportToFrozenThrone : public BasicEvent
-{
-    public:
-        TeleportToFrozenThrone(Player *player, uint8 attempts): pPlayer(player), attemptsLeft(attempts) { }
 
-        bool Execute(uint64 /*eventTime*/, uint32 /*updateTime*/)
-        {
-            pPlayer->CastSpell(pPlayer, SPELL_TELEPORT_ICC_FROZEN_THRONE, true);
-            if (--attemptsLeft)
-                pPlayer->m_Events.AddEvent(new TeleportToFrozenThrone(pPlayer, attemptsLeft), pPlayer->m_Events.CalculateTime(uint64(5000)));
-            return true;
-        }
-    private:
-        Player *pPlayer;
-        uint8 attemptsLeft;
-};
 class go_icecrown_teleporter : public GameObjectScript
 {
 
@@ -430,7 +415,7 @@ public:
                 player->CastSpell(player, spell, true);
                 //Give him 2 tries, just in case if player will fall through the ground
                 if (uiAction == SPELL_TELEPORT_ICC_FROZEN_THRONE)
-                    player->m_Events.AddEvent(new TeleportToFrozenThrone(player, 2), player->m_Events.CalculateTime(uint64(5000)));
+                    TeleportPlayerToFrozenThrone(player);
             }
             return true;
         }

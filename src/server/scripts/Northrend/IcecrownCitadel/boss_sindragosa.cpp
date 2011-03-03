@@ -1478,19 +1478,7 @@ class spell_frostwarden_handler_order_whelp : public SpellScriptLoader
 
             void FilterTargets(std::list<Unit*>& unitList)
             {
-                for (std::list<Unit*>::iterator itr = unitList.begin(); itr != unitList.end();)
-                {
-                    if ((*itr)->GetTypeId() != TYPEID_PLAYER)
-                        unitList.erase(itr++);
-                    else
-                        ++itr;
-                }
-
-                std::list<Unit*>::iterator itr = unitList.begin();
-                std::advance(itr, urand(0, unitList.size()-1));
-                Unit* target = *itr;
-                unitList.clear();
-                unitList.push_back(target);
+                LeaveOnlyPlayers(unitList);
             }
 
             void HandleForcedCast(SpellEffIndex effIndex)
