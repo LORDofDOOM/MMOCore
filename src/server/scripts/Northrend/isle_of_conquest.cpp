@@ -125,7 +125,8 @@ public:
 
             if (uiMortalStrikeTimer < diff)
             {
-                DoCast(me->getVictim(), SPELL_MORTAL_STRIKE);
+                if (Unit *pVictim = me->getVictim())
+                    DoCast(pVictim, SPELL_MORTAL_STRIKE);
                 uiMortalStrikeTimer = urand(10*IN_MILLISECONDS,20*IN_MILLISECONDS);
             }
             else
@@ -157,7 +158,8 @@ public:
 
                 if (me->GetEntry()== NPC_OVERLORD_AGMAR && (x > 1348 || x < 1283 || y < -800 || y > -730))
                 {
-                    me->Kill(me->getVictim());
+                    if (Unit *pVictim = me->getVictim())
+                        me->Kill(pVictim);
                     me->MonsterSay("Antibugers:$N, No querias bugear rqlo :)", LANG_UNIVERSAL, me->GetGUID());
                     EnterEvadeMode();
                 }
@@ -166,7 +168,8 @@ public:
                 {
                     EnterEvadeMode();
                     me->MonsterSay("Antibugers:$N, No querias bugear rqlo :)", LANG_UNIVERSAL, me->GetGUID());
-                    me->Kill(me->getVictim());
+                    if (Unit *pVictim = me->getVictim())
+                        me->Kill(pVictim);
                 }
                 uiResetTimer = 200;
             }
