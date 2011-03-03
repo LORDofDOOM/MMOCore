@@ -1386,3 +1386,8 @@ DELETE FROM spell_script_names WHERE spell_id IN (63025, 64233);
 INSERT INTO spell_script_names VALUES 
 (63025, "spell_xt002_gravity_bomb"),
 (64233, "spell_xt002_gravity_bomb");
+
+-- Salvaged Chopper has faction dependent modelid
+UPDATE `creature_template` SET `modelid2` = 0 WHERE `entry` = 33062;
+-- Sanctum Sentry 25 damage nerf
+UPDATE `creature_template` SET `dmg_multiplier` = 35 WHERE `entry` = 34166;

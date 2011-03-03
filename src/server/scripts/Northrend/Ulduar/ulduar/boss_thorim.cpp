@@ -118,11 +118,12 @@ const uint32 SPELL_PRE_SECONDARY_H[]            = {62417, 62444, 16496, 62442, 6
 enum ArenaAdds
 {
     DARK_RUNE_CHAMPION,
-    DARK_RUNE_COMMONER,
-    DARK_RUNE_EVOKER,
     DARK_RUNE_WARBRINGER,
+    DARK_RUNE_EVOKER,
+    DARK_RUNE_COMMONER,
     IRON_RING_GUARD,
-    IRON_HONOR_GUARD
+    IRON_HONOR_GUARD,
+    DARK_RUNE_ACOLYTE_2
 };
 
 #define NPC_SIF                                 33196
@@ -132,8 +133,8 @@ const uint32 ARENA_PHASE_ADD[]                  = {32876, 32877, 32878, 32904, 3
 const uint32 SPELL_ARENA_PRIMARY_N[]            = {35054, 62322, 62327, 62326, 64151, 42724, 62333};
 const uint32 SPELL_ARENA_PRIMARY_H[]            = {35054, 62322, 62445, 62326, 64151, 42724, 62441};
 #define SPELL_ARENA_SECONDARY(i)                RAID_MODE(SPELL_ARENA_SECONDARY_N[i],SPELL_ARENA_SECONDARY_H[i])
-const uint32 SPELL_ARENA_SECONDARY_N[]          = {15578, 38313, 62321, 0, 62331, 62332, 62334};
-const uint32 SPELL_ARENA_SECONDARY_H[]          = {15578, 38313, 62529, 0, 62418, 62420, 62442};
+const uint32 SPELL_ARENA_SECONDARY_N[]          = {15578, 0, 62321, 38313, 62331, 62332, 62334};
+const uint32 SPELL_ARENA_SECONDARY_H[]          = {15578, 0, 62529, 38313, 62418, 62420, 62442};
 #define SPELL_AURA_OF_CELERITY                  62320
 #define SPELL_CHARGE                            32323
 #define SPELL_RUNIC_MENDING                     RAID_MODE(62328, 62446)
@@ -213,7 +214,7 @@ struct SummonLocation
 SummonLocation preAddLocations[]=
 {
     {2149.68f, -263.477f, 419.679f, 3.120f, 32882},
-    {2131.31f, -271.640f, 419.840f, 2.188f, 32908},
+    {2131.31f, -271.640f, 419.840f, 2.188f, 32907},
     {2127.24f, -259.182f, 419.974f, 5.917f, 32885},
     {2123.32f, -254.770f, 419.840f, 6.170f, 32885},
     {2120.10f, -258.990f, 419.840f, 6.250f, 32885},
@@ -239,6 +240,10 @@ SummonLocation giantAddLocations[]=
     {2230.93f, -434.27f, 412.26f, 1.931f, 33110}
 };
 
+#define POS_X_ARENA  2181.19f
+#define POS_Y_ARENA  -299.12f
+
+#define IN_ARENA(who) (who->GetPositionX() < POS_X_ARENA && who->GetPositionY() > POS_Y_ARENA)
 
 class boss_thorim : public CreatureScript
 {
@@ -360,7 +365,7 @@ public:
                     {
                         case EVENT_STORMHAMMER:
                             if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 80, true))
-                                if (pTarget->isAlive() && pTarget->IsWithinLOSInMap(me))
+                                if (pTarget->isAlive() && IN_ARENA(pTarget))
                                     DoCast(pTarget, SPELL_STORMHAMMER);
                             events.ScheduleEvent(EVENT_STORMHAMMER, urand(15000, 20000), 0, PHASE_1);
                             break;
@@ -580,7 +585,9 @@ public:
             me->setFaction(14);
             for (uint8 i = 0; i < 7; ++i)
                 if (me->GetEntry() == ARENA_PHASE_ADD[i])
-                    id = ArenaAdds(i);                
+                    id = ArenaAdds(i);
+
+            IsInArena = IN_ARENA(me);
         }
 
         InstanceScript* pInstance;
@@ -588,6 +595,18 @@ public:
         uint32 PrimaryTimer;
         uint32 SecondaryTimer;
         uint32 ChargeTimer;
+        bool IsInArena;
+
+        bool isOnSameSide(const Unit *pWho)
+        {
+            return (IsInArena == IN_ARENA(pWho));
+        }
+
+        void DamageTaken(Unit *attacker, uint32 &damage)
+        {
+            if (!isOnSameSide(attacker))
+                damage = 0;
+        }
     
         void Reset()
         {
@@ -601,12 +620,22 @@ public:
             if (id == DARK_RUNE_WARBRINGER)
                 DoCast(me, SPELL_AURA_OF_CELERITY);
                 
-            if (!me->IsWithinLOSInMap(me->getVictim()))
+            me->getThreatManager().clearReferences();
+            me->AttackStop();
+            if (me->getThreatManager().isThreatListEmpty())
             {
-                if (Unit* pTarget = me->SelectNearestTarget(45))
+                Map* pMap = me->GetMap();
+                if (pMap->IsDungeon())
                 {
-                    me->getThreatManager().modifyThreatPercent(me->getVictim(), -100);
-                    me->AddThreat(pTarget, 100.0f);
+                    Map::PlayerList const &PlayerList = pMap->GetPlayers();
+                    if (!PlayerList.isEmpty())
+                    {
+                        for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+                        {
+                            if (i->getSource() && i->getSource()->isAlive() && isOnSameSide(i->getSource()))
+                                me->getThreatManager().addThreat(i->getSource(), 150.0f);
+                        }
+                    }
                 }
             }
         }
@@ -615,18 +644,15 @@ public:
         {
             if (!UpdateVictim() || me->HasUnitState(UNIT_STAT_CASTING))
                 return;
-                
-            if (!me->IsWithinLOSInMap(me->getVictim()))
-                me->getThreatManager().modifyThreatPercent(me->getVictim(), -100);
             
-            if (PrimaryTimer <= diff)
+            if (PrimaryTimer <= diff && SPELL_ARENA_PRIMARY(id))
             {
                 DoCast(SPELL_ARENA_PRIMARY(id));
                 PrimaryTimer = urand(3000, 6000);
             }
             else PrimaryTimer -= diff;
         
-            if (SecondaryTimer <= diff)
+            if (SecondaryTimer <= diff && SPELL_ARENA_SECONDARY(id))
             {
                 DoCast(SPELL_ARENA_SECONDARY(id));
                 SecondaryTimer = urand(12000, 16000);
@@ -637,12 +663,13 @@ public:
             {
                 if (id == DARK_RUNE_CHAMPION)
                     if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 40, true))
-                        DoCast(pTarget, SPELL_CHARGE);
+                        if (isOnSameSide(pTarget))
+                            DoCast(pTarget, SPELL_CHARGE);
                 ChargeTimer = 12000;
             }
             else ChargeTimer -= diff;
 
-            if (id == DARK_RUNE_ACOLYTE)
+            if (id == DARK_RUNE_ACOLYTE_2)
                 DoSpellAttackIfReady(SPELL_HOLY_SMITE);
             else
                 DoMeleeAttackIfReady();
@@ -919,4 +946,4 @@ void AddSC_boss_thorim()
     new npc_runic_colossus();
     new npc_ancient_rune_giant();
     new npc_sif();
-}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+}
