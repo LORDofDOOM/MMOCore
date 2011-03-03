@@ -980,14 +980,9 @@ void Spell::AddUnitTarget(Unit* pVictim, uint32 effIndex)
     }
 
     // Calculate hit result
-    if (m_originalCaster)
-    {
-        target.missCondition = m_originalCaster->SpellHitResult(pVictim, m_spellInfo, m_canReflect);
-        if (m_skipCheck && target.missCondition != SPELL_MISS_IMMUNE)
-            target.missCondition = SPELL_MISS_NONE;
-    }
-    else
-        target.missCondition = SPELL_MISS_EVADE; //SPELL_MISS_NONE;
+    target.missCondition = m_caster->SpellHitResult(pVictim, m_spellInfo, m_canReflect);
+    if (m_skipCheck && target.missCondition != SPELL_MISS_IMMUNE)
+        target.missCondition = SPELL_MISS_NONE;
 
     // Spell have speed - need calculate incoming time
     // Incoming time is zero for self casts. At least I think so.
@@ -1159,9 +1154,10 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
     // Or on missInfo != SPELL_MISS_NONE unitTarget undefined (but need in trigger subsystem)
     unitTarget = unit;
 
-    // Reset damage/healing counter
+    // Reset damage/healing/resist counter
     m_damage = target->damage;
     m_healing = -target->damage;
+    m_resist = 0;
 
     // Fill base trigger info
     uint32 procAttacker = m_procAttacker;
@@ -1189,11 +1185,11 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
 
     if (spellHitTarget)
     {
-        SpellMissInfo missInfo = DoSpellHitOnUnit(spellHitTarget, mask, target->scaleAura);
-        if (missInfo != SPELL_MISS_NONE)
+        SpellMissInfo tmp = DoSpellHitOnUnit(spellHitTarget, mask, target->scaleAura);
+        if (tmp != SPELL_MISS_NONE)
         {
-            if (missInfo != SPELL_MISS_MISS)
-                m_caster->SendSpellMiss(unit, m_spellInfo->Id, missInfo);
+            if (tmp != SPELL_MISS_MISS)
+                m_caster->SendSpellMiss(unit, m_spellInfo->Id, tmp);
             m_damage = 0;
             spellHitTarget = NULL;
         }
@@ -1287,7 +1283,7 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
         SpellNonMeleeDamage damageInfo(caster, unitTarget, m_spellInfo->Id, m_spellSchoolMask);
 
         // Add bonuses and fill damageInfo struct
-        caster->CalculateSpellDamageTaken(&damageInfo, m_damage, m_spellInfo, m_attackType,  target->crit);
+        caster->CalculateSpellDamageTaken(&damageInfo, m_damage, m_spellInfo, m_attackType, target->crit, m_resist);
         caster->DealDamageMods(damageInfo.target,damageInfo.damage,&damageInfo.absorb);
 
         // Send log damage message to client
@@ -1420,6 +1416,11 @@ SpellMissInfo Spell::DoSpellHitOnUnit(Unit *unit, const uint32 effectMask, bool 
             //TODO: This is a hack. But we do not know what types of stealth should be interrupted by CC
             if ((m_customAttr & SPELL_ATTR0_CU_AURA_CC) && unit->IsControlledByPlayer())
                 unit->RemoveAurasByType(SPELL_AURA_MOD_STEALTH);
+            
+            bool binary = (uint32(sSpellMgr->GetSpellCustomAttr(m_spellInfo->Id) & SPELL_ATTR0_CU_BINARY) > 0);
+            m_resist = m_caster->CalcSpellResistance(unit, GetSpellSchoolMask(m_spellInfo), binary, m_spellInfo);
+            if (m_resist >= 100)
+                return SPELL_MISS_RESIST;
         }
         else
         {
@@ -1443,6 +1444,14 @@ SpellMissInfo Spell::DoSpellHitOnUnit(Unit *unit, const uint32 effectMask, bool 
                 unit->getHostileRefManager().threatAssist(m_caster, 0.0f);
             }
         }
+    }
+
+    else if (!IsPositiveSpell(m_spellInfo->Id))
+    {
+        bool binary = (uint32(sSpellMgr->GetSpellCustomAttr(m_spellInfo->Id) & SPELL_ATTR0_CU_BINARY) > 0);
+        m_resist = m_caster->CalcSpellResistance(unit, GetSpellSchoolMask(m_spellInfo), binary, m_spellInfo);
+        if (m_resist >= 100)
+            return SPELL_MISS_RESIST;
     }
 
     // Get Data Needed for Diminishing Returns, some effects may have multiple auras, so this must be done on spell hit, not aura add
@@ -2219,7 +2228,10 @@ void Spell::SelectEffectTargets(uint32 i, uint32 cur)
 
             if (cur == TARGET_DST_TARGET_ENEMY || cur == TARGET_DEST_TARGET_ANY)
             {
+                Position pos;
+                target->GetPosition(&pos);
                 m_targets.setDst(*target);
+                m_targets.modDst(pos);
                 break;
             }
 
@@ -3040,10 +3052,6 @@ void Spell::cancel()
     if (m_spellState == SPELL_STATE_FINISHED)
         return;
 
-    SetReferencedFromCurrent(false);
-    if (m_selfContainer && *m_selfContainer == this)
-        *m_selfContainer = NULL;
-
     uint32 oldState = m_spellState;
     m_spellState = SPELL_STATE_FINISHED;
 
@@ -3051,8 +3059,8 @@ void Spell::cancel()
     switch (oldState)
     {
         case SPELL_STATE_PREPARING:
-        case SPELL_STATE_DELAYED:
             CancelGlobalCooldown();
+        case SPELL_STATE_DELAYED:
             SendInterrupted(0);
             SendCastResult(SPELL_FAILED_INTERRUPTED);
             break;
@@ -3077,6 +3085,10 @@ void Spell::cancel()
         default:
             break;
     }
+    
+    SetReferencedFromCurrent(false);
+    if (m_selfContainer && *m_selfContainer == this)
+        *m_selfContainer = NULL;
 
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
         m_caster->ToPlayer()->RemoveGlobalCooldown(m_spellInfo);
