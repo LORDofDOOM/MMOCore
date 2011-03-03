@@ -3202,6 +3202,34 @@ bool SpellMgr::CanAurasStack(Aura const *aura1, Aura const *aura2, bool sameCast
         }
     }
 
+    bool isVehicleAura1 = false;
+    bool isVehicleAura2 = false;
+    uint8 i = 0;
+    while (i < MAX_SPELL_EFFECTS && !(isVehicleAura1 && isVehicleAura2))
+    {
+        if (spellInfo_1->EffectApplyAuraName[i] == SPELL_AURA_CONTROL_VEHICLE)
+            isVehicleAura1 = true;
+        if (spellInfo_2->EffectApplyAuraName[i] == SPELL_AURA_CONTROL_VEHICLE)
+            isVehicleAura2 = true;
+
+        ++i;
+    }
+
+    if (isVehicleAura1 && isVehicleAura2)
+    {
+        Vehicle* veh = NULL;
+        if (aura1->GetOwner()->ToUnit())
+            veh = aura1->GetOwner()->ToUnit()->GetVehicleKit();
+
+        if (!veh)           // We should probably just let it stack. Vehicle system will prevent undefined behaviour later
+            return true;
+
+        if (!veh->GetAvailableSeatCount())
+            return false;   // No empty seat available
+
+        return true;        // Empty seat available (skip rest)
+    }
+
     uint32 spellId_1 = GetLastSpellInChain(spellInfo_1->Id);
     uint32 spellId_2 = GetLastSpellInChain(spellInfo_2->Id);
 
@@ -3587,6 +3615,79 @@ void SpellMgr::LoadSpellCustomAttr()
             }
         }
 
+        if (spellInfo->DmgClass == SPELL_DAMAGE_CLASS_MAGIC)
+        {
+            if (spellInfo->Mechanic != 0 &&
+                spellInfo->Mechanic != MECHANIC_INFECTED)
+            {
+                mSpellCustomAttr[i] |= SPELL_ATTR0_CU_BINARY;
+                count++;
+            }
+            else if (spellInfo->EffectMechanic[0] != 0 &&
+                     spellInfo->EffectMechanic[0] != MECHANIC_INFECTED &&
+                     spellInfo->Effect[1] != SPELL_EFFECT_SCHOOL_DAMAGE)
+            {
+                mSpellCustomAttr[i] |= SPELL_ATTR0_CU_BINARY;
+                count++;
+            }
+            else if (spellInfo->EffectMechanic[1] != 0 &&
+                     spellInfo->EffectMechanic[1] != MECHANIC_INFECTED)
+            {
+                mSpellCustomAttr[i] |= SPELL_ATTR0_CU_BINARY;
+                count++;
+            }
+            else if (spellInfo->Effect[0] == SPELL_EFFECT_DISPEL ||
+                     spellInfo->Effect[1] == SPELL_EFFECT_DISPEL ||
+                     spellInfo->Effect[2] == SPELL_EFFECT_DISPEL)
+            {
+                mSpellCustomAttr[i] |= SPELL_ATTR0_CU_BINARY;
+                count++;
+            }
+            else if (spellInfo->Effect[0] == SPELL_EFFECT_STEAL_BENEFICIAL_BUFF ||
+                     spellInfo->Effect[1] == SPELL_EFFECT_STEAL_BENEFICIAL_BUFF ||
+                     spellInfo->Effect[2] == SPELL_EFFECT_STEAL_BENEFICIAL_BUFF)
+            {
+                mSpellCustomAttr[i] |= SPELL_ATTR0_CU_BINARY;
+                count++;
+            }
+            else if (spellInfo->Effect[0] == SPELL_EFFECT_POWER_BURN ||
+                     spellInfo->Effect[1] == SPELL_EFFECT_POWER_BURN ||
+                     spellInfo->Effect[2] == SPELL_EFFECT_POWER_BURN)
+            {
+                mSpellCustomAttr[i] |= SPELL_ATTR0_CU_BINARY;
+                count++;
+            }
+            else if (spellInfo->Effect[0] == SPELL_EFFECT_POWER_DRAIN ||
+                     spellInfo->Effect[1] == SPELL_EFFECT_POWER_DRAIN ||
+                     spellInfo->Effect[2] == SPELL_EFFECT_POWER_DRAIN)
+            {
+                mSpellCustomAttr[i] |= SPELL_ATTR0_CU_BINARY;
+                count++;
+            }
+            else if (spellInfo->EffectApplyAuraName[0] == SPELL_AURA_PERIODIC_MANA_LEECH ||
+                     spellInfo->EffectApplyAuraName[1] == SPELL_AURA_PERIODIC_MANA_LEECH ||
+                     spellInfo->EffectApplyAuraName[2] == SPELL_AURA_PERIODIC_MANA_LEECH)
+            {
+                mSpellCustomAttr[i] |= SPELL_ATTR0_CU_BINARY;
+                count++;
+            }
+            else if ((spellInfo->Dispel == DISPEL_POISON) ||
+                (spellInfo->Dispel == DISPEL_CURSE) ||
+                (spellInfo->Dispel == DISPEL_DISEASE))
+            {
+                if (spellInfo->Effect[0] != SPELL_EFFECT_SCHOOL_DAMAGE &&
+                    spellInfo->Effect[1] != SPELL_EFFECT_SCHOOL_DAMAGE &&
+                    spellInfo->Effect[2] != SPELL_EFFECT_SCHOOL_DAMAGE &&
+                    spellInfo->EffectApplyAuraName[0] != SPELL_AURA_PERIODIC_DAMAGE &&
+                    spellInfo->EffectApplyAuraName[1] != SPELL_AURA_PERIODIC_DAMAGE &&
+                    spellInfo->EffectApplyAuraName[2] != SPELL_AURA_PERIODIC_DAMAGE)
+                {
+                    mSpellCustomAttr[i] |= SPELL_ATTR0_CU_BINARY;
+                    count++;
+                }
+            }
+        }
+
         if (!_isPositiveEffect(i, 0, false))
         {
             mSpellCustomAttr[i] |= SPELL_ATTR0_CU_NEGATIVE_EFF0;
@@ -3617,6 +3718,10 @@ void SpellMgr::LoadSpellCustomAttr()
 
         switch (i)
         {
+        case 36350: //They Must Burn Bomb Aura (self)
+            spellInfo->EffectTriggerSpell[0] = 36325; // They Must Burn Bomb Drop (DND)
+            count++;
+            break;
         case 49838: // Stop Time
             spellInfo->AttributesEx3 |= SPELL_ATTR3_NO_INITIAL_AGGRO;
             count++;
@@ -3888,6 +3993,10 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->Targets |= TARGET_FLAG_UNIT_CASTER;
             count++;
             break;
+        case 66665: // Burning Breath
+            spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_TARGET_ENEMY;
+            count++;
+            break;
         case 16834: // Natural shapeshifter
         case 16835:
             spellInfo->DurationIndex = 21;
@@ -3999,7 +4108,16 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->EffectImplicitTargetB[0] = TARGET_UNIT_MASTER;
             count++;
             break;
+        // ULDUAR SPELLS
+        //
+        case 63342: // Focused Eyebeam Summon Trigger
+            spellInfo->MaxAffectedTargets = 1;
+            count++;
+            break;
+        // ENDOF ULDUAR SPELLS
+        //
         // ICECROWN CITADEL SPELLS
+        //
         // THESE SPELLS ARE WORKING CORRECTLY EVEN WITHOUT THIS HACK
         // THE ONLY REASON ITS HERE IS THAT CURRENT GRID SYSTEM
         // DOES NOT ALLOW FAR OBJECT SELECTION (dist > 333)
@@ -4112,6 +4230,10 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->EffectImplicitTargetA[0] = TARGET_DEST_TARGET_ANY;
             spellInfo->EffectImplicitTargetB[0] = TARGET_UNIT_TARGET_ANY;
             spellInfo->Effect[1] = 0;
+            count++;
+            break;
+        case 49206: // Summon Gargoyle
+            spellInfo->DurationIndex = 587;
             count++;
             break;
         default:

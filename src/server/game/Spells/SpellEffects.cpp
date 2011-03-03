@@ -1737,13 +1737,6 @@ void Spell::EffectForceCast(SpellEffIndex effIndex)
         }
     }
 
-    switch (triggered_spell_id)
-    {
-        case 62056: case 63985:         // Stone Grip Forcecast (10m, 25m)
-            unitTarget->CastSpell(unitTarget, spellInfo, true);     // Don't send m_originalCasterGUID param here or underlying
-            return;                                                 // AureEffect::HandleAuraControlVehicle will fail on caster == target
-    }
-
     Unit * caster = GetTriggeredSpellCaster(spellInfo, m_caster, unitTarget);
 
     caster->CastSpell(unitTarget, spellInfo, true, NULL, NULL, m_originalCasterGUID);
@@ -3259,7 +3252,7 @@ void Spell::EffectSummonType(SpellEffIndex effIndex)
         {
             float x, y, z;
             m_caster->GetClosePoint(x, y, z, DEFAULT_WORLD_OBJECT_SIZE);
-            summon = m_caster->GetMap()->SummonCreature(entry, pos, properties, duration, m_caster);
+            summon = m_originalCaster->GetMap()->SummonCreature(entry, pos, properties, duration, m_caster);
             if (!summon || !summon->IsVehicle())
                 return;
 
@@ -3267,10 +3260,21 @@ void Spell::EffectSummonType(SpellEffIndex effIndex)
             {
                 SpellEntry const *spellProto = sSpellStore.LookupEntry(SpellMgr::CalculateSpellEffectAmount(m_spellInfo, effIndex));
                 if (spellProto)
-                    m_caster->CastSpell(summon, spellProto, true);
+                {
+                    m_originalCaster->CastSpell(summon, spellProto, true);
+                    return;
+                }
             }
 
-            m_caster->EnterVehicle(summon->GetVehicleKit());
+            // Hard coded enter vehicle spell
+            m_originalCaster->CastSpell(summon, 46598, true);
+
+            summon->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
+            uint32 faction = properties->Faction;
+            if (!faction)
+                faction = m_originalCaster->getFaction();
+
+            summon->setFaction(faction);
             break;
         }
     }

@@ -183,14 +183,14 @@ class Group
 
         // group manipulation methods
         bool   Create(Player *leader);
-        bool   LoadGroupFromDB(const uint32 &guid, QueryResult result, bool loadMembers = true);
-        bool   LoadMemberFromDB(uint32 guidLow, uint8 memberFlags, uint8 subgroup, uint8 roles);
+        void   LoadGroupFromDB(Field *field);
+        void   LoadMemberFromDB(uint32 guidLow, uint8 memberFlags, uint8 subgroup, uint8 roles);
         bool   AddInvite(Player *player);
         void   RemoveInvite(Player *player);
         void   RemoveAllInvites();
         bool   AddLeaderInvite(Player *player);
         bool   AddMember(Player *player);
-        uint32 RemoveMember(const uint64 &guid, const RemoveMethod &method = GROUP_REMOVEMETHOD_DEFAULT, uint64 kicker = 0, const char* reason = NULL);
+        bool   RemoveMember(const uint64 &guid, const RemoveMethod &method = GROUP_REMOVEMETHOD_DEFAULT, uint64 kicker = 0, const char* reason = NULL);
         void   ChangeLeader(const uint64 &guid);
         void   SetLootMethod(LootMethod method);
         void   SetLooterGuid(const uint64 &guid);
@@ -212,6 +212,8 @@ class Group
         LootMethod GetLootMethod() const;
         const uint64& GetLooterGuid() const;
         ItemQualities GetLootThreshold() const;
+
+        uint32 GetStorageId() { return m_storageId; };
 
         // member manipulation methods
         bool IsMember(const uint64& guid) const;
@@ -328,5 +330,6 @@ class Group
         uint64              m_guid;
         uint32              m_counter;                      // used only in SMSG_GROUP_LIST
         uint32              m_maxEnchantingLevel;
+        uint32              m_storageId;                    // Represents the ID used in database (Can be reused by other groups if group was disbanded)
 };
 #endif

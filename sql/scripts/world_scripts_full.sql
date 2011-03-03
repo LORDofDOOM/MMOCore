@@ -276,7 +276,6 @@ UPDATE `creature_template` SET `ScriptName`='npc_engineer_spark_overgrind' WHERE
 UPDATE `creature_template` SET `ScriptName`='npc_injured_draenei' WHERE `entry`=16971;
 UPDATE `creature_template` SET `ScriptName`='npc_magwin' WHERE `entry`=17312;
 UPDATE `creature_template` SET `ScriptName`='npc_geezle' WHERE `entry`=17318;
-UPDATE `creature_template` SET `ScriptName`='npc_nestlewood_owlkin' WHERE `entry`=16518;
 UPDATE `creature_template` SET `ScriptName`='npc_draenei_survivor' WHERE `entry`=16483;
 UPDATE `creature_template` SET `ScriptName`='npc_death_ravager' WHERE `entry`=17556;
 UPDATE `creature_template` SET `ScriptName`='npc_stillpine_capitive' where `entry`=17375;
@@ -1172,7 +1171,6 @@ UPDATE `creature_template` SET `ScriptName`='npc_drake_dealer_hurlunk' WHERE `en
 UPDATE `creature_template` SET `ScriptName`='npc_invis_legion_teleporter' WHERE `entry`=21807;
 UPDATE `creature_template` SET `ScriptName`='npcs_flanis_swiftwing_and_kagrosh' WHERE `entry` IN (21725,21727);
 UPDATE `creature_template` SET `ScriptName`='npc_murkblood_overseer' WHERE `entry`=23309;
-UPDATE `creature_template` SET `ScriptName`='npc_neltharaku' WHERE `entry`=21657;
 UPDATE `creature_template` SET `ScriptName`='npc_oronok_tornheart' WHERE `entry`=21183;
 UPDATE `creature_template` SET `ScriptName`='mob_mature_netherwing_drake' WHERE `entry`=21648;
 UPDATE `creature_template` SET `ScriptName`='mob_enslaved_netherwing_drake' WHERE `entry`=21722;
@@ -2068,6 +2066,9 @@ INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES
 ( 63985, 'spell_ulduar_stone_grip'),
 ( 64224, 'spell_ulduar_stone_grip_absorb'),
 ( 64225, 'spell_ulduar_stone_grip_absorb'),
+( 62166, 'spell_ulduar_stone_grip_cast_target'),
+( 63981, 'spell_ulduar_stone_grip_cast_target'),
+( 64702, 'spell_ulduar_squeezed_lifeless'),
 -- quest
 (  8913, 'spell_q55_sacred_cleansing'),
 ( 17271, 'spell_q5206_test_fetid_skull'),
