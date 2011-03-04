@@ -163,7 +163,7 @@ public:
 
 		void EnterCombat(Unit * /*who*/)
 		{
-			_vehicle->InstallAllAccessories(me->GetEntry());
+			_vehicle->InstallAllAccessories();
 
 			if (Creature* krick = GetKrick())
 				DoScriptText(SAY_KRICK_AGGRO, krick);

@@ -310,7 +310,7 @@ public:
 
 		void JustReachedHome()
 		{
-			_vehicle->InstallAllAccessories(me->GetEntry());
+			_vehicle->InstallAllAccessories();
 		}
 
 		void DoAction(const int32 actionId)
