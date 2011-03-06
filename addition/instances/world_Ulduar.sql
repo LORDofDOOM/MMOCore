@@ -1266,7 +1266,7 @@ DELETE FROM creature WHERE id = 33167;
 UPDATE `creature_template` SET `modelid1` = 11686, `modelid2` = 0 WHERE `entry` IN (33364, 33369, 33108, 33366);
 
 DELETE FROM vehicle_accessory WHERE entry = 33113 AND seat_id IN (0, 1);
-INSERT INTO vehicle_accessory VALUES 
+INSERT INTO `vehicle_accessory` (`entry`, `accessory_entry`, `seat_id`, `minion`, `description`) VALUES
 (33113, 33114, 0, 1, "Flame Leviathan"),
 (33113, 33114, 1, 1, "Flame Leviathan");
 
@@ -1379,9 +1379,10 @@ UPDATE `creature_template` SET `mechanic_immune_mask` = 650854235, `flags_extra`
 -- XT-002 correct vehicle id
 UPDATE `creature_template` SET `VehicleId` = 353 WHERE `entry` = 33293;
 -- XT-002 Hearth
-DELETE FROM `vehicle_accessory` WHERE `entry` = 33293;
-INSERT INTO `vehicle_accessory` VALUES 
+DELETE FROM vehicle_accessory WHERE entry = 33293;
+INSERT INTO `vehicle_accessory` (`entry`, `accessory_entry`, `seat_id`, `minion`, `description`) VALUES
 (33293, 33329, 0, 1, "XT-002 Hearth");
+
 -- Gravity Bomb
 DELETE FROM spell_script_names WHERE spell_id IN (63025, 64233);
 INSERT INTO spell_script_names VALUES 
