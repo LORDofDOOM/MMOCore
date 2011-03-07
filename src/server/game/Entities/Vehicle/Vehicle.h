@@ -121,11 +121,11 @@ class Vehicle
         void Install();
         void Uninstall();
         void Reset();
-        void Die();
         void InstallAllAccessories();
 
         Unit *GetBase() const { return me; }
         VehicleEntry const *GetVehicleInfo() const { return m_vehicleInfo; }
+        uint32 const& GetCreatureEntry() const { return m_creatureEntry; }
 
         bool HasEmptySeat(int8 seatId) const;
         Unit *GetPassenger(int8 seatId) const;

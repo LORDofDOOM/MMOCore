@@ -556,7 +556,7 @@ enum UnitFlags
     UNIT_FLAG_UNK_6                 = 0x00000040,
     UNIT_FLAG_NOT_ATTACKABLE_1      = 0x00000080,           // ?? (UNIT_FLAG_PVP_ATTACKABLE | UNIT_FLAG_NOT_ATTACKABLE_1) is NON_PVP_ATTACKABLE
     UNIT_FLAG_OOC_NOT_ATTACKABLE    = 0x00000100,           // 2.0.8 - (OOC Out Of Combat) Can not be attacked when not in combat. Removed if unit for some reason enter combat.
-    UNIT_FLAG_UNK_9                 = 0x00000200,           // 3.0.3 - makes you unable to attack everything
+    UNIT_FLAG_PASSIVE               = 0x00000200,           // makes you unable to attack everything. Almost identical to our "civilian"-term. Will ignore it's surroundings and not engage in combat unless "called upon" or engaged by another unit.
     UNIT_FLAG_LOOTING               = 0x00000400,           // loot animation
     UNIT_FLAG_PET_IN_COMBAT         = 0x00000800,           // in combat?, 2.0.8
     UNIT_FLAG_PVP                   = 0x00001000,           // changed in 3.0.3
@@ -622,7 +622,7 @@ enum NPCFlags
     UNIT_NPC_FLAG_AUCTIONEER            = 0x00200000,       // 100%
     UNIT_NPC_FLAG_STABLEMASTER          = 0x00400000,       // 100%
     UNIT_NPC_FLAG_GUILD_BANKER          = 0x00800000,       // cause client to send 997 opcode
-    UNIT_NPC_FLAG_SPELLCLICK            = 0x01000000,       // cause client to send 1015 opcode (spell click), dynamic, set at loading and don't must be set in DB
+    UNIT_NPC_FLAG_SPELLCLICK            = 0x01000000,       // cause client to send 1015 opcode (spell click)
     UNIT_NPC_FLAG_PLAYER_VEHICLE        = 0x02000000,       // players with mounts that have vehicle data should have it set
 };
 
@@ -1272,7 +1272,6 @@ class Unit : public WorldObject
 
         uint32 GetResistance(SpellSchools school) const { return GetUInt32Value(UNIT_FIELD_RESISTANCES+school); }
         void SetResistance(SpellSchools school, int32 val) { SetStatInt32Value(UNIT_FIELD_RESISTANCES+school,val); }
-        uint32 GetSpellPenetration(SpellSchoolMask schoolMask) const;
 
         uint32 GetHealth()    const { return GetUInt32Value(UNIT_FIELD_HEALTH); }
         uint32 GetMaxHealth() const { return GetUInt32Value(UNIT_FIELD_MAXHEALTH); }
@@ -1378,7 +1377,7 @@ class Unit : public WorldObject
         void CalculateMeleeDamage(Unit *pVictim, uint32 damage, CalcDamageInfo *damageInfo, WeaponAttackType attackType = BASE_ATTACK);
         void DealMeleeDamage(CalcDamageInfo *damageInfo, bool durabilityLoss);
 
-        void CalculateSpellDamageTaken(SpellNonMeleeDamage * damageInfo, int32 damage, SpellEntry const * spellInfo, WeaponAttackType attackType = BASE_ATTACK, bool crit = false, int32 calc_resist = -1);
+        void CalculateSpellDamageTaken(SpellNonMeleeDamage *damageInfo, int32 damage, SpellEntry const *spellInfo, WeaponAttackType attackType = BASE_ATTACK, bool crit = false);
         void DealSpellDamage(SpellNonMeleeDamage *damageInfo, bool durabilityLoss);
 
 
@@ -1399,17 +1398,16 @@ class Unit : public WorldObject
 
         void ApplyResilience(const Unit * pVictim, float * crit, int32 * damage, bool isCrit, CombatRating type) const;
 
-        float MeleeSpellMissChance(const Unit * pVictim, WeaponAttackType attType, int32 skillDiff, uint32 spellId) const;
-        SpellMissInfo MeleeSpellHitResult(Unit * pVictim, SpellEntry const * spell);
-        SpellMissInfo MagicSpellHitResult(Unit * pVictim, SpellEntry const * spell);
-        uint32 CalcMagicSpellHitChance(Unit * pVictim, SpellSchoolMask schoolMask, SpellEntry const * spellProto);
-        SpellMissInfo SpellHitResult(Unit * pVictim, SpellEntry const * spell, bool canReflect = false);
+        float MeleeSpellMissChance(const Unit *pVictim, WeaponAttackType attType, int32 skillDiff, uint32 spellId) const;
+        SpellMissInfo MeleeSpellHitResult(Unit *pVictim, SpellEntry const *spell);
+        SpellMissInfo MagicSpellHitResult(Unit *pVictim, SpellEntry const *spell);
+        SpellMissInfo SpellHitResult(Unit *pVictim, SpellEntry const *spell, bool canReflect = false);
 
         float GetUnitDodgeChance()    const;
         float GetUnitParryChance()    const;
         float GetUnitBlockChance()    const;
         float GetUnitCriticalChance(WeaponAttackType attackType, const Unit *pVictim) const;
-        int32 GetMechanicResistChance(const SpellEntry * spell) const;
+        int32 GetMechanicResistChance(const SpellEntry *spell);
         bool CanUseAttackType(uint8 attacktype) const
         {
             switch(attacktype)
@@ -1945,8 +1943,7 @@ class Unit : public WorldObject
         uint32 CalcNotIgnoreDamageRedunction(uint32 damage, SpellSchoolMask damageSchoolMask);
         static bool IsDamageReducedByArmor(SpellSchoolMask damageSchoolMask, SpellEntry const *spellInfo = NULL, uint8 effIndex = MAX_SPELL_EFFECTS);
         uint32 CalcArmorReducedDamage(Unit* pVictim, const uint32 damage, SpellEntry const *spellInfo, WeaponAttackType attackType=MAX_ATTACK);
-        void CalcAbsorbResist(Unit * pVictim, SpellSchoolMask schoolMask, DamageEffectType damagetype, const uint32 damage, uint32 * absorb, uint32 * resist, SpellEntry const * spellInfo = NULL, int32 calc_resist = -1);
-        uint32 CalcSpellResistance(Unit * pVictim, SpellSchoolMask schoolMask, bool binary, SpellEntry const * spellProto) const;
+        void CalcAbsorbResist(Unit *pVictim, SpellSchoolMask schoolMask, DamageEffectType damagetype, const uint32 damage, uint32 *absorb, uint32 *resist, SpellEntry const *spellInfo = NULL);
         void CalcHealAbsorb(Unit *pVictim, const SpellEntry *spellProto, uint32 &healAmount, uint32 &absorb);
 
         void  UpdateSpeed(UnitMoveType mtype, bool forced);
