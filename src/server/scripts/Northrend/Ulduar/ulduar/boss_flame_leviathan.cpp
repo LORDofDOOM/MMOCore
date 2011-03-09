@@ -335,34 +335,32 @@ public:
         {
             if (apply)
             {
-                std::list<Creature*> lSeats;
-                me->GetCreatureListWithEntryInGrid(lSeats, 33114,17.0f);
-                if (lSeats.empty())
-                    return;
-                for(std::list<Creature*>::const_iterator itr = lSeats.begin(); itr != lSeats.end(); itr++)
+                for (uint8 i = RAID_MODE(2,0); i < 4; ++i)
                 {
-                    if (Creature* pTurret = (me->SummonCreature(33142, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), 0, TEMPSUMMON_MANUAL_DESPAWN)))
-                        pTurret->EnterVehicle((*itr), SEAT_TURRET);
+                    if (vehicle->GetPassenger(i))
+                        if (Vehicle *pSeat = vehicle->GetPassenger(i)->GetVehicleKit())
+                        {
+                            if (Creature* pTurret = (me->SummonCreature(NPC_TURRET, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), 0, TEMPSUMMON_MANUAL_DESPAWN)))
+                                pTurret->EnterVehicle(pSeat, SEAT_TURRET);
 
-                    if (Creature* pDevice = (me->SummonCreature(33143, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), 0, TEMPSUMMON_MANUAL_DESPAWN)))
-                        pDevice->EnterVehicle((*itr), SEAT_DEVICE);
+                            if (Creature* pDevice = (me->SummonCreature(NPC_DEVICE, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), 0, TEMPSUMMON_MANUAL_DESPAWN)))
+                                pDevice->EnterVehicle(pSeat, SEAT_DEVICE);
+                        }
                 }
             }
             else
             {
-                std::list<Creature*> lSeats;
-                me->GetCreatureListWithEntryInGrid(lSeats, 33114,17.0f);
-                if (lSeats.empty())
-                    return;
-                for(std::list<Creature*>::const_iterator itr = lSeats.begin(); itr != lSeats.end(); itr++)
+                for (uint8 i = RAID_MODE(2,0); i < 4; ++i)
                 {
-                    Vehicle* pSeat = (*itr)->GetVehicleKit();
-                    if (Unit* pTurret = (pSeat->GetPassenger(SEAT_TURRET)))
-                        pTurret->RemoveFromWorld();
+                    if (vehicle->GetPassenger(i))
+                        if (Vehicle *pSeat = vehicle->GetPassenger(i)->GetVehicleKit())
+                        {
+                            if (Unit* pTurret = (pSeat->GetPassenger(SEAT_TURRET)))
+                                pTurret->RemoveFromWorld();
 
-                    if (Unit* pDevice = (pSeat->GetPassenger(SEAT_DEVICE)))
-                        pDevice->RemoveFromWorld();
-
+                            if (Unit* pDevice = (pSeat->GetPassenger(SEAT_DEVICE)))
+                                pDevice->RemoveFromWorld();
+                        }
                 }
             }
         }
@@ -404,8 +402,7 @@ public:
         void SpellHit(Unit* /*caster*/, const SpellEntry* pSpell)
         {
             if (pSpell->Id == SPELL_START_THE_ENGINE)
-                //vehicle->InstallAllAccessories(me->GetEntry());
-				vehicle->InstallAllAccessories();
+                vehicle->InstallAllAccessories();
 
             if (pSpell->Id == SPELL_ELECTROSHOCK)
                 me->InterruptSpell(CURRENT_CHANNELED_SPELL);
