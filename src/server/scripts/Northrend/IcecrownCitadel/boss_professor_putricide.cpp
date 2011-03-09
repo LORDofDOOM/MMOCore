@@ -203,7 +203,7 @@ class ActivateProfessorDoor : public BasicEvent
         uint32 uiValveData;
         InstanceScript *instance;
 };
-class go_icc_plagueworks_valve : public GameObjectScrip
+class go_icc_plagueworks_valve : public GameObjectScript
 {
     public:
         go_icc_plagueworks_valve() : GameObjectScript("go_icc_plagueworks_valve") { }

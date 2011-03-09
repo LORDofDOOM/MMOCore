@@ -615,7 +615,7 @@ class npc_high_overlord_saurfang_icc : public CreatureScript
                         events.ScheduleEvent(EVENT_OUTRO_HORDE_4, 24000);   // cast
                         events.ScheduleEvent(EVENT_OUTRO_HORDE_5, 30000);   // move
                         me->RemoveUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
-                        //me->SetFlying(false);
+                        me->SetFlying(false);
                         me->SendMovementFlagUpdate();
                         me->Relocate(me->GetPositionX(), me->GetPositionY(), 539.2917f);
                         me->SendMonsterMove(me->GetPositionX(), me->GetPositionY(), 539.2917f, SPLINEFLAG_FALLING, 0, 0.0f);
@@ -638,7 +638,7 @@ class npc_high_overlord_saurfang_icc : public CreatureScript
                 if (spell->Id == SPELL_GRIP_OF_AGONY)
                 {
                     me->AddUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
-                    //me->SetFlying(true);
+                    me->SetFlying(true);
                     me->GetMotionMaster()->MovePoint(POINT_CHOKE, chokePos[0]);
                 }
             }
@@ -666,7 +666,7 @@ class npc_high_overlord_saurfang_icc : public CreatureScript
                             deathbringer->CastSpell(me, SPELL_RIDE_VEHICLE, true);  // for the packet logs.
                             deathbringer->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                             deathbringer->setDeathState(ALIVE);
-                            //deathbringer->EnterVehicle(vehicle, 0);
+                            deathbringer->EnterVehicle(vehicle, 0);
                         }
                         events.ScheduleEvent(EVENT_OUTRO_HORDE_5, 1000);    // move
                         events.ScheduleEvent(EVENT_OUTRO_HORDE_6, 4000);    // say
@@ -824,7 +824,7 @@ class npc_muradin_bronzebeard_icc : public CreatureScript
                         me->RemoveAurasDueToSpell(SPELL_GRIP_OF_AGONY);
                         Talk(SAY_OUTRO_ALLIANCE_1);
                         me->RemoveUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
-                        //me->SetFlying(false);
+                        me->SetFlying(false);
                         me->SendMovementFlagUpdate();
                         me->Relocate(me->GetPositionX(), me->GetPositionY(), 539.2917f);
                         me->SendMonsterMove(me->GetPositionX(), me->GetPositionY(), 539.2917f, SPLINEFLAG_FALLING, 0, 0.0f);
@@ -845,7 +845,7 @@ class npc_muradin_bronzebeard_icc : public CreatureScript
                 if (spell->Id == SPELL_GRIP_OF_AGONY)
                 {
                     me->AddUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
-                    //me->SetFlying(true);
+                    me->SetFlying(true);
                     me->GetMotionMaster()->MovePoint(POINT_CHOKE, chokePos[0]);
                 }
             }
@@ -944,7 +944,7 @@ class npc_saurfang_event : public CreatureScript
                 if (spell->Id == SPELL_GRIP_OF_AGONY)
                 {
                     me->AddUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
-                    //me->SetFlying(true);
+                    me->SetFlying(true);
                     me->GetMotionMaster()->MovePoint(POINT_CHOKE, chokePos[npcIndex]);
                 }
             }

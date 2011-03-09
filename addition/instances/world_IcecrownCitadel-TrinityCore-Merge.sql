@@ -209,8 +209,6 @@ INSERT INTO `achievement_criteria_data` (`criteria_id`,`type`,`value1`,`value2`,
 (13134,12,2,0, ''), -- Sindragosa kills (Heroic Icecrown 10 player)
 (13135,12,3,0, ''); -- Sindragosa kills (Heroic Icecrown 25 player)
 DELETE FROM `areatrigger_scripts` WHERE `entry`=5604;
-DELETE FROM `areatrigger_scripts` WHERE `entry`=5698;
-DELETE FROM `areatrigger_scripts` WHERE `entry`=5649;
 INSERT INTO `areatrigger_scripts` (`entry`,`ScriptName`) VALUES
 (5604,'at_sindragosa_lair'),
 (5698, 'at_icc_saurfang_portal'),
