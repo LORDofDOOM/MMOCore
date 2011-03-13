@@ -1009,7 +1009,6 @@ class TradeData
         uint64     m_items[TRADE_SLOT_COUNT];               // traded itmes from m_player side including non-traded slot
 };
 
-<<<<<<< HEAD
 struct AnticheatData
 {
     uint32 lastOpcode;
@@ -1020,7 +1019,8 @@ struct AnticheatData
     uint32 type_reports[5];
     uint32 average;
     uint64 creation_time;
-=======
+};
+
 class KillRewarder
 {
 public:
@@ -1054,7 +1054,6 @@ private:
     bool _isFullXP;
 
     uint32 _xp;
->>>>>>> master
 };
 
 class Player : public Unit, public GridObject<Player>
