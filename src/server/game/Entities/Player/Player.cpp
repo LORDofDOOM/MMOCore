@@ -383,6 +383,229 @@ void TradeData::SetAccepted(bool state, bool crosssend /*= false*/)
     }
 }
 
+// == KillRewarder ====================================================
+// KillRewarder incapsulates logic of rewarding player upon kill with:
+// * XP;
+// * honor;
+// * reputation;
+// * kill credit (for quest objectives).
+// Rewarding is initiated in two cases: when player kills unit in Unit::Kill()
+// and on battlegrounds in Battleground::RewardXPAtKill().
+//
+// Rewarding algorithm is:
+// 1. Initialize internal variables to default values.
+// 2. In case when player is in group, initialize variables necessary for group calculations:
+// 2.1. _count - number of alive group members within reward distance;
+// 2.2. _sumLevel - sum of levels of alive group members within reward distance;
+// 2.3. _maxLevel - maximum level of alive group member within reward distance;
+// 2.4. _maxNotGrayMember - maximum level of alive group member within reward distance,
+//      for whom victim is not gray;
+// 2.5. _isFullXP - flag identifying that for all group members victim is not gray,
+//      so 100% XP will be rewarded (50% otherwise).
+// 3. Reward killer (and group, if necessary).
+// 3.1. If killer is in group, reward group.
+// 3.1.1. Initialize initial XP amount based on maximum level of group member,
+//        for whom victim is not gray.
+// 3.1.2. Alter group rate if group is in raid (not for battlegrounds).
+// 3.1.3. Reward each group member (even dead) within reward distance (see 4. for more details).
+// 3.2. Reward single killer (not group case).
+// 3.2.1. Initialize initial XP amount based on killer's level.
+// 3.2.2. Reward killer (see 4. for more details).
+// 4. Reward player.
+// 4.1. Give honor (player must be alive and not on BG).
+// 4.2. Give XP.
+// 4.2.1. If player is in group, adjust XP:
+//        * set to 0 if player's level is more than maximum level of not gray member;
+//        * cut XP in half if _isFullXP is false.
+// 4.2.2. Apply auras modifying rewarded XP.
+// 4.2.3. Give XP to player.
+// 4.2.4. If player has pet, reward pet with XP (100% for single player, 50% for group case).
+// 4.3. Give reputation (player must not be on BG).
+// 4.4. Give kill credit (player must not be in group, or he must be alive or without corpse).
+// 5. Credit instance encounter.
+KillRewarder::KillRewarder(Player* killer, Unit* victim, bool isBattleGround) :
+    // 1. Initialize internal variables to default values.
+    _killer(killer), _victim(victim), _isBattleGround(isBattleGround),
+    _isPvP(victim->isCharmedOwnedByPlayerOrPlayer()), _group(killer->GetGroup()), _groupRate(1.0f),
+    _maxLevel(0), _maxNotGrayMember(NULL), _count(0), _sumLevel(0), _isFullXP(false), _xp(0)
+{
+    _InitGroupData();
+}
+
+inline void KillRewarder::_InitGroupData()
+{
+    if (_group)
+    {
+        // 2. In case when player is in group, initialize variables necessary for group calculations:
+        for (GroupReference *itr = _group->GetFirstMember(); itr != NULL; itr = itr->next())
+            if (Player* member = itr->getSource())
+                if (member->isAlive() && member->IsAtGroupRewardDistance(_victim))
+                {
+                    const uint8 lvl = member->getLevel();
+                    // 2.1. _count - number of alive group members within reward distance;
+                    ++_count;
+                    // 2.2. _sumLevel - sum of levels of alive group members within reward distance;
+                    _sumLevel += lvl;
+                    // 2.3. _maxLevel - maximum level of alive group member within reward distance;
+                    if (_maxLevel < lvl)
+                        _maxLevel = lvl;
+                    // 2.4. _maxNotGrayMember - maximum level of alive group member within reward distance,
+                    //      for whom victim is not gray;
+                    uint32 grayLevel = Trinity::XP::GetGrayLevel(lvl);
+                    if (_victim->getLevel() > grayLevel && (!_maxNotGrayMember || _maxNotGrayMember->getLevel() < lvl))
+                        _maxNotGrayMember = member;
+                }
+        // 2.5. _isFullXP - flag identifying that for all group members victim is not gray,
+        //      so 100% XP will be rewarded (50% otherwise).
+        _isFullXP = (_maxLevel == _maxNotGrayMember->getLevel());
+    }
+    else
+        _count = 1;
+}
+
+inline void KillRewarder::_InitXP(Player* player)
+{
+    // Get initial value of XP for kill.
+    // XP is given:
+    // * on battlegrounds;
+    // * otherwise, not in PvP;
+    // * not if killer is on vehicle.
+    if (_isBattleGround || !_isPvP || !_killer->GetVehicle())
+        _xp = Trinity::XP::Gain(player, _victim);
+}
+
+inline void KillRewarder::_RewardHonor(Player* player)
+{
+    // Rewarded player must be alive.
+    if (player->isAlive())
+        player->RewardHonor(_victim, _count, -1, true);
+}
+
+inline void KillRewarder::_RewardXP(Player* player, float rate)
+{
+    uint32 xp(_xp);
+    if (_group)
+        // 4.2.1. If player is in group, adjust XP:
+        //        * set to 0 if player's level is more than maximum level of not gray member;
+        //        * cut XP in half if _isFullXP is false.
+        if (_maxNotGrayMember && player->isAlive() &&
+            _maxNotGrayMember->getLevel() >= player->getLevel())
+            xp = _isFullXP ?
+                uint32(xp * rate) :             // Reward FULL XP if all group members are not gray.
+                uint32(xp * rate / 2) + 1;      // Reward only HALF of XP if some of group members are gray.
+        else
+            xp = 0;
+    if (xp)
+    {
+        // 4.2.2. Apply auras modifying rewarded XP (SPELL_AURA_MOD_XP_PCT).
+        Unit::AuraEffectList const& auras = player->GetAuraEffectsByType(SPELL_AURA_MOD_XP_PCT);
+        for (Unit::AuraEffectList::const_iterator i = auras.begin(); i != auras.end(); ++i)
+            AddPctN(xp, (*i)->GetAmount());
+
+        // 4.2.3. Give XP to player.
+        player->GiveXP(xp, _victim, _groupRate);
+        if (Pet* pet = player->GetPet())
+            // 4.2.4. If player has pet, reward pet with XP (100% for single player, 50% for group case).
+            pet->GivePetXP(_group ? xp / 2 : xp);
+    }
+}
+
+inline void KillRewarder::_RewardReputation(Player* player, float rate)
+{
+    // 4.3. Give reputation (player must not be on BG).
+    // Even dead players and corpses are rewarded.
+    player->RewardReputation(_victim, rate);
+}
+
+inline void KillRewarder::_RewardKillCredit(Player* player)
+{
+    // 4.4. Give kill credit (player must not be in group, or he must be alive or without corpse).
+    if (!_group || player->isAlive() || !player->GetCorpse())
+        if (_victim->GetTypeId() == TYPEID_UNIT)
+            player->KilledMonster(_victim->ToCreature()->GetCreatureInfo(), _victim->GetGUID());
+}
+
+void KillRewarder::_RewardPlayer(Player* player, bool isDungeon)
+{
+    // 4. Reward player.
+    if (!_isBattleGround)
+        // 4.1. Give honor (player must be alive and not on BG).
+        _RewardHonor(player);
+    // Give XP only in PvE or in battlegrounds.
+    // Give reputation and kill credit only in PvE.
+    if (!_isPvP || _isBattleGround)
+    {
+        const float rate = _group ?
+            _groupRate * float(player->getLevel()) / _sumLevel : // Group rate depends on summary level.
+            1.0f;                                                // Personal rate is 100%.
+        if (_xp)
+            // 4.2. Give XP.
+            _RewardXP(player, rate);
+        if (!_isBattleGround)
+        {
+            // If killer is in dungeon then all members receive full reputation at kill.
+            _RewardReputation(player, isDungeon ? 1.0f : rate);
+            _RewardKillCredit(player);
+        }
+    }
+}
+
+void KillRewarder::_RewardGroup()
+{
+    if (_maxLevel)
+    {
+        if (_maxNotGrayMember)
+            // 3.1.1. Initialize initial XP amount based on maximum level of group member,
+            //        for whom victim is not gray.
+            _InitXP(_maxNotGrayMember);
+        // To avoid unnecessary calculations and calls,
+        // proceed only if XP is not ZERO or player is not on battleground
+        // (battleground rewards only XP, that's why).
+        if (!_isBattleGround || _xp)
+        {
+            const bool isDungeon = !_isPvP && sMapStore.LookupEntry(_killer->GetMapId())->IsDungeon();
+            if (!_isBattleGround)
+            {
+                // 3.1.2. Alter group rate if group is in raid (not for battlegrounds).
+                const bool isRaid = !_isPvP && sMapStore.LookupEntry(_killer->GetMapId())->IsRaid() && _group->isRaidGroup();
+                _groupRate = Trinity::XP::xp_in_group_rate(_count, isRaid);
+            }
+
+            // 3.1.3. Reward each group member (even dead or corpse) within reward distance.
+            for (GroupReference *itr = _group->GetFirstMember(); itr != NULL; itr = itr->next())
+                if (Player* member = itr->getSource())
+                    if (member->IsAtGroupRewardDistance(_victim))
+                        _RewardPlayer(member, isDungeon);
+        }
+    }
+}
+
+void KillRewarder::Reward()
+{
+    // 3. Reward killer (and group, if necessary).
+    if (_group)
+        // 3.1. If killer is in group, reward group.
+        _RewardGroup();
+    else
+    {
+        // 3.2. Reward single killer (not group case).
+        // 3.2.1. Initialize initial XP amount based on killer's level.
+        _InitXP(_killer);
+        // To avoid unnecessary calculations and calls,
+        // proceed only if XP is not ZERO or player is not on battleground
+        // (battleground rewards only XP, that's why).
+        if (!_isBattleGround || _xp)
+            // 3.2.2. Reward killer.
+            _RewardPlayer(_killer, false);
+    }
+
+    // 5. Credit instance encounter.
+    if (Creature* victim = _victim->ToCreature())
+        if (victim->IsDungeonBoss())
+            if (InstanceScript* instance = _victim->GetInstanceScript())
+                instance->UpdateEncounterState(ENCOUNTER_CREDIT_KILL_CREATURE, _victim->GetEntry(), _victim);
+}
+
 // == Player ====================================================
 
 UpdateMask Player::updateVisualBits;
@@ -2779,10 +3002,10 @@ void Player::GiveLevel(uint8 level)
     sScriptMgr->OnPlayerLevelChanged(this, level);
 
     PlayerLevelInfo info;
-    sObjectMgr->GetPlayerLevelInfo(getRace(),getClass(),level,&info);
+    sObjectMgr->GetPlayerLevelInfo(getRace(), getClass(), level, &info);
 
     PlayerClassLevelInfo classInfo;
-    sObjectMgr->GetPlayerClassLevelInfo(getClass(),level,&classInfo);
+    sObjectMgr->GetPlayerClassLevelInfo(getClass(), level, &classInfo);
 
     // send levelup info to client
     WorldPacket data(SMSG_LEVELUP_INFO, (4+4+MAX_POWERS*4+MAX_STATS*4));
@@ -9531,7 +9754,7 @@ void Player::SetSheath(SheathState sheathed)
 
 uint8 Player::FindEquipSlot(ItemPrototype const* proto, uint32 slot, bool swap) const
 {
-    uint8 pClass = getClass();
+    uint8 playerClass = getClass();
 
     uint8 slots[4];
     slots[0] = NULL_SLOT;
@@ -9582,7 +9805,7 @@ uint8 Player::FindEquipSlot(ItemPrototype const* proto, uint32 slot, bool swap) 
             slots[1] = EQUIPMENT_SLOT_TRINKET2;
             break;
         case INVTYPE_CLOAK:
-            slots[0] =  EQUIPMENT_SLOT_BACK;
+            slots[0] = EQUIPMENT_SLOT_BACK;
             break;
         case INVTYPE_WEAPON:
         {
@@ -9593,7 +9816,7 @@ uint8 Player::FindEquipSlot(ItemPrototype const* proto, uint32 slot, bool swap) 
             if (CanDualWield())
                 slots[1] = EQUIPMENT_SLOT_OFFHAND;
             break;
-        };
+        }
         case INVTYPE_SHIELD:
             slots[0] = EQUIPMENT_SLOT_OFFHAND;
             break;
@@ -9602,13 +9825,26 @@ uint8 Player::FindEquipSlot(ItemPrototype const* proto, uint32 slot, bool swap) 
             break;
         case INVTYPE_2HWEAPON:
             slots[0] = EQUIPMENT_SLOT_MAINHAND;
-            if (Item *mhWeapon = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
-                if (ItemPrototype const *mhWeaponProto = mhWeapon->GetProto())
+            if (Item* mhWeapon = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
+            {
+                if (ItemPrototype const* mhWeaponProto = mhWeapon->GetProto())
+                {
                     if (mhWeaponProto->SubClass == ITEM_SUBCLASS_WEAPON_POLEARM || mhWeaponProto->SubClass == ITEM_SUBCLASS_WEAPON_STAFF)
                     {
-                        const_cast<Player *>(this)->AutoUnequipOffhandIfNeed(true);
+                        const_cast<Player*>(this)->AutoUnequipOffhandIfNeed(true);
                         break;
                     }
+                }
+            }
+
+            if (Item* ohWeapon = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
+            {
+                if (proto->SubClass == ITEM_SUBCLASS_WEAPON_POLEARM || proto->SubClass == ITEM_SUBCLASS_WEAPON_STAFF)
+                {
+                    const_cast<Player*>(this)->AutoUnequipOffhandIfNeed(true);
+                    break;
+                }
+            }
             if (CanDualWield() && CanTitanGrip() && proto->SubClass != ITEM_SUBCLASS_WEAPON_POLEARM && proto->SubClass != ITEM_SUBCLASS_WEAPON_STAFF)
                 slots[1] = EQUIPMENT_SLOT_OFFHAND;
             break;
@@ -9638,26 +9874,26 @@ uint8 Player::FindEquipSlot(ItemPrototype const* proto, uint32 slot, bool swap) 
             break;
         case INVTYPE_RELIC:
         {
-            switch(proto->SubClass)
+            switch (proto->SubClass)
             {
                 case ITEM_SUBCLASS_ARMOR_LIBRAM:
-                    if (pClass == CLASS_PALADIN)
+                    if (playerClass == CLASS_PALADIN)
                         slots[0] = EQUIPMENT_SLOT_RANGED;
                     break;
                 case ITEM_SUBCLASS_ARMOR_IDOL:
-                    if (pClass == CLASS_DRUID)
+                    if (playerClass == CLASS_DRUID)
                         slots[0] = EQUIPMENT_SLOT_RANGED;
                     break;
                 case ITEM_SUBCLASS_ARMOR_TOTEM:
-                    if (pClass == CLASS_SHAMAN)
+                    if (playerClass == CLASS_SHAMAN)
                         slots[0] = EQUIPMENT_SLOT_RANGED;
                     break;
                 case ITEM_SUBCLASS_ARMOR_MISC:
-                    if (pClass == CLASS_WARLOCK)
+                    if (playerClass == CLASS_WARLOCK)
                         slots[0] = EQUIPMENT_SLOT_RANGED;
                     break;
                 case ITEM_SUBCLASS_ARMOR_SIGIL:
-                    if (pClass == CLASS_DEATH_KNIGHT)
+                    if (playerClass == CLASS_DEATH_KNIGHT)
                         slots[0] = EQUIPMENT_SLOT_RANGED;
                     break;
             }
@@ -17078,87 +17314,145 @@ void Player::LoadCorpse()
     }
 }
 
-void Player::_LoadInventory(PreparedQueryResult result, uint32 timediff)
+void Player::_LoadInventory(PreparedQueryResult result, uint32 timeDiff)
 {
     //QueryResult *result = CharacterDatabase.PQuery("SELECT data,text,bag,slot,item,item_template FROM character_inventory JOIN item_instance ON character_inventory.item = item_instance.guid WHERE character_inventory.guid = '%u' ORDER BY bag,slot", GetGUIDLow());
-    std::map<uint64, Bag*> bagMap;                          // fast guid lookup for bags
     //NOTE: the "order by `bag`" is important because it makes sure
     //the bagMap is filled before items in the bags are loaded
     //NOTE2: the "order by `slot`" is needed because mainhand weapons are (wrongly?)
     //expected to be equipped before offhand items (TODO: fixme)
 
-    uint32 zone = GetZoneId();
-
     if (result)
     {
+        uint32 zoneId = GetZoneId();
+
+        std::map<uint64, Bag*> bagMap;                                  // fast guid lookup for bags
         std::list<Item*> problematicItems;
         SQLTransaction trans = CharacterDatabase.BeginTransaction();
 
-        // prevent items from being added to the queue when stored
+        // Prevent items from being added to the queue while loading
         m_itemUpdateQueueBlocked = true;
         do
         {
             Field* fields = result->Fetch();
-
-            uint32 bag_guid  = fields[11].GetUInt32();
-            uint8  slot      = fields[12].GetUInt8();
-            uint32 item_guid = fields[13].GetUInt32();
-            uint32 item_id   = fields[14].GetUInt32();
-
-            ItemPrototype const * proto = ObjectMgr::GetItemPrototype(item_id);
-
-            if (!proto)
+            if (Item* item = _LoadItem(trans, zoneId, timeDiff, fields))
             {
-                PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_INVENTORY_ITEM);
-                stmt->setUInt32(0, item_guid);
-                trans->Append(stmt);
-                stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ITEM_INSTANCE);
-                stmt->setUInt32(0, item_guid);
-                trans->Append(stmt);
-                sLog->outError("Player::_LoadInventory: Player %s has an unknown item (id: #%u) in inventory, deleted.", GetName(),item_id);
-                continue;
-            }
+                uint32 bagGuid  = fields[11].GetUInt32();
+                uint8  slot     = fields[12].GetUInt8();
 
-            Item *item = NewItemOrBag(proto);
-
-            if (!item->LoadFromDB(item_guid, GetGUID(), fields, item_id))
-            {
-                sLog->outError("Player::_LoadInventory: Player %s has broken item (id: #%u) in inventory, deleted.", GetName(),item_id);
-                PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_INVENTORY_ITEM);
-                stmt->setUInt32(0, item_guid);
-                trans->Append(stmt);
-                item->FSetState(ITEM_REMOVED);
-                item->SaveToDB(trans);                           // it also deletes item object !
-                continue;
-            }
-
-            // not allow have in alive state item limited to another map/zone
-            if (isAlive() && item->IsLimitedToAnotherMapOrZone(GetMapId(), zone))
-            {
-                PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_INVENTORY_ITEM);
-                stmt->setUInt32(0, item_guid);
-                trans->Append(stmt);
-                item->FSetState(ITEM_REMOVED);
-                item->SaveToDB(trans);                           // it also deletes item object !
-                continue;
-            }
-
-            // "Conjured items disappear if you are logged out for more than 15 minutes"
-            if (timediff > 15*MINUTE && proto->Flags & ITEM_PROTO_FLAG_CONJURED)
-            {
-                PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_INVENTORY_ITEM);
-                stmt->setUInt32(0, item_guid);
-                trans->Append(stmt);
-                item->FSetState(ITEM_REMOVED);
-                item->SaveToDB(trans);                           // it also deletes item object !
-                continue;
-            }
-
-            if (item->HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_REFUNDABLE))
-            {
-                if (item->GetPlayedTime() > (2*HOUR))
+                uint8 err = EQUIP_ERR_OK;
+                // Item is not in bag
+                if (!bagGuid)
                 {
-                    sLog->outDebug(LOG_FILTER_PLAYER_LOADING, "Item::LoadFromDB, Item GUID: %u: refund time expired, deleting refund data and removing refundable flag.", item->GetGUIDLow());
+                    item->SetContainer(NULL);
+                    item->SetSlot(slot);
+
+                    if (IsInventoryPos(INVENTORY_SLOT_BAG_0, slot))
+                    {
+                        ItemPosCountVec dest;
+                        err = CanStoreItem(INVENTORY_SLOT_BAG_0, slot, dest, item, false);
+                        if (err == EQUIP_ERR_OK)
+                            item = StoreItem(dest, item, true);
+                    }
+                    else if (IsEquipmentPos(INVENTORY_SLOT_BAG_0, slot))
+                    {
+                        uint16 dest;
+                        err = CanEquipItem(slot, dest, item, false, false);
+                        if (err == EQUIP_ERR_OK)
+                            QuickEquipItem(dest, item);
+                    }
+                    else if (IsBankPos(INVENTORY_SLOT_BAG_0, slot))
+                    {
+                        ItemPosCountVec dest;
+                        err = CanBankItem(INVENTORY_SLOT_BAG_0, slot, dest, item, false, false);
+                        if (err == EQUIP_ERR_OK)
+                            item = BankItem(dest, item, true);
+                    }
+
+                    // Remember bags that may contain items in them
+                    if (err == EQUIP_ERR_OK)
+                        if (item->IsBag() && IsBagPos(item->GetPos()))
+                            bagMap[item->GetGUIDLow()] = (Bag*)item;
+                }
+                else
+                {
+                    item->SetSlot(NULL_SLOT);
+                    // Item is in the bag, find the bag
+                    std::map<uint64, Bag*>::iterator itr = bagMap.find(bagGuid);
+                    if (itr != bagMap.end())
+                    {
+                        ItemPosCountVec dest;
+                        err = CanStoreItem(itr->second->GetSlot(), slot, dest, item);
+                        if (err == EQUIP_ERR_OK)
+                            itr->second->StoreItem(slot, item, true);
+                    }
+                }
+
+                // Item's state may have changed after storing
+                if (err == EQUIP_ERR_OK)
+                    item->SetState(ITEM_UNCHANGED, this);
+                else
+                {
+                    sLog->outError("Player::_LoadInventory: player (GUID: %u, name: '%s') has item (GUID: %u, entry: %u) which can't be loaded into inventory (Bag GUID: %u, slot: %u) by reason %u. Item will be sent by mail.",
+                        GetGUIDLow(), GetName(), item->GetGUIDLow(), item->GetEntry(), bagGuid, slot, err);
+                    item->DeleteFromInventoryDB(trans);
+                    problematicItems.push_back(item);
+                }
+            }
+        } while (result->NextRow());
+
+        m_itemUpdateQueueBlocked = false;
+
+        // Send problematic items by mail
+        while (!problematicItems.empty())
+        {
+            std::string subject = GetSession()->GetTrinityString(LANG_NOT_EQUIPPED_ITEM);
+
+            MailDraft draft(subject, "There were problems with equipping item(s).");
+            for (uint8 i = 0; !problematicItems.empty() && i < MAX_MAIL_ITEMS; ++i)
+            {
+                draft.AddItem(problematicItems.front());
+                problematicItems.pop_front();
+            }
+            draft.SendMailTo(trans, this, MailSender(this, MAIL_STATIONERY_GM), MAIL_CHECK_MASK_COPIED);
+        }
+        CharacterDatabase.CommitTransaction(trans);
+    }
+    //if (isAlive())
+    _ApplyAllItemMods();
+}
+
+Item* Player::_LoadItem(SQLTransaction& trans, uint32 zoneId, uint32 timeDiff, Field* fields)
+{
+    Item* item = NULL;
+    uint32 itemGuid  = fields[13].GetUInt32();
+    uint32 itemEntry = fields[14].GetUInt32();
+    if (ItemPrototype const * proto = ObjectMgr::GetItemPrototype(itemEntry))
+    {
+        bool remove = false;
+        item = NewItemOrBag(proto);
+        if (item->LoadFromDB(itemGuid, GetGUID(), fields, itemEntry))
+        {
+            // Do not allow to have item limited to another map/zone in alive state
+            if (isAlive() && item->IsLimitedToAnotherMapOrZone(GetMapId(), zoneId))
+            {
+                sLog->outDebug(LOG_FILTER_PLAYER_LOADING, "Player::_LoadInventory: player (GUID: %u, name: '%s', map: %u) has item (GUID: %u, entry: %u) limited to another map (%u). Deleting item.",
+                    GetGUIDLow(), GetName(), GetMapId(), item->GetGUIDLow(), item->GetEntry(), zoneId);
+                remove = true;
+            }
+            // "Conjured items disappear if you are logged out for more than 15 minutes"
+            else if (timeDiff > 15 * MINUTE && proto->Flags & ITEM_PROTO_FLAG_CONJURED)
+            {
+                sLog->outDebug(LOG_FILTER_PLAYER_LOADING, "Player::_LoadInventory: player (GUID: %u, name: '%s', diff: %u) has conjured item (GUID: %u, entry: %u) with expired lifetime (15 minutes). Deleting item.",
+                    GetGUIDLow(), GetName(), timeDiff, item->GetGUIDLow(), item->GetEntry());
+                remove = true;
+            }
+            else if (item->HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_REFUNDABLE))
+            {
+                if (item->GetPlayedTime() > (2 * HOUR))
+                {
+                    sLog->outDebug(LOG_FILTER_PLAYER_LOADING, "Player::_LoadInventory: player (GUID: %u, name: '%s') has item (GUID: %u, entry: %u) with expired refund time (%u). Deleting refund data and removing refundable flag.",
+                        GetGUIDLow(), GetName(), item->GetGUIDLow(), item->GetEntry(), item->GetPlayedTime());
                     trans->PAppend("DELETE FROM item_refund_instance WHERE item_guid = '%u'", item->GetGUIDLow());
                     item->RemoveFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_REFUNDABLE);
                 }
@@ -17167,19 +17461,18 @@ void Player::_LoadInventory(PreparedQueryResult result, uint32 timediff)
                     PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_LOAD_ITEM_REFUNDS);
                     stmt->setUInt32(0, item->GetGUIDLow());
                     stmt->setUInt32(1, GetGUIDLow());
-                    PreparedQueryResult result2 = CharacterDatabase.Query(stmt);
-                    if (!result2)
+                    if (PreparedQueryResult result = CharacterDatabase.Query(stmt))
                     {
-                        sLog->outDebug(LOG_FILTER_PLAYER_LOADING, "Item::LoadFromDB, Item GUID: %u has field flags & ITEM_FLAGS_REFUNDABLE but has no data in item_refund_instance, removing flag.", item->GetGUIDLow());
-                        item->RemoveFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_REFUNDABLE);
+                        item->SetRefundRecipient((*result)[0].GetUInt32());
+                        item->SetPaidMoney((*result)[1].GetUInt32());
+                        item->SetPaidExtendedCost((*result)[2].GetUInt16());
+                        AddRefundReference(item->GetGUIDLow());
                     }
                     else
                     {
-                        Field* fields2 = result2->Fetch();
-                        item->SetRefundRecipient(fields2[0].GetUInt32());
-                        item->SetPaidMoney(fields2[1].GetUInt32());
-                        item->SetPaidExtendedCost(fields2[2].GetUInt16());
-                        AddRefundReference(item->GetGUIDLow());
+                        sLog->outDebug(LOG_FILTER_PLAYER_LOADING, "Player::_LoadInventory: player (GUID: %u, name: '%s') has item (GUID: %u, entry: %u) with refundable flags, but without data in item_refund_instance. Removing flag.",
+                            GetGUIDLow(), GetName(), item->GetGUIDLow(), item->GetEntry());
+                        item->RemoveFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_REFUNDABLE);
                     }
                 }
             }
@@ -17187,16 +17480,9 @@ void Player::_LoadInventory(PreparedQueryResult result, uint32 timediff)
             {
                 PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_LOAD_ITEM_BOP_TRADE);
                 stmt->setUInt32(0, item->GetGUIDLow());
-                PreparedQueryResult result2 = CharacterDatabase.Query(stmt);
-                if (!result2)
+                if (PreparedQueryResult result = CharacterDatabase.Query(stmt))
                 {
-                    sLog->outDebug(LOG_FILTER_PLAYER_LOADING, "Item::LoadFromDB, Item GUID: %u has flag ITEM_FLAG_BOP_TRADEABLE but has no data in item_soulbound_trade_data, removing flag.", item->GetGUIDLow());
-                    item->RemoveFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_BOP_TRADEABLE);
-                }
-                else
-                {
-                    Field* fields2 = result2->Fetch();
-                    std::string strGUID = fields2[0].GetString();
+                    std::string strGUID = (*result)[0].GetString();
                     Tokens GUIDlist(strGUID, ' ');
                     AllowedLooterSet looters;
                     for (Tokens::iterator itr = GUIDlist.begin(); itr != GUIDlist.end(); ++itr)
@@ -17204,106 +17490,37 @@ void Player::_LoadInventory(PreparedQueryResult result, uint32 timediff)
                     item->SetSoulboundTradeable(&looters, this, true);
                     m_itemSoulboundTradeable.push_back(item);
                 }
-            }
-
-            bool success = true;
-
-            if (!bag_guid)
-            {
-                // the item is not in a bag
-                item->SetContainer(NULL);
-                item->SetSlot(slot);
-
-                if (IsInventoryPos(INVENTORY_SLOT_BAG_0, slot))
-                {
-                    ItemPosCountVec dest;
-                    if (CanStoreItem(INVENTORY_SLOT_BAG_0, slot, dest, item, false) == EQUIP_ERR_OK)
-                        item = StoreItem(dest, item, true);
-                    else
-                        success = false;
-                }
-                else if (IsEquipmentPos(INVENTORY_SLOT_BAG_0, slot))
-                {
-                    uint16 dest;
-                    if (CanEquipItem(slot, dest, item, false, false) == EQUIP_ERR_OK)
-                        QuickEquipItem(dest, item);
-                    else
-                        success = false;
-                }
-                else if (IsBankPos(INVENTORY_SLOT_BAG_0, slot))
-                {
-                    ItemPosCountVec dest;
-                    if (CanBankItem(INVENTORY_SLOT_BAG_0, slot, dest, item, false, false) == EQUIP_ERR_OK)
-                        item = BankItem(dest, item, true);
-                    else
-                        success = false;
-                }
-
-                if (success)
-                {
-                    // store bags that may contain items in them
-                    if (item->IsBag() && IsBagPos(item->GetPos()))
-                        bagMap[item_guid] = (Bag*)item;
-                }
-            }
-            else
-            {
-                item->SetSlot(NULL_SLOT);
-                // the item is in a bag, find the bag
-                std::map<uint64, Bag*>::iterator itr = bagMap.find(bag_guid);
-                if (itr != bagMap.end())
-                {
-                    ItemPosCountVec dest;
-                    uint8 result = CanStoreItem(itr->second->GetSlot(), slot, dest, item);
-                    if (result == EQUIP_ERR_OK)
-                        itr->second->StoreItem(slot, item, true);
-                    else
-                    {
-                        sLog->outError("Player::_LoadInventory: Player %s has item (GUID: %u Entry: %u) can't be loaded to inventory (Bag GUID: %u Slot: %u) by reason %u.", GetName(),item_guid, item_id, bag_guid, slot, result);
-                        success = false;
-                    }
-                }
                 else
-                    success = false;
+                {
+                    sLog->outDebug(LOG_FILTER_PLAYER_LOADING, "Player::_LoadInventory: player (GUID: %u, name: '%s') has item (GUID: %u, entry: %u) with ITEM_FLAG_BOP_TRADEABLE flag, but without data in item_soulbound_trade_data. Removing flag.",
+                        GetGUIDLow(), GetName(), item->GetGUIDLow(), item->GetEntry());
+                    item->RemoveFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_BOP_TRADEABLE);
+                }
             }
-
-            // item's state may have changed after stored
-            if (success)
-                item->SetState(ITEM_UNCHANGED, this);
-            else
-            {
-                sLog->outError("Player::_LoadInventory: Player %s has item (GUID: %u Entry: %u) can't be loaded to inventory (Bag GUID: %u Slot: %u) by some reason, will send by mail.", GetName(),item_guid, item_id, bag_guid, slot);
-                PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_INVENTORY_ITEM);
-                stmt->setUInt32(0, item_guid);
-                trans->Append(stmt);
-                problematicItems.push_back(item);
-            }
-        } while (result->NextRow());
-
-        m_itemUpdateQueueBlocked = false;
-
-        // send by mail problematic items
-        while (!problematicItems.empty())
-        {
-            std::string subject = GetSession()->GetTrinityString(LANG_NOT_EQUIPPED_ITEM);
-
-            // fill mail
-            MailDraft draft(subject, "There's were problems with equipping item(s).");
-
-            for (uint8 i = 0; !problematicItems.empty() && i < MAX_MAIL_ITEMS; ++i)
-            {
-                Item* item = problematicItems.front();
-                problematicItems.pop_front();
-
-                draft.AddItem(item);
-            }
-
-            draft.SendMailTo(trans, this, MailSender(this, MAIL_STATIONERY_GM), MAIL_CHECK_MASK_COPIED);
         }
-        CharacterDatabase.CommitTransaction(trans);
+        else
+        {
+            sLog->outError("Player::_LoadInventory: player (GUID: %u, name: '%s') has broken item (GUID: %u, entry: %u) in inventory. Deleting item.",
+                GetGUIDLow(), GetName(), itemGuid, itemEntry);
+            remove = true;
+        }
+        // Remove item from inventory if necessary
+        if (remove)
+        {
+            Item::DeleteFromInventoryDB(trans, itemGuid);
+            item->FSetState(ITEM_REMOVED);
+            item->SaveToDB(trans);                           // it also deletes item object!
+            item = NULL;
+        }
     }
-    //if (isAlive())
-    _ApplyAllItemMods();
+    else
+    {
+        sLog->outError("Player::_LoadInventory: player (GUID: %u, name: '%s') has unknown item (entry: %u) in inventory. Deleting item.",
+            GetGUIDLow(), GetName(), itemEntry);
+        Item::DeleteFromInventoryDB(trans, itemGuid);
+        Item::DeleteFromDB(trans, itemGuid);
+    }
+    return item;
 }
 
 // load mailed item which should receive current player
@@ -22090,119 +22307,9 @@ bool Player::GetsRecruitAFriendBonus(bool forXP)
     return recruitAFriend;
 }
 
-bool Player::RewardPlayerAndGroupAtKill(Unit* pVictim)
+void Player::RewardPlayerAndGroupAtKill(Unit* pVictim, bool isBattleGround)
 {
-    bool PvP = pVictim->isCharmedOwnedByPlayerOrPlayer();
-
-    // prepare data for near group iteration (PvP and !PvP cases)
-    uint32 xp = 0;
-    bool honored_kill = false;
-
-    if (Group *pGroup = GetGroup())
-    {
-        uint32 count = 0;
-        uint32 sum_level = 0;
-        Player* member_with_max_level = NULL;
-        Player* not_gray_member_with_max_level = NULL;
-
-        pGroup->GetDataForXPAtKill(pVictim,count,sum_level,member_with_max_level,not_gray_member_with_max_level);
-
-        if (member_with_max_level)
-        {
-            // PvP kills doesn't yield experience
-            // also no XP gained if there is no member below gray level
-            xp = (PvP || !not_gray_member_with_max_level || GetVehicle()) ? 0 : Trinity::XP::Gain(not_gray_member_with_max_level, pVictim);
-
-            /// skip in check PvP case (for speed, not used)
-            bool is_raid = PvP ? false : sMapStore.LookupEntry(GetMapId())->IsRaid() && pGroup->isRaidGroup();
-            bool is_dungeon = PvP ? false : sMapStore.LookupEntry(GetMapId())->IsDungeon();
-            float group_rate = Trinity::XP::xp_in_group_rate(count,is_raid);
-
-            for (GroupReference *itr = pGroup->GetFirstMember(); itr != NULL; itr = itr->next())
-            {
-                Player* pGroupGuy = itr->getSource();
-                if (!pGroupGuy)
-                    continue;
-
-                if (!pGroupGuy->IsAtGroupRewardDistance(pVictim))
-                    continue;                               // member (alive or dead) or his corpse at req. distance
-
-                // honor can be in PvP and !PvP (racial leader) cases (for alive)
-                if (pGroupGuy->isAlive() && pGroupGuy->RewardHonor(pVictim, count, -1, true) && pGroupGuy == this)
-                    honored_kill = true;
-
-                // xp and reputation only in !PvP case
-                if (!PvP)
-                {
-                    float rate = group_rate * float(pGroupGuy->getLevel()) / sum_level;
-
-                    // if is in dungeon then all receive full reputation at kill
-                    // rewarded any alive/dead/near_corpse group member
-                    pGroupGuy->RewardReputation(pVictim,is_dungeon ? 1.0f : rate);
-
-                    // XP updated only for alive group member
-                    if (pGroupGuy->isAlive() && not_gray_member_with_max_level &&
-                       pGroupGuy->getLevel() <= not_gray_member_with_max_level->getLevel())
-                    {
-                        uint32 itr_xp = (member_with_max_level == not_gray_member_with_max_level) ? uint32(xp * rate) : uint32((xp * rate / 2) + 1);
-
-                        // handle SPELL_AURA_MOD_XP_PCT auras
-                        Unit::AuraEffectList const& ModXPPctAuras = GetAuraEffectsByType(SPELL_AURA_MOD_XP_PCT);
-                        for (Unit::AuraEffectList::const_iterator i = ModXPPctAuras.begin(); i != ModXPPctAuras.end(); ++i)
-                            AddPctN(itr_xp, (*i)->GetAmount());
-
-                        pGroupGuy->GiveXP(itr_xp, pVictim, group_rate);
-                        if (Pet* pet = pGroupGuy->GetPet())
-                            pet->GivePetXP(itr_xp / 2);
-                    }
-
-                    // quest objectives updated only for alive group member or dead but with not released body
-                    if (pGroupGuy->isAlive()|| !pGroupGuy->GetCorpse())
-                    {
-                        // normal creature (not pet/etc) can be only in !PvP case
-                        if (pVictim->GetTypeId() == TYPEID_UNIT)
-                            pGroupGuy->KilledMonster(pVictim->ToCreature()->GetCreatureInfo(), pVictim->GetGUID());
-                    }
-                }
-            }
-        }
-    }
-    else                                                    // if (!pGroup)
-    {
-        xp = (PvP || GetVehicle()) ? 0 : Trinity::XP::Gain(this, pVictim);
-
-        // honor can be in PvP and !PvP (racial leader) cases
-        if (RewardHonor(pVictim, 1, -1, true))
-            honored_kill = true;
-
-        // xp and reputation only in !PvP case
-        if (!PvP)
-        {
-            RewardReputation(pVictim,1);
-
-            // handle SPELL_AURA_MOD_XP_PCT auras
-            Unit::AuraEffectList const& ModXPPctAuras = GetAuraEffectsByType(SPELL_AURA_MOD_XP_PCT);
-            for (Unit::AuraEffectList::const_iterator i = ModXPPctAuras.begin(); i != ModXPPctAuras.end(); ++i)
-                AddPctN(xp, (*i)->GetAmount());
-
-            GiveXP(xp, pVictim);
-
-            if (Pet* pet = GetPet())
-                pet->GivePetXP(xp);
-
-            // normal creature (not pet/etc) can be only in !PvP case
-            if (pVictim->GetTypeId() == TYPEID_UNIT)
-                KilledMonster(pVictim->ToCreature()->GetCreatureInfo(), pVictim->GetGUID());
-        }
-    }
-
-    // Credit encounter in instance
-    if (Creature* victim = pVictim->ToCreature())
-        if (victim->IsDungeonBoss())
-            if (InstanceScript* instance = pVictim->GetInstanceScript())
-                instance->UpdateEncounterState(ENCOUNTER_CREDIT_KILL_CREATURE, pVictim->GetEntry(), pVictim);
-
-    return xp || honored_kill;
+    KillRewarder(this, pVictim, isBattleGround).Reward();
 }
 
 void Player::RewardPlayerAndGroupAtEvent(uint32 creature_id, WorldObject* pRewardSource)

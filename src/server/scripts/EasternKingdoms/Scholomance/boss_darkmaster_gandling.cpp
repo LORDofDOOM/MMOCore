@@ -23,193 +23,209 @@ SDComment: Doors missing in instance script.
 SDCategory: Scholomance
 EndScriptData */
 
-#include "ObjectMgr.h"
-#include "ScriptMgr.h"
-#include "ScriptedCreature.h"
+#include "ScriptPCH.h"
 #include "scholomance.h"
 
-enum eSpells
-{
-    SPELL_ARCANE_MISSILES       = 15790,
-    SPELL_SHADOW_SHIELD         = 12040,
-    SPELL_CURSE                 = 18702,
-    SPELL_SHADOW_PORTAL         = 17950  // TODO implement this spell
-};
+#define SPELL_ARCANEMISSILES           22272
+#define SPELL_SHADOWSHIELD             22417                //Not right ID. But 12040 is wrong either.
+#define SPELL_CURSE                    18702
 
-enum eEvents
-{
-    EVENT_ARCANE_MISSILES       = 1,
-    EVENT_SHADOW_SHIELD         = 2,
-    EVENT_CURSE                 = 3,
-    EVENT_TELEPORT              = 4,
-};
+#define ADD_1X 170.205f
+#define ADD_1Y 99.413f
+#define ADD_1Z 104.733f
+#define ADD_1O 3.16f
+
+#define ADD_2X 170.813f
+#define ADD_2Y 97.857f
+#define ADD_2Z 104.713f
+#define ADD_2O 3.16f
+
+#define ADD_3X 170.720f
+#define ADD_3Y 100.900f
+#define ADD_3Z 104.739f
+#define ADD_3O 3.16f
+
+#define ADD_4X 171.866f
+#define ADD_4Y 99.373f
+#define ADD_4Z 104.732f
+#define ADD_4O 3.16f
 
 class boss_darkmaster_gandling : public CreatureScript
 {
-    public:
-        boss_darkmaster_gandling() : CreatureScript("boss_darkmaster_gandling") { }
+public:
+    boss_darkmaster_gandling() : CreatureScript("boss_darkmaster_gandling") { }
 
-        struct boss_darkmaster_gandlingAI : public BossAI
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new boss_darkmaster_gandlingAI (pCreature);
+    }
+
+    struct boss_darkmaster_gandlingAI : public ScriptedAI
+    {
+        boss_darkmaster_gandlingAI(Creature *c) : ScriptedAI(c)
         {
-            boss_darkmaster_gandlingAI(Creature *creature) : BossAI(creature, TYPE_GANDLING) { }
-
-            void InitializeAI()
-            {
-                if (!instance || static_cast<InstanceMap*>(me->GetMap())->GetScriptId() != GetScriptId(ScholomanceScriptName))
-                    me->IsAIEnabled = false;
-                else if (!me->isDead())
-                    Reset();
-            }
-
-            void Reset()
-            {
-                events.Reset();
-                events.ScheduleEvent(EVENT_ARCANE_MISSILES, 4500);
-                events.ScheduleEvent(EVENT_SHADOW_SHIELD, 12000);
-                events.ScheduleEvent(EVENT_CURSE, 2000);
-                events.ScheduleEvent(EVENT_TELEPORT, 16000);
-            }
-
-            void UpdateAI(const uint32 diff)
-            {
-                if (!UpdateVictim())
-                    return;
-                
-                events.Update(diff);
-                
-                if (me->HasUnitState(UNIT_STAT_CASTING))
-                    return;
-
-                while (uint32 eventId = events.ExecuteEvent())
-                {
-                    switch (eventId)
-                    {
-                        case EVENT_ARCANE_MISSILES:
-                            DoCastVictim(SPELL_ARCANE_MISSILES);
-                            events.ScheduleEvent(EVENT_ARCANE_MISSILES, 8000);
-                            break;
-                        case EVENT_SHADOW_SHIELD:
-                            DoCast(me, SPELL_SHADOW_SHIELD);
-                            events.ScheduleEvent(EVENT_SHADOW_SHIELD, urand(14000, 28000));
-                            break;
-                        case EVENT_CURSE:
-                            DoCastVictim(SPELL_CURSE);
-                            events.ScheduleEvent(EVENT_CURSE, urand(15000, 27000));
-                            break;
-                        case EVENT_TELEPORT:
-                            // Teleporting Random Target to one of the six pre boss rooms and spawn 3-4 skeletons near the gamer.
-                            // We will only telport if gandling has more than 3% of hp so teleported gamers can always loot.
-                            if (HealthAbovePct(3))
-                            {
-                                Unit* unit = SelectUnit(SELECT_TARGET_RANDOM, 0);
-                                if (unit && unit->GetTypeId() == TYPEID_PLAYER)
-                                {
-                                    if (DoGetThreat(unit))
-                                        DoModifyThreatPercent(unit, -100);
-
-                                    Creature *Summoned = NULL;
-                                    switch(rand()%6)
-                                    {
-                                        case 0:
-                                            DoTeleportPlayer(unit, 250.0696f, 0.3921f, 84.8408f, 3.149f);
-                                            Summoned = me->SummonCreature(16119, 254.2325f, 0.3417f, 84.8407f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            Summoned = me->SummonCreature(16119, 257.7133f, 4.0226f, 84.8407f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            Summoned = me->SummonCreature(16119, 258.6702f, -2.60656f, 84.8407f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            break;
-                                        case 1:
-                                            DoTeleportPlayer(unit, 181.4220f, -91.9481f, 84.8410f, 1.608f);
-                                            Summoned = me->SummonCreature(16119, 184.0519f, -73.5649f, 84.8407f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            Summoned = me->SummonCreature(16119, 179.5951f, -73.7045f, 84.8407f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            Summoned = me->SummonCreature(16119, 180.6452f, -78.2143f, 84.8407f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            Summoned = me->SummonCreature(16119, 283.2274f, -78.1518f, 84.8407f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            break;
-                                        case 2:
-                                            DoTeleportPlayer(unit, 95.1547f, -1.8173f, 85.2289f, 0.043f);
-                                            Summoned = me->SummonCreature(16119, 100.9404f, -1.8016f, 85.2289f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            Summoned = me->SummonCreature(16119, 101.3729f, 0.4882f, 85.2289f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            Summoned = me->SummonCreature(16119, 101.4596f, -4.4740f, 85.2289f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            break;
-                                        case 3:
-                                            DoTeleportPlayer(unit, 250.0696f, 0.3921f, 72.6722f, 3.149f);
-                                            Summoned = me->SummonCreature(16119, 240.34481f, 0.7368f, 72.6722f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            Summoned = me->SummonCreature(16119, 240.3633f, -2.9520f, 72.6722f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            Summoned = me->SummonCreature(16119, 240.6702f, 3.34949f, 72.6722f,0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            break;
-                                        case 4:
-                                            DoTeleportPlayer(unit, 181.4220f, -91.9481f, 70.7734f, 1.608f);
-                                            Summoned = me->SummonCreature(16119, 184.0519f, -73.5649f, 70.7734f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            Summoned = me->SummonCreature(16119, 179.5951f, -73.7045f, 70.7734f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            Summoned = me->SummonCreature(16119, 180.6452f, -78.2143f, 70.7734f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            Summoned = me->SummonCreature(16119, 283.2274f, -78.1518f, 70.7734f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            break;
-                                        case 5:
-                                            DoTeleportPlayer(unit, 106.1541f, -1.8994f, 75.3663f, 0.043f);
-                                            Summoned = me->SummonCreature(16119, 115.3945f, -1.5555f, 75.3663f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            Summoned = me->SummonCreature(16119, 257.7133f,1.8066f, 75.3663f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            Summoned = me->SummonCreature(16119, 258.6702f,-5.1001f, 75.3663f, 0, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 10000);
-                                            if (Summoned)
-                                                Summoned->AI()->AttackStart(unit);
-                                            break;
-                                    }
-                                }
-                                events.ScheduleEvent(EVENT_TELEPORT, urand(20000, 35000));
-                            }
-                            break;
-                    }
-                }
-
-                DoMeleeAttackIfReady();
-            }
-            
-        private:
-            InstanceScript* instance;
-        };
-    
-        CreatureAI* GetAI(Creature* creature) const
-        {
-            return new boss_darkmaster_gandlingAI (creature);
+            pInstance = me->GetInstanceScript();
         }
+
+        InstanceScript* pInstance;
+
+        uint32 ArcaneMissiles_Timer;
+        uint32 ShadowShield_Timer;
+        uint32 Curse_Timer;
+        uint32 Teleport_Timer;
+
+        void Reset()
+        {
+            ArcaneMissiles_Timer = 4500;
+            ShadowShield_Timer = 12000;
+            Curse_Timer = 2000;
+            Teleport_Timer = 16000;
+        }
+
+        void EnterCombat(Unit * /*who*/)
+        {
+        }
+
+        void JustDied(Unit * /*killer*/)
+        {
+            if (pInstance)
+                pInstance->SetData(TYPE_GANDLING, DONE);
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
+            if (!UpdateVictim())
+                return;
+
+            //ArcaneMissiles_Timer
+            if (ArcaneMissiles_Timer <= diff)
+            {
+                DoCast(me->getVictim(), SPELL_ARCANEMISSILES);
+                ArcaneMissiles_Timer = 8000;
+            } else ArcaneMissiles_Timer -= diff;
+
+            //ShadowShield_Timer
+            if (ShadowShield_Timer <= diff)
+            {
+                DoCast(me, SPELL_SHADOWSHIELD);
+                ShadowShield_Timer = 14000 + rand()%14000;
+            } else ShadowShield_Timer -= diff;
+
+            //Curse_Timer
+            if (Curse_Timer <= diff)
+            {
+                DoCast(me->getVictim(), SPELL_CURSE);
+                Curse_Timer = 15000 + rand()%12000;
+            } else Curse_Timer -= diff;
+
+            //Teleporting Random Target to one of the six pre boss rooms and spawn 3-4 skeletons near the gamer.
+            //We will only telport if gandling has more than 3% of hp so teleported gamers can always loot.
+            if (HealthAbovePct(3))
+            {
+                if (Teleport_Timer <= diff)
+                {
+                    Unit *pTarget = NULL;
+                    pTarget = SelectTarget(SELECT_TARGET_RANDOM,0);
+                    if (pTarget && pTarget->GetTypeId() == TYPEID_PLAYER)
+                    {
+                        if (DoGetThreat(pTarget))
+                            DoModifyThreatPercent(pTarget, -100);
+
+                        Creature *Summoned = NULL;
+                        switch(rand()%6)
+                        {
+                            case 0:
+                                DoTeleportPlayer(pTarget, 250.0696f,0.3921f,84.8408f,3.149f);
+                                Summoned = me->SummonCreature(16119,254.2325f,0.3417f,84.8407f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                Summoned = me->SummonCreature(16119,257.7133f,4.0226f,84.8407f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                Summoned = me->SummonCreature(16119,258.6702f,-2.60656f,84.8407f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                break;
+                            case 1:
+                                DoTeleportPlayer(pTarget, 181.4220f,-91.9481f,84.8410f,1.608f);
+                                Summoned = me->SummonCreature(16119,184.0519f,-73.5649f,84.8407f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                Summoned = me->SummonCreature(16119,179.5951f,-73.7045f,84.8407f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                Summoned = me->SummonCreature(16119,180.6452f,-78.2143f,84.8407f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                Summoned = me->SummonCreature(16119,283.2274f,-78.1518f,84.8407f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                break;
+                            case 2:
+                                DoTeleportPlayer(pTarget, 95.1547f,-1.8173f,85.2289f,0.043f);
+                                Summoned = me->SummonCreature(16119,100.9404f,-1.8016f,85.2289f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                Summoned = me->SummonCreature(16119,101.3729f,0.4882f,85.2289f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                Summoned = me->SummonCreature(16119,101.4596f,-4.4740f,85.2289f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                break;
+                            case 3:
+                                DoTeleportPlayer(pTarget, 250.0696f,0.3921f,72.6722f,3.149f);
+                                Summoned = me->SummonCreature(16119,240.34481f,0.7368f,72.6722f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                Summoned = me->SummonCreature(16119,240.3633f,-2.9520f,72.6722f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                Summoned = me->SummonCreature(16119,240.6702f,3.34949f,72.6722f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                break;
+                            case 4:
+                                DoTeleportPlayer(pTarget, 181.4220f,-91.9481f,70.7734f,1.608f);
+                                Summoned = me->SummonCreature(16119,184.0519f,-73.5649f,70.7734f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                Summoned = me->SummonCreature(16119,179.5951f,-73.7045f,70.7734f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                Summoned = me->SummonCreature(16119,180.6452f,-78.2143f,70.7734f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                Summoned = me->SummonCreature(16119,283.2274f,-78.1518f,70.7734f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                break;
+                            case 5:
+                                DoTeleportPlayer(pTarget, 106.1541f,-1.8994f,75.3663f,0.043f);
+                                Summoned = me->SummonCreature(16119,115.3945f,-1.5555f,75.3663f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                Summoned = me->SummonCreature(16119,257.7133f,1.8066f,75.3663f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                Summoned = me->SummonCreature(16119,258.6702f,-5.1001f,75.3663f,0,TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT,10000);
+                                if (Summoned)
+                                    Summoned->AI()->AttackStart(pTarget);
+                                break;
+                        }
+                    }
+                    Teleport_Timer = 20000 + rand()%15000;
+                } else Teleport_Timer -= diff;
+            }
+
+            DoMeleeAttackIfReady();
+        }
+    };
+
 };
 
 void AddSC_boss_darkmaster_gandling()
 {
     new boss_darkmaster_gandling();
 }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
