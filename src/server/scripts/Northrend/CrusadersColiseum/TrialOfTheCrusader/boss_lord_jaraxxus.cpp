@@ -1,5 +1,7 @@
 /*
- * Copyright (C) 2008 - 2010 Trinity <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2006-2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation; either version 2 of the License, or (at your
@@ -14,545 +16,548 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* ScriptData
+SDName: trial_of_the_crusader
+SD%Complete: ??%
+SDComment: based on /dev/rsa
+SDCategory: Crusader Coliseum
+EndScriptData */
+
+// Known bugs:
+// Some visuals aren't appearing right sometimes
+
 #include "ScriptPCH.h"
 #include "trial_of_the_crusader.h"
 
-enum Spells
+enum Yells
 {
-    BUFF                = 67108,
-    FELL_LIGHTING       = 67888,
-    BERSERK             = 64238,
-    TOUCH               = 66209,
-
-    FEL_FIREBALL_10N    = 66532,
-    FEL_FIREBALL_10H    = 66964,
-    FEL_FIREBALL_25N    = 66963,
-    FEL_FIREBALL_25H    = 66965,
-
-    FEL_LIGHTING_10N    = 66528,
-    FEL_LIGHTING_10H    = 67030,
-    FEL_LIGHTING_25N    = 67029,
-    FEL_LIGHTING_25H    = 67031,
-
-    INICIRATE_10N       = 66237,
-    INICIRATE_10H       = 67050,
-    INICIRATE_25N       = 67049,
-    INICIRATE_25H       = 67051,
-
-    ERRUPTION_10N       = 66258,
-    ERRUPTION_10H       = 67902,
-    ERRUPTION_25N       = 67901,
-    ERRUPTION_25H       = 67903,
-
-    LEGION_FLAME_10N    = 66197,
-    LEGION_FLAME_10H    = 68124,
-    LEGION_FLAME_25N    = 68123,
-    LEGION_FLAME_25H    = 68125,
-
-    PORTAL_10N          = 66269,
-    PORTAL_10H          = 67899,
-    PORTAL_25N          = 67898,
-    PORTAL_25H          = 67900
+    SAY_INTRO               = -1649030,
+    SAY_AGGRO               = -1649031,
+    SAY_DEATH               = -1649032,
+    EMOTE_INCINERATE        = -1649033,
+    SAY_INCINERATE          = -1649034,
+    EMOTE_LEGION_FLAME      = -1649035,
+    EMOTE_NETHER_PORTAL     = -1649036,
+    SAY_NETHER_PORTAL       = -1649037,
+    EMOTE_INFERNAL_ERUPTION = -1649038,
+    SAY_INFERNAL_ERUPTION   = -1649039,
 };
 
-enum Says
+enum Equipment
 {
-    SAY_AGGRO           = -1760014,
-    SAY_INICIRATE       = -1760015,
-    SAY_INICIRATE_EMOTE = -1760016,
-    SAY_SISTER          = -1760017,
-    SAY_INFERNUS        = -1760018,
-    SAY_KILLING1        = -1760019,
-    SAY_KILLING2        = -1760020,
-    SAY_DEATH           = -1760021
+    EQUIP_MAIN           = 47266,
+    EQUIP_OFFHAND        = 46996,
+    EQUIP_RANGED         = 47267,
+    EQUIP_DONE           = EQUIP_NO_CHANGE,
 };
 
-
-enum Events
+enum Summons
 {
-    EVENT_NULL,
-
-    EVENT_INICIRATE_FLESH,
-    EVENT_BUFF,
-    EVENT_FEL_FIREBALL,
-    EVENT_FEL_LIGHTING,
-    EVENT_TOUCH_OF_JARAXXUS,
-    EVENT_LEGION_FLAME,
-    EVENT_SUMMON_P,
-    EVENT_SUMMON_V
+    NPC_LEGION_FLAME     = 34784,
+    NPC_INFERNAL_VOLCANO = 34813,
+    NPC_FEL_INFERNAL     = 34815,
+    NPC_NETHER_PORTAL    = 34825,
+    NPC_MISTRESS_OF_PAIN = 34826,
 };
 
-#define SAY_KILLING         RAND(SAY_KILLING1, SAY_KILLING2)
+enum BossSpells
+{
+    SPELL_NETHER_POWER          = 67108,
+    SPELL_INFERNAL              = 66258,
+    SPELL_INFERNAL_ERUPTION     = 66255,
+    SPELL_FEL_FIREBALL          = 66532,
+    SPELL_FEL_LIGHTING          = 66528,
+    SPELL_INCINERATE_FLESH      = 66237,
+    SPELL_TOUCH_OF_JARAXXUS     = 66209,
+    SPELL_BURNING_INFERNO       = 66242,
+    SPELL_NETHER_PORTAL         = 66263,
+    SPELL_LEGION_FLAME          = 66197,
+    SPELL_LEGION_FLAME_EFFECT   = 66201,
+    SPELL_SHIVAN_SLASH          = 67098,
+    SPELL_SPINNING_STRIKE       = 66283,
+    SPELL_MISTRESS_KISS         = 67077,
+    SPELL_FEL_INFERNO           = 67047,
+    SPELL_FEL_STREAK            = 66494,
+    SPELL_BERSERK               = 64238,
+};
 
-#define Inicirate_Timer         urand(25000, 35000)
-#define Buff_Timer              urand(40000, 45000)
-#define Summon_Timer            urand(30000, 45000)
-#define LegionFlame_Timer       urand(20000, 30000)
-#define FelFireball_Timer       10000
-#define FelLighting_Timer       22000
-#define Touch_Timer             urand(27000, 30000)
+/*######
+## boss_jaraxxus
+######*/
 
-
-class boss_lord_jaraxxus : public CreatureScript
+class boss_jaraxxus : public CreatureScript
 {
 public:
-    boss_lord_jaraxxus() : CreatureScript("boss_lord_jaraxxus") { }
+    boss_jaraxxus() : CreatureScript("boss_jaraxxus") { }
 
-    CreatureAI* GetAI(Creature* creature) const
+    CreatureAI* GetAI(Creature* pCreature) const
     {
-        return new boss_lord_jaraxxusAI(creature);
+        return new boss_jaraxxusAI(pCreature);
     }
 
-    struct boss_lord_jaraxxusAI : public BossAI
+    struct boss_jaraxxusAI : public ScriptedAI
     {
-        boss_lord_jaraxxusAI(Creature* creature) : BossAI(creature, DATA_LORD_JARAXXUS)
+        boss_jaraxxusAI(Creature* pCreature) : ScriptedAI(pCreature), Summons(me)
         {
+            m_pInstance = pCreature->GetInstanceScript();
+            Reset();
         }
+
+        InstanceScript* m_pInstance;
+
+        SummonList Summons;
+
+        uint32 m_uiFelFireballTimer;
+        uint32 m_uiFelLightningTimer;
+        uint32 m_uiIncinerateFleshTimer;
+        uint32 m_uiNetherPowerTimer;
+        uint32 m_uiLegionFlameTimer;
+        uint32 m_uiTouchOfJaraxxusTimer;
+        uint32 m_uiSummonNetherPortalTimer;
+        uint32 m_uiSummonInfernalEruptionTimer;
 
         void Reset()
         {
-            _Reset();
-        }
-
-        void EnterCombat(Unit* who)
-        {
-            if (who->GetTypeId() != TYPEID_PLAYER)
-            {
-                _EnterCombat();
-                return;
-            }
-
-            events.ScheduleEvent(EVENT_INICIRATE_FLESH, Inicirate_Timer);
-            events.ScheduleEvent(EVENT_BUFF, Buff_Timer);
-            events.ScheduleEvent(EVENT_FEL_FIREBALL, FelFireball_Timer);
-            events.ScheduleEvent(EVENT_FEL_LIGHTING, FelLighting_Timer);
-            events.ScheduleEvent(EVENT_LEGION_FLAME, LegionFlame_Timer);
-            events.ScheduleEvent(EVENT_SUMMON_V, Summon_Timer-urand(15000, 20000));
-            events.ScheduleEvent(EVENT_SUMMON_P, Summon_Timer-urand(15000, 20000));
-            if (getDifficulty() == RAID_DIFFICULTY_10MAN_HEROIC || getDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC)
-                events.ScheduleEvent(EVENT_TOUCH_OF_JARAXXUS, Touch_Timer);
-
-            if (Aura* aura = me->AddAura(BUFF, me))
-                aura->ModStackAmount(RAID_MODE(5, 10, 5, 10));
-
-            DoScriptText(SAY_AGGRO, me);
-        }
-
-        void KilledUnit(Unit* who)
-        {
-            if (who->GetTypeId() == TYPEID_PLAYER)
-            {
-                DoScriptText(SAY_KILLING, me);
-                instance->SetData(UPDATE_DEATHS_COUNT, 0);
-            }
-        }
-
-        void JustDied(Unit* who)
-        {
-            _JustDied();
-            DoScriptText(SAY_DEATH, me);
+            if (m_pInstance)
+                m_pInstance->SetData(TYPE_JARAXXUS, NOT_STARTED);
+            SetEquipmentSlots(false, EQUIP_MAIN, EQUIP_OFFHAND, EQUIP_RANGED);
+            m_uiFelFireballTimer = 5*IN_MILLISECONDS;
+            m_uiFelLightningTimer = urand(10*IN_MILLISECONDS, 15*IN_MILLISECONDS);
+            m_uiIncinerateFleshTimer = urand(20*IN_MILLISECONDS, 25*IN_MILLISECONDS);
+            m_uiNetherPowerTimer = 40*IN_MILLISECONDS;
+            m_uiLegionFlameTimer = 30*IN_MILLISECONDS;
+            m_uiTouchOfJaraxxusTimer = urand(10*IN_MILLISECONDS, 15*IN_MILLISECONDS);
+            m_uiSummonNetherPortalTimer = 1*MINUTE*IN_MILLISECONDS;
+            m_uiSummonInfernalEruptionTimer = 2*MINUTE*IN_MILLISECONDS;
+            Summons.DespawnAll();
         }
 
         void JustReachedHome()
         {
-            instance->SetData(RESET_TO_FIGHT, DATA_LORD_JARAXXUS);
+            if (m_pInstance)
+                m_pInstance->SetData(TYPE_JARAXXUS, FAIL);
+            DoCast(me, SPELL_JARAXXUS_CHAINS);
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            me->SetReactState(REACT_PASSIVE);
         }
 
+        void KilledUnit(Unit *pWho)
+        {
+            if (pWho->GetTypeId() == TYPEID_PLAYER)
+            {
+                if (m_pInstance)
+                    m_pInstance->SetData(DATA_TRIBUTE_TO_IMMORTALITY_ELEGIBLE, 0);
+            }
+        }
 
-        void UpdateAI(const uint32 diff)
+        void JustDied(Unit* /*pKiller*/)
+        {
+            Summons.DespawnAll();
+            DoScriptText(SAY_DEATH, me);
+            if (m_pInstance)
+                m_pInstance->SetData(TYPE_JARAXXUS, DONE);
+        }
+
+        void JustSummoned(Creature* pSummoned)
+        {
+            Summons.Summon(pSummoned);
+        }
+
+        void EnterCombat(Unit* /*pWho*/)
+        {
+            me->SetInCombatWithZone();
+            if (m_pInstance)
+                m_pInstance->SetData(TYPE_JARAXXUS, IN_PROGRESS);
+            DoScriptText(SAY_AGGRO, me);
+        }
+
+        void UpdateAI(const uint32 uiDiff)
         {
             if (!UpdateVictim())
                 return;
 
-            if (!me->IsNonMeleeSpellCasted(true))
-                me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_INTERRUPT_CAST, true);
-
-            if (!me->IsNonMeleeSpellCasted(true))
-                events.Update(diff);
-
-            while (uint32 id = events.GetEvent())
+            if (m_uiSummonInfernalEruptionTimer <= uiDiff)
             {
-                switch (id)
+                DoScriptText(EMOTE_INFERNAL_ERUPTION, me);
+                DoScriptText(SAY_INFERNAL_ERUPTION, me);
+                uint8 i = urand(2, 3);
+                me->SummonCreature(NPC_INFERNAL_VOLCANO, JaraxxusLoc[i].GetPositionX(), JaraxxusLoc[i].GetPositionY(), JaraxxusLoc[i].GetPositionZ(), TEMPSUMMON_CORPSE_DESPAWN);
+                m_uiSummonInfernalEruptionTimer = 2*MINUTE*IN_MILLISECONDS;
+            } else m_uiSummonInfernalEruptionTimer -= uiDiff;
+
+            if (m_uiSummonNetherPortalTimer <= uiDiff)
+            {
+                DoScriptText(EMOTE_NETHER_PORTAL, me);
+                DoScriptText(SAY_NETHER_PORTAL, me);
+                uint8 i = urand(2, 3);
+                me->SummonCreature(NPC_NETHER_PORTAL, JaraxxusLoc[i].GetPositionX(), JaraxxusLoc[i].GetPositionY(), JaraxxusLoc[i].GetPositionZ(), TEMPSUMMON_CORPSE_DESPAWN);
+                m_uiSummonNetherPortalTimer = 2*MINUTE*IN_MILLISECONDS;
+            } else m_uiSummonNetherPortalTimer -= uiDiff;
+
+            if (m_uiFelFireballTimer <= uiDiff)
+            {
+                DoCastVictim(SPELL_FEL_FIREBALL);
+                m_uiFelFireballTimer = urand(10*IN_MILLISECONDS, 15*IN_MILLISECONDS);
+            } else m_uiFelFireballTimer -= uiDiff;
+
+            if (m_uiFelLightningTimer <= uiDiff)
+            {
+                if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM))
+                    DoCast(pTarget, SPELL_FEL_LIGHTING);
+                m_uiFelLightningTimer = urand(10*IN_MILLISECONDS, 15*IN_MILLISECONDS);
+            } else m_uiFelLightningTimer -= uiDiff;
+
+            if (m_uiIncinerateFleshTimer <= uiDiff)
+            {
+                if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 1, 0, true))
                 {
-                case EVENT_BUFF:
-                    if (Aura* aura = me->GetAura(BUFF))
-                        aura->ModStackAmount(aura->GetStackAmount()+RAID_MODE(5, 10, 5, 10));
-                    else if (Aura* aura = me->AddAura(BUFF, me))
-                        aura->ModStackAmount(RAID_MODE(5, 10, 5, 10));
-
-                    events.RepeatEvent(Buff_Timer);
-                    break;
-
-                case EVENT_FEL_FIREBALL:
-                    me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_INTERRUPT_CAST, false);
-                    DoCast(me->getVictim(), RAID_MODE(FEL_FIREBALL_10N, FEL_FIREBALL_25N, FEL_FIREBALL_10H, FEL_FIREBALL_25H));
-                    events.RepeatEvent(FelFireball_Timer);
-                    break;
-
-                case EVENT_FEL_LIGHTING:
-                    DoCast(SelectUnit(SELECT_TARGET_RANDOM, 0), RAID_MODE(FEL_LIGHTING_10N, FEL_LIGHTING_25N, FEL_LIGHTING_10H, FEL_LIGHTING_25H));
-                    events.RepeatEvent(FelLighting_Timer);
-                    break;
-
-                case EVENT_INICIRATE_FLESH:
-                    DoScriptText(SAY_INICIRATE, me);
-                    if (Unit* target = SelectUnit(SELECT_TARGET_RANDOM, 0))
-                    {
-                        DoCast(target, RAID_MODE(INICIRATE_10N, INICIRATE_25N, INICIRATE_10H, INICIRATE_25H));
-                        DoScriptText(SAY_INICIRATE_EMOTE, me, target);
-                    }
-                    events.RepeatEvent(Inicirate_Timer);
-                    break;
-
-                case EVENT_LEGION_FLAME:
-                    DoCast(SelectUnit(SELECT_TARGET_RANDOM, 0), RAID_MODE(LEGION_FLAME_10N, LEGION_FLAME_25N, LEGION_FLAME_10H, LEGION_FLAME_25H));
-                    events.RepeatEvent(LegionFlame_Timer);
-                    break;
-
-                case EVENT_SUMMON_V:
-                    DoErruptionEvent();
-                    events.RescheduleEvent(EVENT_SUMMON_P, Summon_Timer-10000);
-                    events.RepeatEvent(Summon_Timer);
-                    break;
-
-                case EVENT_SUMMON_P:
-                    DoPortalEvent();
-                    events.RescheduleEvent(EVENT_SUMMON_V, Summon_Timer-10000);
-                    events.RepeatEvent(Summon_Timer);
-                    break;
-
-                case EVENT_TOUCH_OF_JARAXXUS:
-                    DoCast(SelectUnit(SELECT_TARGET_RANDOM, 0), TOUCH);
-                    events.RepeatEvent(Touch_Timer);
-                    break;
-
-                default:
-                    events.PopEvent();
+                    DoScriptText(EMOTE_INCINERATE, me, pTarget);
+                    DoScriptText(SAY_INCINERATE, me);
+                    DoCast(pTarget, SPELL_INCINERATE_FLESH);
                 }
-            }
+                m_uiIncinerateFleshTimer = urand(20*IN_MILLISECONDS, 25*IN_MILLISECONDS);
+            } else m_uiIncinerateFleshTimer -= uiDiff;
 
-
-            DoMeleeAttackIfReady();
-        }
-
-
-        void DoErruptionEvent()
-        {
-            DoScriptText(SAY_INFERNUS, me);
-            float x = 0, y = 0, z = 0;
-            SelectUnit(SELECT_TARGET_RANDOM, 0)->GetClosePoint(x, y, z, 1, 20);
-            if (x && y && z)
-                me->CastSpell(x, y, z, RAID_MODE(ERRUPTION_10N, ERRUPTION_25N, ERRUPTION_10H, ERRUPTION_25H), false);//summon vulcan
-        }
-
-        void DoPortalEvent()
-        {
-            DoScriptText(SAY_SISTER, me);
-            float x = 0, y = 0, z = 0;
-
-            SelectUnit(SELECT_TARGET_RANDOM, 0)->GetClosePoint(x, y, z, 1, 20);
-            if (x && y && z)
-                me->CastSpell(x, y, z, RAID_MODE(PORTAL_10N, PORTAL_25N, PORTAL_10H, PORTAL_25H), false);//summon portal
-        }
-    };
-
-};
-
-
-
-class mob_jaraxxus_portal : public CreatureScript
-{
-public:
-    mob_jaraxxus_portal() : CreatureScript("mob_jaraxxus_portal") { }
-
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new mob_jaraxxus_portalAI(creature);
-    }
-
-    struct mob_jaraxxus_portalAI : public ScriptedAI
-    {
-        mob_jaraxxus_portalAI(Creature* creature) : ScriptedAI(creature)
-        {
-            summon = false;
-            buff = false;
-            Summoning_Timer = 8500;
-            creature->SetReactState(REACT_PASSIVE);
-
-            if (!getDifficulty() || getDifficulty() == 1)
-                me->SetFlag64(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE|UNIT_FLAG_NOT_SELECTABLE);
-        }
-
-        bool summon;
-        bool buff;
-        uint32 Summoning_Timer;
-
-        void UpdateAI(const uint32 diff)
-        {
-            if (!me->GetInstanceScript())
-                return;
-
-            if (!ObjectAccessor::GetCreatureOrPetOrVehicle((*me), me->GetInstanceScript()->GetData64(BOSS_JARAXXUS)))
-                return;
-
-            if (!buff)
+            if (m_uiNetherPowerTimer <= uiDiff)
             {
-                DoCast(me, 67103);
-                buff = true;
-            }
+                me->SetAuraStack(SPELL_NETHER_POWER, me, RAID_MODE(5, 10, 5, 10));
+                m_uiNetherPowerTimer = 40*IN_MILLISECONDS;
+            } else m_uiNetherPowerTimer -= uiDiff;
 
-            if (summon && (!getDifficulty() || getDifficulty() == 1)) //normal 10man and normal 25man
+            if (m_uiLegionFlameTimer <= uiDiff)
             {
-                me->ForcedDespawn(1500);
-                return;
-            }
-
-            if (Summoning_Timer < diff)
-            {
-                summon = true;
-                Summoning_Timer = 8500;
-                if (getDifficulty() == 2 || getDifficulty() == 3)
-                    DoCast(me, 67103);
-            } else Summoning_Timer -= diff;
-        }
-    };
-
-};
-
-
-
-class mob_jaraxxus_vulcan : public CreatureScript
-{
-public:
-    mob_jaraxxus_vulcan() : CreatureScript("mob_jaraxxus_vulcan") { }
-
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new mob_jaraxxus_vulcanAI(creature);
-    }
-
-    struct mob_jaraxxus_vulcanAI : public ScriptedAI
-    {
-        mob_jaraxxus_vulcanAI(Creature* creature) : ScriptedAI(creature)
-        {
-            summon = false;
-            Summoning_Timer = 2000;
-            count = 0;
-            creature->SetReactState(REACT_PASSIVE);
-
-            if (!getDifficulty() || getDifficulty() == 1)
-                me->SetFlag64(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE|UNIT_FLAG_NOT_SELECTABLE);
-        }
-
-        bool summon;
-        uint32 Summoning_Timer;
-        uint8 count;
-
-        void UpdateAI(const uint32 diff)
-        {
-            if (!me->GetInstanceScript())
-                return;
-
-            if (!ObjectAccessor::GetCreatureOrPetOrVehicle((*me), me->GetInstanceScript()->GetData64(BOSS_JARAXXUS)))
-                return;
-
-            if (summon && (!getDifficulty() || getDifficulty() == 1)) //normal 10man and normal 25man)
-            {
-                me->ForcedDespawn(1500);
-                return;
-            }
-
-            if (Summoning_Timer < diff)
-            {
-                ++count;
-                float x,y,z = 0;
-                me->GetClosePoint(x, y, z, 15.0f); //summon infernal in range of 15.0f from vuclano
-                ObjectAccessor::GetUnit((*me), me->GetInstanceScript()->GetData64(BOSS_JARAXXUS))->CastSpell(x, y, z, 66255, false);
-                Summoning_Timer = 5000;
-            } else Summoning_Timer -= diff;
-
-            if (count >= 3) //if we have summoned 3 infernal, make longest intervale
-            {
-                Summoning_Timer = 15000;
-                count = 0;
-            }
-        }
-    };
-
-};
-
-
-
-class mob_felflame_infernal : public CreatureScript
-{
-public:
-    mob_felflame_infernal() : CreatureScript("mob_felflame_infernal") { }
-
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new mob_felflame_infernalAI(creature);
-    }
-
-    struct mob_felflame_infernalAI : public ScriptedAI
-    {
-        mob_felflame_infernalAI(Creature* creature) : ScriptedAI(creature)
-        {
-        }
-
-        uint32 channel_Timer;
-        uint32 charge_Timer;
-
-        void Reset()
-        {
-            channel_Timer = 10000;
-            charge_Timer = 50000;
-        }
-
-        void KilledUnit(Unit* who)
-        {
-            if (who->GetTypeId() == TYPEID_PLAYER && me->GetInstanceScript())
-                me->GetInstanceScript()->SetData(UPDATE_DEATHS_COUNT, 0);
-        }
-
-        void UpdateAI(const uint32 diff)
-        {
-            if (!UpdateVictim())
-                return;
-
-            if (channel_Timer < diff)
-            {
-                DoCast(SelectUnit(SELECT_TARGET_RANDOM, 0), 67047);
-                channel_Timer = 25000;
-            } else channel_Timer -= diff;
-
-            if (charge_Timer < diff)
-            {
-                DoCast(SelectUnit(SELECT_TARGET_RANDOM, 0), 66494);
-                charge_Timer = 15000;
-            } else charge_Timer -= diff;
-
-            DoMeleeAttackIfReady();
-        }
-    };
-
-};
-
-
-
-class mob_misstress_of_pain : public CreatureScript
-{
-public:
-    mob_misstress_of_pain() : CreatureScript("mob_misstress_of_pain") { }
-
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new mob_misstress_of_painAI(creature);
-    }
-
-    struct mob_misstress_of_painAI : public ScriptedAI
-    {
-        mob_misstress_of_painAI(Creature* creature) : ScriptedAI(creature)
-        {
-        }
-
-        uint32 leep_Timer;
-        uint32 whirl_Timer;
-        uint32 kiss_Timer;
-
-        void Reset()
-        {
-            leep_Timer = 15000;
-            whirl_Timer = 10000;
-            kiss_Timer = urand(10000, 20000);
-        }
-
-        void KilledUnit(Unit* who)
-        {
-            if (who->GetTypeId() == TYPEID_PLAYER && me->GetInstanceScript())
-                me->GetInstanceScript()->SetData(UPDATE_DEATHS_COUNT, 0);
-        }
-
-        void UpdateAI(const uint32 diff)
-        {
-            if (!UpdateVictim())
-                return;
-
-            if (leep_Timer < diff)
-            {
-                DoCast(SelectUnit(SELECT_TARGET_RANDOM, 0), 66283);
-                leep_Timer = 25000;
-            } else leep_Timer -= diff;
-
-            if (whirl_Timer < diff)
-            {
-                DoCast(me->getVictim(), RAID_MODE(66378, 67098, 67097, 67099));
-                whirl_Timer = 20000;
-            } else whirl_Timer -= diff;
-
-            if (getDifficulty() == 2 || getDifficulty() == 3)
-            {
-                if (kiss_Timer < diff)
+                if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 1, 0, true))
                 {
-                    DoCast(SelectUnit(SELECT_TARGET_RANDOM, 0), RAID_MODE(0, 0, 67077, 67078));
-                    kiss_Timer = urand(10000, 20000);
-                } else kiss_Timer -= diff;
-            }
+                    DoScriptText(EMOTE_LEGION_FLAME, me, pTarget);
+                    DoCast(pTarget, SPELL_LEGION_FLAME);
+                }
+                m_uiLegionFlameTimer = 30*IN_MILLISECONDS;
+            } else m_uiLegionFlameTimer -= uiDiff;
+
+            if (getDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC && m_uiTouchOfJaraxxusTimer <= uiDiff)
+            {
+                if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0))
+                    DoCast(pTarget, SPELL_TOUCH_OF_JARAXXUS);
+                m_uiTouchOfJaraxxusTimer = urand(10*IN_MILLISECONDS, 15*IN_MILLISECONDS);
+            } else m_uiTouchOfJaraxxusTimer -= uiDiff;
 
             DoMeleeAttackIfReady();
         }
     };
+
 };
-
-
 
 class mob_legion_flame : public CreatureScript
 {
 public:
     mob_legion_flame() : CreatureScript("mob_legion_flame") { }
 
-    CreatureAI* GetAI(Creature* creature) const
+    CreatureAI* GetAI(Creature* pCreature) const
     {
-        return new mob_legion_flameAI(creature);
+        return new mob_legion_flameAI(pCreature);
     }
 
-    struct mob_legion_flameAI : public ScriptedAI
+    struct mob_legion_flameAI : public Scripted_NoMovementAI
     {
-        mob_legion_flameAI(Creature* creature) : ScriptedAI(creature)
+        mob_legion_flameAI(Creature* pCreature) : Scripted_NoMovementAI(pCreature)
         {
-            tick_Timer = 1000;
+            Reset();
         }
-
-        uint32 tick_Timer;
 
         void Reset()
         {
-            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE|UNIT_FLAG_NOT_SELECTABLE);
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
             me->SetInCombatWithZone();
-            DoCast(66201); //legion flame effect
+            DoCast(SPELL_LEGION_FLAME_EFFECT);
         }
 
-        void KilledUnit(Unit* who)
+        void UpdateAI(const uint32 /*uiDiff*/)
         {
-            if (who->GetTypeId() == TYPEID_PLAYER && me->GetInstanceScript())
-                me->GetInstanceScript()->SetData(UPDATE_DEATHS_COUNT, 0);
-        }
-
-        void UpdateAI(const uint32 diff)
-        {
-            if (!UpdateVictim())
-                return;
+            UpdateVictim();
         }
     };
 
 };
 
-
-void AddSC_boss_lord_jaraxxus()
+class mob_infernal_volcano : public CreatureScript
 {
-    new boss_lord_jaraxxus();
-    new mob_jaraxxus_portal();
-    new mob_jaraxxus_vulcan();
-    new mob_felflame_infernal();
-    new mob_misstress_of_pain();
+public:
+    mob_infernal_volcano() : CreatureScript("mob_infernal_volcano") { }
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new mob_infernal_volcanoAI(pCreature);
+    }
+
+    struct mob_infernal_volcanoAI : public Scripted_NoMovementAI
+    {
+        mob_infernal_volcanoAI(Creature* pCreature) : Scripted_NoMovementAI(pCreature), Summons(me)
+        {
+            m_pInstance = (InstanceScript*)pCreature->GetInstanceScript();
+            Reset();
+        }
+
+        InstanceScript* m_pInstance;
+
+        SummonList Summons;
+
+        uint8 m_Count;
+        uint8 m_CountMax;
+        uint32 m_Timer;
+
+        void Reset()
+        {
+            me->SetReactState(REACT_PASSIVE);
+            m_Count = 0;
+            if (!IsHeroic())
+            {
+                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED);
+                m_CountMax = 3;
+                m_Timer = 15*IN_MILLISECONDS;
+            }
+            else
+            {
+                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED);
+                m_CountMax = 0;
+                m_Timer = 0;
+            }
+            Summons.DespawnAll();
+        }
+
+        void JustSummoned(Creature* pSummoned)
+        {
+            Summons.Summon(pSummoned);
+            pSummoned->SetCorpseDelay(0);
+        }
+
+        void JustDied(Unit* /*pKiller*/)
+        {
+            me->DespawnOrUnsummon();
+        }
+
+        void UpdateAI(const uint32 uiDiff)
+        {
+            if (m_Timer <= uiDiff)
+            {
+                if (m_CountMax && m_CountMax == m_Count)
+                    me->DespawnOrUnsummon();
+                else
+                {
+                    DoCast(SPELL_INFERNAL_ERUPTION);
+                    ++m_Count;
+                }
+                m_Timer = 5*IN_MILLISECONDS;
+            } else m_Timer -= uiDiff;
+
+            UpdateVictim();
+        }
+    };
+
+};
+
+class mob_fel_infernal : public CreatureScript
+{
+public:
+    mob_fel_infernal() : CreatureScript("mob_fel_infernal") { }
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new mob_fel_infernalAI(pCreature);
+    }
+
+    struct mob_fel_infernalAI : public ScriptedAI
+    {
+        mob_fel_infernalAI(Creature* pCreature) : ScriptedAI(pCreature)
+        {
+            m_pInstance = (InstanceScript*)pCreature->GetInstanceScript();
+            Reset();
+        }
+
+        InstanceScript* m_pInstance;
+        uint32 m_uiFelStreakTimer;
+
+        void Reset()
+        {
+            m_uiFelStreakTimer = 30*IN_MILLISECONDS;
+            me->SetInCombatWithZone();
+        }
+
+        /*void SpellHitTarget(Unit *pTarget, const SpellEntry *pSpell)
+        {
+            if (pSpell->Id == SPELL_FEL_STREAK)
+                DoCastAOE(SPELL_FEL_INFERNO); //66517
+        }*/
+
+        void UpdateAI(const uint32 uiDiff)
+        {
+            if (!UpdateVictim())
+                return;
+
+            if (m_pInstance && m_pInstance->GetData(TYPE_JARAXXUS) != IN_PROGRESS)
+                me->DespawnOrUnsummon();
+
+            if (m_uiFelStreakTimer <= uiDiff)
+            {
+                if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0))
+                    DoCast(pTarget, SPELL_FEL_STREAK);
+                m_uiFelStreakTimer = 30*IN_MILLISECONDS;
+            } else m_uiFelStreakTimer -= uiDiff;
+
+            DoMeleeAttackIfReady();
+        }
+    };
+
+};
+
+class mob_nether_portal : public CreatureScript
+{
+public:
+    mob_nether_portal() : CreatureScript("mob_nether_portal") { }
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new mob_nether_portalAI(pCreature);
+    }
+
+    struct mob_nether_portalAI : public ScriptedAI
+    {
+        mob_nether_portalAI(Creature* pCreature) : ScriptedAI(pCreature), Summons(me)
+        {
+            m_pInstance = (InstanceScript*)pCreature->GetInstanceScript();
+            Reset();
+        }
+
+        InstanceScript* m_pInstance;
+
+        SummonList Summons;
+
+        uint32 m_Timer;
+        uint8  m_Count;
+        uint8  m_CountMax;
+
+        void Reset()
+        {
+            me->SetReactState(REACT_PASSIVE);
+            m_Timer = 10*IN_MILLISECONDS;
+            m_Count = 0;
+            if (!IsHeroic())
+            {
+                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED);
+                m_CountMax = 1;
+            }
+            else
+            {
+                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED);
+                m_CountMax = 0;
+            }
+            Summons.DespawnAll();
+        }
+
+        void JustSummoned(Creature* pSummoned)
+        {
+            Summons.Summon(pSummoned);
+            pSummoned->SetCorpseDelay(0);
+        }
+
+        void UpdateAI(const uint32 uiDiff)
+        {
+            if (m_Timer <= uiDiff)
+            {
+                if (m_CountMax && m_CountMax == m_Count)
+                    me->DespawnOrUnsummon();
+                else
+                {
+                    DoCast(SPELL_NETHER_PORTAL);
+                    ++m_Count;
+                }
+                m_Timer = 15*IN_MILLISECONDS;
+            } else m_Timer -= uiDiff;
+
+            UpdateVictim();
+        }
+    };
+
+};
+
+class mob_mistress_of_pain : public CreatureScript
+{
+public:
+    mob_mistress_of_pain() : CreatureScript("mob_mistress_of_pain") { }
+
+    CreatureAI* GetAI(Creature* pCreature) const
+    {
+        return new mob_mistress_of_painAI(pCreature);
+    }
+
+    struct mob_mistress_of_painAI : public ScriptedAI
+    {
+        mob_mistress_of_painAI(Creature* pCreature) : ScriptedAI(pCreature)
+        {
+            m_pInstance = (InstanceScript*)pCreature->GetInstanceScript();
+            if (m_pInstance)
+                m_pInstance->SetData(DATA_MISTRESS_OF_PAIN_COUNT, INCREASE);
+            Reset();
+        }
+
+        InstanceScript* m_pInstance;
+        uint32 m_uiShivanSlashTimer;
+        uint32 m_uiSpinningStrikeTimer;
+        uint32 m_uiMistressKissTimer;
+
+        void Reset()
+        {
+            m_uiShivanSlashTimer = 30*IN_MILLISECONDS;
+            m_uiSpinningStrikeTimer = 30*IN_MILLISECONDS;
+            m_uiMistressKissTimer = 15*IN_MILLISECONDS;
+            me->SetInCombatWithZone();
+        }
+
+        void JustDied(Unit* /*pKiller*/)
+        {
+            if (m_pInstance)
+                m_pInstance->SetData(DATA_MISTRESS_OF_PAIN_COUNT, DECREASE);
+        }
+
+        void UpdateAI(const uint32 uiDiff)
+        {
+            if (!UpdateVictim())
+                return;
+
+            if (m_pInstance && m_pInstance->GetData(TYPE_JARAXXUS) != IN_PROGRESS)
+                me->DespawnOrUnsummon();
+
+            if (m_uiShivanSlashTimer <= uiDiff)
+            {
+                DoCastVictim(SPELL_SHIVAN_SLASH);
+                m_uiShivanSlashTimer = 30*IN_MILLISECONDS;
+            } else m_uiShivanSlashTimer -= uiDiff;
+
+            if (m_uiSpinningStrikeTimer <= uiDiff)
+            {
+                if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 0, true))
+                    DoCast(pTarget, SPELL_SPINNING_STRIKE);
+                m_uiSpinningStrikeTimer = 30*IN_MILLISECONDS;
+            } else m_uiSpinningStrikeTimer -= uiDiff;
+
+            if (IsHeroic() && m_uiMistressKissTimer <= uiDiff)
+            {
+                if (Unit *pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 0, true))
+                    DoCast(pTarget, SPELL_MISTRESS_KISS);
+                m_uiMistressKissTimer = 30*IN_MILLISECONDS;
+            } else m_uiMistressKissTimer -= uiDiff;
+
+            DoMeleeAttackIfReady();
+        }
+    };
+
+};
+
+void AddSC_boss_jaraxxus()
+{
+    new boss_jaraxxus();
     new mob_legion_flame();
+    new mob_infernal_volcano();
+    new mob_fel_infernal();
+    new mob_nether_portal();
+    new mob_mistress_of_pain();
 }

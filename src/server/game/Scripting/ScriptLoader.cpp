@@ -389,11 +389,11 @@ void AddSC_boss_black_knight();
 void AddSC_boss_grand_champions();
 void AddSC_instance_trial_of_the_champion();
 void AddSC_trial_of_the_champion();
-void AddSC_boss_beasts_of_northrend();   //Trial of the Crusader
-void AddSC_boss_lord_jaraxxus();
+void AddSC_boss_anubarak_trial();        //Trial of the Crusader
 void AddSC_boss_faction_champions();
-void AddSC_boss_twins_valkyr();
-void AddSC_boss_anubarak_trial();
+void AddSC_boss_jaraxxus();
+void AddSC_boss_northrend_beasts();
+void AddSC_boss_twin_valkyr();
 void AddSC_trial_of_the_crusader();
 void AddSC_instance_trial_of_the_crusader();
 void AddSC_boss_anubrekhan();            //Naxxramas
@@ -442,17 +442,13 @@ void AddSC_boss_krystallus();
 void AddSC_boss_sjonnir();
 void AddSC_instance_halls_of_stone();
 void AddSC_halls_of_stone();
-void AddSC_boss_assembly_of_iron();		 //Ulduar
-void AddSC_boss_auriaya();
+void AddSC_boss_auriaya();               //Ulduar Ulduar
 void AddSC_boss_flame_leviathan();
-void AddSC_boss_freya();
-void AddSC_boss_general_vezax();
-void AddSC_boss_hodir();
 void AddSC_boss_ignis();
-void AddSC_boss_kologarn();
 void AddSC_boss_razorscale();
-void AddSC_boss_thorim();
 void AddSC_boss_xt002();
+void AddSC_boss_kologarn();
+void AddSC_boss_assembly_of_iron();
 void AddSC_boss_general_vezax();
 void AddSC_ulduar_teleporter();
 void AddSC_instance_ulduar();
@@ -1097,12 +1093,12 @@ void AddNorthrendScripts()
     AddSC_boss_grand_champions();
     AddSC_instance_trial_of_the_champion();
     AddSC_trial_of_the_champion();
-    AddSC_boss_beasts_of_northrend();   //Trial of the Crusader
-    AddSC_boss_lord_jaraxxus();
+    AddSC_boss_anubarak_trial();        //Trial of the Crusader
     AddSC_boss_faction_champions();
-    AddSC_boss_twins_valkyr();
-    AddSC_boss_anubarak_trial();
+    AddSC_boss_jaraxxus();
     AddSC_trial_of_the_crusader();
+    AddSC_boss_twin_valkyr();
+    AddSC_boss_northrend_beasts();
     AddSC_instance_trial_of_the_crusader();
     AddSC_boss_krik_thir();             //Azjol-Nerub Azjol-Nerub
     AddSC_boss_hadronox();
