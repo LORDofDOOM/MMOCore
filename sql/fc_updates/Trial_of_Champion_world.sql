@@ -18,7 +18,7 @@ INSERT INTO `vehicle_accessory` (`entry`,`accessory_entry`,`seat_id`,`minion`,`d
 (33298,35332,0,1, 'Darnassian Nightsaber');*/
 
 -- vehicles
-REPLACE INTO `vehicle_accessory` (`entry`,`accessory_entry`,`seat_id`,`minion`,`description`) VALUES
+REPLACE INTO `vehicle_accessory` (`guid`,`accessory_entry`,`seat_id`,`minion`,`description`) VALUES
 (33321,35323,0,1, 'Darkspear Raptor'),
 (33323,35326,0,1, 'Silvermoon Hawkstrider'),
 (33320,35314,0,1, 'Orgrimmar Wolf'),
