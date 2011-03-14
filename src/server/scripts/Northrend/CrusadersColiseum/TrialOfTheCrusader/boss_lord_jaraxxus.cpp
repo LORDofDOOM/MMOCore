@@ -556,4 +556,3 @@ void AddSC_boss_lord_jaraxxus()
     new mob_misstress_of_pain();
     new mob_legion_flame();
 }
-                                                                
