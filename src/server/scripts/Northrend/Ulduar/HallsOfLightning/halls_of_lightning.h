@@ -1,21 +1,21 @@
-/* 
- * Copyright (C) 2008 - 2010 Trinity <http://www.trinitycore.org/>
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+/*
+ * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * Script Author: LordVanMartin
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef DEF_HALLS_OF_LIGHTNING_H
 #define DEF_HALLS_OF_LIGHTNING_H
 
@@ -27,7 +27,6 @@ enum eTypes
     DATA_IONAR              = 2,
     DATA_LOKEN              = 3,
     DATA_VOLKHAN            = 4,
-	DATA_VOLKHAN_ANVIL		= 9,
 
     TYPE_BJARNGRIM          = 10,
     TYPE_IONAR              = 11,
@@ -38,7 +37,6 @@ enum eTypes
     NPC_VOLKHAN             = 28587,
     NPC_IONAR               = 28546,
     NPC_LOKEN               = 28923,
-	NPC_VOLKHAN_ANVIL		= 28823,
 
     GO_BJARNGRIM_DOOR       = 191416,                       //_doors10
     GO_VOLKHAN_DOOR         = 191325,                       //_doors07
