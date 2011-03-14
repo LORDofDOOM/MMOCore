@@ -228,11 +228,98 @@ float RiftAndSpawnsLocations[ENCOUNTER_CHRONO_SPAWNS][5]=
 class npc_arthas : public CreatureScript
 {
 public:
-    npc_arthas() : CreatureScript("npc_arthas") {}
+    npc_arthas() : CreatureScript("npc_arthas") { }
+
+    bool OnGossipSelect(Player *pPlayer, Creature *pCreature, uint32 /*sender*/, uint32 action)
+    {
+        pPlayer->PlayerTalkClass->ClearMenus();
+        npc_arthasAI* pAI = CAST_AI(npc_arthas::npc_arthasAI,pCreature->AI());
+
+        if (!pAI)
+            return false;
+
+        switch (action)
+        {
+            case GOSSIP_ACTION_INFO_DEF:
+                pAI->Start(true,true,pPlayer->GetGUID(),0,false,false);
+                pAI->SetDespawnAtEnd(false);
+                pAI->bStepping = false;
+                pAI->uiStep = 1;
+                break;
+            case GOSSIP_ACTION_INFO_DEF+1:
+                pAI->bStepping = true;
+                pAI->uiStep = 24;
+                break;
+            case GOSSIP_ACTION_INFO_DEF+2:
+                pAI->SetHoldState(false);
+                pAI->bStepping = false;
+                pAI->uiStep = 61;
+                break;
+            case GOSSIP_ACTION_INFO_DEF+3:
+                pAI->SetHoldState(false);
+                break;
+            case GOSSIP_ACTION_INFO_DEF+4:
+                pAI->bStepping = true;
+                pAI->uiStep = 84;
+                break;
+            case GOSSIP_ACTION_INFO_DEF+5:
+                pAI->bStepping = true;
+                pAI->uiStep = 85;
+                break;
+        }
+        pPlayer->CLOSE_GOSSIP_MENU();
+        pAI->SetDespawnAtFar(true);
+        pCreature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+        return true;
+    }
+
+    bool OnGossipHello(Player* pPlayer, Creature* pCreature)
+    {
+        npc_arthasAI* pAI = CAST_AI(npc_arthas::npc_arthasAI,pCreature->AI());
+
+        if (pAI && pAI->bStepping == false)
+        {
+            switch (pAI->uiGossipStep)
+            {
+                case 0: //This one is a workaround since the very beggining of the script is wrong.
+                {
+                    QuestStatus status = pPlayer->GetQuestStatus(13149);
+                    if (status != QUEST_STATUS_COMPLETE && status != QUEST_STATUS_REWARDED)
+                        return false;
+                    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_ARTHAS_0, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF);
+                    pPlayer->SEND_GOSSIP_MENU(907, pCreature->GetGUID());
+                    break;
+                }
+                case 1:
+                    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_ARTHAS_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
+                    pPlayer->SEND_GOSSIP_MENU(GOSSIP_MENU_ARTHAS_1, pCreature->GetGUID());
+                    break;
+                case 2:
+                    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_ARTHAS_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
+                    pPlayer->SEND_GOSSIP_MENU(GOSSIP_MENU_ARTHAS_2, pCreature->GetGUID());
+                    break;
+                case 3:
+                    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_ARTHAS_3, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+3);
+                    pPlayer->SEND_GOSSIP_MENU(GOSSIP_MENU_ARTHAS_3, pCreature->GetGUID());
+                    break;
+                case 4:
+                    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_ARTHAS_4, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+4);
+                    pPlayer->SEND_GOSSIP_MENU(GOSSIP_MENU_ARTHAS_4, pCreature->GetGUID());
+                    break;
+                case 5:
+                    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_ARTHAS_5, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+5);
+                    pPlayer->SEND_GOSSIP_MENU(GOSSIP_MENU_ARTHAS_5, pCreature->GetGUID());
+                    break;
+                default:
+                    return false;
+            }
+        }
+        return true;
+    }
 
     CreatureAI* GetAI(Creature* pCreature) const
     {
-        return new npc_arthasAI (pCreature);
+        return new npc_arthasAI(pCreature);
     }
 
     struct npc_arthasAI : public npc_escortAI
@@ -252,7 +339,6 @@ public:
         uint32 uiPlayerFaction;
         uint32 uiBossEvent;
         uint32 uiWave;
-        uint32 uiWaveWorldState;
 
         uint64 uiUtherGUID;
         uint64 uiJainaGUID;
@@ -288,12 +374,9 @@ public:
             uiMalganisGUID = 0;
             uiInfiniteGUID = 0;
 
-            if (pInstance) 
-            {
-                if (pInstance->GetData(DATA_ARTHAS_EVENT) != DONE)
-                    pInstance->SetData(DATA_ARTHAS_EVENT, NOT_STARTED);
-
-                switch (pInstance->GetData(DATA_ARTHAS_EVENT))
+            if (pInstance) {
+                pInstance->SetData(DATA_ARTHAS_EVENT, NOT_STARTED);
+                switch(pInstance->GetData(DATA_ARTHAS_EVENT))
                 {
                     case NOT_STARTED:
                         bStepping = true;
@@ -305,7 +388,6 @@ public:
                 }
                 uiPhaseTimer = 1000;
                 uiExorcismTimer = 7300;
-                uiWaveWorldState = 0;
                 uiWave = 0;
             }
         }
@@ -421,7 +503,7 @@ public:
                 case 21:
                     DoScriptText(SAY_PHASE301, me);
                     break;
-                case 24:
+                case 25:
                     SetRun(false);
                     SpawnTimeRift(0,&uiInfiniteDraconianGUID[0]);
                     DoScriptText(SAY_PHASE307,me);
@@ -470,15 +552,11 @@ public:
                 case 48:
                     SetRun(true);
                     DoScriptText(SAY_PHASE406,me);
-                    if (pInstance)
-                        if (pInstance->GetData(DATA_INFINITE_EVENT) == SPECIAL && IsHeroic())
-                            pInstance->SetData(DATA_INFINITE_EVENT, IN_PROGRESS); //make visible
                     break;
                 case 53:
                     DoScriptText(SAY_PHASE407,me);
                     break;
                 case 54:
-                    SetDespawnAtFar(false);
                     uiGossipStep = 5;
                     me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
                     SetHoldState(true);
@@ -509,8 +587,6 @@ public:
                             break;
                         //After waypoint 0
                         case 1:
-                            if (pInstance)
-                                pInstance->SetData(DATA_ARTHAS_EVENT, IN_PROGRESS);
                             me->RemoveUnitMovementFlag(MOVEMENTFLAG_WALKING);
                             if (Unit* pUther = me->SummonCreature(NPC_UTHER,1794.357f,1272.183f,140.558f,1.37f,TEMPSUMMON_DEAD_DESPAWN,180000))
                             {
@@ -783,9 +859,8 @@ public:
                             DoScriptText(SAY_PHASE209, me);
 
                             uiBossEvent = DATA_MEATHOOK_EVENT;
-
-                            if (pInstance->GetData(DATA_INFINITE_EVENT) != DONE && IsHeroic())   //if not killed already
-                                pInstance->SetData(DATA_INFINITE_EVENT, SPECIAL);                //start countdown
+                            if (pInstance)
+                                pInstance->SetData(DATA_ARTHAS_EVENT, IN_PROGRESS);
 
                             me->SetReactState(REACT_DEFENSIVE);
                             SetDespawnAtFar(false);
@@ -803,8 +878,6 @@ public:
                             {
                                 SpawnWaveGroup(uiWave, uiWaveGUID);
                                 uiWave++;
-                                uiWaveWorldState++;
-                                pInstance->DoUpdateWorldState(WORLDSTATE_NUMBER_SCOURGE_WAVES_SHOW_COUNT, uiWaveWorldState);
                             }
                             JumpToNextStep(500);
                             break;
@@ -854,8 +927,6 @@ public:
                                     pBoss->AddUnitMovementFlag(MOVEMENTFLAG_WALKING);
                                     pBoss->GetMotionMaster()->MovePoint(0, 2194.110f,1332.00f,130.00f);
                                 }
-                                uiWaveWorldState++;
-                                pInstance->DoUpdateWorldState(WORLDSTATE_NUMBER_SCOURGE_WAVES_SHOW_COUNT, uiWaveWorldState);
                             }
                             JumpToNextStep(30000);
                             break;
@@ -870,19 +941,13 @@ public:
                                         uiBossEvent = DATA_SALRAMM_EVENT;
                                     else if (uiBossEvent == DATA_SALRAMM_EVENT)
                                     {
-                                        uiWaveWorldState = 0;
                                         SetHoldState(false);
                                         bStepping = false;
                                         uiBossEvent = DATA_EPOCH_EVENT;
                                     }
-                                    pInstance->DoUpdateWorldState(WORLDSTATE_NUMBER_SCOURGE_WAVES_SHOW_COUNT, uiWaveWorldState);
                                 }
                                 else if (pInstance->GetData(uiBossEvent) == FAIL)
-                                {
                                     npc_escortAI::EnterEvadeMode();
-                                    uiWaveWorldState = 0;
-                                    pInstance->DoUpdateWorldState(WORLDSTATE_NUMBER_SCOURGE_WAVES_SHOW_COUNT, uiWaveWorldState);
-                                }
                                 else
                                     uiPhaseTimer = 10000;
                             }
@@ -963,7 +1028,7 @@ public:
                         case 73:
                         case 75:
                         case 77:
-                            //Make creatures attackable
+                            //Make cratures attackable
                             for (uint32 i = 0; i< ENCOUNTER_DRACONIAN_NUMBER; ++i)
                                 if (Creature* pTemp = Unit::GetCreature(*me, uiInfiniteDraconianGUID[i]))
                                 {
@@ -1053,7 +1118,6 @@ public:
                         //After Gossip 4
                         case 84:
                             DoScriptText(SAY_PHASE404,me);
-                            SetDespawnAtFar(false);
                             SetHoldState(false);
                             bStepping = false;
                             break;
@@ -1136,262 +1200,9 @@ public:
         }
     };
 
-    bool OnGossipHello (Player* pPlayer, Creature* pCreature)
-    {
-        npc_arthasAI* pAI = CAST_AI(npc_arthasAI,pCreature->AI());
-
-        if (pAI && pAI->bStepping == false)
-        {
-            switch (pAI->uiGossipStep)
-            {
-                case 0: //This one is a workaround since the very beggining of the script is wrong.
-                    //if (pPlayer->GetQuestStatus(13149) != QUEST_STATUS_COMPLETE)
-                    //    return false;
-                    //pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_ARTHAS_0, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF);
-                    pPlayer->SEND_GOSSIP_MENU(907, pCreature->GetGUID());
-                    break;
-                case 1:
-                    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_ARTHAS_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
-                    pPlayer->SEND_GOSSIP_MENU(GOSSIP_MENU_ARTHAS_1, pCreature->GetGUID());
-                    break;
-                case 2:
-                    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_ARTHAS_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
-                    pPlayer->SEND_GOSSIP_MENU(GOSSIP_MENU_ARTHAS_2, pCreature->GetGUID());
-                    break;
-                case 3:
-                    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_ARTHAS_3, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+3);
-                    pPlayer->SEND_GOSSIP_MENU(GOSSIP_MENU_ARTHAS_3, pCreature->GetGUID());
-                    break;
-                case 4:
-                    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_ARTHAS_4, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+4);
-                    pPlayer->SEND_GOSSIP_MENU(GOSSIP_MENU_ARTHAS_4, pCreature->GetGUID());
-                    break;
-                case 5:
-                    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_ARTHAS_5, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+5);
-                    pPlayer->SEND_GOSSIP_MENU(GOSSIP_MENU_ARTHAS_5, pCreature->GetGUID());
-                    break;
-                default:
-                    return false;
-            }
-        }
-        return true;
-    }
-
-    bool OnGossipSelect (Player *pPlayer, Creature *pCreature, uint32 /*sender*/, uint32 action)
-    {
-        npc_arthasAI* pAI = CAST_AI(npc_arthasAI,pCreature->AI());
-
-        if (!pAI)
-            return false;
-
-        pPlayer->PlayerTalkClass->ClearMenus();
-
-        switch (action)
-        {
-            case GOSSIP_ACTION_INFO_DEF:
-                pAI->Start(true,true,pPlayer->GetGUID(),0,false,false);
-                pAI->SetDespawnAtEnd(false);
-                pAI->bStepping = false;
-                pAI->uiStep = 1;
-                break;
-            case GOSSIP_ACTION_INFO_DEF+1:
-                pAI->bStepping = true;
-                pAI->uiStep = 24;
-                break;
-            case GOSSIP_ACTION_INFO_DEF+2:
-                pAI->SetHoldState(false);
-                pAI->bStepping = false;
-                pAI->uiStep = 61;
-                break;
-            case GOSSIP_ACTION_INFO_DEF+3:
-                pAI->SetHoldState(false);
-                break;
-            case GOSSIP_ACTION_INFO_DEF+4:
-                pAI->bStepping = true;
-                pAI->uiStep = 84;
-                break;
-            case GOSSIP_ACTION_INFO_DEF+5:
-                pAI->bStepping = true;
-                pAI->uiStep = 85;
-                break;
-        }
-        pPlayer->CLOSE_GOSSIP_MENU();
-        pAI->SetDespawnAtFar(true);
-        pCreature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-        return true;
-    }
 };
-
-#define ITEM_ENTRY_ARCANE_DISRUPTOR         37888
-#define GOSSIP_ITEM_CHROMIE_DISUPTOR_BACK   "[PH] I need a Arcane Disruptor, Chromie."
-
-#define ENTRY_CHROMIE_PART_1                26527
-#define GOSSIP_ITEM_CHROMIE_START_1         "Why have I been sent back to this panicular place and time?"
-#define GOSSIP_ITEM_CHROMIE_START_2         "What was this decision?"
-#define GOSSIP_ITEM_CHROMIE_START_3         "So how does the Infinite Dragonflight plan to interfere?"
-
-#define ENTRY_CHROMIE_PART_2                27915
-#define GOSSIP_ITEM_CHROMIE_MIDDLE_1        "What do you think they're up to?"
-#define GOSSIP_ITEM_CHROMIE_MIDDLE_2        "You want me to do what?"
-#define GOSSIP_ITEM_CHROMIE_MIDDLE_3        "Very well, Chromie."
-
-#define ENTRY_CHROMIE_PART_3                30997
-
-class npc_cos_chromie : public CreatureScript
-{
-public:
-    npc_cos_chromie() : CreatureScript("npc_cos_chromie") {}
-
-    bool OnGossipHello(Player* pPlayer, Creature* pCreature)
-    {
-        //Quest Menu
-        if (pCreature->isQuestGiver())
-            pPlayer->PrepareQuestMenu(pCreature->GetGUID());
-
-        InstanceScript* pInstance = pCreature->GetInstanceScript();
-        if (!pInstance)
-            return true; //false?
-
-        uint32 crates_event_data = pInstance->GetData(DATA_CRATES_EVENT);
-        uint32 arthas_event_data = pInstance->GetData(DATA_ARTHAS_EVENT);
-
-        if(crates_event_data == NOT_STARTED && pCreature->GetEntry() == ENTRY_CHROMIE_PART_1)
-            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_CHROMIE_START_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
-
-        if(crates_event_data == IN_PROGRESS && pCreature->GetEntry() == ENTRY_CHROMIE_PART_1 && !pPlayer->HasItemCount(ITEM_ENTRY_ARCANE_DISRUPTOR,1,true))
-            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_CHROMIE_DISUPTOR_BACK, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+7);
-
-        if(crates_event_data == DONE && arthas_event_data == NOT_STARTED && pCreature->GetEntry() == ENTRY_CHROMIE_PART_2)
-            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_CHROMIE_MIDDLE_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+4);
-
-        pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
-
-        return true;
-    }
-
-    bool OnGossipSelect(Player *pPlayer, Creature *pCreature, uint32 /*sender*/, uint32 action)
-    {
-        pPlayer->PlayerTalkClass->ClearMenus();
-
-        switch(action)
-        {
-            //Crates
-            case GOSSIP_ACTION_INFO_DEF+1:
-                pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_CHROMIE_START_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
-                pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
-                break;
-            case GOSSIP_ACTION_INFO_DEF+2:
-                pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_CHROMIE_START_3, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+3);
-                pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
-                break;
-            case GOSSIP_ACTION_INFO_DEF+3:
-                {
-                    pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
-
-                    if(InstanceScript* pInstance = pCreature->GetInstanceScript())
-                    {
-                        uint32 crates_event_data = pInstance->GetData(DATA_CRATES_EVENT);
-
-                        if(crates_event_data == NOT_STARTED)
-                            pInstance->SetData(DATA_CRATES_EVENT,2);
-                    }
-                }
-                break;
-            case GOSSIP_ACTION_INFO_DEF+7:
-                {
-                    pPlayer->CLOSE_GOSSIP_MENU();
-                    ItemPosCountVec dest;
-                    uint8 canStoreNewItem = pPlayer->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, ITEM_ENTRY_ARCANE_DISRUPTOR, 1);
-                    if(canStoreNewItem == EQUIP_ERR_OK)
-                    {
-                        Item *newItem = NULL;
-                        newItem = pPlayer->StoreNewItem(dest,ITEM_ENTRY_ARCANE_DISRUPTOR,1,true);
-                        pPlayer->SendNewItem(newItem,1,true,false);
-                    }
-                }
-                break;
-            //Introduktion
-            case GOSSIP_ACTION_INFO_DEF+4:
-                pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_CHROMIE_MIDDLE_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+5);
-                pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
-                break;
-            case GOSSIP_ACTION_INFO_DEF+5:
-                pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_CHROMIE_MIDDLE_3, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+6);
-                pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
-                break;
-            case GOSSIP_ACTION_INFO_DEF+6:
-                {
-                    if(InstanceScript* pInstance = pCreature->GetInstanceScript())
-                    {
-                        pInstance->SetData(DATA_CRATES_EVENT, 0);
-
-                        if(Creature* pArthas = Creature::GetCreature(*pCreature, pInstance->GetData64(DATA_ARTHAS)))
-                        {
-                            npc_arthas::npc_arthasAI* pAI = CAST_AI(npc_arthas::npc_arthasAI,pArthas->AI());
-
-                            if (pAI)
-                            {
-                                pAI->Start(true,true,pPlayer->GetGUID(),0,false,false);
-                                pAI->SetDespawnAtFar(false);
-                                pAI->SetDespawnAtEnd(false);
-                                pAI->bStepping = false;
-                                pAI->uiStep = 1;
-                            }
-                        }
-                    }
-
-                    pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
-                }
-                break;
-
-        }
-
-        return true;
-    }
-};
-
-#define ENTRY_SPELL_ARCANE_DISRUPTOR                49590
-
-class npc_cos_arcane_disruptor_target : public CreatureScript
-{
-public:
-    npc_cos_arcane_disruptor_target() : CreatureScript("npc_cos_arcane_disruptor_target") {}
-
-    CreatureAI* GetAI(Creature* pCreature) const
-    {
-        return new npc_cos_arcane_disruptor_targetAI (pCreature);
-    }
-
-    struct npc_cos_arcane_disruptor_targetAI : public Scripted_NoMovementAI
-    {
-        npc_cos_arcane_disruptor_targetAI(Creature *c) : Scripted_NoMovementAI(c) {}
-
-        void Reset()
-        {
-        }
-
-        void SpellHit(Unit *caster, const SpellEntry *spell)
-        {
-            if(caster->ToPlayer() && spell->Id == ENTRY_SPELL_ARCANE_DISRUPTOR)
-            {
-                InstanceScript* pInstance = me->GetInstanceScript();
-
-                pInstance->SetData(DATA_CRATES_EVENT,1);
-
-                me->DealDamage(me,me->GetHealth());
-            }
-        }
-
-        void UpdateAI(const uint32 diff)
-        {
-        }
-    };
-};
-
 
 void AddSC_culling_of_stratholme()
 {
     new npc_arthas();
-    new npc_cos_chromie();
-    new npc_cos_arcane_disruptor_target();
 }

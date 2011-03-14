@@ -1,9 +1,5 @@
 /*
- * Copyright (C) 2008 - 2010 Trinity <http://www.trinitycore.org/>
- *
- * Copyright (C) 2010 Lol Project <http://hg.assembla.com/lol_trinity/>
- *
- * Copyright (C) 2010 Myth Project <https://mythcore.googlecode.com/hg/mythcore/>
+ * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -17,6 +13,10 @@
  *
  * You should have received a copy of the GNU General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
+ * Comment: Missing AI for Twisted Visages
  */
 
 #include "ScriptPCH.h"
@@ -97,8 +97,8 @@ public:
                 (GetHealthPct(0) >= 33 && GetHealthPct(damage) < 33))
             {
                 me->InterruptNonMeleeSpells(false);
-				//Disable spell until fixed
-                //DoCast(me, SPELL_INSANITY, false);
+		//temporary disable
+		//DoCast(me, SPELL_INSANITY, false);
             }
         }
 
@@ -172,15 +172,6 @@ public:
             // Cleanup
             Summons.DespawnAll();
             me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-        }
-
-        void EnterEvadeMode()
-        {
-            me->RemoveAllAuras();
-            me->SetControlled(false, UNIT_STAT_STUNNED);
-            _EnterEvadeMode();
-            me->GetMotionMaster()->MoveTargetedHome();
-            Reset();
         }
 
         void EnterCombat(Unit* /*who*/)
@@ -317,12 +308,9 @@ public:
             ResetPlayersPhaseMask();
         }
 
-        void KilledUnit(Unit* pVictim)
+        void KilledUnit(Unit * /*victim*/)
         {
             DoScriptText(RAND(SAY_SLAY_1,SAY_SLAY_2,SAY_SLAY_3), me);
-
-            if (pVictim->GetTypeId() == TYPEID_PLAYER)
-                pVictim->RemoveAurasDueToSpell(GetSpellForPhaseMask(pVictim->GetPhaseMask()));
         }
     };
 

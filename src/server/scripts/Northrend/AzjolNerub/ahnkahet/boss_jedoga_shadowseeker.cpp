@@ -1,9 +1,5 @@
 /*
- * Copyright (C) 2008 - 2010 Trinity <http://www.trinitycore.org/>
- *
- * Copyright (C) 2010 Lol Project <http://hg.assembla.com/lol_trinity/>
- *
- * Copyright (C) 2010 Myth Project <https://mythcore.googlecode.com/hg/mythcore/>
+ * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -17,6 +13,10 @@
  *
  * You should have received a copy of the GNU General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
+ * Comment: Complete - BUT THE TRIGGER NEEDS DATA WHETHER THE PRISON OF TALDARAM IS OFFLINE !
  */
 
 #include "ScriptPCH.h"
@@ -57,11 +57,6 @@ enum Creatures
     NPC_JEDOGA_CONTROLLER                         = 30181
 };
 
-enum Achievements
-{
-    ACHIEV_VOLUNTEER_WORK                         = 2056
-};
-
 const Position JedogaPosition[2] =
 {
     {372.330994f, -705.278015f, -0.624178f,  5.427970f},
@@ -84,32 +79,31 @@ public:
 
         InstanceScript* pInstance;
 
+        uint32 uiOpFerTimer;
         uint32 uiCycloneTimer;
         uint32 uiBoltTimer;
         uint32 uiThunderTimer;
-        uint32 uiHealthAmountModifier;
 
         bool bPreDone;
         bool bOpFerok;
         bool bOnGround;
         bool bOpFerokFail;
         bool bCanDown;
-        bool bAchiev;
 
         bool bFirstTime;
 
         void Reset()
         {
+            uiOpFerTimer = urand(15*IN_MILLISECONDS,20*IN_MILLISECONDS);
+
             uiCycloneTimer = 3*IN_MILLISECONDS;
             uiBoltTimer = 7*IN_MILLISECONDS;
             uiThunderTimer = 12*IN_MILLISECONDS;
-            uiHealthAmountModifier = 1;
 
             bOpFerok = false;
             bOpFerokFail = false;
             bOnGround = false;
             bCanDown = false;
-            bAchiev = true;
 
             if (pInstance)
             {
@@ -120,7 +114,6 @@ public:
                 pInstance->SetData64(DATA_ADD_JEDOGA_OPFER, 0);
                 pInstance->SetData(DATA_JEDOGA_RESET_INITIANDS, 0);
             }
-
             MoveUp();
 
             bFirstTime = false;
@@ -156,12 +149,7 @@ public:
         {
             DoScriptText(TEXT_DEATH, me);
             if (pInstance)
-            {
                 pInstance->SetData(DATA_JEDOGA_SHADOWSEEKER_EVENT, DONE);
-
-                if (IsHeroic() && bAchiev)
-                    pInstance->DoCompleteAchievement(ACHIEV_VOLUNTEER_WORK);
-            }
         }
 
         void MoveInLineOfSight(Unit* who)
@@ -248,10 +236,10 @@ public:
             me->GetMotionMaster()->MovePoint(0, JedogaPosition[0]);
 
             pInstance->SetData(DATA_JEDOGA_TRIGGER_SWITCH, 1);
-            if (pInstance->GetData(DATA_JEDOGA_SHADOWSEEKER_EVENT) == IN_PROGRESS) 
-                OpferRufen();
+            if (pInstance->GetData(DATA_JEDOGA_SHADOWSEEKER_EVENT) == IN_PROGRESS) OpferRufen();
 
             bOnGround = false;
+            uiOpFerTimer = urand(15*IN_MILLISECONDS,30*IN_MILLISECONDS);
         }
 
         void OpferRufen()
@@ -278,7 +266,6 @@ public:
 
             bOpFerok = false;
             bCanDown = true;
-            bAchiev = false;
         }
 
         void UpdateAI(const uint32 diff)
@@ -289,8 +276,7 @@ public:
             if (pInstance->GetData(DATA_JEDOGA_SHADOWSEEKER_EVENT) != IN_PROGRESS && pInstance->GetData(DATA_ALL_INITIAND_DEAD))
                 MoveDown();
 
-            if (bOpFerok && !bOnGround && !bCanDown) 
-                Opfern();
+            if (bOpFerok && !bOnGround && !bCanDown) Opfern();
 
             if (bOpFerokFail && !bOnGround && !bCanDown)
                 bCanDown = true;
@@ -308,40 +294,30 @@ public:
 
                 if (uiCycloneTimer <= diff)
                 {
-                    if(!me->IsNonMeleeSpellCasted(false))
-                    {
-                        DoCast(me, DUNGEON_MODE(SPELL_CYCLONE_STRIKE, SPELL_CYCLONE_STRIKE_H), false);
-                        uiCycloneTimer = urand(10*IN_MILLISECONDS, 15*IN_MILLISECONDS);
-                    }
+                    DoCast(me, SPELL_CYCLONE_STRIKE, false);
+                    uiCycloneTimer = urand(15*IN_MILLISECONDS,30*IN_MILLISECONDS);
                 } else uiCycloneTimer -= diff;
 
                 if (uiBoltTimer <= diff)
                 {
-                    if(!me->IsNonMeleeSpellCasted(false))
-                    {
-                        if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, -5, true))
-                            me->CastSpell(pTarget, DUNGEON_MODE(SPELL_LIGHTNING_BOLT, SPELL_LIGHTNING_BOLT_H), false);
+                    if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
+                        me->CastSpell(pTarget, DUNGEON_MODE(SPELL_LIGHTNING_BOLT, SPELL_LIGHTNING_BOLT_H), false);
 
-                        uiBoltTimer = urand(8*IN_MILLISECONDS, 12*IN_MILLISECONDS);
-                    }
+                    uiBoltTimer = urand(15*IN_MILLISECONDS,30*IN_MILLISECONDS);
                 } else uiBoltTimer -= diff;
 
                 if (uiThunderTimer <= diff)
                 {
-                    if(!me->IsNonMeleeSpellCasted(false))
-                    {
-                        if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
-                            me->CastSpell(pTarget, DUNGEON_MODE(SPELL_THUNDERSHOCK, SPELL_THUNDERSHOCK_H), false);
+                    if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
+                        me->CastSpell(pTarget, DUNGEON_MODE(SPELL_THUNDERSHOCK, SPELL_THUNDERSHOCK_H), false);
 
-                        uiThunderTimer = urand(15*IN_MILLISECONDS, 20*IN_MILLISECONDS);
-                    }
+                    uiThunderTimer = urand(15*IN_MILLISECONDS,30*IN_MILLISECONDS);
                 } else uiThunderTimer -= diff;
 
-                if (me->HealthBelowPct(100 - 25 * uiHealthAmountModifier))
-                {
-                    ++uiHealthAmountModifier;
+                if (uiOpFerTimer <= diff)
                     MoveUp();
-                }
+                else
+                    uiOpFerTimer -= diff;
 
                 DoMeleeAttackIfReady();
             }
@@ -458,8 +434,6 @@ public:
             {
                 if (me->GetGUID() == pInstance->GetData64(DATA_ADD_JEDOGA_OPFER) && !bWalking)
                 {
-                    me->SetMaxHealth(DUNGEON_MODE(25705, 58648));        //TODO: implement npc entry 30385
-                    me->SetHealth(DUNGEON_MODE(25705, 58648));
                     me->RemoveAurasDueToSpell(SPELL_SPHERE_VISUAL);
                     me->ApplySpellImmune(0, IMMUNITY_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, false);
                     me->ApplySpellImmune(0, IMMUNITY_DAMAGE, SPELL_SCHOOL_MASK_MAGIC, false);
@@ -530,7 +504,6 @@ public:
     {
         npc_jedogas_aufseher_triggerAI(Creature* c) : Scripted_NoMovementAI(c)
         {
-            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE); //database?
             pInstance = c->GetInstanceScript();
             bRemoved = false;
             bRemoved2 = false;
