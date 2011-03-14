@@ -1,21 +1,21 @@
-/* 
- * Copyright (C) 2008 - 2010 Trinity <http://www.trinitycore.org/>
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+/*
+ * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * Script Author: LordVanMartin
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include "ScriptPCH.h"
 #include "nexus.h"
 
@@ -26,6 +26,7 @@ enum Spells
     SPELL_CRYSTALL_SPIKE_DAMAGE                   = 47944,
     H_SPELL_CRYSTALL_SPIKE_DAMAGE                 = 57067,
     SPELL_CRYSTAL_SPIKE_PREVISUAL                 = 50442,
+    MOB_CRYSTAL_SPIKE                             = 27099,
     SPELL_SPELL_REFLECTION                        = 47981,
     SPELL_TRAMPLE                                 = 48016,
     H_SPELL_TRAMPLE                               = 57066,
@@ -33,7 +34,6 @@ enum Spells
     SPELL_SUMMON_CRYSTALLINE_TANGLER              = 61564, //summons npc 32665
     SPELL_ROOTS                                   = 28858  //proper spell id is unknown
 };
-
 enum Yells
 {
     SAY_AGGRO                                     = -1576020,
@@ -42,10 +42,8 @@ enum Yells
     SAY_CRYSTAL_SPIKES                            = -1576023,
     SAY_KILL                                      = -1576024
 };
-
 enum Creatures
 {
-    MOB_CRYSTAL_SPIKE                             = 27099,
     MOB_CRYSTALLINE_TANGLER                       = 32665
 };
 
@@ -72,7 +70,6 @@ public:
 
         bool bFrenzy;
         bool bCrystalSpikes;
-        bool breflect;
         uint8 uiCrystalSpikesCount;
         float fBaseX;
         float fBaseY;
@@ -85,10 +82,7 @@ public:
         uint32 uiTrampleTimer;
         uint32 uiFrenzyTimer;
         uint32 uiSpellReflectionTimer;
-        uint32 uiReflect;
         uint32 uiSummonCrystallineTanglerTimer;
-
-        uint8 uiReflectCount;
 
         void Reset()
         {
@@ -98,8 +92,6 @@ public:
             uiSummonCrystallineTanglerTimer = 17*IN_MILLISECONDS;
             bFrenzy = false;
             bCrystalSpikes = false;
-            uiReflect=14500;
-            uiReflectCount=4;
 
             if (pInstance)
                 pInstance->SetData(DATA_ORMOROK_EVENT, NOT_STARTED);
@@ -126,14 +118,6 @@ public:
             DoScriptText(SAY_KILL, me);
         }
 
-        void SpellHit(Unit* /*pCaster*/, const SpellEntry* pSpell)
-        {
-            if (me->HasAura(SPELL_SPELL_REFLECTION))
-                uiReflectCount--;
-            if (uiReflectCount==0)
-                me->RemoveAura(SPELL_SPELL_REFLECTION,0,0,AURA_REMOVE_BY_EXPIRE);
-        }
-
         void UpdateAI(const uint32 diff)
         {
             if (!UpdateVictim())
@@ -154,7 +138,7 @@ public:
                     fSpikeXY[3][1] = fBaseY-(SPIKE_DISTANCE*uiCrystalSpikesCount*sin(fBaseO-(M_PI/2)));
                     for (uint8 i = 0; i < 4; ++i)
                         me->SummonCreature(MOB_CRYSTAL_SPIKE, fSpikeXY[i][0], fSpikeXY[i][1], fBaseZ, 0, TEMPSUMMON_TIMED_DESPAWN, 7*IN_MILLISECONDS);
-                    if (++uiCrystalSpikesCount >= 15)
+                    if (++uiCrystalSpikesCount >= 13)
                         bCrystalSpikes = false;
                     uiCrystalSpikesTimer2 = 200;
                 } else uiCrystalSpikesTimer2 -= diff;
@@ -168,7 +152,7 @@ public:
 
             if (uiTrampleTimer <= diff)
             {
-                DoCast(me, DUNGEON_MODE(SPELL_TRAMPLE,H_SPELL_TRAMPLE));
+                DoCast(me, SPELL_TRAMPLE);
                 uiTrampleTimer = 10*IN_MILLISECONDS;
             } else uiTrampleTimer -= diff;
 
@@ -177,15 +161,7 @@ public:
                 DoScriptText(SAY_REFLECT, me);
                 DoCast(me, SPELL_SPELL_REFLECTION);
                 uiSpellReflectionTimer = 30*IN_MILLISECONDS;
-                uiReflectCount=4;
             } else uiSpellReflectionTimer -= diff;
-
-            if (breflect)
-                if (uiReflect<=diff)
-                {
-                    me->RemoveAura(SPELL_SPELL_REFLECTION,0,0,AURA_REMOVE_BY_EXPIRE);
-                    uiReflect=14500;
-                } else uiReflect-=diff;
 
             if (uiCrystalSpikesTimer <= diff)
             {
@@ -281,7 +257,7 @@ public:
 
             if (SpellCrystalSpikeDamageTimer <= diff)
             {
-            DoCast(me, DUNGEON_MODE(SPELL_CRYSTALL_SPIKE_DAMAGE,H_SPELL_CRYSTALL_SPIKE_DAMAGE));
+                DoCast(me, SPELL_CRYSTALL_SPIKE_DAMAGE);
                 SpellCrystalSpikeDamageTimer = 10*IN_MILLISECONDS;
             } else SpellCrystalSpikeDamageTimer -= diff;
         }
@@ -317,7 +293,7 @@ public:
                 if (me->IsWithinDist(me->getVictim(), 5.0f, false))
                 {
                     DoCast(me->getVictim(), SPELL_ROOTS);
-                    uiRootsTimer = 10*IN_MILLISECONDS;
+                    uiRootsTimer = 15*IN_MILLISECONDS;
                 }
             } else uiRootsTimer -= diff;
         }

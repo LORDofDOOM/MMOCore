@@ -1,21 +1,21 @@
-/* 
- * Copyright (C) 2008 - 2010 Trinity <http://www.trinitycore.org/>
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+/*
+ * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * Script Author: LordVanMartin
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include "ScriptPCH.h"
 #include "nexus.h"
 
@@ -30,10 +30,7 @@ enum Spells
 
     SPELL_FIRE_MAGUS_VISUAL                       = 47705,
     SPELL_FROST_MAGUS_VISUAL                      = 47706,
-    SPELL_ARCANE_MAGUS_VISUAL                     = 47704,
-
-    SPELL_CRITTER                                 = 47731,
-    SPELL_TIMESTOP                                = 47736
+    SPELL_ARCANE_MAGUS_VISUAL                     = 47704
 };
 enum Creatures
 {
@@ -73,22 +70,6 @@ public:
         boss_magus_telestraAI(Creature* c) : ScriptedAI(c)
         {
             pInstance = c->GetInstanceScript();
-
-            //temporary, needs different target selection
-            SpellEntry *TempSpell;
-            TempSpell = GET_SPELL(SPELL_CRITTER);
-            if (TempSpell)
-            { 
-                TempSpell->EffectImplicitTargetA[0] = 6;
-                TempSpell->EffectImplicitTargetA[1] = 6;
-                TempSpell->EffectImplicitTargetA[2] = 6;
-                TempSpell->EffectImplicitTargetB[0] = 0;
-                TempSpell->EffectImplicitTargetB[1] = 0;
-                TempSpell->EffectImplicitTargetB[2] = 0;
-                TempSpell->EffectRadiusIndex[0] = 0;
-                TempSpell->EffectRadiusIndex[1] = 0;
-                TempSpell->EffectRadiusIndex[2] = 0;
-            }
         }
 
         InstanceScript* pInstance;
@@ -245,7 +226,10 @@ public:
                     me->GetMap()->CreatureRelocation(me, CenterOfRoom.GetPositionX(), CenterOfRoom.GetPositionY(), CenterOfRoom.GetPositionZ(), CenterOfRoom.GetOrientation());
                     DoCast(me, SPELL_TELESTRA_BACK);
                     me->SetVisible(true);
-                    Phase++;
+                    if (Phase == 1)
+                        Phase = 2;
+                    if (Phase == 3)
+                        Phase = 4;
                     uiFireMagusGUID = 0;
                     uiFrostMagusGUID = 0;
                     uiArcaneMagusGUID = 0;
@@ -276,7 +260,7 @@ public:
                 return;
             }
 
-        if (IsHeroic() && (Phase == 2) && HealthBelowPct(15))
+            if (IsHeroic() && (Phase == 2) && HealthBelowPct(10))
             {
                 Phase = 3;
                 me->CastStop();
@@ -337,64 +321,11 @@ public:
             DoMeleeAttackIfReady();
         }
     };
-};
-
-class boss_magus_telestra_arcane : public CreatureScript
-{
-public:
-    boss_magus_telestra_arcane() : CreatureScript("boss_magus_telestra_arcane") { }
-
-    struct boss_magus_telestra_arcaneAI : public ScriptedAI
-    {
-        boss_magus_telestra_arcaneAI(Creature* c) : ScriptedAI(c)
-        {
-            pInstance = c->GetInstanceScript();
-        }
-
-        InstanceScript* pInstance;
-
-        uint32 uiCritterTimer;
-        uint32 uiTimeStopTimer;
-
-        void Reset()
-        {
-            uiCritterTimer = urand(2000, 5000);
-            uiTimeStopTimer = urand(7000, 10000);
-        }
-
-        void UpdateAI(const uint32 diff)
-        {
-            if (!UpdateVictim())
-                return;
-
-            if (uiCritterTimer<=diff)
-            {
-                if (Unit *pTarget = SelectUnit(SELECT_TARGET_RANDOM, 0))
-                {
-                    DoCast(pTarget, SPELL_CRITTER, false);
-                    uiCritterTimer = urand(5000, 8000);
-                }
-            }else uiCritterTimer-=diff;
-
-            if (uiTimeStopTimer<=diff)
-            {
-                DoCastAOE(SPELL_TIMESTOP);
-                uiTimeStopTimer = urand(15000, 18000);
-            } else uiTimeStopTimer-=diff;
-
-            DoMeleeAttackIfReady();
-        }
-    };
-
-    CreatureAI* GetAI(Creature* pCreature) const
-    {
-        return new boss_magus_telestra_arcaneAI(pCreature);
-    }
 
 };
+
 
 void AddSC_boss_magus_telestra()
 {
     new boss_magus_telestra();
-    new boss_magus_telestra_arcane();
 }
