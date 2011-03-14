@@ -2843,9 +2843,6 @@ void Spell::SelectEffectTargets(uint32 i, uint32 cur)
 
             CallScriptAfterUnitTargetSelectHandlers(unitList, SpellEffIndex(i));
 
-
-            CallScriptAfterUnitTargetSelectHandlers(unitList, SpellEffIndex(i));
-
             for (std::list<Unit*>::iterator itr = unitList.begin(); itr != unitList.end(); ++itr)
                 AddUnitTarget(*itr, i);
         }
