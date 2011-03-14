@@ -1150,17 +1150,14 @@ void AddNorthrendScripts()
     AddSC_boss_sjonnir();
     AddSC_instance_halls_of_stone();
     AddSC_halls_of_stone();
-    AddSC_boss_assembly_of_iron();		//Ulduar
-    AddSC_boss_auriaya();
+    AddSC_boss_auriaya();               //Ulduar Ulduar
     AddSC_boss_flame_leviathan();
-    AddSC_boss_freya();
-    AddSC_boss_general_vezax();
-    AddSC_boss_hodir();
     AddSC_boss_ignis();
-    AddSC_boss_kologarn();
     AddSC_boss_razorscale();
-    AddSC_boss_thorim();
     AddSC_boss_xt002();
+    AddSC_boss_general_vezax();
+    AddSC_boss_assembly_of_iron();
+    AddSC_boss_kologarn();
     AddSC_ulduar_teleporter();
     AddSC_instance_ulduar();
     AddSC_boss_keleseth();              //Utgarde Keep
