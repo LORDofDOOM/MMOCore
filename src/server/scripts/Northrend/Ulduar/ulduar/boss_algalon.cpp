@@ -122,7 +122,7 @@ public:
             }
 
             if (pInstance)
-                pInstance->SetData(TYPE_ALGALON, IN_PROGRESS);
+                pInstance->SetData(BOSS_ALGALON, IN_PROGRESS);
         }
 
         void KilledUnit(Unit * /*victim*/)
@@ -136,7 +136,7 @@ public:
 
             me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             if (pInstance)
-                pInstance->SetData(TYPE_ALGALON, NOT_STARTED);
+                pInstance->SetData(BOSS_ALGALON, NOT_STARTED);
 
             BlackHoleGUID = 0;
 
@@ -177,7 +177,7 @@ public:
         {
             if (pSummoned->GetEntry() == CREATURE_COLLAPSING_STAR)
             {
-                Unit* pTarget = SelectUnit(SELECT_TARGET_RANDOM, 0);
+                Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0);
                 if (me->getVictim())
                     pSummoned->AI()->AttackStart(pTarget ? pTarget : me->getVictim());
                 m_lCollapsingStarGUIDList.push_back(pSummoned->GetGUID());
@@ -217,7 +217,7 @@ public:
                 me->DisappearAndDie();
 
                 if (pInstance)
-                    pInstance->SetData(TYPE_ALGALON, DONE);
+                    pInstance->SetData(BOSS_ALGALON, DONE);
 
                 return;
             }
@@ -288,7 +288,7 @@ public:
 
                 if (CosmicSmash_Timer <= diff)
                 {
-                    DoCast(SelectUnit(SELECT_TARGET_RANDOM, 0), RAID_MODE(SPELL_COSMIC_SMASH,H_SPELL_COSMIC_SMASH), true);
+                    DoCast(SelectTarget(SELECT_TARGET_RANDOM, 0), RAID_MODE(SPELL_COSMIC_SMASH,H_SPELL_COSMIC_SMASH), true);
 
                     CosmicSmash_Timer = urand(30000, 60000);
                 } else CosmicSmash_Timer -= diff;
@@ -368,7 +368,7 @@ public:
 
 };
 
-void AddSC_boss_Algalon()
+void AddSC_boss_algalon()
 {
     new boss_algalon();
     new mob_collapsing_star();
