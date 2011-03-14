@@ -245,7 +245,11 @@ class boss_blood_queen_lana_thel : public CreatureScript
                         me->SetReactState(REACT_AGGRESSIVE);
                         if (Unit *victim = me->SelectVictim())
                             AttackStart(victim);
-                        uiSwarmingShadowsCast = 0;                        uiPactOfTheDarkfallenCast = 0;                        events.ScheduleEvent(EVENT_SWARMING_SHADOWS, 15000, EVENT_GROUP_NORMAL);                        events.ScheduleEvent(EVENT_PACT_OF_THE_DARKFALLEN, 6000, EVENT_GROUP_NORMAL);                        events.ScheduleEvent(EVENT_AIR_PHASE, 102500);
+                        uiSwarmingShadowsCast = 0;
+                        uiPactOfTheDarkfallenCast = 0;
+                        events.ScheduleEvent(EVENT_SWARMING_SHADOWS, 15000, EVENT_GROUP_NORMAL);
+                        events.ScheduleEvent(EVENT_PACT_OF_THE_DARKFALLEN, 6000, EVENT_GROUP_NORMAL);
+                        events.ScheduleEvent(EVENT_AIR_PHASE, 102500);
                         events.ScheduleEvent(EVENT_BLOOD_MIRROR, 2500, EVENT_GROUP_CANCELLABLE);
                         break;
                     default:
@@ -750,4 +754,3 @@ void AddSC_boss_blood_queen_lana_thel()
     new achievement_once_bitten_twice_shy_n();
     new achievement_once_bitten_twice_shy_v();
 }
-                                                                                                                                                                                                                                                                                                                                                               
