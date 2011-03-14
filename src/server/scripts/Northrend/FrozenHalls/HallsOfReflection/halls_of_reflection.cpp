@@ -179,10 +179,10 @@ public:
         switch(pCreature->GetEntry())
         {
             case NPC_JAINA:
-                pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Ëåäè Äæàéíà, ìû ãîòîâû ê ñëåäóþùåé ìèññèè!", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
+                pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Ð›ÐµÐ´Ð¸ Ð”Ð¶Ð°Ð¹Ð½Ð°, Ð¼Ñ‹ Ð³Ð¾Ñ‚Ð¾Ð²Ñ‹ Ðº ÑÐ»ÐµÐ´ÑƒÑŽÑ‰ÐµÐ¹ Ð¼Ð¸ÑÑÐ¸Ð¸!", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
                 break;
             case NPC_SYLVANA:
-                pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Ëåäè Ñèëüâàíà, ìû ãîòîâû ê ñëåäóþùåé ìèññèè!", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
+                pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Ð›ÐµÐ´Ð¸ Ð¡Ð¸Ð»ÑŒÐ²Ð°Ð½Ð°, Ð¼Ñ‹ Ð³Ð¾Ñ‚Ð¾Ð²Ñ‹ Ðº ÑÐ»ÐµÐ´ÑƒÑŽÑ‰ÐµÐ¹ Ð¼Ð¸ÑÑÐ¸Ð¸!", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
                 break;
         }
 
@@ -221,7 +221,7 @@ public:
         {
             if(!m_pInstance)
                 return
-            //sLog->outDebug(LOG_FILTER_TSCR, "EventMGR: creature %u received signal %u ",me->GetEntry(),m_pInstance->GetData(TYPE_EVENT));
+            sLog->outDebug(LOG_FILTER_TSCR, "EventMGR: creature %u received signal %u ",me->GetEntry(),m_pInstance->GetData(TYPE_EVENT));
             m_pInstance->SetData(TYPE_PHASE, 1);
             m_pInstance->SetData(TYPE_EVENT, 0);
             Step = 1;
@@ -708,7 +708,7 @@ public:
         if(pCreature->isQuestGiver())
            pPlayer->PrepareQuestMenu( pCreature->GetGUID());
 
-        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Ïîáåæàëè!", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
+        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "ÐŸÐ¾Ð±ÐµÐ¶Ð°Ð»Ð¸!", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
 
         pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
 
