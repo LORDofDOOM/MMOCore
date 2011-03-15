@@ -226,7 +226,7 @@ public:
                     case EVENT_GRAB_POT:
                         if (Unit* SlagPotTarget = Unit::GetUnit(*me, SlagPotGUID))
                         {
-                            SlagPotTarget->EnterVehicle(me, 0);
+                            SlagPotTarget->_EnterVehicle(vehicle, 0);
                             events.ScheduleEvent(EVENT_CHANGE_POT, 1000);
                         }
                         break;
@@ -471,3 +471,4 @@ void AddSC_boss_ignis()
     if (VehicleSeatEntry* vehSeat = const_cast<VehicleSeatEntry*>(sVehicleSeatStore.LookupEntry(3206)))
         vehSeat->m_flags |= 0x400;
 }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         

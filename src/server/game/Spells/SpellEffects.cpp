@@ -2684,6 +2684,10 @@ void Spell::EffectEnergize(SpellEffIndex effIndex)
     int level_diff = 0;
     switch (m_spellInfo->Id)
     {
+        case 2687:                                          // Bloodrage
+            if (m_caster->HasAura(70844))
+                m_caster->CastSpell(m_caster, 70845, true);
+            break;
         case 9512:                                          // Restore Energy
             level_diff = m_caster->getLevel() - 40;
             level_multiplier = 2;
@@ -3221,8 +3225,18 @@ void Spell::EffectSummonType(SpellEffIndex effIndex)
                     float radius = GetSpellRadiusForHostile(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[effIndex]));
 
                     uint32 amount = damage > 0 ? damage : 1;
-                    if (m_spellInfo->Id == 18662) // Curse of Doom
-                        amount = 1;
+		    switch (m_spellInfo->Id)
+		    {
+		    case 18662: // Curse of Doom
+		    case 1122: // Inferno
+		    case 4073: // Mechanical Dragonling
+		    case 12749: // Mithril Mechanical Dragonling
+		    case 19804: // Arcanite Dragonling
+		    case 48739: // Winterfin First Responder
+		    case 65783: // Ogre Pinata
+	            amount = 1;
+		    break;
+		    }
 
                     for (uint32 count = 0; count < amount; ++count)
                     {
@@ -6279,8 +6293,8 @@ void Spell::EffectCharge(SpellEffIndex /*effIndex*/)
     if (!target)
         return;
 
-    if (m_caster->ToPlayer())
-        sAnticheatMgr->DisableAnticheatDetection(m_caster->ToPlayer());
+    //if (m_caster->ToPlayer())
+    //    sAnticheatMgr->DisableAnticheatDetection(m_caster->ToPlayer());
 
     float x, y, z;
     target->GetContactPoint(m_caster, x, y, z);
@@ -6295,8 +6309,8 @@ void Spell::EffectChargeDest(SpellEffIndex /*effIndex*/)
 {
     if (m_targets.HasDst())
     {
-        if (m_caster->ToPlayer())
-            sAnticheatMgr->DisableAnticheatDetection(m_caster->ToPlayer());
+        //if (m_caster->ToPlayer())
+        //    sAnticheatMgr->DisableAnticheatDetection(m_caster->ToPlayer());
 
         float x, y, z;
         m_targets.m_dstPos.GetPosition(x, y, z);
@@ -6357,8 +6371,8 @@ void Spell::EffectKnockBack(SpellEffIndex effIndex)
 
 void Spell::EffectLeapBack(SpellEffIndex effIndex)
 {
-    if (m_caster->ToPlayer())
-        sAnticheatMgr->DisableAnticheatDetection(m_caster->ToPlayer());
+    //if (m_caster->ToPlayer())
+    //    sAnticheatMgr->DisableAnticheatDetection(m_caster->ToPlayer());
 
     float speedxy = float(m_spellInfo->EffectMiscValue[effIndex])/10;
     float speedz = float(damage/10);
@@ -7134,6 +7148,12 @@ void Spell::SummonGuardian(uint32 i, uint32 entry, SummonPropertiesEntry const *
     switch (m_spellInfo->Id)
     {
         case 1122: // Inferno
+        case 4073:  // Mechanical Dragonling
+        case 12749: // Mithril Mechanical Dragonling
+        case 18662: // Curse of Doom
+        case 19804: // Arcanite Dragonling
+        case 48739: // Winterfin First Responder
+        case 65783: // Ogre Pinata
             amount = 1;
             break;
         case 49028: // Dancing Rune Weapon

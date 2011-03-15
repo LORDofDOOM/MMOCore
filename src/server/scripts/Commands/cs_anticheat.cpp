@@ -16,6 +16,7 @@
 #include "ScriptMgr.h"
 #include "ObjectMgr.h"
 #include "Chat.h"
+#include "AnticheatMgr.h"
 
 class anticheat_commandscript : public CommandScript
 {
@@ -147,16 +148,15 @@ public:
         strCommand = command;
         
         if (strCommand.compare("deleteall") == 0)
-            CharacterDatabase.PExecute("DELETE FROM players_reports_status;");
+            sAnticheatMgr->AnticheatDeleteCommand(0);
         else
         {
             normalizePlayerName(strCommand);
-            Player* pPlayer = sObjectMgr->GetPlayer(strCommand.c_str()); //get player by name
-
-            if (!pPlayer)
+            Player* player = sObjectMgr->GetPlayer(strCommand.c_str()); //get player by name
+            if (!player)
                 handler->PSendSysMessage("Player doesn't exist");
             else
-                CharacterDatabase.PExecute("DELETE FROM players_reports_status WHERE guid=%u;",pPlayer->GetGUIDLow());
+                sAnticheatMgr->AnticheatDeleteCommand(player->GetGUIDLow());
         }
 
         return true;
@@ -171,7 +171,7 @@ public:
 
         char* command = strtok((char*)args, " ");
 
-        uint32 uiGUID = 0;
+        uint32 guid = 0;
         Player* player = NULL;
         
         if (command)
@@ -182,31 +182,31 @@ public:
             player = sObjectMgr->GetPlayer(strCommand.c_str()); //get player by name
 
             if (player)
-                uiGUID = player->GetGUIDLow();
+                guid = player->GetGUIDLow();
         }else 
         {
             player = handler->getSelectedPlayer();
             if (player)
-                uiGUID = player->GetGUIDLow();  
+                guid = player->GetGUIDLow();  
         }
 
-        if (uiGUID == 0)
+        if (!guid)
         {
             handler->PSendSysMessage("There is no player.");
             return true;
         }
-        
-        uint32 average = player->anticheatData.average;
-        uint32 total_reports = player->anticheatData.total_reports;
-        uint32 speed_reports = player->anticheatData.type_reports[0];
-        uint32 fly_reports = player->anticheatData.type_reports[1];
-        uint32 jump_reports = player->anticheatData.type_reports[3];
-        uint32 waterwalk_reports = player->anticheatData.type_reports[2];
-        uint32 teleportplane_reports = player->anticheatData.type_reports[4];
-        uint32 climb_reports = player->anticheatData.type_reports[5];
+
+        float average = sAnticheatMgr->GetAverage(guid);
+        uint32 total_reports = sAnticheatMgr->GetTotalReports(guid);
+        uint32 speed_reports = sAnticheatMgr->GetTypeReports(guid,0);
+        uint32 fly_reports = sAnticheatMgr->GetTypeReports(guid,1);
+        uint32 jump_reports = sAnticheatMgr->GetTypeReports(guid,3);
+        uint32 waterwalk_reports = sAnticheatMgr->GetTypeReports(guid,2);
+        uint32 teleportplane_reports = sAnticheatMgr->GetTypeReports(guid,4);
+        uint32 climb_reports = sAnticheatMgr->GetTypeReports(guid,5);
 
         handler->PSendSysMessage("Information about player %s",player->GetName());
-        handler->PSendSysMessage("Average: %u || Total Reports: %u ",average,total_reports);
+        handler->PSendSysMessage("Average: %f || Total Reports: %u ",average,total_reports);
         handler->PSendSysMessage("Speed Reports: %u || Fly Reports: %u || Jump Reports: %u ",speed_reports,fly_reports,jump_reports);
         handler->PSendSysMessage("Walk On Water Reports: %u  || Teleport To Plane Reports: %u",waterwalk_reports,teleportplane_reports);
         handler->PSendSysMessage("Climb Reports: %u", climb_reports);
@@ -250,53 +250,7 @@ public:
             return true;
         }
 
-        QueryResult resultDB = CharacterDatabase.Query("SELECT guid,average,total_reports FROM players_reports_status WHERE total_reports != 0 ORDER BY average ASC LIMIT 3;");
-        if (!resultDB)
-        {
-            handler->PSendSysMessage("No players found.");
-            return true;
-        } else
-        {
-                handler->SendSysMessage("=============================");
-                handler->PSendSysMessage("Players with the lowest averages:");
-                do
-                {
-                    Field *fieldsDB = resultDB->Fetch();
-     
-                    uint64 guid = fieldsDB[0].GetUInt64();
-                    uint32 average = fieldsDB[1].GetUInt32();
-                    uint32 total_reports = fieldsDB[2].GetUInt32();
-
-                     if (Player* player = sObjectMgr->GetPlayerByLowGUID(guid))
-                         handler->PSendSysMessage("Player: %s Average: %u Total Reports: %u",player->GetName(),average,total_reports);
-
-                } while (resultDB->NextRow());
-        }
-
-        resultDB = CharacterDatabase.Query("SELECT guid,average,total_reports FROM players_reports_status WHERE total_reports != 0 ORDER BY total_reports DESC LIMIT 3;");
-        
-        // this should never happen
-        if (!resultDB)
-        {
-            handler->PSendSysMessage("No players found.");
-            return true;
-        } else
-        {
-            handler->SendSysMessage("=============================");
-            handler->PSendSysMessage("Players with the more reports:");
-            do
-            {
-                Field *fieldsDB = resultDB->Fetch();
-     
-                uint64 guid = fieldsDB[0].GetUInt64();
-                uint32 average = fieldsDB[1].GetUInt32();
-                uint32 total_reports = fieldsDB[2].GetUInt32();
-
-                    if (Player* player = sObjectMgr->GetPlayerByLowGUID(guid))
-                        handler->PSendSysMessage("Player: %s Total Reports: %u Average: %u",player->GetName(),total_reports,average);
-
-            } while (resultDB->NextRow());
-        }
+        sAnticheatMgr->AnticheatGlobalCommand(handler);
 
         return true;
     }
