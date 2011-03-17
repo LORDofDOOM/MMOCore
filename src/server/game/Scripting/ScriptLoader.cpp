@@ -41,6 +41,15 @@ void AddSC_npc_mount();
 void AddSC_ArgentTournament();
 //Item Summon NPC
 void AddSC_npc_item_summon();
+//Custom Stone
+void AddSC_item_custom_stone();
+//Item Requester
+void AddSC_ItemRequester();
+//Profession NPC
+void AddSC_professionnpc();
+//Pryds All-in-One
+void AddSC_pryds_allinone();
+
 // spells
 void AddSC_deathknight_spell_scripts();
 void AddSC_druid_spell_scripts();
@@ -1272,6 +1281,14 @@ void AddCustomScripts()
 	AddSC_npc_customize();		
 	//Item Summon NPC
 	AddSC_npc_item_summon();	
+	//Custom Stone
+	AddSC_item_custom_stone();
+	//Item Requester
+	AddSC_ItemRequester();
+	//Profession NPC
+	AddSC_professionnpc();
+	//Pryds All-in-One
+	AddSC_pryds_allinone();
     // Custom
     AddSC_DuelReset();
 	// Killstreak PvP System
