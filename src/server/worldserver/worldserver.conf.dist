@@ -2953,3 +2953,156 @@ OutdoorPvP.Wintergrasp.Antifarm.Def = 5
 
 #
 ##########################################################
+
+
+##########################################################
+# Enable or Disable Primary Professions
+#         default = 1 (Enabled)
+#                   = 0 (Disabled)
+
+ProfessionNPC.EnableProfessions = 1
+
+# Enable or Disable Secondary Professions
+#         default = 1 (Enabled)
+#                   = 0 (Disabled)
+
+ProfessionNPC.EnableSecondarySkills = 1
+
+# Number of Skill points
+#         default = 10
+
+SkillPoints = 10
+
+# GM Only
+#         default = 0 (Anyone can use)
+#                   = 1 (GM only)
+
+ProfessionNPC.OnlyGMs = 0
+
+# Cost of skill points (in copper)
+#         default = 10000 (10 gold)
+
+SkillGoldCost = 10000
+
+##########################################################
+
+###############################################################################
+# AllInOne custom config options
+#
+#    pryds_allinone.OnlyGMs
+#        players are not allowed to use the NPC if this is enabled
+#        Default: 0 - disable
+#                 1 - enable
+#
+#    pryds_allinone.EnableAllInOneSmallBuff
+#        An option will be added to the gossip menu to Buff Players with SmallBuff
+#        Default: 1 - enable
+#                 0 - disable
+#
+#    pryds_allinone.EnableAllInOneGreatBuff
+#        An option will be added to the gossip menu to Buff Players with GreatBuff
+#        Default: 1 - enable
+#                 0 - disable
+#
+#    pryds_allinone.EnableAllInOneGMBuff
+#        An option will be added to the gossip menu to Buff GM whit GMBuff
+#        Default: 1 - enable
+#                 0 - disable
+#
+#    pryds_allinone.EnableTrainers
+#        An option will be added to the gossip menu for Trainers
+#        Default: 1 - enable
+#                 0 - disable
+#
+#    pryds_allinone.EnableMorph
+#        An option will be added to the gossip menu for Morph, 13 Famous and 13 Funny
+#        Default: 1 - enable
+#                 0 - disable
+#
+#    pryds_allinone.EnableBots CURRENTLY UNDER DEVELOPMENT NOT USED
+#        An option will be added to the gossip menu for the bot system
+#        Default: 1 - enable
+#                 0 - disable
+#
+#    pryds_allinone.EnableAllInOnePlayerTools
+#        An option will be added to the gossip menu for Player to give heal, food, mana gem
+#        Default: 1 - enable
+#                 0 - disable
+#
+#    pryds_allinone.EnableAllInOneGivemeGold
+#        An option will be added to the gossip menu for Player to get 5000g gold
+#        Default: 0 - disable
+#                 1 - enable
+#
+#    pryds_allinone.EnableAllInOneRemoveResSickness
+#        An option will be added to the gossip menu for removing resurrect sickness
+#        Default: 1 - enable
+#                 0 - disable
+#
+#    AllInOneBuffGoldCost
+#        An option will be added to the gossip menu for Buff Cost. Make sure to change the GoldCost whit the GoldCost you wanna pay.
+#        Default: 2 - GoldCost = 20000 Copper
+#
+#    pryds_allinone.EnableAllInOneProfessions
+#        An option will be added to the gossip menu to up your Professions
+#        Default: 1 - enable
+#                 0 - disable
+#
+#    pryds_allinone.EnableAllInOneSecondarySkills
+#        An option will be added to the gossip menu to up your SecondarySkills
+#        Default: 1 - enable
+#                 0 - disable
+#
+#
+#    pryds_allinone.EnableClassTrainers
+#        An option will be added to the gossip menu to up your ClassTrainers
+#        Default: 1 - enable
+#                 0 - disable
+#
+#    pryds_allinone.EnableProfessionsTrainers
+#        An option will be added to the gossip menu to up your ProfessionsTrainers
+#        Default: 1 - enable
+#                 0 - disable
+#
+#    pryds_AllInOneSkillPoints
+#        An option will be added to the gossip menu for SkillPoints you get from npc. Make sure to change the SkillPoints with the skillpoints you wanna get.
+#        Default: 5 - SkillPoints
+#
+#    pryds_AllInOneSkillGoldCost
+#        An option will be added to the gossip menu for SkillPoints Cost. Make sure to change the GoldCost whit the GoldCost you wanna pay.
+#        Default: 2 - GoldCost = 20000 Copper
+#
+###############################################################################
+
+#For GMs Only?
+pryds_allinone.OnlyGMs = 0
+
+#Main Menu Can be changed while server is online
+pryds_allinone.EnableBuffs = 1
+pryds_allinone.EnableProfessionsSkillUp = 1
+pryds_allinone.EnableTrainers = 1
+pryds_allinone.EnableMorph = 1
+pryds_allinone.EnableBots = 0 #CURRENTLY UNDER DEVELOPMENT NOT USED
+pryds_allinone.EnablePlayerTools = 1
+pryds_allinone.EnableRemoveResSickness = 1
+
+#Sub Menu Can be changed while server is online
+pryds_allinone.EnableSmallBuff = 1
+pryds_allinone.EnableGreatBuff = 1
+pryds_allinone.EnableGMBuff = 1
+
+#Sub Menu Can be changed while server is online
+pryds_allinone.EnableProfessions = 1
+pryds_allinone.EnableSecondarySkills = 1
+
+#Sub Menu Can be changed while server is online
+pryds_allinone.EnableClassTrainers = 1
+pryds_allinone.EnableProfessionsTrainers = 1
+
+#Sub Menu Can be changed while server is online
+pryds_allinone.EnableGivemeGold = 1
+
+#Cost Can be changed while server is online
+pryds_AllInOneBuffGoldCost = 20000
+pryds_AllInOneSkillGoldCost = 20000
+pryds_AllInOneSkillPoints = 5
