@@ -1,4 +1,5 @@
 /* Copyright (C) 2006 - 2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * Rewritten by LordPsyan <http://www.l33t-net.org/>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -22,26 +23,25 @@ SDCategory: NPC
 EndScriptData */
 
 #include "ScriptPCH.h"
-#include "../../shared/Configuration/Config.h"
-#ifndef _TRINITY_CORE_CONFIG
-# define _TRINITY_CORE_CONFIG  "worldserver.conf"
-#endif _TRINITY_CORE_CONFIG
+#include "Config.h"
 
-bool GossipHello_ProfessionNPC(Player* pPlayer, Creature* pCreature)
+class professionnpc : public CreatureScript
 {
-	Config TScriptConfig;
-	if(!TScriptConfig.SetSource(_TRINITY_CORE_CONFIG,true))
-		sLog.outError("TScript: Unable to open configuration file");
+public:
+    professionnpc() : CreatureScript("professionnpc") {}
 
-	if(TScriptConfig.GetBoolDefault("ProfessionNPC.OnlyGMs", false)) // If ProfessionNPC.OnlyGMs is enabled in trinitycore.conf
+
+bool OnGossipHello(Player* pPlayer, Creature* pCreature)
+{
+	if(sConfig->GetBoolDefault("ProfessionNPC.OnlyGMs", false)) // If ProfessionNPC.OnlyGMs is enabled in trinitycore.conf
 		if (pPlayer->GetSession()->GetSecurity() == SEC_PLAYER)
 		{
 			pCreature->MonsterWhisper("Sorry, I can only trade to game masters.", pPlayer->GetGUID());
 			return true;
 		}
 
-	bool EnableProfessions = TScriptConfig.GetBoolDefault("ProfessionNPC.EnableProfessions", true);
-	bool EnableSecondarySkills = TScriptConfig.GetBoolDefault("ProfessionNPC.EnableSecondarySkills", true);
+	bool EnableProfessions = sConfig->GetBoolDefault("ProfessionNPC.EnableProfessions", true);
+	bool EnableSecondarySkills = sConfig->GetBoolDefault("ProfessionNPC.EnableSecondarySkills", true);
 
 	// Main Menu for Alliance
     if (pPlayer->GetTeam() == ALLIANCE)
@@ -68,7 +68,7 @@ bool GossipHello_ProfessionNPC(Player* pPlayer, Creature* pCreature)
 return true;
 }
 
-void SendDefaultMenu_ProfessionNPC(Player* pPlayer, Creature* pCreature, uint32 uiAction)
+void SendDefaultMenu(Player* pPlayer, Creature* pCreature, uint32 uiAction)
 {
 
 // Not allow in combat
@@ -79,14 +79,11 @@ if (pPlayer->isInCombat())
 	return;
 }
 
-Config TScriptConfig;
-if(!TScriptConfig.SetSource(_TRINITY_CORE_CONFIG,true))
-		sLog.outError("TScript: Unable to open configuration file");
-	bool EnableProfessions = TScriptConfig.GetBoolDefault("ProfessionNPC.EnableProfessions", true);
-	bool EnableSecondarySkills = TScriptConfig.GetBoolDefault("ProfessionNPC.EnableSecondarySkills", true);
+	bool EnableProfessions = sConfig->GetBoolDefault("ProfessionNPC.EnableProfessions", true);
+	bool EnableSecondarySkills = sConfig->GetBoolDefault("ProfessionNPC.EnableSecondarySkills", true);
 
 //Mony Check
-if (pPlayer->GetMoney() < (TScriptConfig.GetFloatDefault("SkillGoldCost",0)))
+if (pPlayer->GetMoney() < (sConfig->GetFloatDefault("SkillGoldCost",0)))
 {
     pPlayer->CLOSE_GOSSIP_MENU();
     pCreature->MonsterWhisper("You don't have enough money.", pPlayer->GetGUID());
@@ -97,17 +94,17 @@ switch(uiAction)
 {
 
 case 1000: //Profession
-            pPlayer->ADD_GOSSIP_ITEM( 5, "Alchemy."              , GOSSIP_SENDER_MAIN, 1001);
-            pPlayer->ADD_GOSSIP_ITEM( 5, "Blacksmithing."        , GOSSIP_SENDER_MAIN, 1002);
-            pPlayer->ADD_GOSSIP_ITEM( 5, "Enchanting."           , GOSSIP_SENDER_MAIN, 1003);
-            pPlayer->ADD_GOSSIP_ITEM( 5, "Engineering."          , GOSSIP_SENDER_MAIN, 1004);
-            pPlayer->ADD_GOSSIP_ITEM( 5, "Herbalism."            , GOSSIP_SENDER_MAIN, 1005);
-            pPlayer->ADD_GOSSIP_ITEM( 5, "Inscription."          , GOSSIP_SENDER_MAIN, 1006);
-            pPlayer->ADD_GOSSIP_ITEM( 5, "Jewelcrafting."        , GOSSIP_SENDER_MAIN, 1007);
-            pPlayer->ADD_GOSSIP_ITEM( 5, "Leatherworking."       , GOSSIP_SENDER_MAIN, 1008);
-            pPlayer->ADD_GOSSIP_ITEM( 5, "Mining."               , GOSSIP_SENDER_MAIN, 1009);
-            pPlayer->ADD_GOSSIP_ITEM( 5, "Skinning."             , GOSSIP_SENDER_MAIN, 1010);
-            pPlayer->ADD_GOSSIP_ITEM( 5, "Tailoring."            , GOSSIP_SENDER_MAIN, 1011);
+            pPlayer->ADD_GOSSIP_ITEM( 5, "10 points in Alchemy."              , GOSSIP_SENDER_MAIN, 1001);
+            pPlayer->ADD_GOSSIP_ITEM( 5, "10 points in Blacksmithing."        , GOSSIP_SENDER_MAIN, 1002);
+            pPlayer->ADD_GOSSIP_ITEM( 5, "10 points in Enchanting."           , GOSSIP_SENDER_MAIN, 1003);
+            pPlayer->ADD_GOSSIP_ITEM( 5, "10 points in Engineering."          , GOSSIP_SENDER_MAIN, 1004);
+            pPlayer->ADD_GOSSIP_ITEM( 5, "10 points in Herbalism."            , GOSSIP_SENDER_MAIN, 1005);
+            pPlayer->ADD_GOSSIP_ITEM( 5, "10 points in Inscription."          , GOSSIP_SENDER_MAIN, 1006);
+            pPlayer->ADD_GOSSIP_ITEM( 5, "10 points in Jewelcrafting."        , GOSSIP_SENDER_MAIN, 1007);
+            pPlayer->ADD_GOSSIP_ITEM( 5, "10 points in Leatherworking."       , GOSSIP_SENDER_MAIN, 1008);
+            pPlayer->ADD_GOSSIP_ITEM( 5, "10 points in Mining."               , GOSSIP_SENDER_MAIN, 1009);
+            pPlayer->ADD_GOSSIP_ITEM( 5, "10 points in Skinning."             , GOSSIP_SENDER_MAIN, 1010);
+            pPlayer->ADD_GOSSIP_ITEM( 5, "10 points in Tailoring."            , GOSSIP_SENDER_MAIN, 1011);
             pPlayer->ADD_GOSSIP_ITEM( 7, "<- Main Menu"          , GOSSIP_SENDER_MAIN, 3000);
 
 	pPlayer->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE,pCreature->GetGUID());
@@ -153,12 +150,12 @@ case 1001: // Alchemy
 	if(!pPlayer->UpdateSkill(171,0))
       {
 		pCreature->MonsterWhisper("You don't have this skill or you allready have the maximum skill value $C.", pPlayer->GetGUID());
-		GossipHello_ProfessionNPC(pPlayer, pCreature);
+		OnGossipHello(pPlayer, pCreature);
 		return;
 	}
 
-	pPlayer->UpdateSkill(171,(TScriptConfig.GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(TScriptConfig.GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(171,(sConfig->GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -166,12 +163,12 @@ case 1002: // Blacksmithing
 	if(!pPlayer->UpdateSkill(164,0))
       {
 		pCreature->MonsterWhisper("You don't have this skill or you allready have the maximum skill value $C.", pPlayer->GetGUID());
-		GossipHello_ProfessionNPC(pPlayer, pCreature);
+		OnGossipHello(pPlayer, pCreature);
 		return;
 	}
 
-	pPlayer->UpdateSkill(164,(TScriptConfig.GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(TScriptConfig.GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(164,(sConfig->GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -179,12 +176,12 @@ case 1003: // Enchanting
 	if(!pPlayer->UpdateSkill(333,0))
       {
 		pCreature->MonsterWhisper("You don't have this skill or you allready have the maximum skill value $C.", pPlayer->GetGUID());
-		GossipHello_ProfessionNPC(pPlayer, pCreature);
+		OnGossipHello(pPlayer, pCreature);
 		return;
 	}
 
-	pPlayer->UpdateSkill(333,(TScriptConfig.GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(TScriptConfig.GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(333,(sConfig->GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -192,12 +189,12 @@ case 1004: // Engineering
 	if(!pPlayer->UpdateSkill(202,0))
       {
 		pCreature->MonsterWhisper("You don't have this skill or you allready have the maximum skill value $C.", pPlayer->GetGUID());
-		GossipHello_ProfessionNPC(pPlayer, pCreature);
+		OnGossipHello(pPlayer, pCreature);
 		return;
 	}
 
-	pPlayer->UpdateSkill(202,(TScriptConfig.GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(TScriptConfig.GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(202,(sConfig->GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -205,12 +202,12 @@ case 1005: // Herbalism
 	if(!pPlayer->UpdateSkill(182,0))
       {
 		pCreature->MonsterWhisper("You don't have this skill or you allready have the maximum skill value $C.", pPlayer->GetGUID());
-		GossipHello_ProfessionNPC(pPlayer, pCreature);
+		OnGossipHello(pPlayer, pCreature);
 		return;
 	}
 
-	pPlayer->UpdateSkill(182,(TScriptConfig.GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(TScriptConfig.GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(182,(sConfig->GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -218,12 +215,12 @@ case 1006: // Inscription
 	if(!pPlayer->UpdateSkill(773,0))
       {
 		pCreature->MonsterWhisper("You don't have this skill or you allready have the maximum skill value $C.", pPlayer->GetGUID());
-		GossipHello_ProfessionNPC(pPlayer, pCreature);
+		OnGossipHello(pPlayer, pCreature);
 		return;
 	}
 
-	pPlayer->UpdateSkill(773,(TScriptConfig.GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(TScriptConfig.GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(773,(sConfig->GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -231,12 +228,12 @@ case 1007: // Jewelcrafting
 	if(!pPlayer->UpdateSkill(755,0))
       {
 		pCreature->MonsterWhisper("You don't have this skill or you allready have the maximum skill value $C.", pPlayer->GetGUID());
-		GossipHello_ProfessionNPC(pPlayer, pCreature);
+		OnGossipHello(pPlayer, pCreature);
 		return;
 	}
 
-	pPlayer->UpdateSkill(755,(TScriptConfig.GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(TScriptConfig.GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(755,(sConfig->GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -244,12 +241,12 @@ case 1008: // Leatherworking
 	if(!pPlayer->UpdateSkill(165,0))
       {
 		pCreature->MonsterWhisper("You don't have this skill or you allready have the maximum skill value $C.", pPlayer->GetGUID());
-		GossipHello_ProfessionNPC(pPlayer, pCreature);
+		OnGossipHello(pPlayer, pCreature);
 		return;
 	}
 
-	pPlayer->UpdateSkill(165,(TScriptConfig.GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(TScriptConfig.GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(165,(sConfig->GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -257,12 +254,12 @@ case 1009: // Mining
 	if(!pPlayer->UpdateSkill(186,0))
       {
 		pCreature->MonsterWhisper("You don't have this skill or you allready have the maximum skill value $C.", pPlayer->GetGUID());
-		GossipHello_ProfessionNPC(pPlayer, pCreature);
+		OnGossipHello(pPlayer, pCreature);
 		return;
 	}
 
-	pPlayer->UpdateSkill(186,(TScriptConfig.GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(TScriptConfig.GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(186,(sConfig->GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -270,12 +267,12 @@ case 1010: // Skinning
 	if(!pPlayer->UpdateSkill(393,0))
       {
 		pCreature->MonsterWhisper("You don't have this skill or you allready have the maximum skill value $C.", pPlayer->GetGUID());
-		GossipHello_ProfessionNPC(pPlayer, pCreature);
+		OnGossipHello(pPlayer, pCreature);
 		return;
 	}
 
-	pPlayer->UpdateSkill(393,(TScriptConfig.GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(TScriptConfig.GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(393,(sConfig->GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -283,12 +280,12 @@ case 1011: // Tailoring
 	if(!pPlayer->UpdateSkill(197,0))
       {
 		pCreature->MonsterWhisper("You don't have this skill or you allready have the maximum skill value $C.", pPlayer->GetGUID());
-		GossipHello_ProfessionNPC(pPlayer, pCreature);
+		OnGossipHello(pPlayer, pCreature);
 		return;
 	}
 
-	pPlayer->UpdateSkill(197,(TScriptConfig.GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(TScriptConfig.GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(197,(sConfig->GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -298,12 +295,12 @@ case 2001: // Cooking
 	if(!pPlayer->UpdateSkill(185,0))
       {
 		pCreature->MonsterWhisper("You don't have this skill or you allready have the maximum skill value $C.", pPlayer->GetGUID());
-		GossipHello_ProfessionNPC(pPlayer, pCreature);
+		OnGossipHello(pPlayer, pCreature);
 		return;
 	}
 
-	pPlayer->UpdateSkill(185,(TScriptConfig.GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(TScriptConfig.GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(185,(sConfig->GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -311,12 +308,12 @@ case 2002: // First Aid
 	if(!pPlayer->UpdateSkill(129,0))
       {
 		pCreature->MonsterWhisper("You don't have this skill or you allready have the maximum skill value $C.", pPlayer->GetGUID());
-		GossipHello_ProfessionNPC(pPlayer, pCreature);
+		OnGossipHello(pPlayer, pCreature);
 		return;
 	}
 
-	pPlayer->UpdateSkill(129,(TScriptConfig.GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(TScriptConfig.GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(129,(sConfig->GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -324,12 +321,12 @@ case 2003: // Fishing
 	if(!pPlayer->UpdateSkill(356,0))
       {
 		pCreature->MonsterWhisper("You don't have this skill or you allready have the maximum skill value $C.", pPlayer->GetGUID());
-		GossipHello_ProfessionNPC(pPlayer, pCreature);
+		OnGossipHello(pPlayer, pCreature);
 		return;
 	}
 
-	pPlayer->UpdateSkill(356,(TScriptConfig.GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(TScriptConfig.GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(356,(sConfig->GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -337,12 +334,12 @@ break;
 //	if(!pPlayer->UpdateSkill(,0))
 //    {
 //		pCreature->MonsterWhisper("You don't have this skill or you allready have the maximum skill value $C.", pPlayer->GetGUID());
-//		GossipHello_ProfessionNPC(pPlayer, pCreature);
+//		OnGossipHello(pPlayer, pCreature);
 //		return;
 //	}
 //
-//	pPlayer->UpdateSkill(,(TScriptConfig.GetFloatDefault("SkillPoints",0)));
-//	pPlayer->ModifyMoney(-(TScriptConfig.GetFloatDefault("SkillGoldCost",0)));
+//	pPlayer->UpdateSkill(,(sConfig->GetFloatDefault("SkillPoints",0)));
+//	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
 //	pPlayer->CLOSE_GOSSIP_MENU();
 //break;
 
@@ -351,24 +348,20 @@ break;
 } // end of switch
 } //end of function
 
-
-
-bool GossipSelect_ProfessionNPC(Player* pPlayer, Creature* pCreature, uint32 uiSender, uint32 uiAction)
+bool OnGossipSelect(Player* pPlayer, Creature* pCreature, uint32 uiSender, uint32 uiAction)
 {
 	// Main menu
+	pPlayer->PlayerTalkClass->ClearMenus();
 	if (uiSender == GOSSIP_SENDER_MAIN)
-	SendDefaultMenu_ProfessionNPC(pPlayer, pCreature, uiAction);
+	SendDefaultMenu(pPlayer, pCreature, uiAction);
 
 return true;
 }
+};
 
 void AddSC_professionnpc()
 {
-    Script *newscript;
 
-	newscript = new Script;
-    newscript->Name = "professionnpc";
-    newscript->pGossipHello = &GossipHello_ProfessionNPC;
-    newscript->pGossipSelect = &GossipSelect_ProfessionNPC;
-    newscript->RegisterSelf();
+new professionnpc();
+
 }
