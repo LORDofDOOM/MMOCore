@@ -28,7 +28,7 @@ class npc_muradin_bronzebeard_gunship : public CreatureScript
         bool OnGossipHello(Player* pPlayer, Creature* pCreature)
         {
             InstanceScript* pInstance = pCreature->GetInstanceScript();
-            if (pInstance && pInstance->GetBossState(DATA_GUNSHIP_EVENT) != DONE)
+            if (pInstance && pInstance->GetBossState(DATA_GUNSHIP_BATTLE_EVENT) != DONE)
             {
                 if (!pCreature->GetTransport())
                 {
@@ -121,7 +121,7 @@ class npc_muradin_bronzebeard_gunship : public CreatureScript
             {
         if (Transport* t = pCreature->GetTransport())
                 {    
-                pInstance->SetData(DATA_GUNSHIP_EVENT, IN_PROGRESS);
+                pInstance->SetData(DATA_GUNSHIP_BATTLE_EVENT, IN_PROGRESS);
                 skybreaker->BuildStartMovePacket(pPlayer->GetMap());
                 skybreaker->SetGoState(GO_STATE_ACTIVE);
                 skybreaker->Update(0);
