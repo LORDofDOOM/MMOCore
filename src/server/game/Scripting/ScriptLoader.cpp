@@ -505,7 +505,6 @@ void AddSC_boss_falric();
 void AddSC_boss_marwyn();
 void AddSC_boss_lich_king_hr();
 void AddSC_instance_icecrown_citadel();    // Icecrown Citadel
-void AddSC_boss_gunship_battle();
 void AddSC_icecrown_citadel();
 void AddSC_boss_valithria();
 void AddSC_boss_lichking();
@@ -1215,7 +1214,6 @@ void AddNorthrendScripts()
     AddSC_boss_marwyn();
     AddSC_boss_lich_king_hr();
     AddSC_instance_icecrown_citadel();    // Icecrown Citadel
-    AddSC_boss_gunship_battle();
     AddSC_icecrown_citadel();
     AddSC_boss_valithria();
     AddSC_boss_lichking();

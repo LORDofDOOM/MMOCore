@@ -1,1 +1,0 @@
-UPDATE `creature_template` SET `ScriptName`='npc_myradin_icc' WHERE `entry`=36948; 
