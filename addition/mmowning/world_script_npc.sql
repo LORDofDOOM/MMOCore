@@ -13,7 +13,7 @@ INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entr
 
 
 -- Lotto
-DELETE FROM game_event WHERE entry=132;
+DELETE FROM game_event WHERE eventEntry=132;
 INSERT INTO game_event VALUES
 (132, "2011-01-31 20:00:00", "2020-12-31 06:00:00", 1440, 1, 0, "Lotto!", 0);
 
