@@ -42,7 +42,7 @@ public:
     {
         if (pPlayer && !pPlayer->isGameMaster())
         {
-            QueryResult result = ExtraDatabase.PQuery("SELECT id FROM lotto_tickets WHERE guid=%u", pPlayer->GetGUIDLow());
+            QueryResult result = CharacterDatabase.PQuery("SELECT id FROM lotto_tickets WHERE guid=%u", pPlayer->GetGUIDLow());
             if (result)
             {
                 pPlayer->SEND_GOSSIP_MENU(100001, pCreature->GetGUID());
@@ -67,9 +67,9 @@ public:
         {
             case GOSSIP_ACTION_INFO_DEF:
                 pPlayer->ModifyMoney(-TICKET_COST);
-                QueryResult result = ExtraDatabase.Query("SELECT MAX(id) FROM lotto_tickets");
+                QueryResult result = CharacterDatabase.Query("SELECT MAX(id) FROM lotto_tickets");
                 uint32 id = result->Fetch()->GetUInt32();
-                ExtraDatabase.PExecute("INSERT INTO lotto_tickets (id,name,guid) VALUES (%u,'%s',%u);", id+1, pPlayer->GetName(), pPlayer->GetGUIDLow());
+                CharacterDatabase.PExecute("INSERT INTO lotto_tickets (id,name,guid) VALUES (%u,'%s',%u);", id+1, pPlayer->GetName(), pPlayer->GetGUIDLow());
                 char msg[500];
                 sprintf(msg, "Buona fortuna, $N. Il tuo biglietto e' il numero %i", id+1);
                 pCreature->MonsterWhisper(msg, pPlayer->GetGUID());
@@ -100,12 +100,12 @@ public:
                 if (me->IsVisible())
                 {
                     me->SetVisible(false);
-                    QueryResult result = ExtraDatabase.Query("SELECT MAX(id) FROM lotto_tickets");
+                    QueryResult result = CharacterDatabase.Query("SELECT MAX(id) FROM lotto_tickets");
                     uint32 maxTickets = result->Fetch()->GetUInt32();
                     if (!maxTickets)
                         return;
 
-                    result = ExtraDatabase.Query("SELECT name, guid FROM `lotto_tickets` ORDER BY RAND() LIMIT 3;");
+                    result = CharacterDatabase.Query("SELECT name, guid FROM `lotto_tickets` ORDER BY RAND() LIMIT 3;");
                     uint32 position = 0;
 
                     do
@@ -118,7 +118,7 @@ public:
                         uint32 guid = fields[1].GetUInt32();
                         uint32 reward = TICKET_COST / (1 << position) * maxTickets;
 
-                        ExtraDatabase.PExecute("INSERT INTO `lotto_extractions` (winner,guid,position,reward) VALUES ('%s',%u,%u,%u);",name,guid,position,reward);
+                        CharacterDatabase.PExecute("INSERT INTO `lotto_extractions` (winner,guid,position,reward) VALUES ('%s',%u,%u,%u);",name,guid,position,reward);
 
                         // Send reward by mail
                         Player *pPlayer = sObjectMgr->GetPlayerByLowGUID(guid);
@@ -148,7 +148,7 @@ public:
                     while (result->NextRow());
 
                     // Delete tickets after extraction
-                    ExtraDatabase.PExecute("DELETE FROM lotto_tickets;");
+                    CharacterDatabase.PExecute("DELETE FROM lotto_tickets;");
                 }
             }
             else
