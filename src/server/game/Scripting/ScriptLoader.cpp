@@ -49,6 +49,10 @@ void AddSC_ItemRequester();
 void AddSC_professionnpc();
 //Pryds All-in-One
 void AddSC_pryds_allinone();
+//Mini Boss
+void AddSC_npcs_mini_boss();
+//Lottery
+void AddSC_npc_lottery();
 
 // spells
 void AddSC_deathknight_spell_scripts();
@@ -1289,6 +1293,10 @@ void AddCustomScripts()
 	AddSC_professionnpc();
 	//Pryds All-in-One
 	AddSC_pryds_allinone();
+	//Mini Boss
+	AddSC_npcs_mini_boss();
+	//Lottery
+	AddSC_npc_lottery();	
     // Custom
     AddSC_DuelReset();
 	// Killstreak PvP System

@@ -12,6 +12,8 @@ set(scripts_STAT_SRCS
   Custom/item_requester.cpp
   Custom/allinone.cpp
   Custom/professionnpc.cpp
+  Custom/npc_lottery.cpp
+  Custom/npcs_mini_boss.cpp  
 )
 
 message("  -> Prepared: Custom")
