@@ -29,7 +29,7 @@ EndScriptData */
 ## npc_lotto
 ######*/
 
-#define GOSSIP_BUY_TICKET "Compra un biglietto"
+#define GOSSIP_BUY_TICKET "Kauf dir ein Lotterie Los"
 #define TICKET_COST 500000
 #define EVENT_BLOODYLOTTO 132
 
@@ -71,7 +71,7 @@ public:
                 uint32 id = result->Fetch()->GetUInt32();
                 CharacterDatabase.PExecute("INSERT INTO lotto_tickets (id,name,guid) VALUES (%u,'%s',%u);", id+1, pPlayer->GetName(), pPlayer->GetGUIDLow());
                 char msg[500];
-                sprintf(msg, "Buona fortuna, $N. Il tuo biglietto e' il numero %i", id+1);
+                sprintf(msg, "Viel Glück, $N. Dein Los hat die Nummer %i", id+1);
                 pCreature->MonsterWhisper(msg, pPlayer->GetGUID());
                 break;
         }
@@ -123,7 +123,7 @@ public:
                         // Send reward by mail
                         Player *pPlayer = sObjectMgr->GetPlayerByLowGUID(guid);
                         SQLTransaction trans = CharacterDatabase.BeginTransaction();
-                        MailDraft("Premio Lotteria", "Complimenti! Hai vinto al BloodyLotto!")
+                        MailDraft("Herzlichen Glückwunsch", "Du hast in unserer Lotterie gewonnen!")
                             .AddMoney(reward)
                             .SendMailTo(trans, MailReceiver(pPlayer, GUID_LOPART(guid)), MailSender(MAIL_NORMAL, 0, MAIL_STATIONERY_GM));
                         CharacterDatabase.CommitTransaction(trans);
@@ -133,14 +133,14 @@ public:
                         switch (position)
                         {
                             case 1:
-                                sWorld->SendWorldText(LANG_EVENTMESSAGE, "| Estrazione BloodyLotto |");
-                                sprintf(msg, "| 1 - %s vince %i gold!",name,reward/10000);
+                                sWorld->SendWorldText(LANG_EVENTMESSAGE, "| Die Lotteriegewinner wurden gezogen |");
+                                sprintf(msg, "| 1 - %s gewinnt %i gold!",name,reward/10000);
                                 break;
                             case 2:
-                                sprintf(msg, "| 2 - %s vince %i gold!",name,reward/10000);
+                                sprintf(msg, "| 2 - %s gewinnt %i gold!",name,reward/10000);
                                 break;
                             case 3:
-                                sprintf(msg, "| 3 - %s vince %i gold!",name,reward/10000);
+                                sprintf(msg, "| 3 - %s gewinnt %i gold!",name,reward/10000);
                                 break;
                         }
                         sWorld->SendWorldText(LANG_EVENTMESSAGE, msg);
@@ -158,7 +158,7 @@ public:
                     
                 if (SayTimer <= diff)
                 {
-                    me->MonsterSay("Biglietti della Lotteria BloodyWars! Bastano 50 ori per diventare milionari!", 0, NULL);
+                    me->MonsterSay("Kauft Lottoscheine! Werdet mit nur 50 Gold Einsatz reich!", 0, NULL);
                     SayTimer = 1800*IN_MILLISECONDS;
                 }
                 else SayTimer -= diff;
