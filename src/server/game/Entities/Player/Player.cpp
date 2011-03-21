@@ -15250,7 +15250,6 @@ bool Player::SatisfyQuestPreviousQuest(Quest const* qInfo, bool msg)
                 return true;
             }
 
-
             // If any of the negative previous quests active, return true
             if (*iter < 0 && GetQuestStatus(prevId) != QUEST_STATUS_NONE)
             {
@@ -21827,7 +21826,6 @@ void Player::SetDailyQuestStatus(uint32 quest_id)
         }
     }
 }
-
 
 void Player::SetWeeklyQuestStatus(uint32 quest_id)
 {
