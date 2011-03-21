@@ -45,13 +45,13 @@ public:
             QueryResult result = CharacterDatabase.PQuery("SELECT id FROM lotto_tickets WHERE guid=%u", pPlayer->GetGUIDLow());
             if (result)
             {
-                pPlayer->SEND_GOSSIP_MENU(100001, pCreature->GetGUID());
+                pPlayer->SEND_GOSSIP_MENU(999901, pCreature->GetGUID());
                 return false;
             }
 
             pPlayer->PrepareGossipMenu(pCreature);
             pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_BUY_TICKET, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF);
-            pPlayer->SEND_GOSSIP_MENU(100000, pCreature->GetGUID());
+            pPlayer->SEND_GOSSIP_MENU(999900, pCreature->GetGUID());
         }
         return true;
     }
