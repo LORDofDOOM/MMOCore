@@ -312,7 +312,6 @@ void Unit::SendMonsterMoveWithSpeedToCurrentDestination(Player* player)
         SendMonsterMoveWithSpeed(x, y, z, 0, player);
 }
 
-
 void Unit::SendMonsterMoveWithSpeed(float x, float y, float z, uint32 transitTime, Player* player)
 {
     if (!transitTime)
@@ -3749,7 +3748,6 @@ void Unit::RemoveAurasDueToSpellBySteal(uint32 spellId, uint64 casterGUID, Unit 
             else
                 RemoveAuraFromStack(iter, AURA_REMOVE_BY_ENEMY_SPELL);
 
-
             if (Aura * newAura = stealCharge ? stealer->GetAura(aura->GetId(), aura->GetCasterGUID()) : NULL)
             {
                 uint8 newCharges = newAura->GetCharges() + 1;
@@ -3864,7 +3862,6 @@ void Unit::RemoveNotOwnSingleTargetAuras(uint32 newPhase)
             ++iter;
     }
 }
-
 
 void Unit::RemoveAurasWithInterruptFlags(uint32 flag, uint32 except)
 {
@@ -3986,7 +3983,7 @@ void Unit::RemoveAllAuras()
 
 void Unit::RemoveArenaAuras(bool onleave)
 {
-    // in join, remove positive buffs, on end, remove negative
+    // in join, remove positive and negative buffs, on end, remove negative
     // used to remove positive visible auras in arenas
     for (AuraApplicationMap::iterator iter = m_appliedAuras.begin(); iter != m_appliedAuras.end();)
     {
@@ -3995,7 +3992,7 @@ void Unit::RemoveArenaAuras(bool onleave)
         if (!(aura->GetSpellProto()->AttributesEx4 & SPELL_ATTR4_UNK21) // don't remove stances, shadowform, pally/hunter auras
             && !aura->IsPassive()                               // don't remove passive auras
             && (!(aura->GetSpellProto()->Attributes & SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY) || !(aura->GetSpellProto()->Attributes & SPELL_ATTR0_UNK8))   // not unaffected by invulnerability auras or not having that unknown flag (that seemed the most probable)
-            && (aurApp->IsPositive() ^ onleave))                   // remove positive buffs on enter, negative buffs on leave
+            && !(aurApp->IsPositive() && onleave))                   // remove positive and negative buffs on enter, negative buffs on leave
             RemoveAura(iter);
         else
             ++iter;
@@ -5045,6 +5042,14 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, AuraEffect* trigger
                     // return damage % to attacker but < 50% own total health
                     basepoints0 = int32(std::min(CalculatePctN(damage, triggerAmount), CountPctFromMaxHealth(50)));
                     triggered_spell_id = 25997;
+                    break;
+                }
+                // Grim Reprisal
+                case 63305:
+                {
+                    // return 60% damage to the attacker
+                    basepoints0 = int32(CalculatePctU(damage, 60));
+                    triggered_spell_id = 64039;
                     break;
                 }
                 // Sweeping Strikes
@@ -10007,10 +10012,12 @@ Unit* Unit::SelectMagnetTarget(Unit *victim, SpellEntry const *spellInfo)
         for (Unit::AuraEffectList::const_iterator itr = magnetAuras.begin(); itr != magnetAuras.end(); ++itr)
             if (Unit* magnet = (*itr)->GetBase()->GetUnitOwner())
                 if (magnet->isAlive())
-                {
-                    (*itr)->GetBase()->DropCharge();
-                    return magnet;
-                }
+                    if (Spell* spell = FindCurrentSpellBySpellId(spellInfo->Id))
+                    {
+                        // Store magnet aura to drop charge on hit
+                        spell->SetMagnetingAura((*itr)->GetBase());
+                        return magnet;
+                    }
     }
     // Melee && ranged case
     else
@@ -11253,7 +11260,6 @@ uint32 Unit::SpellHealingBonus(Unit *pVictim, SpellEntry const *spellProto, uint
     // Tenacity increase healing % taken
     if (AuraEffect const* Tenacity = pVictim->GetAuraEffect(58549, 0))
         AddPctN(TakenTotalMod, Tenacity->GetAmount());
-
 
     // Healing taken percent
     float minval = (float)pVictim->GetMaxNegativeAuraModifier(SPELL_AURA_MOD_HEALING_PCT);
@@ -12815,7 +12821,6 @@ Unit* Creature::SelectVictim()
                 return target;
     }
 
-
     Unit::AuraEffectList const& iAuras = GetAuraEffectsByType(SPELL_AURA_MOD_INVISIBILITY);
     if(!iAuras.empty())
     {
@@ -12888,6 +12893,10 @@ int32 Unit::ModSpellDuration(SpellEntry const* spellProto, Unit const* target, i
 {
     //don't mod permament auras duration
     if (duration < 0)
+        return duration;
+        
+    // Envenom duration    
+    if (spellProto->SpellFamilyName == SPELLFAMILY_ROGUE && spellProto->SpellFamilyFlags[1] & 0x8)
         return duration;
 
     //cut duration only of negative effects

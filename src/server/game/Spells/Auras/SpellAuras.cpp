@@ -794,7 +794,6 @@ bool Aura::ModStackAmount(int32 num)
     return false;
 }
 
-
 bool Aura::IsPassive() const
 {
     return IsPassiveSpell(GetSpellProto());
@@ -1173,6 +1172,30 @@ void Aura::HandleAuraSpecificMods(AuraApplication const * aurApp, Unit * caster,
                                     caster->CastCustomSpell(caster, 72373, NULL, &remainingDamage, NULL, true);
                             }
                         }
+                        break;
+                    case 63830: // Malady of the Mind
+                    case 63881:
+                    {
+                        if (removeMode != AURA_REMOVE_BY_EXPIRE)
+                            break;
+                        // it will attempt to jump to a nearby friend when removed
+                        std::list<Unit*> unitList;
+                        target->GetRaidMember(unitList, 10);
+                        for (std::list<Unit*>::iterator itr = unitList.begin(); itr != unitList.end(); ++itr)
+                        {
+                            Unit* pUnit = *itr;
+                            if (!pUnit || pUnit == target)
+                                continue;
+
+                            pUnit->CastSpell(pUnit, 63881, true, 0, 0);
+                            return;
+                        }
+                        break;
+                    }
+                    case 64465: // Shadow Beacon
+                        if (removeMode != AURA_REMOVE_BY_EXPIRE)
+                            break;
+                        target->CastSpell(target, 64468, true, 0, 0, GetCasterGUID());
                         break;
                 }
                 break;
@@ -1853,7 +1876,6 @@ void Aura::CallScriptEffectAfterAbsorbHandlers(AuraEffect * aurEff, AuraApplicat
         (*scritr)->_FinishScriptCall();
     }
 }
-
 
 void Aura::CallScriptEffectManaShieldHandlers(AuraEffect * aurEff, AuraApplication const * aurApp, DamageInfo & dmgInfo, uint32 & absorbAmount, bool & defaultPrevented)
 {

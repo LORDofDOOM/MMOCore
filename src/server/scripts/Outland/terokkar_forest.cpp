@@ -153,7 +153,6 @@ public:
 
 };
 
-
 /*######
 ## mob_infested_root_walker
 ######*/
@@ -535,7 +534,6 @@ public:
     }
 
 };
-
 
 /*######
 ## go_skull_pile

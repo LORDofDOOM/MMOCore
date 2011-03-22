@@ -768,7 +768,6 @@ bool Item::CanBeTraded(bool mail, bool trade) const
     return true;
 }
 
-
 bool Item::HasEnchantRequiredSkill(const Player *pPlayer) const
 {
 
@@ -781,7 +780,6 @@ bool Item::HasEnchantRequiredSkill(const Player *pPlayer) const
 
   return true;
 }
-
 
 uint32 Item::GetEnchantRequiredLevel() const
 {

@@ -251,9 +251,6 @@ public:
 
 };
 
-
-
-
 /*####
 # mob_sunspring_villager - should be done with ACID
 ####*/
@@ -392,8 +389,6 @@ public:
 
 };
 
-
-
 /*######
 ## npc_greatmother_geyah
 ######*/
@@ -505,7 +500,6 @@ public:
 
 };
 
-
 /*######
 ## npc_lantresor_of_the_blade
 ######*/
@@ -582,7 +576,6 @@ public:
     }
 
 };
-
 
 /*#####
 ## npc_maghar_captive
@@ -755,8 +748,6 @@ public:
 
 };
 
-
-
 /*######
 ## npc_creditmarker_visist_with_ancestors
 ######*/
@@ -801,7 +792,6 @@ public:
     };
 
 };
-
 
 /*######
 ## mob_sparrowhawk
@@ -911,7 +901,6 @@ public:
     };
 
 };
-
 
 /*####
 # Quest Soporte http://www.wowhead.com/quest=9923 "HELP!"

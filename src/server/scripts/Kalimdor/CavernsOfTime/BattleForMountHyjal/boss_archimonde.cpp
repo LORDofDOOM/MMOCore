@@ -649,10 +649,6 @@ public:
 
 };
 
-
-
-
-
 void AddSC_boss_archimonde()
 {
     new boss_archimonde();
