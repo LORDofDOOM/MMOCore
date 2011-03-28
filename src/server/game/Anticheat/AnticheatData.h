@@ -43,6 +43,9 @@ public:
 
     void SetTempReportsTimer(uint32 time, uint8 type);
     uint32 GetTempReportsTimer(uint8 type);
+    
+    void SetDailyReportState(bool b);
+    bool GetDailyReportState();
 private:
     uint32 lastOpcode;
     MovementInfo lastMovementInfo;
@@ -54,6 +57,7 @@ private:
     uint32 creationTime;
     uint32 tempReports[MAX_REPORT_TYPES];
     uint32 tempReportsTimer[MAX_REPORT_TYPES];
+    bool hasDailyReport;
 };
 
 #endif

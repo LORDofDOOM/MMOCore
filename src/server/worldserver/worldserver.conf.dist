@@ -2826,6 +2826,12 @@ Anticheat.ReportsForIngameWarnings = 70
 #        Default:     31
 
 Anticheat.DetectionsEnabled = 31
+
+#     Anticheat.MaxReportsForDailyReport
+#        Description: How many reports must the player have to make a report that it is in DB for a day (not only during the player's session).
+#        Default:     70
+
+Anticheat.MaxReportsForDailyReport = 70
       
 ###################################################################################################
 

@@ -76,6 +76,8 @@ class AnticheatMgr
 
         void AnticheatGlobalCommand(ChatHandler* handler);
         void AnticheatDeleteCommand(uint32 guid);
+
+        void ResetDailyReportStates();
     private:
         void SpeedHackDetection(Player* player, MovementInfo movementInfo);
         void FlyHackDetection(Player* player, MovementInfo movementInfo);
