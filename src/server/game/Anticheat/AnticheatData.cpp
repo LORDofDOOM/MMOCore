@@ -12,10 +12,21 @@ AnticheatData::AnticheatData()
     }
     average = 0;
     creationTime = 0;
+    hasDailyReport = false;
 }
 
 AnticheatData::~AnticheatData()
 {
+}
+
+void AnticheatData::SetDailyReportState(bool b)
+{
+    hasDailyReport = b;
+}
+
+bool AnticheatData::GetDailyReportState()
+{
+    return hasDailyReport;
 }
 
 void AnticheatData::SetLastOpcode(uint32 opcode)
