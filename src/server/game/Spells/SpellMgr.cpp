@@ -3661,9 +3661,21 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->EffectImplicitTargetA[1] = TARGET_UNIT_TARGET_ENEMY;
             count++;
             break;
+        // Chains of Ice
+        case 45524:
+            // this will fix self-damage caused by Glyph of Chains of Ice
+            spellInfo->EffectImplicitTargetA[2] = TARGET_UNIT_TARGET_ENEMY;
+            count++;
+            break;
         // Heroism
         case 32182:
             spellInfo->excludeCasterAuraSpell = 57723; // Exhaustion
+            count++;
+            break;
+        // Frost Fever
+        case 59921:
+            // Icy Clutch shouldn't be applied at caster when login
+            spellInfo->AttributesEx4 |= SPELL_ATTR4_CANT_PROC_FROM_SELFCAST;
             count++;
             break;
         // Blazing Harpoon
@@ -3690,6 +3702,13 @@ void SpellMgr::LoadSpellCustomAttr()
             // was 46, but effect is aura effect
             spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_NEARBY_ENTRY;
             spellInfo->EffectImplicitTargetB[0] = TARGET_DST_NEARBY_ENTRY;
+            count++;
+            break;
+        case 24131:                             // Wyvern Sting (rank 1)
+        case 24134:                             // Wyvern Sting (rank 2)
+        case 24135:                             // Wyvern Sting (rank 3)
+            // something wrong and it applied as positive buff
+            mSpellCustomAttr[i] |= SPELL_ATTR0_CU_NEGATIVE_EFF0;
             count++;
             break;
         case 26029: // dark glare
@@ -3954,6 +3973,10 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->EffectMiscValue[0] = MECHANIC_IMMUNE_SHIELD;
             count++;
             break;
+        case 42650: // Army of the Dead - now we can interrupt this
+            spellInfo->InterruptFlags = SPELL_INTERRUPT_FLAG_INTERRUPT;
+            count++;
+            break;
         case 64321: // Potent Pheromones
             // spell should dispel area aura, but doesn't have the attribute
             // may be db data bug, or blizz may keep reapplying area auras every update with checking immunity
@@ -4017,6 +4040,13 @@ void SpellMgr::LoadSpellCustomAttr()
         case 70893: // Culling The Herd
             spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_CASTER;
             spellInfo->EffectImplicitTargetB[0] = TARGET_UNIT_MASTER;
+            count++;
+            break;
+        case 54800: // Sigil of the Frozen Conscience - change class mask to custom extended flags of Icy Touch
+                    // this is done because another spell also uses the same SpellFamilyFlags as Icy Touch
+                    // SpellFamilyFlags[0] & 0x00000040 in SPELLFAMILY_DEATHKNIGHT is currently unused (3.3.5a)
+                    // this needs research on modifier applying rules, does not seem to be in Attributes fields
+            spellInfo->EffectSpellClassMask[0] = flag96(0x00000040, 0x00000000, 0x00000000);
             count++;
             break;
         // ULDUAR SPELLS
@@ -4216,6 +4246,20 @@ void SpellMgr::LoadSpellCustomAttr()
                     spellInfo->AttributesEx4 |= SPELL_ATTR4_CANT_PROC_FROM_SELFCAST;
                 else
                     break;
+                count++;
+                break;
+            case SPELLFAMILY_PRIEST:
+                // Twin Disciplines should affect at Prayer of Mending
+                if (spellInfo->SpellIconID == 2292)
+                    spellInfo->EffectSpellClassMask[0] = flag96(0, 622642, 2581594112);
+                else
+                    break;
+                count++;
+                break;
+            case SPELLFAMILY_DEATHKNIGHT:
+                // Icy Touch - extend FamilyFlags (unused value) for Sigil of the Frozen Conscience to use
+                if (spellInfo->SpellIconID == 2721 && spellInfo->SpellFamilyFlags[0] & 0x2)
+                    spellInfo->SpellFamilyFlags[0] |= 0x40;
                 count++;
                 break;
         }
