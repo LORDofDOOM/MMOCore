@@ -2209,11 +2209,21 @@ uint32 Unit::CalculateDamage(WeaponAttackType attType, bool normalized, bool add
         }
     }
 
+    if (GetTypeId() == TYPEID_PLAYER)
+    {
+        min_damage /= GetFloatValue(PLAYER_FIELD_MOD_DAMAGE_DONE_PCT);
+        max_damage /= GetFloatValue(PLAYER_FIELD_MOD_DAMAGE_DONE_PCT);
+    }
+
     if (min_damage > max_damage)
         std::swap(min_damage,max_damage);
 
     if (max_damage == 0.0f)
         max_damage = 5.0f;
+
+    // Rounding
+    min_damage += 0.5f;
+    max_damage += 0.5f;
 
     return urand((uint32)min_damage, (uint32)max_damage);
 }
@@ -5609,50 +5619,6 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, AuraEffect* trigger
                     triggered_spell_id = 66765;
                     break;
                 }
-                // Item - Icecrown 25 Normal Dagger Proc
-                case 71880:
-                {
-                    switch (getPowerType())
-                    {
-                        case POWER_MANA:
-                            triggered_spell_id = 71881;
-                            break;
-                        case POWER_RAGE:
-                            triggered_spell_id = 71883;
-                            break;
-                        case POWER_ENERGY:
-                            triggered_spell_id = 71882;
-                            break;
-                        case POWER_RUNIC_POWER:
-                            triggered_spell_id = 71884;
-                            break;
-                        default:
-                            return false;
-                    }
-                    break;
-                }
-                // Item - Icecrown 25 Heroic Dagger Proc
-                case 71892:
-                {
-                    switch (getPowerType())
-                    {
-                        case POWER_MANA:
-                            triggered_spell_id = 71888;
-                            break;
-                        case POWER_RAGE:
-                            triggered_spell_id = 71886;
-                            break;
-                        case POWER_ENERGY:
-                            triggered_spell_id = 71887;
-                            break;
-                        case POWER_RUNIC_POWER:
-                            triggered_spell_id = 71885;
-                            break;
-                        default:
-                            return false;
-                    }
-                    break;
-                }
             }
             break;
         }
@@ -6974,6 +6940,50 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, AuraEffect* trigger
 
                     triggeredByAura->SetAmount(triggeredByAura->GetAmount() + damage);
                     return true;
+                }
+                // Item - Icecrown 25 Normal Dagger Proc
+                case 71880:
+                {
+                    switch (getPowerType())
+                    {
+                        case POWER_MANA:
+                            triggered_spell_id = 71881;
+                            break;
+                        case POWER_RAGE:
+                            triggered_spell_id = 71883;
+                            break;
+                        case POWER_ENERGY:
+                            triggered_spell_id = 71882;
+                            break;
+                        case POWER_RUNIC_POWER:
+                            triggered_spell_id = 71884;
+                            break;
+                        default:
+                            return false;
+                    }
+                    break;
+                }
+                // Item - Icecrown 25 Heroic Dagger Proc
+                case 71892:
+                {
+                    switch (getPowerType())
+                    {
+                        case POWER_MANA:
+                            triggered_spell_id = 71888;
+                            break;
+                        case POWER_RAGE:
+                            triggered_spell_id = 71886;
+                            break;
+                        case POWER_ENERGY:
+                            triggered_spell_id = 71887;
+                            break;
+                        case POWER_RUNIC_POWER:
+                            triggered_spell_id = 71885;
+                            break;
+                        default:
+                            return false;
+                    }
+                    break;
                 }
             }
             break;
@@ -11643,6 +11653,9 @@ void Unit::MeleeDamageBonus(Unit *pVictim, uint32 *pdamage, WeaponAttackType att
             else if (ToPlayer()->HasItemFitToSpellRequirements((*i)->GetSpellProto()))
                 AddPctN(DoneTotalMod, (*i)->GetAmount());
         }
+        // Creatures' melee
+        else if ((*i)->GetMiscValue() & SPELL_SCHOOL_MASK_NORMAL)
+            AddPctN(DoneTotalMod, (*i)->GetAmount());
 
     AuraEffectList const &mDamageDoneVersus = GetAuraEffectsByType(SPELL_AURA_MOD_DAMAGE_DONE_VERSUS);
     for (AuraEffectList::const_iterator i = mDamageDoneVersus.begin(); i != mDamageDoneVersus.end(); ++i)

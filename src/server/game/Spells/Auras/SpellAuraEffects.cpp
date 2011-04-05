@@ -694,6 +694,9 @@ int32 AuraEffect::CalculateAmount(Unit * caster)
                 // Bonus from Glyph of Lightwell
                 if (AuraEffect* modHealing = caster->GetAuraEffect(55673, 0))
                     AddPctN(amount, modHealing->GetAmount());
+                // Bonus from talent Spiritual Healing
+                if (AuraEffect* modHealing = caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_PRIEST, 46, 1))
+                    AddPctN(amount, modHealing->GetAmount());
             }
             break;
         case SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN:
@@ -5713,7 +5716,12 @@ void AuraEffect::HandleModDamagePercentDone(AuraApplication const * aurApp, uint
         return;
 
     if (target->HasItemFitToSpellRequirements(GetSpellProto()))
+    {
         aurApp->GetTarget()->ApplyModSignedFloatValue(PLAYER_FIELD_MOD_DAMAGE_DONE_PCT, GetAmount()/100.0f, apply);
+        aurApp->GetTarget()->UpdateDamagePhysical(BASE_ATTACK);
+        aurApp->GetTarget()->UpdateDamagePhysical(OFF_ATTACK);
+        aurApp->GetTarget()->UpdateDamagePhysical(RANGED_ATTACK);
+    }
 }
 
 void AuraEffect::HandleModOffhandDamagePercent(AuraApplication const * aurApp, uint8 mode, bool apply) const
