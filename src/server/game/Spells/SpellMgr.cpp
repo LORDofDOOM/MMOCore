@@ -3688,6 +3688,12 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->excludeCasterAuraSpell = 57724; // Sated
             count++;
             break;
+        // Fiery Payback hack
+        case 44440:
+        case 44441:
+            spellInfo->CasterAuraStateNot = AURA_STATE_NONE;
+            count++;
+            break;
         // Heart of the Crusader
         case 20335:
         case 20336:
@@ -4252,6 +4258,12 @@ void SpellMgr::LoadSpellCustomAttr()
                 // Twin Disciplines should affect at Prayer of Mending
                 if (spellInfo->SpellIconID == 2292)
                     spellInfo->EffectSpellClassMask[0] = flag96(0, 622642, 2581594112);
+                // Spiritual Healing should affect at Prayer of Mending
+                else if (spellInfo->SpellIconID == 46)
+                    spellInfo->EffectSpellClassMask[0][1] |= 0x20;
+                // Divine Providence should affect at Prayer of Mending
+                else if (spellInfo->SpellIconID == 2845 && spellInfo->Id != 64844)
+                    spellInfo->EffectSpellClassMask[0][1] |= 0x20;
                 else
                     break;
                 count++;
