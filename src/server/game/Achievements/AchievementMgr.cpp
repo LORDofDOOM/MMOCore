@@ -1492,7 +1492,7 @@ void AchievementMgr::UpdateAchievementCriteria(AchievementCriteriaTypes type, ui
                             if (ArenaTeam * at = sObjectMgr->GetArenaTeamById(arena_team_id))
                                 if (at->GetType() == reqTeamType)
                                 {
-                                    SetCriteriaProgress(achievementCriteria, at->GetStats().rating, PROGRESS_HIGHEST);
+                                    SetCriteriaProgress(achievementCriteria, at->GetStats().Rating, PROGRESS_HIGHEST);
                                     break;
                                 }
                 }
@@ -1952,7 +1952,7 @@ void AchievementMgr::CompletedAchievement(AchievementEntry const* achievement, b
 
     SendAchievementEarned(achievement);
     /** World of Warcraft Armory **/
-    GetPlayer()->WriteWowArmoryDatabaseLog(1, achievement->ID);
+    GetPlayer()->CreateWowarmoryFeed(1, achievement->ID, 0, 0);
     /** World of Warcraft Armory **/
     CompletedAchievementData& ca =  m_completedAchievements[achievement->ID];
     ca.date = time(NULL);
