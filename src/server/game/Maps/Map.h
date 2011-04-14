@@ -533,7 +533,9 @@ class Map : public GridRefManager<NGridType>
         std::set<WorldObject *> i_objectsToRemove;
         std::map<WorldObject*, bool> i_objectsToSwitch;
         std::set<WorldObject*> i_worldObjects;
-        std::multimap<time_t, ScriptAction> m_scriptSchedule;
+
+        typedef std::multimap<time_t, ScriptAction> ScriptScheduleMap;
+        ScriptScheduleMap m_scriptSchedule;
 
         // Type specific code for add/remove to/from grid
         template<class T>
@@ -595,7 +597,7 @@ class InstanceMap : public Map
         void UnloadAll();
         bool CanEnter(Player* player);
         void SendResetWarnings(uint32 timeLeft) const;
-        void SetResetSchedule(bool on, Player* player);
+        void SetResetSchedule(bool on);
 
         uint32 GetMaxPlayers() const;
         uint32 GetMaxResetDelay() const;

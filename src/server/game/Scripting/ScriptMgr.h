@@ -21,6 +21,7 @@
 
 #include "Common.h"
 #include <ace/Singleton.h>
+#include <ace/Atomic_Op.h>
 
 #include "DBCStores.h"
 #include "Player.h"
@@ -464,7 +465,9 @@ class GameObjectScript : public ScriptObject, public UpdatableScript<GameObject>
         virtual uint32 GetDialogStatus(Player* /*player*/, GameObject* /*go*/) { return 100; }
 
         // Called when the gameobject is destroyed (destructible buildings only).
-        virtual void OnDestroyed(Player* /*player*/, GameObject* /*go*/, uint32 /*eventId*/) { }
+        virtual void OnDestroyed(GameObject* /*go*/, Player* /*player*/, uint32 /*eventId*/) { }
+        // Called when the gameobject is damaged (destructible buildings only).
+        virtual void OnDamaged(GameObject* /*go*/, Player* /*player*/,  uint32 /*eventId*/) { }
 };
 
 class AreaTriggerScript : public ScriptObject
@@ -764,6 +767,9 @@ class ScriptMgr
 
     uint32 _scriptCount;
 
+    //atomic op counter for active scripts amount
+    ACE_Atomic_Op<ACE_Thread_Mutex, long> _scheduledScripts;
+
     public: /* Initialization */
 
         void Initialize();
@@ -859,7 +865,8 @@ class ScriptMgr
         bool OnQuestAccept(Player* player, GameObject* go, Quest const* quest);
         bool OnQuestReward(Player* player, GameObject* go, Quest const* quest, uint32 opt);
         uint32 GetDialogStatus(Player* player, GameObject* go);
-        void OnGameObjectDestroyed(Player* player, GameObject* go, uint32 eventId);
+        void OnGameObjectDestroyed(GameObject* go, Player* player, uint32 eventId);
+        void OnGameObjectDamaged(GameObject* go, Player* player, uint32 eventId);
         void OnGameObjectUpdate(GameObject* go, uint32 diff);
 
     public: /* AreaTriggerScript */
@@ -967,6 +974,12 @@ class ScriptMgr
         void OnGroupRemoveMember(Group* group, uint64 guid, RemoveMethod method, uint64 kicker, const char* reason);
         void OnGroupChangeLeader(Group* group, uint64 newLeaderGuid, uint64 oldLeaderGuid);
         void OnGroupDisband(Group* group);
+
+    public: /* Scheduled scripts */
+        uint32 IncreaseScheduledScriptsCount() { return uint32(++_scheduledScripts); }
+        uint32 DecreaseScheduledScriptCount() { return uint32(--_scheduledScripts); }
+        uint32 DecreaseScheduledScriptCount(size_t count) { return uint32(_scheduledScripts -= count); }
+        bool IsScriptScheduled() const { return _scheduledScripts > 0; }
 
     public: /* ScriptRegistry */
 

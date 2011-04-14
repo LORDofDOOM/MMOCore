@@ -72,3 +72,9 @@ CREATE TABLE IF NOT EXISTS `guildhouses_addtype` (
   `minguildsize` int(16) unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY (`add_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+
+CREATE TABLE IF NOT EXISTS `gh_guildadd` (
+  `guildId` int(32) unsigned NOT NULL,
+  `GuildHouse_Add` int(32) unsigned NOT NULL,
+  PRIMARY KEY (`guildId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;

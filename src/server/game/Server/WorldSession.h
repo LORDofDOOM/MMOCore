@@ -860,6 +860,7 @@ class WorldSession
         void HandleQuestPOIQuery(WorldPacket& recv_data);
         void HandleEjectPassenger(WorldPacket &data);
         void HandleEnterPlayerVehicle(WorldPacket &data);
+        void HandleUpdateProjectilePosition(WorldPacket& recvPacket);
 
     private:
         void ProcessQueryCallbacks();
@@ -868,11 +869,11 @@ class WorldSession
         QueryResultFuture m_charEnumCallback;
         QueryResultFuture m_addIgnoreCallback;
         QueryResultFuture m_stablePetCallback;
-        QueryCallback<std::string> m_charRenameCallback;
-        QueryCallback<std::string> m_addFriendCallback;
-        QueryCallback<uint32> m_unstablePetCallback;
-        QueryCallback<uint32> m_stableSwapCallback;
-        QueryCallback<uint64> m_sendStabledPetCallback;
+        QueryCallback<QueryResult, std::string> m_charRenameCallback;
+        QueryCallback<QueryResult, std::string> m_addFriendCallback;
+        QueryCallback<QueryResult, uint32> m_unstablePetCallback;
+        QueryCallback<QueryResult, uint32> m_stableSwapCallback;
+        QueryCallback<QueryResult, uint64> m_sendStabledPetCallback;
         QueryResultHolderFuture m_charLoginCallback;
 
     private:

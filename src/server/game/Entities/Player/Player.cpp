@@ -4885,7 +4885,9 @@ void Player::DeleteFromDB(uint64 playerguid, uint32 accountId, bool updateRealmC
             trans->PAppend("DELETE FROM character_action WHERE guid = '%u'",guid);
             trans->PAppend("DELETE FROM character_aura WHERE guid = '%u'",guid);
             trans->PAppend("DELETE FROM character_gifts WHERE guid = '%u'",guid);
-            trans->PAppend("DELETE FROM character_homebind WHERE guid = '%u'",guid);
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_PLAYER_HOMEBIND);
+            stmt->setUInt32(0, guid);
+            trans->Append(stmt);
             trans->PAppend("DELETE FROM character_instance WHERE guid = '%u'",guid);
             trans->PAppend("DELETE FROM character_inventory WHERE guid = '%u'",guid);
             trans->PAppend("DELETE FROM character_queststatus WHERE guid = '%u'",guid);
@@ -4908,11 +4910,17 @@ void Player::DeleteFromDB(uint64 playerguid, uint32 accountId, bool updateRealmC
             trans->PAppend("DELETE FROM character_equipmentsets WHERE guid = '%u'",guid);
             trans->PAppend("DELETE FROM guild_eventlog WHERE PlayerGuid1 = '%u' OR PlayerGuid2 = '%u'",guid, guid);
             trans->PAppend("DELETE FROM guild_bank_eventlog WHERE PlayerGuid = '%u'",guid);
-            trans->PAppend("DELETE FROM character_battleground_data WHERE guid = '%u'",guid);
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_PLAYER_BGDATA);
+            stmt->setUInt32(0, guid);
+            trans->Append(stmt);
             trans->PAppend("DELETE FROM character_glyphs WHERE guid = '%u'",guid);
             trans->PAppend("DELETE FROM character_queststatus_daily WHERE guid = '%u'",guid);
             trans->PAppend("DELETE FROM character_talent WHERE guid = '%u'",guid);
             trans->PAppend("DELETE FROM character_skills WHERE guid = '%u'",guid);
+            /* World of Warcraft Armory */
+            trans->PAppend("DELETE FROM armory_character_stats WHERE guid = '%u'",guid);
+            trans->PAppend("DELETE FROM character_feed_log WHERE guid = '%u'",guid);
+            /* World of Warcraft Armory */
 
             CharacterDatabase.CommitTransaction(trans);
             break;
@@ -16308,70 +16316,42 @@ void Player::_LoadArenaTeamInfo(PreparedQueryResult result)
 {
     // arenateamid, played_week, played_season, personal_rating
     memset((void*)&m_uint32Values[PLAYER_FIELD_ARENA_TEAM_INFO_1_1], 0, sizeof(uint32) * MAX_ARENA_SLOT * ARENA_TEAM_END);
-    if (!result)
-        return;
 
-    do
+    uint16 personalRatingCache[] = {0, 0, 0};
+
+    if (result)
     {
-        Field* fields = result->Fetch();
-
-        uint32 arenateamid       = fields[0].GetUInt32();
-        uint32 played_week       = fields[1].GetUInt32();
-        uint32 played_season     = fields[2].GetUInt32();
-        uint32 wons_season       = fields[3].GetUInt32();
-
-        ArenaTeam* aTeam = sObjectMgr->GetArenaTeamById(arenateamid);
-        if (!aTeam)
+        do
         {
-            sLog->outError("Player::_LoadArenaTeamInfo: couldn't load arenateam %u", arenateamid);
-            continue;
+            Field* fields = result->Fetch();
+
+            uint32 arenaTeamId = fields[0].GetUInt32();
+
+            ArenaTeam* arenaTeam = sObjectMgr->GetArenaTeamById(arenaTeamId);
+            if (!arenaTeam)
+            {
+                sLog->outError("Player::_LoadArenaTeamInfo: couldn't load arenateam %u", arenaTeamId);
+                continue;
+            }
+
+            uint8 arenaSlot = arenaTeam->GetSlot();
+
+            personalRatingCache[arenaSlot] = fields[4].GetUInt16();
+
+            SetArenaTeamInfoField(arenaSlot, ARENA_TEAM_ID, arenaTeamId);
+            SetArenaTeamInfoField(arenaSlot, ARENA_TEAM_TYPE, arenaTeam->GetType());
+            SetArenaTeamInfoField(arenaSlot, ARENA_TEAM_MEMBER, (arenaTeam->GetCaptain() == GetGUID()) ? 0 : 1);
+            SetArenaTeamInfoField(arenaSlot, ARENA_TEAM_GAMES_WEEK, uint32(fields[1].GetUInt16()));
+            SetArenaTeamInfoField(arenaSlot, ARENA_TEAM_GAMES_SEASON, uint32(fields[2].GetUInt16()));
+            SetArenaTeamInfoField(arenaSlot, ARENA_TEAM_WINS_SEASON, uint32(fields[3].GetUInt16()));
         }
-
-        uint8  arenaSlot = aTeam->GetSlot();
-
-        SetArenaTeamInfoField(arenaSlot, ARENA_TEAM_ID, arenateamid);
-        SetArenaTeamInfoField(arenaSlot, ARENA_TEAM_TYPE, aTeam->GetType());
-        SetArenaTeamInfoField(arenaSlot, ARENA_TEAM_MEMBER, (aTeam->GetCaptain() == GetGUID()) ? 0 : 1);
-        SetArenaTeamInfoField(arenaSlot, ARENA_TEAM_GAMES_WEEK, played_week);
-        SetArenaTeamInfoField(arenaSlot, ARENA_TEAM_GAMES_SEASON, played_season);
-        SetArenaTeamInfoField(arenaSlot, ARENA_TEAM_WINS_SEASON, wons_season);
-    }
-    while (result->NextRow());
-}
-
-void Player::_LoadArenaStatsInfo(PreparedQueryResult result)
-{
-    uint8 slot = 0;
-    if (!result)
-    {
-        for (; slot <= 2; ++slot)
-        {
-            CharacterDatabase.PExecute("INSERT INTO character_arena_stats (guid, slot, personal_rating, matchmaker_rating) VALUES (%u, %u, 0, 1500)", GetGUIDLow(), slot);
-            SetArenaTeamInfoField(slot, ARENA_TEAM_PERSONAL_RATING, 0);
-        }
-        return;
+        while (result->NextRow());
     }
 
-    do
+    for (uint8 slot = 0; slot <= 2; ++slot)
     {
-        Field* fields = result->Fetch();
-
-        uint32 personalrating = 0;
-        uint32 matchmakerrating = 1500;
-        if (fields[0].GetUInt8() > slot)
-        {
-            CharacterDatabase.PExecute("INSERT INTO character_arena_stats (guid, slot, personal_rating, matchmaker_rating) VALUES (%u, %u, %u, %u)", GetGUIDLow(), slot, personalrating, matchmakerrating);
-            SetArenaTeamInfoField(slot, ARENA_TEAM_PERSONAL_RATING, personalrating);
-            slot++;
-            continue;
-        }
-
-        personalrating = fields[1].GetUInt32();
-        matchmakerrating = fields[2].GetUInt32();
-        SetArenaTeamInfoField(slot, ARENA_TEAM_PERSONAL_RATING, personalrating);
-        slot++;
+        SetArenaTeamInfoField(slot, ARENA_TEAM_PERSONAL_RATING, uint32(personalRatingCache[slot]));
     }
-    while (result->NextRow());
 }
 
 void Player::_LoadEquipmentSets(PreparedQueryResult result)
@@ -16412,8 +16392,8 @@ void Player::_LoadBGData(PreparedQueryResult result)
 
     Field* fields = result->Fetch();
     // Expecting only one row
-    //             0         1      2       3       4       5       6          7           8          9
-    // SELECT instance_id, team, join_x, join_y, join_z, join_o, join_map, taxi_start, taxi_end, mount_spell FROM character_battleground_data WHERE guid = ?
+    //        0           1     2      3      4      5      6          7          8        9
+    // SELECT instanceId, team, joinX, joinY, joinZ, joinO, joinMapId, taxiStart, taxiEnd, mountSpell FROM character_battleground_data WHERE guid = ?
 
     m_bgData.bgInstanceID = fields[0].GetUInt32();
     m_bgData.bgTeam       = fields[1].GetUInt16();
@@ -16454,8 +16434,14 @@ void Player::SetHomebind(WorldLocation const& /*loc*/, uint32 /*area_id*/)
     m_homebindZ = GetPositionZ();
 
     // update sql homebind
-    CharacterDatabase.PExecute("UPDATE character_homebind SET map = '%u', zone = '%u', position_x = '%f', position_y = '%f', position_z = '%f' WHERE guid = '%u'",
-        m_homebindMapId, m_homebindAreaId, m_homebindX, m_homebindY, m_homebindZ, GetGUIDLow());
+    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SET_PLAYER_HOMEBIND);
+    stmt->setUInt16(0, m_homebindMapId);
+    stmt->setUInt16(1, m_homebindAreaId);
+    stmt->setFloat (2, m_homebindX);
+    stmt->setFloat (3, m_homebindY);
+    stmt->setFloat (4, m_homebindZ);
+    stmt->setUInt32(5, GetGUIDLow());
+    CharacterDatabase.Execute(stmt);
 }
 
 uint32 Player::GetUInt32ValueFromArray(Tokens const& data, uint16 index)
@@ -16524,6 +16510,8 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
         CharacterDatabase.PExecute("UPDATE characters SET at_login = at_login | '%u' WHERE guid ='%u'", uint32(AT_LOGIN_RENAME),guid);
         return false;
     }
+    // Cleanup old Wowarmory feeds
+    InitWowarmoryFeeds();
 
     // overwrite possible wrong/corrupted guid
     SetUInt64Value(OBJECT_FIELD_GUID, MAKE_NEW_GUID(guid, 0, HIGHGUID_PLAYER));
@@ -16620,7 +16608,6 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
     _LoadGroup(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOADGROUP));
 
     _LoadArenaTeamInfo(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOADARENAINFO));
-    _LoadArenaStatsInfo(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOADARENASTATS));
 
     SetArenaPoints(fields[39].GetUInt32());
 
@@ -16632,7 +16619,7 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
             continue;
 
         if (ArenaTeam * at = sObjectMgr->GetArenaTeamById(arena_team_id))
-            if (at->HaveMember(GetGUID()))
+            if (at->IsMember(GetGUID()))
                 continue;
 
         // arena team not exist or not member, cleanup fields
@@ -18232,7 +18219,7 @@ bool Player::_LoadHomeBind(PreparedQueryResult result)
     }
 
     bool ok = false;
-    //QueryResult *result = CharacterDatabase.PQuery("SELECT map,zone,position_x,position_y,position_z FROM character_homebind WHERE guid = '%u'", GUID_LOPART(playerGuid));
+    // SELECT mapId, zoneId, posX, posY, posZ FROM character_homebind WHERE guid = ?
     if (result)
     {
         Field* fields = result->Fetch();
@@ -18250,7 +18237,11 @@ bool Player::_LoadHomeBind(PreparedQueryResult result)
             !bindMapEntry->Instanceable() && GetSession()->Expansion() >= bindMapEntry->Expansion())
             ok = true;
         else
-            CharacterDatabase.PExecute("DELETE FROM character_homebind WHERE guid = '%u'", GetGUIDLow());
+        {
+            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_PLAYER_HOMEBIND);
+            stmt->setUInt32(0, GetGUIDLow());
+            CharacterDatabase.Execute(stmt);
+        }
     }
 
     if (!ok)
@@ -18261,8 +18252,14 @@ bool Player::_LoadHomeBind(PreparedQueryResult result)
         m_homebindY = info->positionY;
         m_homebindZ = info->positionZ;
 
-        CharacterDatabase.PExecute("INSERT INTO character_homebind (guid,map,zone,position_x,position_y,position_z) VALUES ('%u', '%u', '%u', '%f', '%f', '%f')",
-            GetGUIDLow(), m_homebindMapId, m_homebindAreaId, m_homebindX, m_homebindY, m_homebindZ);
+        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_ADD_PLAYER_HOMEBIND);
+        stmt->setUInt32(0, GetGUIDLow());
+        stmt->setUInt16(1, m_homebindMapId);
+        stmt->setUInt16(2, m_homebindAreaId);
+        stmt->setFloat (3, m_homebindX);
+        stmt->setFloat (4, m_homebindY);
+        stmt->setFloat (5, m_homebindZ);
+        CharacterDatabase.Execute(stmt);
     }
 
     sLog->outStaticDebug("Setting player home position - mapid: %u, areaid: %u, X: %f, Y: %f, Z: %f",
@@ -18296,17 +18293,6 @@ void Player::SaveToDB()
     std::string sql_name = m_name;
     CharacterDatabase.escape_string(sql_name);
     
-    /** World of Warcraft Armory **/
-    std::ostringstream ps;
-    ps << "REPLACE INTO armory_character_stats (guid,data) VALUES ('" << GetGUIDLow() << "', '";
-    for(uint16 i = 0; i < m_valuesCount; ++i )
-    {
-        ps << GetUInt32Value(i) << " ";
-    }
-    ps << "')";
-    CharacterDatabase.Execute( ps.str().c_str() );
-    /** World of Warcraft Armory **/
-
     std::ostringstream ss;
     ss << "REPLACE INTO characters (guid,account,name,race,class,gender,level,xp,money,playerBytes,playerBytes2,playerFlags,"
         "map, instance_id, instance_mode_mask, position_x, position_y, position_z, orientation, "
@@ -18474,6 +18460,30 @@ void Player::SaveToDB()
         _SaveStats(trans);
 
     CharacterDatabase.CommitTransaction(trans);
+
+    /* World of Warcraft Armory */
+    // Place this code AFTER CharacterDatabase.CommitTransaction(); to avoid some character saving errors.
+    // Wowarmory feeds
+    std::ostringstream sWowarmory;
+    for (WowarmoryFeeds::iterator iter = m_wowarmory_feeds.begin(); iter < m_wowarmory_feeds.end(); ++iter) {
+        sWowarmory << "INSERT IGNORE INTO character_feed_log (guid,type,data,date,counter,difficulty,item_guid,item_quality) VALUES ";
+        //                      guid                    type                        data                    date                            counter                   difficulty                        item_guid                      item_quality
+        sWowarmory << "(" << (*iter).guid << ", " << (*iter).type << ", " << (*iter).data << ", " << uint64((*iter).date) << ", " << (*iter).counter << ", " << uint32((*iter).difficulty) << ", " << (*iter).item_guid << ", " << (*iter).item_quality <<  ");";
+        CharacterDatabase.PExecute(sWowarmory.str().c_str());
+        sWowarmory.str("");
+    }
+    // Clear old saved feeds from storage - they are not required for server core.
+    InitWowarmoryFeeds();
+    // Character stats
+    std::ostringstream ps;
+    time_t t = time(NULL);
+    CharacterDatabase.PExecute("DELETE FROM armory_character_stats WHERE guid = %u", GetGUIDLow());
+    ps << "INSERT INTO armory_character_stats (guid, data, save_date) VALUES (" << GetGUIDLow() << ", '";
+    for (uint16 i = 0; i < m_valuesCount; ++i)
+        ps << GetUInt32Value(i) << " ";
+    ps << "', " << uint64(t) << ");";
+    CharacterDatabase.PExecute(ps.str().c_str());
+    /* World of Warcraft Armory */
 
     // save pet (hunter pet level and experience and all type pets health/mana).
     if (Pet* pet = GetPet())
@@ -19846,21 +19856,25 @@ void Player::RemovePetitionsAndSigns(uint64 guid, uint32 type)
 
 void Player::LeaveAllArenaTeams(uint64 guid)
 {
-    QueryResult result = CharacterDatabase.PQuery("SELECT arena_team_member.arenateamid FROM arena_team_member JOIN arena_team ON arena_team_member.arenateamid = arena_team.arenateamid WHERE guid='%u'", GUID_LOPART(guid));
+    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_LOAD_PLAYER_ARENA_TEAMS);
+    stmt->setUInt32(0, GUID_LOPART(guid));
+    PreparedQueryResult result = CharacterDatabase.Query(stmt);
+
     if (!result)
         return;
 
     do
     {
-        Field *fields = result->Fetch();
-        uint32 at_id = fields[0].GetUInt32();
-        if (at_id != 0)
+        Field* fields = result->Fetch();
+        uint32 arenaTeamId = fields[0].GetUInt32();
+        if (arenaTeamId != 0)
         {
-            ArenaTeam * at = sObjectMgr->GetArenaTeamById(at_id);
-            if (at)
-                at->DelMember(guid);
+            ArenaTeam* arenaTeam = sObjectMgr->GetArenaTeamById(arenaTeamId);
+            if (arenaTeam)
+                arenaTeam->DelMember(guid, true);
         }
-    } while (result->NextRow());
+    }
+    while (result->NextRow());
 }
 
 void Player::SetRestBonus (float rest_bonus_new)
@@ -23037,7 +23051,7 @@ void Player::RemoveGlobalCooldown(SpellEntry const *spellInfo)
 uint32 Player::GetRuneBaseCooldown(uint8 index)
 {
     uint8 rune = GetBaseRune(index);
-    uint32 cooldown = RUNE_COOLDOWN;
+    uint32 cooldown = RUNE_BASE_COOLDOWN;
 
     AuraEffectList const& regenAura = GetAuraEffectsByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
     for (AuraEffectList::const_iterator i = regenAura.begin();i != regenAura.end(); ++i)
@@ -24137,13 +24151,25 @@ void Player::_SaveEquipmentSets(SQLTransaction& trans)
 
 void Player::_SaveBGData(SQLTransaction& trans)
 {
-    trans->PAppend("DELETE FROM character_battleground_data WHERE guid='%u'", GetGUIDLow());
+    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_PLAYER_BGDATA);
+    stmt->setUInt32(0, GetGUIDLow());
+    trans->Append(stmt);
     if (m_bgData.bgInstanceID)
     {
         /* guid, bgInstanceID, bgTeam, x, y, z, o, map, taxi[0], taxi[1], mountSpell */
-        trans->PAppend("INSERT INTO character_battleground_data VALUES ('%u', '%u', '%u', '%f', '%f', '%f', '%f', '%u', '%u', '%u', '%u')",
-            GetGUIDLow(), m_bgData.bgInstanceID, m_bgData.bgTeam, m_bgData.joinPos.GetPositionX(), m_bgData.joinPos.GetPositionY(), m_bgData.joinPos.GetPositionZ(),
-            m_bgData.joinPos.GetOrientation(), m_bgData.joinPos.GetMapId(), m_bgData.taxiPath[0], m_bgData.taxiPath[1], m_bgData.mountSpell);
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_ADD_PLAYER_BGDATA);
+        stmt->setUInt32(0, GetGUIDLow());
+        stmt->setUInt32(1, m_bgData.bgInstanceID);
+        stmt->setUInt16(2, m_bgData.bgTeam);
+        stmt->setFloat (3, m_bgData.joinPos.GetPositionX());
+        stmt->setFloat (4, m_bgData.joinPos.GetPositionY());
+        stmt->setFloat (5, m_bgData.joinPos.GetPositionZ());
+        stmt->setFloat (6, m_bgData.joinPos.GetOrientation());
+        stmt->setUInt16(7, m_bgData.joinPos.GetMapId());
+        stmt->setUInt16(8, m_bgData.taxiPath[0]);
+        stmt->setUInt16(9, m_bgData.taxiPath[1]);
+        stmt->setUInt16(10,m_bgData.mountSpell);
+        trans->Append(stmt);
     }
 }
 
@@ -24737,31 +24763,42 @@ void Player::_SaveInstanceTimeRestrictions(SQLTransaction& trans)
 }
 
 /** World of Warcraft Armory **/
-void Player::WriteWowArmoryDatabaseLog(uint32 type, uint32 data)
-{
-    uint32 pGuid = GetGUIDLow();
-    sLog->outDetail("WoWArmory: write feed log (guid: %u, type: %u, data: %u", pGuid, type, data);
-    if (type <= 0)	// Unknown type
+void Player::InitWowarmoryFeeds() {
+    // Clear feeds
+    m_wowarmory_feeds.clear();
+}
+
+void Player::CreateWowarmoryFeed(uint32 type, uint32 data, uint32 item_guid, uint32 item_quality) {
+    /*
+        1 - TYPE_ACHIEVEMENT_FEED
+        2 - TYPE_ITEM_FEED
+        3 - TYPE_BOSS_FEED
+    */
+    if (GetGUIDLow() == 0)
     {
-        sLog->outError("WoWArmory: unknown type id: %d, ignore.", type);
+        sLog->outError("[Wowarmory]: player is not initialized, unable to create log entry!");
         return;
     }
-    if (type == 3)	// Do not write same bosses many times - just update counter.
+    if (type <= 0 || type > 3)
     {
-        uint8 Difficulty = GetMap()->GetDifficulty();
-        QueryResult result = CharacterDatabase.PQuery("SELECT counter FROM character_feed_log WHERE guid='%u' AND type=3 AND data='%u' AND difficulty='%u' LIMIT 1", pGuid, data, Difficulty);
-        if (result)
-        {
-            CharacterDatabase.PExecute("UPDATE character_feed_log SET counter=counter+1, date=UNIX_TIMESTAMP(NOW()) WHERE guid='%u' AND type=3 AND data='%u' AND difficulty='%u' LIMIT 1", pGuid, data, Difficulty);
-        }
-        else
-        {
-            CharacterDatabase.PExecute("INSERT INTO character_feed_log (guid, type, data, date, counter, difficulty) VALUES('%u', '%d', '%u', UNIX_TIMESTAMP(NOW()), 1, '%u')", pGuid, type, data, Difficulty);
-        }
+        sLog->outError("[Wowarmory]: unknown feed type: %d, ignore.", type);
+        return;
     }
-    else
+    if (data == 0)
     {
-        CharacterDatabase.PExecute("REPLACE INTO character_feed_log (guid, type, data, date, counter) VALUES('%u', '%d', '%u', UNIX_TIMESTAMP(NOW()), 1)", pGuid, type, data);
+        sLog->outError("[Wowarmory]: empty data (GUID: %u), ignore.", GetGUIDLow());
+        return;
     }
+    WowarmoryFeedEntry feed;
+    feed.guid = GetGUIDLow();
+    feed.type = type;
+    feed.data = data;
+    feed.difficulty = type == 3 ? GetMap()->GetDifficulty() : 0;
+    feed.item_guid  = item_guid;
+    feed.item_quality = item_quality;
+    feed.counter = 0;
+    feed.date = time(NULL);
+    sLog->outDebug(LOG_FILTER_UNITS, "[Wowarmory]: create wowarmory feed (GUID: %u, type: %d, data: %u).", feed.guid, feed.type, feed.data);
+    m_wowarmory_feeds.push_back(feed);
 }
 /** World of Warcraft Armory **/
