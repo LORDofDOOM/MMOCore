@@ -426,3 +426,54 @@ UPDATE `creature_template` SET `faction_A` = 35, `faction_H` = 35 WHERE `entry` 
 
 -- Fix bug with cannons movement in Strange of Ancients
 UPDATE `creature_template` SET `speed_run` = 0  WHERE `entry` in (27894, 32795);
+
+-- Fixed spell Anti-Magic Zone
+UPDATE `creature_template` SET `modelid1` = 11686, `unit_flags` = 33554432 WHERE `modelid1` = 4590 AND `entry` = 28306;
+
+-- Fix Druid Enrage spell
+DELETE FROM `spell_ranks` WHERE `first_spell_id` = 1178;
+INSERT INTO `spell_ranks` VALUES (1178,1178,1),(1178,9635,2);
+
+-- Fix druid starfall talent
+DELETE FROM `spell_bonus_data` WHERE `entry` IN (50294,53188,53189,53190,50288,53191,53194,53195);
+INSERT INTO `spell_bonus_data` VALUES
+(50288,0.3,-1,-1,-1,'Druid - Starfall (DIRECT)'),
+(50294,0.13,-1,-1,-1,'Druid - Starfall (AOE)');
+
+-- Fixed warlock's talent Empowered Imp
+UPDATE `spell_proc_event` set `procFlags` = 0x00010004 WHERE `entry` = 54278;
+
+-- Fixed talent Scent of Blood for death knights
+DELETE FROM `spell_proc_event` WHERE `entry` IN (49004,49508,49509);
+INSERT INTO `spell_proc_event` (`entry`,`procEx`) VALUES
+(49004,0x00000033),
+(49508,0x00000033),
+(49509,0x00000033);
+
+-- Fixed paladin's talent Blessing of Sanctuary
+DELETE FROM `spell_dbc` WHERE `id` = 20912;
+INSERT INTO `spell_dbc` (`Id`,`CastingTimeIndex`,`DurationIndex`,`RangeIndex`,`Effect1`,`EffectBasePoints1`,`EffectImplicitTargetA1`,`EffectApplyAuraName1`,`EffectMiscValue1`,`SpellFamilyName`,`Comment`) VALUES
+(20912,1,21,1,6,-3,1,87,127,10,'Blessing of Sanctuary Helper (SERVERSIDE)');
+-- Blessing of Sanctuary vs Vigilance
+UPDATE `spell_group` SET `spell_id` = 68066 WHERE `id` = 1091 and `spell_id` = 47930;
+UPDATE `spell_group` SET `spell_id` = 20912 WHERE `id` = 1092 and `spell_id` = 20911;
+
+-- Fixed mage's talent Hot Streak
+UPDATE `spell_proc_event` SET `SpellFamilyMask1`=`SpellFamilyMask1`|0x00010000 WHERE `entry` IN (44445,44446,44448);
+
+-- Fixed hunter's talent Lock and Load
+DELETE FROM `conditions` WHERE `SourceEntry` = 56453;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceEntry`,`ConditionTypeOrReference`,`ConditionValue1`,`Comment`) VALUES
+(17,56453,11,67544,'Lock and Load - Lock and Load Marker');
+
+DELETE FROM `spell_linked_spell` WHERE `spell_trigger` = 56453;
+INSERT INTO `spell_linked_spell` VALUES
+(56453,67544,0,'Lock and Load Marker');
+
+-- Fixed spell bonus coefficient for spell Healing Stream Totem.
+DELETE FROM `spell_bonus_data` WHERE `entry` = 52042;
+DELETE FROM `spell_proc_event` WHERE `entry` IN (20335,20336,20337);
+INSERT INTO `spell_proc_event` VALUES
+(20335,0x00,10,0x00800000,0x00000000,0x00000008,0x00000100,0x00000000,0.000000,100.000000,0),
+(20336,0x00,10,0x00800000,0x00000000,0x00000008,0x00000100,0x00000000,0.000000,100.000000,0),
+(20337,0x00,10,0x00800000,0x00000000,0x00000008,0x00000100,0x00000000,0.000000,100.000000,0);

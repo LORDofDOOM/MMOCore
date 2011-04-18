@@ -3744,6 +3744,11 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->EffectRadiusIndex[0] = 45;
             count++;
             break;
+        case 63944:                             // Renewed Hope hack
+            spellInfo->EffectApplyAuraName[0] = 87;
+            spellInfo->EffectMiscValue[0] = 127;
+            count++;
+            break;
         case 27820:                             // Mana Detonation
         //case 28062: case 39090:                 // Positive/Negative Charge
         //case 28085: case 39093:
@@ -3837,6 +3842,7 @@ void SpellMgr::LoadSpellCustomAttr()
         case 17941:    // Shadow Trance
         case 22008:    // Netherwind Focus
         case 31834:    // Light's Grace
+        case 34477:    // Misdirection
         case 34754:    // Clearcasting
         case 34936:    // Backlash
         case 48108:    // Hot Streak
@@ -4023,6 +4029,11 @@ void SpellMgr::LoadSpellCustomAttr()
             break;
         case 33206: // Pain Suppression
             spellInfo->AttributesEx5 &= ~SPELL_ATTR5_USABLE_WHILE_STUNNED;
+            count++;
+            break;
+        case 8145: // Tremor Totem (instant pulse)
+        case 6474: // Earthbind Totem (instant pulse)
+            spellInfo->AttributesEx5 |= SPELL_ATTR5_START_PERIODIC_AT_APPLY;
             count++;
             break;
         case 53241: // Marked for Death (Rank 1)
