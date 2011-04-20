@@ -1606,10 +1606,10 @@ void World::SetInitialWorldSettings()
     sObjectMgr->LoadFactionChangeReputations();
 
     sLog->outString("Loading GM tickets...");
-    sTicketMgr->LoadGMTickets();
+    sTicketMgr->LoadTickets();
 
     sLog->outString("Loading GM surveys...");
-    sTicketMgr->LoadGMSurveys();
+    sTicketMgr->LoadSurveys();
 
     sLog->outString("Loading client addons...");
     sAddonMgr->LoadFromDB();
