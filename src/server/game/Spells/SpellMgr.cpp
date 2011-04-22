@@ -3748,6 +3748,11 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->EffectRadiusIndex[0] = 45;
             count++;
             break;
+        case 63944:                             // Renewed Hope hack
+            spellInfo->EffectApplyAuraName[0] = 87;
+            spellInfo->EffectMiscValue[0] = 127;
+            count++;
+            break;
         case 27820:                             // Mana Detonation
         //case 28062: case 39090:                 // Positive/Negative Charge
         //case 28085: case 39093:
@@ -3841,6 +3846,7 @@ void SpellMgr::LoadSpellCustomAttr()
         case 17941:    // Shadow Trance
         case 22008:    // Netherwind Focus
         case 31834:    // Light's Grace
+        case 34477:    // Misdirection
         case 34754:    // Clearcasting
         case 34936:    // Backlash
         case 48108:    // Hot Streak
@@ -4029,6 +4035,11 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->AttributesEx5 &= ~SPELL_ATTR5_USABLE_WHILE_STUNNED;
             count++;
             break;
+        case 8145: // Tremor Totem (instant pulse)
+        case 6474: // Earthbind Totem (instant pulse)
+            spellInfo->AttributesEx5 |= SPELL_ATTR5_START_PERIODIC_AT_APPLY;
+            count++;
+            break;
         case 53241: // Marked for Death (Rank 1)
         case 53243: // Marked for Death (Rank 2)
         case 53244: // Marked for Death (Rank 3)
@@ -4053,6 +4064,17 @@ void SpellMgr::LoadSpellCustomAttr()
                     // SpellFamilyFlags[0] & 0x00000040 in SPELLFAMILY_DEATHKNIGHT is currently unused (3.3.5a)
                     // this needs research on modifier applying rules, does not seem to be in Attributes fields
             spellInfo->EffectSpellClassMask[0] = flag96(0x00000040, 0x00000000, 0x00000000);
+            count++;
+            break;
+        case 19970: // Entangling Roots (Rank 6) -- Nature's Grasp Proc
+        case 19971: // Entangling Roots (Rank 5) -- Nature's Grasp Proc
+        case 19972: // Entangling Roots (Rank 4) -- Nature's Grasp Proc
+        case 19973: // Entangling Roots (Rank 3) -- Nature's Grasp Proc
+        case 19974: // Entangling Roots (Rank 2) -- Nature's Grasp Proc
+        case 19975: // Entangling Roots (Rank 1) -- Nature's Grasp Proc
+        case 27010: // Entangling Roots (Rank 7) -- Nature's Grasp Proc
+        case 53313: // Entangling Roots (Rank 8) -- Nature's Grasp Proc
+            spellInfo->CastingTimeIndex = 1;
             count++;
             break;
         // ULDUAR SPELLS

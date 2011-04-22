@@ -567,9 +567,6 @@ void Spell::SpellDamageSchoolDmg(SpellEffIndex effIndex)
                 {
                     if (m_caster->GetTypeId() == TYPEID_UNIT && m_caster->ToCreature()->isPet())
                     {
-                        // Get DoTs on target by owner (5% increase by dot)
-                        damage += int32(CalculatePctN(unitTarget->GetDoTsByCaster(m_caster->GetOwnerGUID()), 5));
-
                         if (Player* owner = m_caster->GetOwner()->ToPlayer())
                         {
                             if (AuraEffect* aurEff = owner->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_WARLOCK, 214, 0))
@@ -1434,7 +1431,7 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                 }
 
                 //Any effect which causes you to lose control of your character will supress the starfall effect.
-                if (m_caster->HasUnitState(UNIT_STAT_STUNNED | UNIT_STAT_FLEEING | UNIT_STAT_ROOT | UNIT_STAT_CONFUSED))
+                if (m_caster->HasUnitState(UNIT_STAT_CONTROLLED))
                     return;
 
                 m_caster->CastSpell(unitTarget, damage, true);
@@ -1503,10 +1500,13 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                     return;
                 // Restorative Totems
                 if (Unit *owner = m_caster->GetOwner())
-                    if (AuraEffect *dummy = owner->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_SHAMAN, 338, 1))
+                {
+                    damage += int32(owner->SpellDamageBonus(unitTarget, m_spellInfo, 0, HEAL) * 0.44f);
+                    if (AuraEffect *dummy = owner->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 338, 1))
                         AddPctN(damage, dummy->GetAmount());
+                }
 
-                    m_caster->CastCustomSpell(unitTarget, 52042, &damage, 0, 0, true, 0, 0, m_originalCasterGUID);
+                m_caster->CastCustomSpell(unitTarget, 52042, &damage, 0, 0, true, 0, 0, m_originalCasterGUID);
                 return;
             }
             // Mana Spring Totem
@@ -2645,15 +2645,16 @@ void Spell::EffectPersistentAA(SpellEffIndex effIndex)
         // Caster not in world, might be spell triggered from aura removal
         if (!caster->IsInWorld())
             return;
-        DynamicObject* dynObj = new DynamicObject;
-        if (!dynObj->Create(sObjectMgr->GenerateLowGuid(HIGHGUID_DYNAMICOBJECT), caster, m_spellInfo->Id, m_targets.m_dstPos, radius, false))
+        DynamicObject* dynObj = new DynamicObject();
+        if (!dynObj->Create(sObjectMgr->GenerateLowGuid(HIGHGUID_DYNAMICOBJECT), caster, m_spellInfo->Id, m_targets.m_dstPos, radius, false, DYNAMIC_OBJECT_AREA_SPELL))
         {
             delete dynObj;
             return;
         }
+
         dynObj->GetMap()->Add(dynObj);
 
-        if (Aura * aura = Aura::TryCreate(m_spellInfo, dynObj, caster, &m_spellValue->EffectBasePoints[0]))
+        if (Aura* aura = Aura::TryCreate(m_spellInfo, dynObj, caster, &m_spellValue->EffectBasePoints[0]))
         {
             m_spellAura = aura;
             m_spellAura->_RegisterForTargets();
@@ -2661,6 +2662,7 @@ void Spell::EffectPersistentAA(SpellEffIndex effIndex)
         else
             return;
     }
+
     ASSERT(m_spellAura->GetDynobjOwner());
     m_spellAura->_ApplyEffectForTargets(effIndex);
 }
@@ -3125,29 +3127,12 @@ void Spell::EffectSummonType(SpellEffIndex effIndex)
     Position pos;
     GetSummonPosition(effIndex, pos);
 
-    /*//totem must be at same Z in case swimming caster and etc.
-        if (fabs(z - m_caster->GetPositionZ()) > 5)
-            z = m_caster->GetPositionZ();
-
-    uint8 level = m_caster->getLevel();
-
-    // level of creature summoned using engineering item based at engineering skill level
-    if (m_caster->GetTypeId() == TYPEID_PLAYER && m_CastItem)
-    {
-        ItemPrototype const *proto = m_CastItem->GetProto();
-        if (proto && proto->RequiredSkill == SKILL_ENGINERING)
-        {
-            uint16 skill202 = m_caster->ToPlayer()->GetSkillValue(SKILL_ENGINERING);
-            if (skill202)
-                level = skill202/5;
-        }
-    }*/
-
     TempSummon *summon = NULL;
 
     switch (properties->Category)
     {
-        default:
+        case SUMMON_CATEGORY_WILD:
+        case SUMMON_CATEGORY_ALLY:
             if (properties->Flags & 512)
             {
                 SummonGuardian(effIndex, entry, properties);
@@ -3161,6 +3146,7 @@ void Spell::EffectSummonType(SpellEffIndex effIndex)
                 case SUMMON_TYPE_MINION:
                     SummonGuardian(effIndex, entry, properties);
                     break;
+                // Summons a vehicle, but doesn't force anyone to enter it (see SUMMON_CATEGORY_VEHICLE)
                 case SUMMON_TYPE_VEHICLE:
                 case SUMMON_TYPE_VEHICLE2:
                     if (m_originalCaster)
@@ -3177,8 +3163,6 @@ void Spell::EffectSummonType(SpellEffIndex effIndex)
                         summon->SetMaxHealth(damage);
                         summon->SetHealth(damage);
                     }
-
-                    //summon->SetUInt32Value(UNIT_CREATED_BY_SPELL,m_spellInfo->Id);
 
                     if (m_originalCaster->GetTypeId() == TYPEID_PLAYER
                         && properties->Slot >= SUMMON_SLOT_TOTEM
@@ -3223,34 +3207,27 @@ void Spell::EffectSummonType(SpellEffIndex effIndex)
                     float radius = GetSpellRadiusForHostile(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[effIndex]));
 
                     uint32 amount = damage > 0 ? damage : 1;
-		    switch (m_spellInfo->Id)
-		    {
-		    case 18662: // Curse of Doom
-		    case 1122: // Inferno
-		    case 4073: // Mechanical Dragonling
-		    case 12749: // Mithril Mechanical Dragonling
-		    case 19804: // Arcanite Dragonling
-		    case 48739: // Winterfin First Responder
-		    case 65783: // Ogre Pinata
-	            amount = 1;
-		    break;
-		    }
+                    if (m_spellInfo->Id == 18662 || // Curse of Doom
+                        properties->Id == 2081)     // Mechanical Dragonling, Arcanite Dragonling, Mithril Dragonling TODO: Research on meaning of basepoints
+                        amount = 1;
+
+                    TempSummonType summonType = (duration == 0) ? TEMPSUMMON_DEAD_DESPAWN : TEMPSUMMON_TIMED_DESPAWN;
 
                     for (uint32 count = 0; count < amount; ++count)
                     {
                         GetSummonPosition(effIndex, pos, radius, count);
 
-                        TempSummonType summonType = (duration == 0) ? TEMPSUMMON_DEAD_DESPAWN : TEMPSUMMON_TIMED_DESPAWN;
-
                         summon = m_originalCaster->SummonCreature(entry, pos, summonType, duration);
                         if (!summon)
                             continue;
+
                         if (properties->Category == SUMMON_CATEGORY_ALLY)
                         {
                             summon->SetUInt64Value(UNIT_FIELD_SUMMONEDBY, m_originalCaster->GetGUID());
                             summon->setFaction(m_originalCaster->getFaction());
                             summon->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
                         }
+
                         ExecuteLogEffectSummonObject(effIndex, summon);
                     }
                     return;
@@ -3263,35 +3240,33 @@ void Spell::EffectSummonType(SpellEffIndex effIndex)
         case SUMMON_CATEGORY_PUPPET:
             summon = m_caster->GetMap()->SummonCreature(entry, pos, properties, duration, m_originalCaster);
             break;
-        case SUMMON_CATEGORY_VEHICLE:
-        {
+        case SUMMON_CATEGORY_VEHICLE:       
+            // Summoning spells (usually triggered by npc_spellclick) that spawn a vehicle and that cause the clicker
+            // to cast a ride vehicle spell on the summoned unit.
             float x, y, z;
             m_caster->GetClosePoint(x, y, z, DEFAULT_WORLD_OBJECT_SIZE);
             summon = m_originalCaster->GetMap()->SummonCreature(entry, pos, properties, duration, m_caster);
             if (!summon || !summon->IsVehicle())
                 return;
 
-            if (m_spellInfo->EffectBasePoints[effIndex])
+            // The spell that this effect will trigger. It has SPELL_AURA_CONTROL_VEHICLE
+            uint32 spell = m_spellInfo->EffectBasePoints[effIndex];
+            if (spell)
             {
                 SpellEntry const *spellProto = sSpellStore.LookupEntry(SpellMgr::CalculateSpellEffectAmount(m_spellInfo, effIndex));
-                if (spellProto)
-                {
-                    m_originalCaster->CastSpell(summon, spellProto, true);
-                    return;
-                }
+                if (!spellProto)
+                    spell = VEHICLE_SPELL_RIDE_HARDCODED;
             }
 
             // Hard coded enter vehicle spell
-            m_originalCaster->CastSpell(summon, VEHICLE_SPELL_RIDE_HARDCODED, true);
+            m_originalCaster->CastSpell(summon, spell, true);
 
-            summon->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
             uint32 faction = properties->Faction;
             if (!faction)
                 faction = m_originalCaster->getFaction();
 
             summon->setFaction(faction);
             break;
-        }
     }
 
     if (summon)
@@ -3529,14 +3504,15 @@ void Spell::EffectAddFarsight(SpellEffIndex effIndex)
     // Caster not in world, might be spell triggered from aura removal
     if (!m_caster->IsInWorld())
         return;
-    DynamicObject* dynObj = new DynamicObject;
-    if (!dynObj->Create(sObjectMgr->GenerateLowGuid(HIGHGUID_DYNAMICOBJECT), m_caster, m_spellInfo->Id, m_targets.m_dstPos, radius, true))
+
+    DynamicObject* dynObj = new DynamicObject();
+    if (!dynObj->Create(sObjectMgr->GenerateLowGuid(HIGHGUID_DYNAMICOBJECT), m_caster, m_spellInfo->Id, m_targets.m_dstPos, radius, true, DYNAMIC_OBJECT_FARSIGHT_FOCUS))
     {
         delete dynObj;
         return;
     }
+
     dynObj->SetDuration(duration);
-    dynObj->SetUInt32Value(DYNAMICOBJECT_BYTES, 0x80000002);
 
     dynObj->setActive(true);    //must before add to map to be put in world container
     dynObj->GetMap()->Add(dynObj); //grid will also be loaded
@@ -4182,14 +4158,8 @@ void Spell::SpellDamageWeaponDmg(SpellEffIndex effIndex)
         }
         case SPELLFAMILY_PALADIN:
         {
-            // Seal of Command - Increase damage by 36% on every swing
-            if (m_spellInfo->SpellFamilyFlags[0] & 0x2000000)
-            {
-                totalDamagePercentMod *= 1.36f;            // 136% damage
-            }
-
             // Seal of Command Unleashed
-            else if (m_spellInfo->Id == 20467)
+            if (m_spellInfo->Id == 20467)
             {
                 spell_bonus += int32(0.08f * m_caster->GetTotalAttackPowerValue(BASE_ATTACK));
                 spell_bonus += int32(0.13f * m_caster->SpellBaseDamageBonus(GetSpellSchoolMask(m_spellInfo)));
@@ -4627,52 +4597,7 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                     return;
                 }
                 case 45204: // Clone Me!
-                case 45785: // Sinister Reflection Clone
-                case 49889: // Mystery of the Infinite: Future You's Mirror Image Aura
-                case 50218: // The Cleansing: Your Inner Turmoil's Mirror Image Aura
-                case 51719: // Altar of Quetz'lun: Material You's Mirror Image Aura
-                case 57528: // Nightmare Figment Mirror Image
-                case 69828: // Halls of Reflection Clone
                     m_caster->CastSpell(unitTarget, damage, true);
-                    break;
-                case 41055: // Copy Weapon
-                case 63416:
-                case 69891:
-                    m_caster->CastSpell(unitTarget, damage, true);
-                    if (unitTarget->GetTypeId() == TYPEID_PLAYER)
-                        break;
-                    if (m_caster->GetTypeId() == TYPEID_PLAYER)
-                    {
-                        if (Item * mainItem = m_caster->ToPlayer()->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
-                            unitTarget->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, mainItem->GetEntry());
-                    }
-                    else
-                        unitTarget->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, m_caster->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID));
-                    break;
-                case 45206: // Copy Off-hand Weapon
-                case 69892:
-                    m_caster->CastSpell(unitTarget, damage, true);
-                    if (unitTarget->GetTypeId() == TYPEID_PLAYER)
-                        break;
-                    if (m_caster->GetTypeId() == TYPEID_PLAYER)
-                    {
-                        if (Item * offItem = m_caster->ToPlayer()->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
-                            unitTarget->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 1, offItem->GetEntry());
-                    }
-                    else
-                        unitTarget->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 1, m_caster->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 1));
-                    break;
-                case 57593: // Copy Ranged Weapon
-                    m_caster->CastSpell(unitTarget, damage, true);
-                    if (unitTarget->GetTypeId() == TYPEID_PLAYER)
-                        break;
-                    if (m_caster->GetTypeId() == TYPEID_PLAYER)
-                    {
-                        if (Item * rangedItem = m_caster->ToPlayer()->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_RANGED))
-                            unitTarget->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 2, rangedItem->GetEntry());
-                    }
-                    else
-                        unitTarget->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 2, m_caster->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 2));
                     break;
                 case 55693:                                 // Remove Collapsing Cave Aura
                     if (!unitTarget)
@@ -5567,7 +5492,6 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                     return;
                 uint32 spellId1 = 0;
                 uint32 spellId2 = 0;
-                uint32 spellId3 = 0;
 
                 // Judgement self add switch
                 switch (m_spellInfo->Id)
@@ -5584,19 +5508,6 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                 Unit::AuraApplicationMap & sealAuras = m_caster->GetAppliedAuras();
                 for (Unit::AuraApplicationMap::iterator iter = sealAuras.begin(); iter != sealAuras.end();)
                 {
-                    switch (iter->first)
-                    {
-                        // Heart of the Crusader
-                        case 20335: // Rank 1
-                            spellId3 = 21183;
-                            break;
-                        case 20336: // Rank 2
-                            spellId3 = 54498;
-                            break;
-                        case 20337: // Rank 3
-                            spellId3 = 54499;
-                            break;
-                    }
                     Aura * aura = iter->second->GetBase();
                     if (IsSealSpell(aura->GetSpellProto()))
                     {
@@ -5627,8 +5538,6 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                     m_caster->CastSpell(unitTarget, spellId1, true);
                 if (spellId2)
                     m_caster->CastSpell(unitTarget, spellId2, true);
-                if (spellId3)
-                    m_caster->CastSpell(unitTarget, spellId3, true);
                 return;
             }
         }

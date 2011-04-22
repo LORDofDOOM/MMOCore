@@ -15,10 +15,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ScriptPCH.h"
+#include "ScriptMgr.h"
+
 #include "BattlegroundAB.h"
 #include "BattlegroundWS.h"
 #include "BattlegroundIC.h"
+#include "BattlegroundSA.h"
 
 class achievement_school_of_hard_knocks : public AchievementCriteriaScript
 {
@@ -165,6 +167,23 @@ class achievement_bg_ic_mowed_down : public AchievementCriteriaScript
         }
 };
 
+class achievement_bg_sa_artillery : public AchievementCriteriaScript
+{
+    public:
+        achievement_bg_sa_artillery() : AchievementCriteriaScript("achievement_bg_sa_artillery") { }
+
+        bool OnCheck(Player* source, Unit* /*target*/)
+        {
+            if (Creature* vehicle = source->GetVehicleCreatureBase())
+            {
+                if (vehicle->GetEntry() == NPC_ANTI_PERSONNAL_CANNON)
+                    return true;
+            }
+
+            return false;
+        }
+};
+
 void AddSC_achievement_scripts()
 {
     new achievement_school_of_hard_knocks();
@@ -175,4 +194,5 @@ void AddSC_achievement_scripts()
     new achievement_bg_ic_resource_glut();
     new achievement_bg_ic_glaive_grave();
     new achievement_bg_ic_mowed_down();
+    new achievement_bg_sa_artillery();
 }

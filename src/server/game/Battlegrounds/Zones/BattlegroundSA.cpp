@@ -554,8 +554,8 @@ void BattlegroundSA::HandleKillUnit(Creature* unit, Player* killer)
 {
     if (!unit)
         return;
-
-    if (unit->GetEntry() == 28781)  //Demolisher
+    
+    if (unit->GetEntry() == NPC_DEMOLISHER_SA)
         UpdatePlayerScore(killer, SCORE_DESTROYED_DEMOLISHER, 1);
 }
 

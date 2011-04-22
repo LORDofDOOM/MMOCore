@@ -1398,7 +1398,7 @@ void AuraEffect::PeriodicTick(AuraApplication * aurApp, Unit * caster) const
             // Set trigger flag
             uint32 procAttacker = PROC_FLAG_DONE_PERIODIC;
             uint32 procVictim   = PROC_FLAG_TAKEN_PERIODIC;
-            uint32 procEx = PROC_EX_NORMAL_HIT | PROC_EX_INTERNAL_DOT;
+            uint32 procEx = (crit ? PROC_EX_CRITICAL_HIT : PROC_EX_NORMAL_HIT) | PROC_EX_INTERNAL_DOT;
             damage = (damage <= absorb+resist) ? 0 : (damage-absorb-resist);
             if (damage)
                 procVictim|=PROC_FLAG_TAKEN_DAMAGE;
@@ -1484,7 +1484,7 @@ void AuraEffect::PeriodicTick(AuraApplication * aurApp, Unit * caster) const
             // Set trigger flag
             uint32 procAttacker = PROC_FLAG_DONE_PERIODIC;
             uint32 procVictim   = PROC_FLAG_TAKEN_PERIODIC;
-            uint32 procEx = PROC_EX_NORMAL_HIT | PROC_EX_INTERNAL_DOT;
+            uint32 procEx = (crit ? PROC_EX_CRITICAL_HIT : PROC_EX_NORMAL_HIT) | PROC_EX_INTERNAL_DOT;
             damage = (damage <= absorb+resist) ? 0 : (damage-absorb-resist);
             if (damage)
                 procVictim|=PROC_FLAG_TAKEN_DAMAGE;
@@ -1641,7 +1641,7 @@ void AuraEffect::PeriodicTick(AuraApplication * aurApp, Unit * caster) const
 
             uint32 procAttacker = PROC_FLAG_DONE_PERIODIC;
             uint32 procVictim   = PROC_FLAG_TAKEN_PERIODIC;
-            uint32 procEx = PROC_EX_NORMAL_HIT | PROC_EX_INTERNAL_HOT;
+            uint32 procEx = (crit ? PROC_EX_CRITICAL_HIT : PROC_EX_NORMAL_HIT) | PROC_EX_INTERNAL_HOT;
             // ignore item heals
             if (!haveCastItem)
                 caster->ProcDamageAndSpell(target, procAttacker, procVictim, procEx, damage, BASE_ATTACK, GetSpellProto());
@@ -3145,6 +3145,7 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const * aurApp, uint8 m
 
         // remove other shapeshift before applying a new one
         target->RemoveAurasByType(SPELL_AURA_MOD_SHAPESHIFT, 0, GetBase());
+        target->RemoveAurasDueToSpell(64904); // Hymn of Hope exploit fix
 
         // stop handling the effect if it was removed by linked event
         if (aurApp->GetRemoveMode())
@@ -4575,11 +4576,12 @@ void AuraEffect::HandleModStateImmunityMask(AuraApplication const * aurApp, uint
     // TODO: figure out a better place to put this...
     // Patch 3.0.3 Bladestorm now breaks all snares and roots on the warrior when activated.
     // however not all mechanic specified in immunity
-    if (apply && GetId() == 46924)
+    if (GetId() == 46924)
     {
         immunity_list.pop_back(); // delete Disarm
-        target->RemoveAurasByType(SPELL_AURA_MOD_ROOT);
-        target->RemoveAurasByType(SPELL_AURA_MOD_DECREASE_SPEED);
+        immunity_list.push_back(SPELL_AURA_MOD_PACIFY_SILENCE);
+        target->ApplySpellImmune(GetId(), IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, apply);
+        target->ApplySpellImmune(GetId(), IMMUNITY_MECHANIC, MECHANIC_SNARE, apply); 
     }
 
     if (apply && GetSpellProto()->AttributesEx & SPELL_ATTR1_DISPEL_AURAS_ON_IMMUNITY)
@@ -5716,6 +5718,10 @@ void AuraEffect::HandleModDamagePercentDone(AuraApplication const * aurApp, uint
 
     Player* target = aurApp->GetTarget()->ToPlayer();
     if (!target)
+        return;
+
+    // we should add only physical mods here
+    if (!(GetMiscValue() & SPELL_SCHOOL_MASK_NORMAL))
         return;
 
     if (target->HasItemFitToSpellRequirements(GetSpellProto()))

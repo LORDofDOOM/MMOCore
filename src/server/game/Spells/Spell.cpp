@@ -1463,7 +1463,7 @@ SpellMissInfo Spell::DoSpellHitOnUnit(Unit *unit, const uint32 effectMask, bool 
         m_diminishLevel = unit->GetDiminishing(m_diminishGroup);
         DiminishingReturnsType type = GetDiminishingReturnsGroupType(m_diminishGroup);
         // Increase Diminishing on unit, current informations for actually casts will use values above
-        if ((type == DRTYPE_PLAYER && (unit->GetTypeId() == TYPEID_PLAYER || unit->ToCreature()->isPet() || unit->ToCreature()->isPossessedByPlayer())) || type == DRTYPE_ALL)
+        if ((type == DRTYPE_PLAYER && unit->GetCharmerOrOwnerPlayerOrPlayerItself()) || type == DRTYPE_ALL)
             unit->IncrDiminishing(m_diminishGroup);
     }
 
@@ -1493,7 +1493,41 @@ SpellMissInfo Spell::DoSpellHitOnUnit(Unit *unit, const uint32 effectMask, bool 
             }
         }
 
-        if (m_originalCaster)
+        // Chance resist debuff
+        bool auraResist = false;
+        if (!IsPositiveSpell(m_spellInfo->Id))
+        {
+            bool bNegativeAura = false;
+            for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
+            {
+                if (m_spellInfo->EffectApplyAuraName[i] != 0)
+                {
+                    bNegativeAura = true;
+                    break;
+                }
+            }
+
+            bool bDirectDamage = false;
+            for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
+            {
+                if (m_spellInfo->Effect[i] == SPELL_EFFECT_SCHOOL_DAMAGE || m_spellInfo->Effect[i] == SPELL_EFFECT_HEALTH_LEECH)
+                {
+                    bDirectDamage = true;
+                    break;
+                }
+            }
+
+            if (bNegativeAura && bDirectDamage)
+            {
+                uint32 tmp = 0;
+                tmp += unit->GetMaxPositiveAuraModifierByMiscValue(SPELL_AURA_MOD_DEBUFF_RESISTANCE, int32(m_spellInfo->Dispel)) * 100;
+                tmp += unit->GetMaxNegativeAuraModifierByMiscValue(SPELL_AURA_MOD_DEBUFF_RESISTANCE, int32(m_spellInfo->Dispel)) * 100;
+                if (urand(0,10000) < tmp)
+                    auraResist = true;
+            }
+        }
+
+        if (m_originalCaster && !auraResist)
         {
             m_spellAura = Aura::TryCreate(aurSpellInfo, effectMask, unit,
                 m_originalCaster,(aurSpellInfo == m_spellInfo)? &m_spellValue->EffectBasePoints[0] : &basePoints[0], m_CastItem);

@@ -421,7 +421,7 @@ enum SpellAttr4
     SPELL_ATTR4_UNK11                            = 0x00000800, // 11
     SPELL_ATTR4_UNK12                            = 0x00001000, // 12
     SPELL_ATTR4_UNK13                            = 0x00002000, // 13
-    SPELL_ATTR4_UNK14                            = 0x00004000, // 14
+    SPELL_ATTR4_DAMAGE_NOT_BREAK_AURAS           = 0x00004000, // 14 don't break auras by damage
     SPELL_ATTR4_UNK15                            = 0x00008000, // 15
     SPELL_ATTR4_NOT_USABLE_IN_ARENA              = 0x00010000, // 16 not usable in arena
     SPELL_ATTR4_USABLE_IN_ARENA                  = 0x00020000, // 17 usable in arena
@@ -2154,11 +2154,11 @@ enum CreatureTypeFlags
     CREATURE_TYPEFLAGS_UNK5             = 0x000010,
     CREATURE_TYPEFLAGS_UNK6             = 0x000020,
     CREATURE_TYPEFLAGS_UNK7             = 0x000040,
-    CREATURE_TYPEFLAGS_UNK8             = 0x000080,
+    CREATURE_TYPEFLAGS_DEAD_INTERACT    = 0x000080,         // Player can interact with the creature if its dead (not player dead)
     CREATURE_TYPEFLAGS_HERBLOOT         = 0x000100,         // Can be looted by herbalist
     CREATURE_TYPEFLAGS_MININGLOOT       = 0x000200,         // Can be looted by miner
     CREATURE_TYPEFLAGS_UNK11            = 0x000400,
-    CREATURE_TYPEFLAGS_UNK12            = 0x000800,         // ? Related to mounts in some way. If mounted, fight mounted, mount appear as independant when rider dies?
+    CREATURE_TYPEFLAGS_MOUNTED_COMBAT   = 0x000800,         // Creature can remain mounted when entering combat
     CREATURE_TYPEFLAGS_AID_PLAYERS      = 0x001000,         // ? Can aid any player in combat if in range?
     CREATURE_TYPEFLAGS_UNK14            = 0x002000,
     CREATURE_TYPEFLAGS_UNK15            = 0x004000,         // ? Possibly not in use

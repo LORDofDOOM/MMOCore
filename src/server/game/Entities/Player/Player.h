@@ -1133,7 +1133,6 @@ class Player : public Unit, public GridObject<Player>
         void SendInstanceResetWarning(uint32 mapid, Difficulty difficulty, uint32 time);
 
         Creature* GetNPCIfCanInteractWith(uint64 guid, uint32 npcflagmask);
-        bool CanInteractWithNPCs(bool alive = true) const;
         GameObject* GetGameObjectIfCanInteractWith(uint64 guid, GameobjectTypes type) const;
 
         bool ToggleAFK();
@@ -2474,7 +2473,7 @@ class Player : public Unit, public GridObject<Player>
 
         AchievementMgr& GetAchievementMgr() { return m_achievementMgr; }
         AchievementMgr const& GetAchievementMgr() const { return m_achievementMgr; }
-        void UpdateAchievementCriteria(AchievementCriteriaTypes type, uint32 miscvalue1 = 0, uint32 miscvalue2 = 0, Unit *unit = NULL, uint32 time = 0);
+        void UpdateAchievementCriteria(AchievementCriteriaTypes type, uint32 miscValue1 = 0, uint32 miscValue2 = 0, Unit* unit = NULL);
         void CompletedAchievement(AchievementEntry const* entry, bool ignoreGMAllowAchievementConfig = false);
 
         bool HasTitle(uint32 bitIndex);
