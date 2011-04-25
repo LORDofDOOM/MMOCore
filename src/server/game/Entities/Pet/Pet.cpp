@@ -1360,8 +1360,8 @@ void Pet::_SaveAuras(SQLTransaction& trans)
             }
             else
             {
-                baseDamage[i] = NULL;
-                damage[i] = NULL;
+                baseDamage[i] = 0;
+                damage[i] = 0;
             }
         }
 
