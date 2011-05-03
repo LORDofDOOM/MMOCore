@@ -121,7 +121,7 @@ public:
                 if (Player* pPlayer = GetPlayerForEscort())
                     pPlayer->GroupEventHappens(QUEST_FORTUNATE_MISUNDERSTANDINGS, me);
               //  me->RestoreFaction();
-                DoScriptText(SAY_END_IRO,me);
+                DoScriptText(SAY_END_IRO, me);
                 SetRun(false);
                 break;
             }
@@ -340,7 +340,7 @@ public:
             if (me->isSummon())
                 if (Unit* pSummoner = CAST_SUM(me)->GetSummoner())
                     if (pSummoner)
-                        me->GetMotionMaster()->MovePoint(0,pSummoner->GetPositionX(),pSummoner->GetPositionY(),pSummoner->GetPositionZ());
+                        me->GetMotionMaster()->MovePoint(0, pSummoner->GetPositionX(), pSummoner->GetPositionY(), pSummoner->GetPositionZ());
         }
 
         void UpdateAI(const uint32 /*uiDiff*/)
