@@ -42,6 +42,7 @@
 #include "GridNotifiersImpl.h"
 #include "CellImpl.h"
 #include "ObjectMgr.h"
+#include "ArenaTeamMgr.h"
 #include "ObjectAccessor.h"
 #include "CreatureAI.h"
 #include "Formulas.h"
@@ -16300,7 +16301,7 @@ void Player::_LoadArenaTeamInfo(PreparedQueryResult result)
 
             uint32 arenaTeamId = fields[0].GetUInt32();
 
-            ArenaTeam* arenaTeam = sObjectMgr->GetArenaTeamById(arenaTeamId);
+            ArenaTeam* arenaTeam = sArenaTeamMgr->GetArenaTeamById(arenaTeamId);
             if (!arenaTeam)
             {
                 sLog->outError("Player::_LoadArenaTeamInfo: couldn't load arenateam %u", arenaTeamId);
@@ -16591,7 +16592,7 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
         if (!arena_team_id)
             continue;
 
-        if (ArenaTeam * at = sObjectMgr->GetArenaTeamById(arena_team_id))
+        if (ArenaTeam * at = sArenaTeamMgr->GetArenaTeamById(arena_team_id))
             if (at->IsMember(GetGUID()))
                 continue;
 
@@ -19848,7 +19849,7 @@ void Player::LeaveAllArenaTeams(uint64 guid)
         uint32 arenaTeamId = fields[0].GetUInt32();
         if (arenaTeamId != 0)
         {
-            ArenaTeam* arenaTeam = sObjectMgr->GetArenaTeamById(arenaTeamId);
+            ArenaTeam* arenaTeam = sArenaTeamMgr->GetArenaTeamById(arenaTeamId);
             if (arenaTeam)
                 arenaTeam->DelMember(guid, true);
         }
@@ -20487,7 +20488,7 @@ uint32 Player::GetMaxPersonalArenaRatingRequirement(uint32 minarenaslot) const
     uint32 max_personal_rating = 0;
     for (uint8 i = minarenaslot; i < MAX_ARENA_SLOT; ++i)
     {
-        if (ArenaTeam * at = sObjectMgr->GetArenaTeamById(GetArenaTeamId(i)))
+        if (ArenaTeam * at = sArenaTeamMgr->GetArenaTeamById(GetArenaTeamId(i)))
         {
             uint32 p_rating = GetArenaPersonalRating(i);
             uint32 t_rating = at->GetRating();
