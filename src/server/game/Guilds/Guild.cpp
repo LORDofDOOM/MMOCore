@@ -18,6 +18,7 @@
 
 #include "DatabaseEnv.h"
 #include "Guild.h"
+#include "GuildMgr.h"
 #include "ScriptMgr.h"
 #include "Chat.h"
 #include "Config.h"
@@ -1093,14 +1094,14 @@ Guild::~Guild()
 bool Guild::Create(Player* pLeader, const std::string& name)
 {
     // Check if guild with such name already exists
-    if (sObjectMgr->GetGuildByName(name))
+    if (sGuildMgr->GetGuildByName(name))
         return false;
 
     WorldSession* pLeaderSession = pLeader->GetSession();
     if (!pLeaderSession)
         return false;
 
-    m_id = sObjectMgr->GenerateGuildId();
+    m_id = sGuildMgr->GenerateGuildId();
     m_leaderGuid = pLeader->GetGUID();
     m_name = name;
     m_info = "";
@@ -1199,7 +1200,7 @@ void Guild::Disband()
     trans->Append(stmt);
     CharacterDatabase.CommitTransaction(trans);
     GHobj.ChangeGuildHouse(m_id, 0); //Sell GuildHouse
-    sObjectMgr->RemoveGuild(m_id);
+    sGuildMgr->RemoveGuild(m_id);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
