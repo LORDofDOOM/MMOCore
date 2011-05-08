@@ -72,7 +72,6 @@
 #include "CharacterDatabaseCleaner.h"
 #include "ScriptMgr.h"
 #include "WeatherMgr.h"
-#include "GuildHouse.h"
 #include "CreatureTextMgr.h"
 #include "SmartAI.h"
 #include "Channel.h"
@@ -106,7 +105,6 @@ World::World()
     m_MaxPlayerCount = 0;
     m_NextDailyQuestReset = 0;
     m_NextWeeklyQuestReset = 0;
-    m_guildhousetimer = 60000;	
 
     m_defaultDbcLocale = LOCALE_enUS;
     m_availableDbcLocaleMask = 0;
@@ -1760,8 +1758,6 @@ void World::SetInitialWorldSettings()
     sLog->outString("Calculate random battleground reset time..." );
     InitRandomBGResetTime();
 
-    //GuildHouse System
-    LoadGuildHouseSystem();
     // possibly enable db logging; avoid massive startup spam by doing it here.
     if (sLog->GetLogDBLater())
     {
@@ -1934,12 +1930,6 @@ void World::Update(uint32 diff)
              extmail_timer.Reset();
          }
      } 
-	if (m_guildhousetimer <= m_updateTime)
-    {
-        GHobj.ControlGuildHouse();
-        m_guildhousetimer = 60000;
-    }
-    else m_guildhousetimer-=m_updateTime;
      
     /// <ul><li> Handle auctions when the timer has passed
     if (m_timers[WUPDATE_AUCTIONS].Passed())

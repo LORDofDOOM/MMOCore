@@ -595,17 +595,6 @@ public:
     const std::string& GetMOTD() const { return m_motd; }
     const std::string& GetInfo() const { return m_info; }
 
-    uint32 GetMemberSize() const { return m_members.size(); }
-    uint64 GetGuildBankMoney()
-    {    
-        return m_bankMoney;
-    }
-    bool ModifyBankMoney(SQLTransaction& trans, const uint64& amount, bool add)
-    {    
-        return _ModifyBankMoney(trans, amount, add);
-    }
-	
-	
     // Handle client commands
     void HandleRoster(WorldSession *session = NULL);          // NULL = broadcast
     void HandleQuery(WorldSession *session);

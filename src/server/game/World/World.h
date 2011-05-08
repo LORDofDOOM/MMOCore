@@ -863,9 +863,6 @@ class World
         time_t m_NextWeeklyQuestReset;
         time_t m_NextRandomBGReset;
 
-        // GuildHouse controll 
-        uint32 m_guildhousetimer;		
-		
         //Player Queue
         Queue m_QueuedPlayer;
 

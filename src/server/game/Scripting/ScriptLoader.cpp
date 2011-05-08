@@ -31,8 +31,6 @@ void AddSC_npc_teleport();
 void AddSC_npc_hunterpetvendor();
 // Custom
 void AddSC_DuelReset();
-//Guild House
-void AddSC_guildhouse_npcs();
 //NPC Customizer
 void AddSC_npc_customize();
 //NPC Transport Service
@@ -717,8 +715,6 @@ void AddWorldScripts()
     AddSC_npc_taxi();
     AddSC_achievement_scripts();
     AddSC_chat_log();
-    //Guild House
-    AddSC_guildhouse_npcs(); 
 #endif
 }
 
