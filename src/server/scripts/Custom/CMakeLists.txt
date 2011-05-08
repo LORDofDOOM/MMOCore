@@ -23,6 +23,7 @@ set(scripts_STAT_SRCS
   Custom/professionnpc.cpp
   Custom/npc_lottery.cpp
   Custom/npcs_mini_boss.cpp  
+  Custom/guildhouse_npc.cpp    
 )
 
 message("  -> Prepared: Custom")
