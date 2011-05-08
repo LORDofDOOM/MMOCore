@@ -18,7 +18,7 @@ set(scripts_STAT_SRCS
   Custom/resetduel.cpp  
   Custom/killstreak_pvp_system.cpp  
   Custom/item_custom_stone.cpp  
-  Custom/item_requester.cpp
+  #Custom/item_requester.cpp
   Custom/allinone.cpp
   Custom/professionnpc.cpp
   Custom/npc_lottery.cpp

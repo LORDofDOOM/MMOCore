@@ -42,7 +42,7 @@ void AddSC_npc_item_summon();
 //Custom Stone
 void AddSC_item_custom_stone();
 //Item Requester
-void AddSC_ItemRequester();
+//void AddSC_ItemRequester();
 //Profession NPC
 void AddSC_professionnpc();
 //Pryds All-in-One
@@ -1282,7 +1282,7 @@ void AddCustomScripts()
 	//Custom Stone
 	AddSC_item_custom_stone();
 	//Item Requester
-	AddSC_ItemRequester();
+	//AddSC_ItemRequester();
 	//Profession NPC
 	AddSC_professionnpc();
 	//Pryds All-in-One
