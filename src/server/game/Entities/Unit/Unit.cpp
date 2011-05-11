@@ -593,7 +593,7 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         // interrupting auras with AURA_INTERRUPT_FLAG_DAMAGE before checking !damage (absorbed damage breaks that type of auras)
         if (spellProto)
         {
-            if (!(spellProto->AttributesEx4 & SPELL_ATTR4_DAMAGE_NOT_BREAK_AURAS))
+            if (!(spellProto->AttributesEx4 & SPELL_ATTR4_DAMAGE_DOESNT_BREAK_AURAS))
                 pVictim->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_TAKE_DAMAGE, spellProto->Id);
         }
         else
@@ -6086,12 +6086,12 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, AuraEffect* trigger
         case SPELLFAMILY_PRIEST:
         {
             // Vampiric Touch
-            if (dummySpell->SpellFamilyFlags[EFFECT_1] & 0x00000400)
+            if (dummySpell->SpellFamilyFlags[1] & 0x00000400)
             {
                 if (!pVictim || !pVictim->isAlive())
                     return false;
 
-                if (effIndex != EFFECT_0)
+                if (effIndex != 0)
                     return false;
 
                 // pVictim is caster of aura
@@ -8040,30 +8040,13 @@ bool Unit::HandleAuraProc(Unit * pVictim, uint32 damage, Aura * triggeredByAura,
                     if (!caster || !damage)
                         return false;
 
-                    Aura * dummy = GetAura(28682);
-                    if (dummy && dummy->GetStackAmount() > 9 && (procEx & PROC_EX_CRITICAL_HIT) ){
-                        if(triggeredByAura->GetCharges() > 1){
-                            triggeredByAura->DropCharge(); // drop charge manually
-                            return false;
-                        }else{
-                            RemoveAurasDueToSpell(28682);
-                            return true;
-                        }
-                    }
-
                     //last charge and crit
                     if (triggeredByAura->GetCharges() <= 1 && (procEx & PROC_EX_CRITICAL_HIT))
-                    {
-                        RemoveAurasDueToSpell(28682);       //-> remove Combustion auras
                         return true;                        // charge counting (will removed)
-                    }
 
-                    // This function can be called twice during one spell hit (Area of Effect spells)
-                    // Make sure 28682 wasn't already removed by previous call
-                    if (HasAura(28682))
-                        this->CastSpell(this, 28682, true);
+                    CastSpell(this, 28682, true);
 
-                    return false; // ordinary chrages will be removed during crit chance computations.
+                    return (procEx & PROC_EX_CRITICAL_HIT) ? true : false;
                 }
                 // Empowered Fire
                 case 31656:
@@ -8845,7 +8828,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, AuraEffect* trig
         // Combo points add triggers (need add combopoint only for main target, and after possible combopoints reset)
         case 15250: // Rogue Setup
         {
-            if (!pVictim || pVictim != getVictim())   // applied only for main target
+            if (!pVictim || (ToPlayer() && pVictim != ToPlayer()->GetSelectedUnit())) // applied only for main target
                 return false;
             break;                                   // continue normal case
         }
@@ -11054,6 +11037,22 @@ bool Unit::isSpellCrit(Unit *pVictim, SpellEntry const *spellProto, SpellSchoolM
                             break;
                         }
                     break;
+                    case SPELLFAMILY_WARRIOR:
+                       // Victory Rush
+                       if (spellProto->SpellFamilyFlags[1] & 0x100)
+                       {
+                           // Glyph of Victory Rush
+                           if (AuraEffect const* aurEff = GetAuraEffect(58382, 0))
+                               crit_chance += aurEff->GetAmount();
+                           break;
+                       }
+                    break;
+                    case SPELLFAMILY_PALADIN:
+                        // Judgement of Command proc always crits on stunned target
+                        if (spellProto->SpellFamilyName == SPELLFAMILY_PALADIN)
+                            if (spellProto->SpellFamilyFlags[0] & 0x0000000000800000LL && spellProto->SpellIconID == 561)
+                                if (pVictim->HasUnitState(UNIT_STAT_STUNNED))
+                                    return true;
                 }
             }
         case SPELL_DAMAGE_CLASS_RANGED:
@@ -11241,6 +11240,8 @@ uint32 Unit::SpellHealingBonus(Unit *pVictim, SpellEntry const *spellProto, uint
                 scripted = true;
                 break;
         }
+        if (spellProto->Effect[i] == SPELL_EFFECT_HEALTH_LEECH)
+            scripted = true;
     }
 
     // Check for table values
@@ -15443,7 +15444,7 @@ void Unit::Kill(Unit *pVictim, bool durabilityLoss)
         {
             pVictim->ToPlayer()->duel->opponent->CombatStopWithPets(true);
             pVictim->ToPlayer()->CombatStopWithPets(true);
-            pVictim->ToPlayer()->DuelComplete(DUEL_INTERUPTED);
+            pVictim->ToPlayer()->DuelComplete(DUEL_INTERRUPTED);
         }
     }
     else                                                // creature died
@@ -15563,7 +15564,7 @@ void Unit::Kill(Unit *pVictim, bool durabilityLoss)
         }
     }
 
-    if (Vehicle* veh = pVictim->GetVehicle())
+    if (pVictim->GetVehicle())
         pVictim->ExitVehicle();
 }
 
@@ -15686,7 +15687,7 @@ void Unit::SetRooted(bool apply)
 
 //        AddUnitMovementFlag(MOVEMENTFLAG_ROOT);
 
-        if (Player* thisPlr = this->ToPlayer())
+        if (GetTypeId() == TYPEID_PLAYER)
         {
             WorldPacket data(SMSG_FORCE_MOVE_ROOT, 10);
             data.append(GetPackGUID());
@@ -15705,7 +15706,7 @@ void Unit::SetRooted(bool apply)
     {
         if (!HasUnitState(UNIT_STAT_STUNNED))      // prevent allow move if have also stun effect
         {
-            if (Player* thisPlr = this->ToPlayer())
+            if (GetTypeId() == TYPEID_PLAYER)
             {
                 WorldPacket data(SMSG_FORCE_MOVE_UNROOT, 10);
                 data.append(GetPackGUID());
@@ -15868,11 +15869,11 @@ bool Unit::SetCharmedBy(Unit* charmer, CharmType type, AuraApplication const * a
     // Pets already have a properly initialized CharmInfo, don't overwrite it.
     if (type != CHARM_TYPE_VEHICLE && !GetCharmInfo())
     {
-        CharmInfo *charmInfo = InitCharmInfo();
+        InitCharmInfo();
         if (type == CHARM_TYPE_POSSESS)
-            charmInfo->InitPossessCreateSpells();
+            GetCharmInfo()->InitPossessCreateSpells();
         else
-            charmInfo->InitCharmCreateSpells();
+            GetCharmInfo()->InitCharmCreateSpells();
     }
 
     if (charmer->GetTypeId() == TYPEID_PLAYER)
