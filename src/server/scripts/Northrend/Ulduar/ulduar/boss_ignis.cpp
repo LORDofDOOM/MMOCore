@@ -21,7 +21,10 @@ SDAuthor: PrinceCreed
 SD%Complete: 100
 EndScriptData */
 
-#include "ScriptPCH.h"
+#include "ScriptMgr.h"
+#include "ScriptedCreature.h"
+#include "SpellScript.h"
+#include "SpellAuraEffects.h"
 #include "ulduar.h"
 
 enum Yells
@@ -470,4 +473,4 @@ void AddSC_boss_ignis()
     if (VehicleSeatEntry* vehSeat = const_cast<VehicleSeatEntry*>(sVehicleSeatStore.LookupEntry(3206)))
         vehSeat->m_flags |= 0x400;
 }
-                               
+                                                                                                                                                                                                                                                                                                                                                                                                                                  

@@ -3546,7 +3546,7 @@ void SpellMgr::LoadSpellCustomAttr()
                     break;
                 case SPELL_EFFECT_TRIGGER_SPELL:
                     if (IsPositionTarget(spellInfo->EffectImplicitTargetA[j]) ||
-                        spellInfo->Targets & (TARGET_FLAG_SOURCE_LOCATION|TARGET_FLAG_DEST_LOCATION))
+                        spellInfo->Targets & (TARGET_FLAG_SOURCE_LOCATION | TARGET_FLAG_DEST_LOCATION))
                         spellInfo->Effect[j] = SPELL_EFFECT_TRIGGER_MISSILE;
                     ++count;
                     break;
@@ -3687,10 +3687,6 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->excludeCasterAuraSpell = 57723; // Exhaustion
             ++count;
             break;
-        case 61588: // Blazing Harpoon
-            spellInfo->MaxAffectedTargets = 1;
-            ++count;
-            break;
         case 2825:  // Bloodlust
             spellInfo->excludeCasterAuraSpell = 57724; // Sated
             ++count;
@@ -3786,6 +3782,7 @@ void SpellMgr::LoadSpellCustomAttr()
         case 45761: // Shoot
         case 42611: // Shoot
         case 62374: // Pursued
+        case 61588: // Blazing Harpoon
             spellInfo->MaxAffectedTargets = 1;
             ++count;
             break;
@@ -3827,6 +3824,7 @@ void SpellMgr::LoadSpellCustomAttr()
         case 45641: // Fire Bloom
         case 55665: // Life Drain - Sapphiron (H)
         case 28796: // Poison Bolt Volly - Faerlina
+        case 5484:  // Howl Of Terror (Warlock)
             spellInfo->MaxAffectedTargets = 5;
             ++count;
             break;
@@ -4017,6 +4015,7 @@ void SpellMgr::LoadSpellCustomAttr()
         case 67860: // Impale
         case 69293: // Wing Buffet
         case 74439: // Machine Gun
+        case 63278: // Mark of the Faceless
             mSpellCustomAttr[i] |= SPELL_ATTR0_CU_IGNORE_ARMOR;
             ++count;
             break;
@@ -4139,7 +4138,7 @@ void SpellMgr::LoadSpellCustomAttr()
             break;
         case 69055: // Saber Lash (Lord Marrowgar)
         case 70814: // Saber Lash (Lord Marrowgar)
-            spellInfo->EffectRadiusIndex[0] = 8;
+            spellInfo->EffectRadiusIndex[0] = 8;    // 5yd
             ++count;
             break;
         case 69075: // Bone Storm (Lord Marrowgar)
@@ -4149,7 +4148,10 @@ void SpellMgr::LoadSpellCustomAttr()
         case 72864: // Death Plague (Rotting Frost Giant)
         case 72378: // Blood Nova (Deathbringer Saurfang)
         case 73058: // Blood Nova (Deathbringer Saurfang)
-            spellInfo->EffectRadiusIndex[0] = 12;
+        case 71160: // Plague Stench (Stinky)
+        case 71161: // Plague Stench (Stinky)
+        case 71123: // Decimate (Stinky & Precious)
+            spellInfo->EffectRadiusIndex[0] = 12;   // 100yd
             ++count;
             break;
         case 72385: // Boiling Blood (Deathbringer Saurfang)
