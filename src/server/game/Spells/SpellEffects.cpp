@@ -1873,7 +1873,7 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
                     m_caster->RemoveAura(iter);
                 }
                 else
-                    iter++;
+                    ++iter;
             }
             return;
         }
@@ -1950,17 +1950,11 @@ void Spell::EffectJump(SpellEffIndex effIndex)
     if (m_caster->isInFlight())
         return;
 
-    float x, y, z, o;
+    float x, y, z;
     if (m_targets.getUnitTarget())
-    {
         m_targets.getUnitTarget()->GetContactPoint(m_caster, x, y, z, CONTACT_DISTANCE);
-        o = m_caster->GetOrientation();
-    }
     else if (m_targets.getGOTarget())
-    {
         m_targets.getGOTarget()->GetContactPoint(m_caster, x, y, z, CONTACT_DISTANCE);
-        o = m_caster->GetOrientation();
-    }
     else
     {
         sLog->outError("Spell::EffectJump - unsupported target mode for spell ID %u", m_spellInfo->Id);
@@ -1978,7 +1972,7 @@ void Spell::EffectJumpDest(SpellEffIndex effIndex)
         return;
 
     // Init dest coordinates
-    float x, y, z, o;
+    float x, y, z;
     if (m_targets.HasDst())
     {
         m_targets.m_dstPos.GetPosition(x, y, z);
@@ -1995,10 +1989,7 @@ void Spell::EffectJumpDest(SpellEffIndex effIndex)
             else if (m_caster->GetTypeId() == TYPEID_PLAYER)
                 pTarget = ObjectAccessor::GetUnit(*m_caster, m_caster->ToPlayer()->GetSelection());
 
-            o = pTarget ? pTarget->GetOrientation() : m_caster->GetOrientation();
         }
-        else
-            o = m_caster->GetOrientation();
     }
     else
     {
