@@ -1,12 +1,3 @@
--- Desolation procs only with BS fix.
-DELETE FROM `spell_proc_event` WHERE `entry` IN ('66799','66814','66815','66816','66817');
-INSERT INTO `spell_proc_event` (`entry`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `procFlags`, `procEx`, `ppmRate`, `CustomChance`, `Cooldown`) VALUES
-('66799','0','15','4194304','0','0','0','0','0','0','0'), -- Desolation (Rank 1)
-('66814','0','15','4194304','0','0','0','0','0','0','0'), -- Desolation (Rank 2)
-('66815','0','15','4194304','0','0','0','0','0','0','0'), -- Desolation (Rank 3)
-('66816','0','15','4194304','0','0','0','0','0','0','0'), -- Desolation (Rank 4)
-('66817','0','15','4194304','0','0','0','0','0','0','0'); -- Desolation (Rank 5)
-
 -- Fix Summon Infernal spell. Thanks inordon fod idea
 UPDATE `creature_template` SET flags_extra = 0 WHERE `entry` = 89; 
 
@@ -143,13 +134,6 @@ DELETE FROM `spell_bonus_data` WHERE `entry` IN ('32645');
 INSERT INTO `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, `comments`) VALUES
 ('32645','0','0','0','0','Rogue - Envenom');
 
--- Threat of Thassarian fix
-DELETE FROM `spell_proc_event` WHERE `entry` IN (65661,66191,66192);
-INSERT INTO `spell_proc_event` (`entry`,`SchoolMask`,`SpellFamilyName`,`SpellFamilyMask0`,`SpellFamilyMask1`,`SpellFamilyMask2`,`procFlags`,`procEx`,`ppmRate`,`CustomChance`,`Cooldown`) VALUES
-(65661,0,15,0x00400011,0x20020004,0x00000000,16,0,0,100,0), -- Threat of Thassarian - Rank1
-(66191,0,15,0x00400011,0x20020004,0x00000000,16,0,0,100,0), -- Threat of Thassarian - Rank2
-(66192,0,15,0x00400011,0x20020004,0x00000000,16,0,0,100,0); -- Threat of Thassarian - Rank3
-
 -- fix for YTDB after "guards don't evade..." commit
 UPDATE `creature_template` SET `Unit_flags` = 36864 WHERE `entry` = 3296;
 
@@ -226,11 +210,6 @@ UPDATE creature_template SET scriptname = 'npc_agent_skully' WHERE entry = 27350
 UPDATE creature_template SET scriptname = 'npc_7th_legion_siege_engineer' WHERE entry = 27163;
 UPDATE creature_template SET scriptname = 'vehicle_alliance_steamtank' WHERE entry = 27587;
 UPDATE creature_template SET scriptname = 'mob_woodlands_walker' WHERE entry = 26421;
-
--- Bone Shield Charges Cooldown
-DELETE FROM `spell_dbc` WHERE `Id`=250000;
-INSERT INTO `spell_dbc` (`Id`, `Dispel`, `Mechanic`, `Attributes`, `AttributesEx`, `AttributesEx2`, `AttributesEx3`, `AttributesEx4`, `AttributesEx5`, `Stances`, `StancesNot`, `Targets`, `CastingTimeIndex`, `AuraInterruptFlags`, `ProcFlags`, `ProcChance`, `ProcCharges`, `MaxLevel`, `BaseLevel`, `SpellLevel`, `DurationIndex`, `RangeIndex`, `StackAmount`, `EquippedItemClass`, `EquippedItemSubClassMask`, `EquippedItemInventoryTypeMask`, `Effect1`, `Effect2`, `Effect3`, `EffectDieSides1`, `EffectDieSides2`, `EffectDieSides3`, `EffectRealPointsPerLevel1`, `EffectRealPointsPerLevel2`, `EffectRealPointsPerLevel3`, `EffectBasePoints1`, `EffectBasePoints2`, `EffectBasePoints3`, `EffectMechanic1`, `EffectMechanic2`, `EffectMechanic3`, `EffectImplicitTargetA1`, `EffectImplicitTargetA2`, `EffectImplicitTargetA3`, `EffectImplicitTargetB1`, `EffectImplicitTargetB2`, `EffectImplicitTargetB3`, `EffectRadiusIndex1`, `EffectRadiusIndex2`, `EffectRadiusIndex3`, `EffectApplyAuraName1`, `EffectApplyAuraName2`, `EffectApplyAuraName3`, `EffectAmplitude1`, `EffectAmplitude2`, `EffectAmplitude3`, `EffectMultipleValue1`, `EffectMultipleValue2`, `EffectMultipleValue3`, `EffectMiscValue1`, `EffectMiscValue2`, `EffectMiscValue3`, `EffectMiscValueB1`, `EffectMiscValueB2`, `EffectMiscValueB3`, `EffectTriggerSpell1`, `EffectTriggerSpell2`, `EffectTriggerSpell3`, `EffectSpellClassMaskA1`, `EffectSpellClassMaskA2`, `EffectSpellClassMaskA3`, `EffectSpellClassMaskB1`, `EffectSpellClassMaskB2`, `EffectSpellClassMaskB3`, `EffectSpellClassMaskC1`, `EffectSpellClassMaskC2`, `EffectSpellClassMaskC3`, `MaxTargetLevel`, `SpellFamilyName`, `SpellFamilyFlags1`, `SpellFamilyFlags2`, `SpellFamilyFlags3`, `MaxAffectedTargets`, `DmgClass`, `PreventionType`, `DmgMultiplier1`, `DmgMultiplier2`, `DmgMultiplier3`, `AreaGroupId`, `SchoolMask`, `Comment`) VALUES
-(250000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 8, 1, 0, -1, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 'Bone Shield Charges Cooldown');
 
 -- Fix Koralon's Meteor Fists
 DELETE FROM spell_script_names WHERE spell_id = 66765;
@@ -370,9 +349,6 @@ DELETE FROM `spell_linked_spell` WHERE `comment` = 'Wyvern Sting';
 -- Fixed talent Threat of Thassarian of Death Knights
 UPDATE `spell_proc_event` SET `SpellFamilyMask0`=`SpellFamilyMask0`|0x00000001 WHERE `entry` IN (66192,66191,65661);
 
--- Fixed spell bonus coefficient for Prayer of Healing
-UPDATE `spell_bonus_data` SET `direct_bonus` = 0.526 WHERE `entry` = 596;
-
 -- Fix a bug when pets chasing target even if it's invisible
 DELETE FROM `spell_linked_spell` WHERE `spell_effect` = 54661 AND `spell_trigger` IN (32612,5215,1784);
 INSERT INTO `spell_linked_spell` VALUES
@@ -428,12 +404,6 @@ UPDATE `creature_template` SET `modelid1` = 11686, `unit_flags` = 33554432 WHERE
 DELETE FROM `spell_ranks` WHERE `first_spell_id` = 1178;
 INSERT INTO `spell_ranks` VALUES (1178,1178,1),(1178,9635,2);
 
--- Fix druid starfall talent
-DELETE FROM `spell_bonus_data` WHERE `entry` IN (50294,53188,53189,53190,50288,53191,53194,53195);
-INSERT INTO `spell_bonus_data` VALUES
-(50288,0.3,-1,-1,-1,'Druid - Starfall (DIRECT)'),
-(50294,0.13,-1,-1,-1,'Druid - Starfall (AOE)');
-
 -- Fixed warlock's talent Empowered Imp
 UPDATE `spell_proc_event` set `procFlags` = 0x00010004 WHERE `entry` = 54278;
 
@@ -454,15 +424,6 @@ UPDATE `spell_group` SET `spell_id` = 20912 WHERE `id` = 1092 and `spell_id` = 2
 
 -- Fixed mage's talent Hot Streak
 UPDATE `spell_proc_event` SET `SpellFamilyMask1`=`SpellFamilyMask1`|0x00010000 WHERE `entry` IN (44445,44446,44448);
-
--- Fixed hunter's talent Lock and Load
-DELETE FROM `conditions` WHERE `SourceEntry` = 56453;
-INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceEntry`,`ConditionTypeOrReference`,`ConditionValue1`,`Comment`) VALUES
-(17,56453,11,67544,'Lock and Load - Lock and Load Marker');
-
-DELETE FROM `spell_linked_spell` WHERE `spell_trigger` = 56453;
-INSERT INTO `spell_linked_spell` VALUES
-(56453,67544,0,'Lock and Load Marker');
 
 -- Fixed spell bonus coefficient for spell Healing Stream Totem.
 DELETE FROM `spell_bonus_data` WHERE `entry` = 52042;

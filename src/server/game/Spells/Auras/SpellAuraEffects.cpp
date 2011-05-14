@@ -599,14 +599,6 @@ int32 AuraEffect::CalculateAmount(Unit * caster)
             if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_SHAMAN && m_spellProto->SpellFamilyFlags[1] & 0x400)
                 amount = caster->SpellHealingBonus(GetBase()->GetUnitOwner(), GetSpellProto(), amount, SPELL_DIRECT_DAMAGE);
             break;
-        case SPELL_AURA_DAMAGE_SHIELD:
-            if (!caster)
-                break;
-            // Thorns
-            if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_DRUID && m_spellProto->SpellFamilyFlags[0] & 0x100)
-                // 3.3% from sp bonus
-                DoneActualBenefit = caster->SpellBaseDamageBonus(GetSpellSchoolMask(m_spellProto)) * 0.033f;
-            break;
         case SPELL_AURA_PERIODIC_DAMAGE:
             if (!caster)
                 break;
@@ -848,7 +840,7 @@ void AuraEffect::CalculatePeriodic(Unit * caster, bool create)
             if (IsChanneledSpell(m_spellProto))
                 caster->ModSpellCastTime(m_spellProto, m_amplitude);
             // and periodic time of auras affected by SPELL_AURA_PERIODIC_HASTE
-            if (caster->HasAuraTypeWithAffectMask(SPELL_AURA_PERIODIC_HASTE, m_spellProto))
+            if (caster->HasAuraTypeWithAffectMask(SPELL_AURA_PERIODIC_HASTE, m_spellProto) || m_spellProto->AttributesEx5 & SPELL_ATTR5_HASTE_AFFECT_DURATION)
                 m_amplitude = int32(m_amplitude * caster->GetFloatValue(UNIT_MOD_CAST_SPEED));
         }
     }
@@ -1086,11 +1078,8 @@ void AuraEffect::Update(uint32 diff, Unit * caster)
             std::list<AuraApplication*> effectApplications;
             GetApplicationList(effectApplications);
             // tick on targets of effects
-            if (!caster || !caster->HasUnitState(UNIT_STAT_ISOLATED))
-            {
-                for (std::list<AuraApplication*>::iterator apptItr = effectApplications.begin(); apptItr != effectApplications.end(); ++apptItr)
-                    PeriodicTick(*apptItr, caster);
-            }
+            for (std::list<AuraApplication*>::iterator apptItr = effectApplications.begin(); apptItr != effectApplications.end(); ++apptItr)
+                PeriodicTick(*apptItr, caster);
         }
     }
 }
@@ -6159,7 +6148,7 @@ void AuraEffect::HandleAuraDummy(AuraApplication const * aurApp, uint8 mode, boo
                     {
                         if (AuraEffect const * aurEff = GetBase()->GetEffect(1))
                         {
-                            int32 damage = aurEff->GetAmount()*4;
+                            int32 damage = aurEff->GetAmount() * 8;
                             // backfire damage
                             target->CastCustomSpell(target, 64085, &damage, NULL, NULL, true, NULL, NULL, GetCasterGUID());
                         }

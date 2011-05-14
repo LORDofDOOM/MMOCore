@@ -742,7 +742,7 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
                     CAST_AI(SmartAI, me->AI())->SetFollow((*itr)->ToUnit(), (float)e.action.follow.dist, (float)e.action.follow.angle, e.action.follow.credit, e.action.follow.entry, e.action.follow.creditType);
                     sLog->outDebug(LOG_FILTER_DATABASE_AI, "SmartScript::ProcessAction: SMART_ACTION_FOLLOW: Creature %u following target %u",
                         me->GetGUIDLow(), (*itr)->GetGUIDLow());
-                    return;
+                    break;
                 }
             }
 
@@ -1017,17 +1017,14 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
                 if (IsUnit(*itr))
                 {
                     me->AI()->AttackStart((*itr)->ToUnit());
-                    delete targets;
-                    return;
+                    break;
                 }
             }
+            delete targets;
             break;
         }
         case SMART_ACTION_SUMMON_CREATURE:
         {
-            WorldObject* obj = GetBaseObject();
-            if (!obj)
-                obj = unit;
             float x, y, z, o;
             ObjectList* targets = GetTargets(e, unit);
             if (targets)
@@ -1356,6 +1353,7 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
             ne.minMaxRepeat.repeatMin = e.action.timeEvent.repeatMin;
             ne.minMaxRepeat.repeatMax = e.action.timeEvent.repeatMax;
 
+            ne.event_flags = 0;
             if (!ne.minMaxRepeat.repeatMin && !ne.minMaxRepeat.repeatMax)
                 ne.event_flags |= SMART_EVENT_FLAG_NOT_REPEATABLE;
 
@@ -1395,9 +1393,7 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
                         goOrigGUID = go ? go->GetGUID() : 0;
                     go = NULL;
                     me = (*itr)->ToCreature();
-
-                    delete targets;
-                    return;
+                    break;
                 }
                 else if (IsGameObject(*itr))
                 {
@@ -1407,9 +1403,7 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
                         goOrigGUID = go ? go->GetGUID() : 0;
                     go = (*itr)->ToGameObject();
                     me = NULL;
-
-                    delete targets;
-                    return;
+                    break;
                 }
             }
 
@@ -1532,7 +1526,7 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
                     if (e.action.cast.flags & SMARTCAST_INTERRUPT_PREVIOUS)
                         (*itr)->ToUnit()->InterruptNonMeleeSpells(false);
 
-                    for (ObjectList::const_iterator it = targets->begin(); it != targets->end(); it++)
+                    for (ObjectList::const_iterator it = targets->begin(); it != targets->end(); ++it)
                         if (IsUnit(*it))
                             (*itr)->ToUnit()->CastSpell((*it)->ToUnit(), e.action.cast.spell, (e.action.cast.flags & SMARTCAST_TRIGGERED) ? true : false);
                 }
@@ -1708,7 +1702,7 @@ void SmartScript::ProcessAction(SmartScriptHolder& e, Unit* unit, uint32 var0, u
     }
 }
 
-void SmartScript::InstallTemplate(SmartScriptHolder e)
+void SmartScript::InstallTemplate(SmartScriptHolder const& e)
 {
     if (!GetBaseObject())
         return;
@@ -1814,7 +1808,7 @@ SmartScriptHolder SmartScript::CreateEvent(SMART_EVENT e, uint32 event_flags, ui
     return script;
 }
 
-ObjectList* SmartScript::GetTargets(SmartScriptHolder e, Unit* invoker)
+ObjectList* SmartScript::GetTargets(SmartScriptHolder const& e, Unit* invoker /*= NULL*/)
 {
     Unit* trigger = NULL;
     if (invoker)

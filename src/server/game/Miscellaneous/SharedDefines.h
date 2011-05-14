@@ -456,7 +456,7 @@ enum SpellAttr5
     SPELL_ATTR5_UNK10                            = 0x00000400, // 10
     SPELL_ATTR5_UNK11                            = 0x00000800, // 11
     SPELL_ATTR5_UNK12                            = 0x00001000, // 12
-    SPELL_ATTR5_UNK13                            = 0x00002000, // 13
+    SPELL_ATTR5_HASTE_AFFECT_DURATION            = 0x00002000, // 13 haste effects decrease duration of this
     SPELL_ATTR5_UNK14                            = 0x00004000, // 14
     SPELL_ATTR5_UNK15                            = 0x00008000, // 15
     SPELL_ATTR5_SPECIAL_ITEM_CLASS_CHECK         = 0x00010000, // 16 this allows spells with EquippedItemClass to affect spells from other items if the required item is equipped
@@ -1186,7 +1186,7 @@ enum Mechanics
     MECHANIC_FEAR             = 5,
     MECHANIC_GRIP             = 6,
     MECHANIC_ROOT             = 7,
-    MECHANIC_PACIFY           = 8,                          //0 spells use this mechanic
+    MECHANIC_SLOW_ATTACK      = 8,
     MECHANIC_SILENCE          = 9,
     MECHANIC_SLEEP            = 10,
     MECHANIC_SNARE            = 11,
@@ -1212,14 +1212,14 @@ enum Mechanics
     MECHANIC_ENRAGED          = 31
 };
 
-// Used for spell 42292 Immune Movement Impairment and Loss of Control (0x49967da6)
+// Used for spell 42292 Immune Movement Impairment and Loss of Control (0x49967ca6)
 #define IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK (\
     (1<<MECHANIC_CHARM)|(1<<MECHANIC_DISORIENTED)|(1<<MECHANIC_FEAR)| \
-    (1<<MECHANIC_ROOT)|(1<<MECHANIC_PACIFY)|(1<<MECHANIC_SLEEP)| \
-    (1<<MECHANIC_SNARE)|(1<<MECHANIC_STUN)|(1<<MECHANIC_FREEZE)| \
-    (1<<MECHANIC_KNOCKOUT)|(1<<MECHANIC_POLYMORPH)|(1<<MECHANIC_BANISH)| \
-    (1<<MECHANIC_SHACKLE)|(1<<MECHANIC_TURN)|(1<<MECHANIC_HORROR)| \
-    (1<<MECHANIC_DAZE)|(1<<MECHANIC_SAPPED))
+    (1<<MECHANIC_ROOT)|(1<<MECHANIC_SLEEP)|(1<<MECHANIC_SNARE)| \
+    (1<<MECHANIC_STUN)|(1<<MECHANIC_FREEZE)|(1<<MECHANIC_KNOCKOUT)| \
+    (1<<MECHANIC_POLYMORPH)|(1<<MECHANIC_BANISH)|(1<<MECHANIC_SHACKLE)| \
+    (1<<MECHANIC_TURN)|(1<<MECHANIC_HORROR)|(1<<MECHANIC_DAZE)| \
+    (1<<MECHANIC_SAPPED))
 
 // Spell dispell type
 enum DispelType
