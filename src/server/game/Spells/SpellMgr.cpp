@@ -1355,14 +1355,12 @@ void SpellMgr::LoadSpellBonusess()
             continue;
         }
 
-        SpellBonusEntry sbe;
-
+        SpellBonusEntry& sbe = mSpellBonusMap[entry];
         sbe.direct_damage = fields[1].GetFloat();
         sbe.dot_damage    = fields[2].GetFloat();
         sbe.ap_bonus      = fields[3].GetFloat();
         sbe.ap_dot_bonus   = fields[4].GetFloat();
 
-        mSpellBonusMap[entry] = sbe;
         ++count;
     } while (result->NextRow());
 
@@ -3660,12 +3658,6 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_AREA_ENEMY_SRC;
             ++count;
             break;
-        case 71880:
-        case 71892:
-            spellInfo->SpellFamilyName = SPELLFAMILY_GENERIC;
-            spellInfo->procChance = 20;
-            ++count;
-            break;
         case 3286:  // Bind
             spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_TARGET_ENEMY;
             spellInfo->EffectImplicitTargetA[1] = TARGET_UNIT_TARGET_ENEMY;
@@ -3865,6 +3857,11 @@ void SpellMgr::LoadSpellCustomAttr()
         case 53390: // Tidal Wave
             spellInfo->procCharges = 2;
             ++count;
+            break;
+        case 53257: // Cobra Strikes
+            spellInfo->procCharges = 2;
+            spellInfo->StackAmount = 0;
+            count++;
             break;
         case 44544: // Fingers of Frost
             spellInfo->EffectSpellClassMask[0] = flag96(685904631, 1151048, 0);

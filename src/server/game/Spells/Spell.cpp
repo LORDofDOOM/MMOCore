@@ -1319,6 +1319,11 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
             AuraEffect * aurEff = m_spellAura->GetEffect(1);
             aurEff->SetAmount(CalculatePctU(aurEff->GetAmount(), damageInfo.damage));
         }
+        // Cobra Strikes (can't find any other way that may work)
+        if (m_spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && m_spellInfo->SpellFamilyFlags[1] & 0x10000000)
+            if (Unit * owner = caster->GetOwner())
+                if (Aura* pAura = owner->GetAura(53257))
+                    pAura->DropCharge();
     }
     // Passive spell hits/misses or active spells only misses (only triggers)
     else
@@ -1562,11 +1567,13 @@ SpellMissInfo Spell::DoSpellHitOnUnit(Unit *unit, const uint32 effectMask, bool 
                 duration = m_originalCaster->ModSpellDuration(aurSpellInfo, unit, duration, positive);
 
                 // Haste modifies duration of channeled spells
-                if (IsChanneledSpell(m_spellInfo) && m_spellInfo->AttributesEx5 & SPELL_ATTR5_HASTE_AFFECT_DURATION)
-                    m_originalCaster->ModSpellCastTime(aurSpellInfo, duration, this);
-
+                if (IsChanneledSpell(m_spellInfo))
+                {
+                    if (m_spellInfo->AttributesEx5 & SPELL_ATTR5_HASTE_AFFECT_DURATION)
+                        m_originalCaster->ModSpellCastTime(aurSpellInfo, duration, this);
+                }
                 // and duration of auras affected by SPELL_AURA_PERIODIC_HASTE
-                if (m_originalCaster->HasAuraTypeWithAffectMask(SPELL_AURA_PERIODIC_HASTE, aurSpellInfo) || m_spellInfo->AttributesEx5 & SPELL_ATTR5_HASTE_AFFECT_DURATION)
+                else if (m_originalCaster->HasAuraTypeWithAffectMask(SPELL_AURA_PERIODIC_HASTE, aurSpellInfo) || (m_spellInfo->AttributesEx5 & SPELL_ATTR5_HASTE_AFFECT_DURATION))
                     duration = int32(duration * m_originalCaster->GetFloatValue(UNIT_MOD_CAST_SPEED));
 
                 if (duration != m_spellAura->GetMaxDuration())
@@ -2439,7 +2446,7 @@ void Spell::SelectEffectTargets(uint32 i, uint32 cur)
                     break;
                 case TARGET_UNIT_DRIVER:
                     if (Unit * driver = m_targets.getUnitTarget())
-                        if (driver->IsOnVehicle(driver))
+                        if (driver->IsOnVehicle(m_caster))
                             AddUnitTarget(driver, i);
                     break;
                 default:
