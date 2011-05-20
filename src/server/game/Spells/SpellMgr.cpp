@@ -3678,6 +3678,11 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->AttributesEx4 |= SPELL_ATTR4_CANT_PROC_FROM_SELFCAST;
             ++count;
             break;
+        case 8494: // Mana Shield (rank 2)
+            // because of bug in dbc
+            spellInfo->procChance = 0;
+            ++count;
+            break;
         case 32182: // Heroism
             spellInfo->excludeCasterAuraSpell = 57723; // Exhaustion
             ++count;
@@ -4177,11 +4182,6 @@ void SpellMgr::LoadSpellCustomAttr()
         case 71413: // Green Ooze Summon (Professor Putricide)
         case 71414: // Orange Ooze Summon (Professor Putricide)
             spellInfo->EffectImplicitTargetA[0] = TARGET_DEST_DEST;
-            ++count;
-            break;
-            // this is here until targetAuraSpell and alike support SpellDifficulty.dbc
-        case 70459: // Ooze Eruption Search Effect (Professor Putricide)
-            spellInfo->targetAuraSpell = 0;
             ++count;
             break;
         // THIS IS HERE BECAUSE COOLDOWN ON CREATURE PROCS IS NOT IMPLEMENTED
