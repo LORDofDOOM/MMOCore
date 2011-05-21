@@ -1573,7 +1573,7 @@ SpellMissInfo Spell::DoSpellHitOnUnit(Unit *unit, const uint32 effectMask, bool 
                         m_originalCaster->ModSpellCastTime(aurSpellInfo, duration, this);
                 }
                 // and duration of auras affected by SPELL_AURA_PERIODIC_HASTE
-                else if (m_originalCaster->HasAuraTypeWithAffectMask(SPELL_AURA_PERIODIC_HASTE, aurSpellInfo) || (m_spellInfo->AttributesEx5 & SPELL_ATTR5_HASTE_AFFECT_DURATION))
+                else if (m_originalCaster->HasAuraTypeWithAffectMask(SPELL_AURA_PERIODIC_HASTE, aurSpellInfo) || m_spellInfo->AttributesEx5 & SPELL_ATTR5_HASTE_AFFECT_DURATION)
                     duration = int32(duration * m_originalCaster->GetFloatValue(UNIT_MOD_CAST_SPEED));
 
                 if (duration != m_spellAura->GetMaxDuration())
@@ -2136,10 +2136,13 @@ void Spell::SelectEffectTargets(uint32 i, uint32 cur)
                     pushType = PUSH_CHAIN;
                     break;
                 case TARGET_UNIT_TARGET_ALLY:
+                    AddUnitTarget(target, i);
+                    break;
                 case TARGET_UNIT_TARGET_RAID:
                 case TARGET_UNIT_TARGET_PARTY:
                 case TARGET_UNIT_TARGET_PUPPET:
-                    AddUnitTarget(target, i);
+                    if (IsValidSingleTargetSpell(target))
+                        AddUnitTarget(target, i);
                     break;
                 case TARGET_UNIT_PARTY_TARGET:
                 case TARGET_UNIT_CLASS_TARGET:
@@ -3062,9 +3065,12 @@ void Spell::prepare(SpellCastTargets const* targets, AuraEffect const * triggere
     // Prepare data for triggers
     prepareDataForTriggerSystem(triggeredByAura);
 
+    if (m_caster->GetTypeId() == TYPEID_PLAYER)
+        m_caster->ToPlayer()->SetSpellModTakingSpell(this, true);
     // calculate cast time (calculated after first CheckCast check to prevent charge counting for first CheckCast fail)
     m_casttime = GetSpellCastTime(m_spellInfo, this);
-    //m_caster->ModSpellCastTime(m_spellInfo, m_casttime, this);
+    if (m_caster->GetTypeId() == TYPEID_PLAYER)
+        m_caster->ToPlayer()->SetSpellModTakingSpell(this, false);
 
     // don't allow channeled spells / spells with cast time to be casted while moving
     // (even if they are interrupted on moving, spells with almost immediate effect get to have their effect processed before movement interrupter kicks in)
@@ -3133,6 +3139,8 @@ void Spell::cancel()
     {
         case SPELL_STATE_PREPARING:
             CancelGlobalCooldown();
+            if (m_caster->GetTypeId() == TYPEID_PLAYER)
+                m_caster->ToPlayer()->RestoreSpellMods(this);
         case SPELL_STATE_DELAYED:
             SendInterrupted(0);
             SendCastResult(SPELL_FAILED_INTERRUPTED);
@@ -4878,9 +4886,9 @@ SpellCastResult Spell::CheckCast(bool strict)
             return SPELL_FAILED_CASTER_AURASTATE;
 
         // Note: spell 62473 requres casterAuraSpell = triggering spell
-        if (m_spellInfo->casterAuraSpell && !m_caster->HasAura(m_spellInfo->casterAuraSpell))
+        if (m_spellInfo->casterAuraSpell && !m_caster->HasAura(sSpellMgr->GetSpellIdForDifficulty(m_spellInfo->casterAuraSpell, m_caster)))
             return SPELL_FAILED_CASTER_AURASTATE;
-        if (m_spellInfo->excludeCasterAuraSpell && m_caster->HasAura(m_spellInfo->excludeCasterAuraSpell))
+        if (m_spellInfo->excludeCasterAuraSpell && m_caster->HasAura(sSpellMgr->GetSpellIdForDifficulty(m_spellInfo->excludeCasterAuraSpell, m_caster)))
             return SPELL_FAILED_CASTER_AURASTATE;
 
         if (reqCombat && m_caster->isInCombat() && IsNonCombatSpell(m_spellInfo))
@@ -4909,10 +4917,10 @@ SpellCastResult Spell::CheckCast(bool strict)
         if (!m_IsTriggeredSpell && m_spellInfo->TargetAuraStateNot && target->HasAuraState(AuraState(m_spellInfo->TargetAuraStateNot), m_spellInfo, m_caster))
             return SPELL_FAILED_TARGET_AURASTATE;
 
-        if (m_spellInfo->targetAuraSpell && !target->HasAura(m_spellInfo->targetAuraSpell))
+        if (m_spellInfo->targetAuraSpell && !target->HasAura(sSpellMgr->GetSpellIdForDifficulty(m_spellInfo->targetAuraSpell, m_caster)))
             return SPELL_FAILED_TARGET_AURASTATE;
 
-        if (m_spellInfo->excludeTargetAuraSpell && target->HasAura(m_spellInfo->excludeTargetAuraSpell))
+        if (m_spellInfo->excludeTargetAuraSpell && target->HasAura(sSpellMgr->GetSpellIdForDifficulty(m_spellInfo->excludeTargetAuraSpell, m_caster)))
             return SPELL_FAILED_TARGET_AURASTATE;
 
         if (!m_IsTriggeredSpell && target == m_caster && m_spellInfo->AttributesEx & SPELL_ATTR1_CANT_TARGET_SELF)
@@ -6731,9 +6739,9 @@ bool Spell::CheckTarget(Unit* target, uint32 eff)
     }
 
     // Check Aura spell req (need for AoE spells)
-    if (m_spellInfo->targetAuraSpell && !target->HasAura(m_spellInfo->targetAuraSpell))
+    if (m_spellInfo->targetAuraSpell && !target->HasAura(sSpellMgr->GetSpellIdForDifficulty(m_spellInfo->targetAuraSpell, m_caster)))
         return false;
-    if (m_spellInfo->excludeTargetAuraSpell && target->HasAura(m_spellInfo->excludeTargetAuraSpell))
+    if (m_spellInfo->excludeTargetAuraSpell && target->HasAura(sSpellMgr->GetSpellIdForDifficulty(m_spellInfo->excludeTargetAuraSpell, m_caster)))
         return false;
 
     // Check targets for not_selectable unit flag and remove

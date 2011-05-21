@@ -19,6 +19,7 @@
 #include "ObjectMgr.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
+#include "ScriptPCH.h"
 #include "SpellScript.h"
 #include "SpellAuraEffects.h"
 #include "icecrown_citadel.h"
@@ -1362,7 +1363,7 @@ class npc_tirion_icc : public CreatureScript
                 return true;
             }
 
-            if ((instance->GetData(DATA_BLOOD_QUEEN_LANA_THEL_EVENT) == DONE && instance->GetData(DATA_PROFESSOR_PUTRICIDE_EVENT) == DONE && instance->GetData(DATA_SINDRAGOSA_EVENT) == DONE) || player->isGameMaster())
+            if ((instance->GetData(DATA_BLOOD_QUEEN_LANA_THEL_EVENT) == DONE && instance->GetData(DATA_PROFESSOR_PUTRICIDE) == DONE && instance->GetData(DATA_SINDRAGOSA) == DONE) || player->isGameMaster())
                 player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+3);
 
             player->SEND_GOSSIP_MENU(GOSSIP_MENU, creature->GetGUID());
@@ -1378,7 +1379,7 @@ class npc_tirion_icc : public CreatureScript
                     creature->MonsterSay("OK, I'll wait for raid leader", LANG_UNIVERSAL, player->GetGUID());
                     break;
                 case GOSSIP_ACTION_INFO_DEF+4:
-                    creature->CastSpell(player,SPELL_TELEPORT_ICC_LIGHT_S_HAMMER, true); player->GetGUID();
+                    creature->CastSpell(player,LIGHT_S_HAMMER_TELEPORT, true); player->GetGUID();
                     break;
                 case GOSSIP_ACTION_INFO_DEF+3:
                     CAST_AI(npc_tirion_icc::npc_tirion_iccAI, creature->AI())->DoAction(ACTION_START_EVENT);
@@ -1766,7 +1767,7 @@ public:
                             me->DespawnOrUnsummon();
                             return;
                         }
-                        /*if (!curVictim->isAlive() || curVictim->GetTypeId() != TYPEID_PLAYER)
+                       /* if (!curVictim->isAlive() || curVictim->GetTypeId() != TYPEID_PLAYER)
                         {
                             Player *player = curVictim->ToPlayer();
                             uint8 count = 0;
@@ -1776,7 +1777,7 @@ public:
                             }
                             EnterEvadeMode();
                             AttackStart(player);
-                        }*/
+                        } */
                         events.ScheduleEvent(EVENT_CHECK_PLAYER_IN_FROSTMOURNE_ROOM, 2000);
                         break;
                     }

@@ -332,6 +332,7 @@ void AddSC_boss_amnennar_the_coldbringer();  //Razorfen Downs
 void AddSC_razorfen_downs();
 void AddSC_instance_razorfen_downs();
 void AddSC_razorfen_kraul();                 //Razorfen Kraul
+void AddSC_instance_razorfen_kraul();
 void AddSC_boss_kurinnaxx();                 //Ruins of ahn'qiraj
 void AddSC_boss_rajaxx();
 void AddSC_boss_moam();
@@ -463,6 +464,7 @@ void AddSC_boss_assembly_of_iron();
 void AddSC_boss_general_vezax();
 void AddSC_ulduar_teleporter();
 void AddSC_boss_mimiron();
+void AddSC_boss_hodir();
 void AddSC_instance_ulduar();
 void AddSC_boss_keleseth();              //Utgarde Keep
 void AddSC_boss_skarvald_dalronn();
@@ -948,6 +950,7 @@ void AddKalimdorScripts()
     AddSC_razorfen_downs();
     AddSC_instance_razorfen_downs();
     AddSC_razorfen_kraul();                 //Razorfen Kraul
+    AddSC_instance_razorfen_kraul();
     AddSC_boss_kurinnaxx();                 //Ruins of ahn'qiraj
     AddSC_boss_rajaxx();
     AddSC_boss_moam();
@@ -1169,6 +1172,7 @@ void AddNorthrendScripts()
     AddSC_boss_kologarn();
     AddSC_ulduar_teleporter();
     AddSC_boss_mimiron();
+    AddSC_boss_hodir();
     AddSC_instance_ulduar();
     AddSC_boss_keleseth();              //Utgarde Keep
     AddSC_boss_skarvald_dalronn();

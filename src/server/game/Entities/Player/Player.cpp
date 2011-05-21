@@ -6767,8 +6767,7 @@ void Player::SendMessageToSet(WorldPacket *data, Player const* skipped_rcvr)
 
 void Player::SendDirectMessage(WorldPacket *data)
 {
-    if (m_session)
-        m_session->SendPacket(data);
+    m_session->SendPacket(data);
 }
 
 void Player::SendCinematicStart(uint32 CinematicSequenceId)
@@ -7633,6 +7632,10 @@ void Player::DuelComplete(DuelCompleteType type)
         default:
             break;
     }
+
+    // Victory emote spell
+    if (type != DUEL_INTERRUPTED && duel->opponent)
+        duel->opponent->CastSpell(duel->opponent, 52852, true);
 
     //Remove Duel Flag object
     GameObject* obj = GetMap()->GetGameObject(GetUInt64Value(PLAYER_DUEL_ARBITER));

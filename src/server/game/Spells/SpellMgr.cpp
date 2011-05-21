@@ -2974,6 +2974,13 @@ int32 GetDiminishingReturnsLimitDuration(DiminishingGroup group, SpellEntry cons
                 return 6 * IN_MILLISECONDS;
             break;
         }
+        case SPELLFAMILY_WARLOCK:
+        {
+            // Banish - limit to 6 seconds in PvP
+            if (spellproto->SpellFamilyFlags[1] & 0x8000000)
+                return 6 * IN_MILLISECONDS;
+            break;
+        }
         case SPELLFAMILY_DRUID:
         {
             // Faerie Fire - limit to 40 seconds in PvP (3.1)
@@ -3675,6 +3682,11 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->AttributesEx4 |= SPELL_ATTR4_CANT_PROC_FROM_SELFCAST;
             ++count;
             break;
+        case 8494: // Mana Shield (rank 2)
+            // because of bug in dbc
+            spellInfo->procChance = 0;
+            ++count;
+            break;
         case 32182: // Heroism
             spellInfo->excludeCasterAuraSpell = 57723; // Exhaustion
             ++count;
@@ -3927,6 +3939,11 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->Stances = 1 << (FORM_TREE - 1);
             ++count;
             break;
+        case 47569: // Improved Shadowform (Rank 1)
+            // with this spell atrribute aura can be stacked several times
+            spellInfo->Attributes &= ~SPELL_ATTR0_NOT_SHAPESHIFT;
+            ++count;
+            break;
         case 30421: // Nether Portal - Perseverence
             spellInfo->EffectBasePoints[2] += 30000;
             ++count;
@@ -4040,6 +4057,10 @@ void SpellMgr::LoadSpellCustomAttr()
         case 33206: // Pain Suppression
             spellInfo->AttributesEx5 &= ~SPELL_ATTR5_USABLE_WHILE_STUNNED;
             ++count;
+            break;
+        case 56278: // Read Pronouncement, missing EffectApplyAuraName
+            spellInfo->Effect[0] = SPELL_EFFECT_DUMMY;
+            count++;
             break;
         case 8145: // Tremor Totem (instant pulse)
         case 6474: // Earthbind Totem (instant pulse)
@@ -4170,11 +4191,6 @@ void SpellMgr::LoadSpellCustomAttr()
         case 71413: // Green Ooze Summon (Professor Putricide)
         case 71414: // Orange Ooze Summon (Professor Putricide)
             spellInfo->EffectImplicitTargetA[0] = TARGET_DEST_DEST;
-            ++count;
-            break;
-            // this is here until targetAuraSpell and alike support SpellDifficulty.dbc
-        case 70459: // Ooze Eruption Search Effect (Professor Putricide)
-            spellInfo->targetAuraSpell = 0;
             ++count;
             break;
         // THIS IS HERE BECAUSE COOLDOWN ON CREATURE PROCS IS NOT IMPLEMENTED

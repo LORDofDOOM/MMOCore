@@ -6,7 +6,7 @@ INSERT INTO `spell_script_names` VALUES
 
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (69075, 70834, 70835, 70836);
 INSERT INTO `spell_script_names` VALUES 
-(69075, 'spell_marrowgar_bone_storm'),
+(69075,    'spell_marrowgar_bone_storm'),
 (70834,    'spell_marrowgar_bone_storm'),
 (70835,    'spell_marrowgar_bone_storm'),
 (70836,    'spell_marrowgar_bone_storm');
@@ -138,7 +138,7 @@ INSERT INTO `achievement_criteria_data` (`criteria_id`,`type`,`value1`,`value2`,
 (13135,12,3,0, ''); -- Sindragosa kills (Heroic Icecrown 25 player)
 DELETE FROM `areatrigger_scripts` WHERE `entry` IN (5604,5698,5649);
 INSERT INTO `areatrigger_scripts` (`entry`,`ScriptName`) VALUES
-(5604,'at_sindragosa_lair'),
+(5604, 'at_sindragosa_lair'),
 (5698, 'at_icc_saurfang_portal'),
 (5649, 'at_icc_shutdown_traps');
 
@@ -268,20 +268,18 @@ UPDATE `creature_template` SET `vehicleid` = 533 WHERE `entry` IN (36609, 39120,
 UPDATE `creature_template` SET `modelid1` = 11686 WHERE `entry` IN (36633, 39305, 39306, 39307);
 
 DELETE FROM `creature_template_addon` WHERE (`entry`=36597);
-INSERT INTO `creature_template_addon` (`entry`, `path_id`, `mount`, `bytes1`, `bytes2`, `emote`, `auras`) VALUES (36597, 0, 0, 1, 0, 0, '73878 0 72846 0');
+INSERT INTO `creature_template_addon` (`entry`, `path_id`, `mount`, `bytes1`, `bytes2`, `emote`, `auras`) VALUES (36597, 0, 0, 1, 0, 0, '73878 72846');
 DELETE FROM `creature_template_addon` WHERE (`entry`=39166);
-INSERT INTO `creature_template_addon` (`entry`, `path_id`, `mount`, `bytes1`, `bytes2`, `emote`, `auras`) VALUES (39166, 0, 0, 1, 0, 0, '73878 0 72846 0');
+INSERT INTO `creature_template_addon` (`entry`, `path_id`, `mount`, `bytes1`, `bytes2`, `emote`, `auras`) VALUES (39166, 0, 0, 1, 0, 0, '73878 72846');
 DELETE FROM `creature_template_addon` WHERE (`entry`=39167);
-INSERT INTO `creature_template_addon` (`entry`, `path_id`, `mount`, `bytes1`, `bytes2`, `emote`, `auras`) VALUES (39167, 0, 0, 1, 0, 0, '73878 0 72846 0');
+INSERT INTO `creature_template_addon` (`entry`, `path_id`, `mount`, `bytes1`, `bytes2`, `emote`, `auras`) VALUES (39167, 0, 0, 1, 0, 0, '73878 72846');
 DELETE FROM `creature_template_addon` WHERE (`entry`=39168);
-INSERT INTO `creature_template_addon` (`entry`, `path_id`, `mount`, `bytes1`, `bytes2`, `emote`, `auras`) VALUES (39168, 0, 0, 1, 0, 0, '73878 0 72846 0');
+INSERT INTO `creature_template_addon` (`entry`, `path_id`, `mount`, `bytes1`, `bytes2`, `emote`, `auras`) VALUES (39168, 0, 0, 1, 0, 0, '73878 72846');
 UPDATE `creature_template` SET `faction_A` = 14, `faction_H` = 14 WHERE `entry` IN (36597, 39166, 39167, 39168);
 
 -- Temp solution for frostmourn room
-DELETE FROM `gameobject` WHERE `guid` = 2710388;
 INSERT INTO `gameobject` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`) VALUES
 ('2710388', '193070', '631', '15', '1', '520', '-2524', '1038.42', '4.47344', '0', '0', '0.786348', '-0.617784', '300', '255', '1');
-DELETE FROM `creature` WHERE `guid` in (250250, 250251);
 INSERT INTO `creature` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `DeathState`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES
 ('250250', '36823', '631', '15', '1', '0', '0', '495', '-2502', '1050', '5.49385', '300', '0', '0', '315000', '59910', '0', '0', '0', '0', '0'),
 ('250251', '36824', '631', '15', '1', '0', '0', '495', '-2546', '1050.23', '1.72709', '300', '0', '0', '252000', '0', '0', '0', '0', '0', '0');
@@ -528,25 +526,3 @@ UPDATE `creature_template` SET `faction_A`=1735, `faction_H`=1735 WHERE `entry`=
 UPDATE `creature_template` SET `faction_A`=894, `faction_H`=894 WHERE `entry`=37188; -- Jaina Proudmoore
 UPDATE `creature_template` SET `faction_A`=1732, `faction_H`=1732 WHERE `entry`=37830; -- Skybreaker Marine
 UPDATE `creature_template` SET `faction_A`=1732, `faction_H`=1732 WHERE `entry`=37200; -- Muradin Bronzebeard 
-
-DELETE FROM `spell_linked_spell` WHERE `spell_effect`=70530;
-INSERT INTO `spell_linked_spell` (`spell_trigger`,`spell_effect`,`type`,`comment`) VALUES
-(-70447,70530,0, 'Putricide: Volatile Ooze Adhesive Protection'),
-(-72836,70530,0, 'Putricide: Volatile Ooze Adhesive Protection'),
-(-72837,70530,0, 'Putricide: Volatile Ooze Adhesive Protection'),
-(-72838,70530,0, 'Putricide: Volatile Ooze Adhesive Protection');
-
-DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_putricide_ooze_channel';
-INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES
-(70447, 'spell_putricide_ooze_channel'),
-(72836, 'spell_putricide_ooze_channel'),
-(72837, 'spell_putricide_ooze_channel'),
-(72838, 'spell_putricide_ooze_channel'),
-(70672, 'spell_putricide_ooze_channel'),
-(72455, 'spell_putricide_ooze_channel'),
-(72832, 'spell_putricide_ooze_channel'),
-(72833, 'spell_putricide_ooze_channel');
-
-DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_valanar_kinetic_bomb_absorb';
-INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES
-(72054, 'spell_valanar_kinetic_bomb_absorb');
