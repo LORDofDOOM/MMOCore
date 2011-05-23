@@ -480,7 +480,7 @@ inline void KillRewarder::_InitXP(Player* player)
     // * on battlegrounds;
     // * otherwise, not in PvP;
     // * not if killer is on vehicle.
-    if (_isBattleGround || !_isPvP || !_killer->GetVehicle())
+    if (_isBattleGround || (!_isPvP && !_killer->GetVehicle()))
         _xp = Trinity::XP::Gain(player, _victim);
 }
 
@@ -4837,7 +4837,7 @@ void Player::DeleteFromDB(uint64 playerguid, uint32 accountId, bool updateRealmC
 
                     uint32 pl_account = sObjectMgr->GetPlayerAccountIdByGUID(MAKE_NEW_GUID(guid, 0, HIGHGUID_PLAYER));
 
-                    draft.AddMoney(money).SendReturnToSender(pl_account, guid, sender);
+                    draft.AddMoney(money).SendReturnToSender(pl_account, guid, sender, trans);
                 }
                 while (resultMail->NextRow());
             }
@@ -17507,7 +17507,6 @@ void Player::_LoadMailedItems(Mail *mail)
     if (!result)
         return;
 
-    SQLTransaction trans = CharacterDatabase.BeginTransaction();
     do
     {
         Field* fields = result->Fetch();
@@ -17522,10 +17521,10 @@ void Player::_LoadMailedItems(Mail *mail)
         if (!proto)
         {
             sLog->outError("Player %u has unknown item_template (ProtoType) in mailed items(GUID: %u template: %u) in mail (%u), deleted.", GetGUIDLow(), item_guid_low, item_template, mail->messageID);
-            trans->PAppend("DELETE FROM mail_items WHERE item_guid = '%u'", item_guid_low);
+            CharacterDatabase.PExecute("DELETE FROM mail_items WHERE item_guid = '%u'", item_guid_low);
             PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ITEM_INSTANCE);
             stmt->setUInt32(0, item_guid_low);
-            trans->Append(stmt);
+            CharacterDatabase.Execute(stmt);
             continue;
         }
 
@@ -17536,15 +17535,15 @@ void Player::_LoadMailedItems(Mail *mail)
             sLog->outError("Player::_LoadMailedItems - Item in mail (%u) doesn't exist !!!! - item guid: %u, deleted from mail", mail->messageID, item_guid_low);
             CharacterDatabase.PExecute("DELETE FROM mail_items WHERE item_guid = '%u'", item_guid_low);
             item->FSetState(ITEM_REMOVED);
-            item->SaveToDB(trans);                               // it also deletes item object !
+
+            SQLTransaction temp = SQLTransaction(NULL);
+            item->SaveToDB(temp);                               // it also deletes item object !
             continue;
         }
 
         AddMItem(item);
     }
     while (result->NextRow());
-
-    CharacterDatabase.CommitTransaction(trans);
 }
 
 void Player::_LoadMailInit(PreparedQueryResult resultUnread, PreparedQueryResult resultDelivery)
@@ -17598,7 +17597,8 @@ void Player::_LoadMail()
                 _LoadMailedItems(m);
 
             m_mail.push_back(m);
-        } while (result->NextRow());
+        }
+        while (result->NextRow());
     }
     m_mailsLoaded = true;
 }
@@ -20708,10 +20708,11 @@ void Player::AddSpellCooldown(uint32 spellid, uint32 itemid, time_t end_time)
     m_spellCooldowns[spellid] = sc;
 }
 
-void Player::SendCooldownEvent(SpellEntry const *spellInfo, uint32 itemId, Spell* spell)
+void Player::SendCooldownEvent(SpellEntry const* spellInfo, uint32 itemId /*= 0*/, Spell* spell /*= NULL*/, bool setCooldown /*= true*/)
 {
     // start cooldowns at server side, if any
-    AddSpellAndCategoryCooldowns(spellInfo, itemId, spell);
+    if (setCooldown)
+        AddSpellAndCategoryCooldowns(spellInfo, itemId, spell);
 
     // Send activate cooldown timer (possible 0) at client side
     WorldPacket data(SMSG_COOLDOWN_EVENT, 4 + 8);
