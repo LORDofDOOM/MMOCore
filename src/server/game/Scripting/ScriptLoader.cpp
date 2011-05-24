@@ -498,6 +498,7 @@ void AddSC_boss_professor_putricide();
 void AddSC_boss_blood_prince_council();
 void AddSC_boss_blood_queen_lana_thel();
 void AddSC_boss_valithria_dreamwalker();
+void AddSC_boss_lichking();
 void AddSC_boss_sindragosa();
 void AddSC_icecrown_citadel_teleport();
 void AddSC_instance_icecrown_citadel();
@@ -1207,6 +1208,7 @@ void AddNorthrendScripts()
     AddSC_boss_blood_prince_council();
     AddSC_boss_blood_queen_lana_thel();
     AddSC_boss_valithria_dreamwalker();
+    AddSC_boss_lichking();
     AddSC_boss_sindragosa();
     AddSC_icecrown_citadel_teleport();
     AddSC_instance_icecrown_citadel();
