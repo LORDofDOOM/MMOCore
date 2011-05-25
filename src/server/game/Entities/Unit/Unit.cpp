@@ -7621,17 +7621,9 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, AuraEffect* trigger
                 // Glyph of Unholy Blight
                 if (AuraEffect *glyph=GetAuraEffect(63332, 0))
                     AddPctN(basepoints0, glyph->GetAmount());
-                // Find replaced aura to use it's remaining amount
-                AuraEffectList const& DoTAuras = target->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
-                for (Unit::AuraEffectList::const_iterator i = DoTAuras.begin(); i != DoTAuras.end(); ++i)
-                {
-                     if ((*i)->GetCasterGUID() != GetGUID() || (*i)->GetId() != 50536)
-                         continue;
-                     basepoints0 += ((*i)->GetAmount() * ((*i)->GetTotalTicks() - ((*i)->GetTickNumber()))) / (*i)->GetTotalTicks();
-                     break;
-                }
 
                 triggered_spell_id = 50536;
+                basepoints0 += pVictim->GetRemainingPeriodicAmount(GetGUID(), triggered_spell_id, SPELL_AURA_PERIODIC_DAMAGE);
                 break;
             }
             // Vendetta
@@ -8307,17 +8299,6 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, AuraEffect* trig
                             CastSpell(pVictim, 27526, true, castItem, triggeredByAura);
                         return true;
                     }
-                    // Mark of the Fallen Champion
-                    case 72293:
-                    {
-                        if(pVictim && pVictim->HasAura(72293) && !pVictim->isAlive())
-                        {
-                            Creature* saurfang = pVictim->FindNearestCreature(37813, 500.0f, true);
-                                if(saurfang && saurfang->isAlive())
-                                   saurfang->CastSpell(saurfang, 72260, true);
-                        }
-                        return true;
-                    }
                 }
                 break;
             case SPELLFAMILY_MAGE:
@@ -8969,6 +8950,22 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, AuraEffect* trig
                         return true;
                     }
                 }
+            break;
+        }
+        case 46916:  // Slam!
+        case 52437:  // Sudden Death
+        {
+            // Item - Warrior T10 Melee 4P Bonus
+            if (AuraEffect const * aurEff = GetAuraEffect(70847, EFFECT_0))
+            {
+                uint32 amount = aurEff->GetAmount();
+                if (roll_chance_i(amount))
+                    CastSpell(this, 70849, true, castItem, triggeredByAura); // Extra Charge!
+                if (roll_chance_i(amount))
+                    CastSpell(this, 71072, true, castItem, triggeredByAura); // Slam GCD Reduced
+                if (roll_chance_i(amount))
+                    CastSpell(this, 71069, true, castItem, triggeredByAura); // Execute GCD Reduced
+            }
             break;
         }
         // Sword and Board

@@ -1899,8 +1899,6 @@ void AuraEffect::PeriodicTick(AuraApplication * aurApp, Unit * caster) const
                 target->CastSpell((Unit*)NULL , GetAmount() , true);
             break;
         case SPELL_AURA_PERIODIC_DUMMY:
-		    if(GetId() == 72178)
-                caster->CastSpell(caster, 72202, true);
             PeriodicDummyTick(target, caster);
             break;
         case SPELL_AURA_PERIODIC_TRIGGER_SPELL:
@@ -6136,7 +6134,7 @@ void AuraEffect::HandleAuraDummy(AuraApplication const * aurApp, uint8 mode, boo
                     if (m_spellProto->SpellFamilyFlags[1] & 0x40000)
                     {
                         if (caster)
-                            caster->CastCustomSpell(caster, 48210, &m_amount, 0, 0, true, NULL, this);
+                            target->CastCustomSpell(caster, 48210, &m_amount, 0, 0, true, NULL, this, GetCasterGUID());
                     }
                     break;
                 case SPELLFAMILY_DRUID:
