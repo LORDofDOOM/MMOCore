@@ -52,7 +52,7 @@ void AddSC_pryds_allinone();
 //Mini Boss
 void AddSC_npcs_mini_boss();
 //Lottery
-void AddSC_npc_lottery();
+//void AddSC_npc_lottery();
 
 // spells
 void AddSC_deathknight_spell_scripts();
@@ -1302,7 +1302,7 @@ void AddCustomScripts()
 	//Mini Boss
 	AddSC_npcs_mini_boss();
 	//Lottery
-	AddSC_npc_lottery();	
+	//AddSC_npc_lottery();	
     // Custom
     AddSC_DuelReset();
 	// Killstreak PvP System
