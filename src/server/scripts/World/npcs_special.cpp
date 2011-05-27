@@ -1251,7 +1251,7 @@ public:
     {
         pPlayer->PlayerTalkClass->ClearMenus();
         if (uiAction == GOSSIP_ACTION_TRADE)
-            pPlayer->SEND_VENDORLIST(pCreature->GetGUID());
+            pPlayer->GetSession()->SendListInventory(pCreature->GetGUID());
 
         return true;
     }
@@ -1304,7 +1304,7 @@ public:
                 pPlayer->CastSpell(pPlayer, 21100, false);
                 break;
             case GOSSIP_ACTION_TRAIN:
-                pPlayer->SEND_TRAINERLIST(pCreature->GetGUID());
+                pPlayer->GetSession()->SendTrainerList(pCreature->GetGUID());
                 break;
             case GOSSIP_OPTION_UNLEARNTALENTS:
                 pPlayer->CLOSE_GOSSIP_MENU();
@@ -1316,7 +1316,7 @@ public:
                     if (!pPlayer->HasEnoughMoney(10000000))
                     {
                         pPlayer->SendBuyError(BUY_ERR_NOT_ENOUGHT_MONEY, 0, 0, 0);
-                        pPlayer->PlayerTalkClass->CloseGossip();
+                        pPlayer->PlayerTalkClass->SendCloseGossip();
                         break;
                     }
                     else
@@ -1329,7 +1329,7 @@ public:
                         pPlayer->CastSpell(pPlayer, 63624, true, NULL, NULL, pPlayer->GetGUID());
 
                         // Should show another Gossip text with "Congratulations..."
-                        pPlayer->PlayerTalkClass->CloseGossip();
+                        pPlayer->PlayerTalkClass->SendCloseGossip();
                     }
                 }
                 break;
@@ -2560,7 +2560,7 @@ public:
             pPlayer->SEND_GOSSIP_MENU(13583, pCreature->GetGUID());
         }
         else
-            pPlayer->SEND_VENDORLIST(pCreature->GetGUID());
+            pPlayer->GetSession()->SendListInventory(pCreature->GetGUID());
 
         return true;
     }
@@ -2571,7 +2571,7 @@ public:
         switch(uiAction)
         {
             case GOSSIP_ACTION_TRADE:
-                pPlayer->SEND_VENDORLIST(pCreature->GetGUID());
+                pPlayer->GetSession()->SendListInventory(pCreature->GetGUID());
                 break;
             case GOSSIP_ACTION_INFO_DEF+1:
                 pPlayer->CLOSE_GOSSIP_MENU();
@@ -2664,7 +2664,7 @@ public:
                 pPlayer->SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_NO_XP_GAIN);
             }
         }
-        pPlayer->PlayerTalkClass->CloseGossip();
+        pPlayer->PlayerTalkClass->SendCloseGossip();
         return true;
     }
 };
@@ -2789,7 +2789,7 @@ public:
                 break;
             case GOSSIP_ACTION_TRADE:
                 pCreature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_VENDOR);
-                pPlayer->SEND_VENDORLIST(pCreature->GetGUID());
+                pPlayer->GetSession()->SendListInventory(pCreature->GetGUID());
                 if (!pCreature->HasAura(SPELL_SQUIRE_SHOP))
                     pCreature->AddAura(SPELL_SQUIRE_SHOP, pCreature);
                 if (!pPlayer->HasAura(SPELL_CHECK_TIRED))
@@ -2817,7 +2817,7 @@ public:
                 pCreature->AI()->SetData(1, uiAction);
                 break;
         }
-        pPlayer->PlayerTalkClass->CloseGossip();
+        pPlayer->PlayerTalkClass->SendCloseGossip();
         return true;
     }
 
