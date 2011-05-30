@@ -722,6 +722,9 @@ public:
         void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
         {
             Unit* target = GetTarget();
+
+            if (GetTargetApplication()->GetRemoveMode() == AURA_REMOVE_BY_STACK)
+                return;
             target->RemoveAurasDueToSpell(SPELL_SHADOWMOURNE_VISUAL_LOW);
             target->RemoveAurasDueToSpell(SPELL_SHADOWMOURNE_VISUAL_HIGH);
         }

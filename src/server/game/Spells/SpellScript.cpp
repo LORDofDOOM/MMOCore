@@ -803,14 +803,14 @@ uint8 AuraScript::GetStackAmount() const
     return m_aura->GetStackAmount();
 }
 
-void AuraScript::SetStackAmount(uint8 num)
+void AuraScript::SetStackAmount(uint8 num, bool applied)
 {
-    m_aura->SetStackAmount(num);
+    m_aura->SetStackAmount(num, applied);
 }
 
-void AuraScript::ModStackAmount(int32 num, AuraRemoveMode removeMode)
+bool AuraScript::ModStackAmount(int32 num)
 {
-    return m_aura->ModStackAmount(num, removeMode);
+    return m_aura->ModStackAmount(num);
 }
 
 bool AuraScript::IsPassive() const
