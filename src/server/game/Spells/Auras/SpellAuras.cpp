@@ -195,7 +195,7 @@ void AuraApplication::ClientUpdate(bool remove)
     Aura const * aura = GetBase();
     data << uint32(aura->GetId());
     uint32 flags = m_flags;
-    if (aura->GetMaxDuration() > 0)
+    if (aura->GetMaxDuration() > 0 && !(aura->GetSpellProto()->AttributesEx5 & SPELL_ATTR5_HIDE_DURATION))
         flags |= AFLAG_DURATION;
     data << uint8(flags);
     data << uint8(aura->GetCasterLevel());
@@ -1297,10 +1297,9 @@ void Aura::HandleAuraSpecificMods(AuraApplication const * aurApp, Unit * caster,
                         if (caster->GetTypeId() == TYPEID_PLAYER && caster->ToPlayer()->isHonorOrXPTarget(target))
                             caster->CastSpell(target, 18662, true, NULL, GetEffect(0));
                     }
-                    break;
                 }
                 // Improved Fear
-                if (GetSpellProto()->SpellFamilyFlags[1] & 0x00000400)
+                else if (GetSpellProto()->SpellFamilyFlags[1] & 0x00000400)
                 {
                     if (AuraEffect* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_WARLOCK, 98, 0))
                     {
@@ -1315,20 +1314,17 @@ void Aura::HandleAuraSpecificMods(AuraApplication const * aurApp, Unit * caster,
                         if (spellId)
                             caster->CastSpell(target, spellId, true);
                     }
-                    break;
                 }
                 switch(GetId())
                 {
-                    case 48018: // Demonic Circle
+                   case 48018: // Demonic Circle
                         // Do not remove GO when aura is removed by stack
                         // to prevent remove GO added by new spell
                         // old one is already removed
                         if (removeMode != AURA_REMOVE_BY_STACK)
                             target->RemoveGameObject(GetId(), true);
                         target->RemoveAura(62388);
-                        break;
-                    default:
-                       break;
+                    break;
                 }
                 break;
             case SPELLFAMILY_PRIEST:
@@ -1478,7 +1474,7 @@ void Aura::HandleAuraSpecificMods(AuraApplication const * aurApp, Unit * caster,
             case SPELLFAMILY_HUNTER:
                 // Wyvern Sting
                 // If implemented through spell_linked_spell it can't proc from breaking by damage
-                if (removeMode != AURA_REMOVE_BY_STACK && removeMode != AURA_REMOVE_BY_DEATH &&
+                if (removeMode != AURA_REMOVE_BY_DEATH &&
                     GetSpellProto()->SpellFamilyFlags[1] & 0x1000 && caster)
                 {
                     uint32 spell_id = 0;
