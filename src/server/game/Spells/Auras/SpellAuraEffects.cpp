@@ -6667,38 +6667,25 @@ void AuraEffect::HandleAuraConvertRune(AuraApplication const * aurApp, uint8 mod
 
 void AuraEffect::HandleAuraLinked(AuraApplication const * aurApp, uint8 mode, bool apply) const
 {
+    if (!(mode & (AURA_EFFECT_HANDLE_REAL | AURA_EFFECT_HANDLE_REAPPLY)))
+        return;
+
     Unit * target = aurApp->GetTarget();
 
-    uint32 triggeredSpellId = m_spellProto->EffectTriggerSpell[m_effIndex];
-
-    if (mode & AURA_EFFECT_HANDLE_REAL)
+    if (apply)
     {
-        if (apply)
-        {
-            Unit * caster = GetTriggeredSpellCaster(m_spellProto, GetCaster(), target);
+        Unit * caster = GetTriggeredSpellCaster(m_spellProto, GetCaster(), target);
 
-            if (!caster)
-                return;
-            // If amount avalible cast with basepoints (Crypt Fever for example)
-            if (GetAmount())
-                caster->CastCustomSpell(target, triggeredSpellId, &m_amount, NULL, NULL, true, NULL, this);
-            else
-                caster->CastSpell(target, triggeredSpellId, true, NULL, this);
-        }
+        if (!caster)
+            return;
+        // If amount avalible cast with basepoints (Crypt Fever for example)
+        if (GetAmount())
+            caster->CastCustomSpell(target, m_spellProto->EffectTriggerSpell[m_effIndex], &m_amount, NULL, NULL, true, NULL, this);
         else
-        {
-            uint64 casterGUID = IsSpellRequiringFocusedTarget(GetSpellProto()) ? GetCasterGUID() : target->GetGUID();
-            target->RemoveAura(triggeredSpellId, casterGUID, 0, aurApp->GetRemoveMode());
-        }
+            caster->CastSpell(target, m_spellProto->EffectTriggerSpell[m_effIndex], true, NULL, this);
     }
-    else if (mode & AURA_EFFECT_HANDLE_REAPPLY && apply)
-    {
-        uint64 casterGUID = IsSpellRequiringFocusedTarget(GetSpellProto()) ? GetCasterGUID() : target->GetGUID();
-        
-        // change the stack amount to be equal to stack amount of our aura
-        if (Aura* triggeredAura = target->GetAura(triggeredSpellId, casterGUID))
-            triggeredAura->ModStackAmount(GetBase()->GetStackAmount() - triggeredAura->GetStackAmount());
-    }
+    else
+        target->RemoveAura(m_spellProto->EffectTriggerSpell[m_effIndex], GetCasterGUID(), 0, AuraRemoveMode(aurApp->GetRemoveMode()));
 }
 
 void AuraEffect::HandleAuraOpenStable(AuraApplication const * aurApp, uint8 mode, bool apply) const
