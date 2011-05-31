@@ -2114,11 +2114,6 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
 
         return false;                                       // normal client can't teleport to this map...
     }
-    else if((mEntry->Expansion() == 2 && mEntry->MapID != 609) &&  getLevel() < 68)
-    {
-        GetSession()->SendAreaTriggerMessage(GetSession()->GetTrinityString(LANG_LEVEL_MINREQUIRED),68);
-        return false;
-    }
     else
         sLog->outDebug(LOG_FILTER_MAPS, "Player %s is being teleported to map %u", GetName(), mapid);
 
@@ -16774,8 +16769,9 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
     // Map could be changed before
     mapEntry = sMapStore.LookupEntry(mapId);
     // client without expansion support
-        if(mapEntry && GetSession()->Expansion() < mapEntry->Expansion() ||
-            ((mapEntry->Expansion() == 2 && mapEntry->MapID != 609) &&  getLevel() < 68))
+    if (mapEntry)
+    {
+        if (GetSession()->Expansion() < mapEntry->Expansion())
         {
             sLog->outDebug(LOG_FILTER_PLAYER_LOADING, "Player %s using client without required expansion tried login at non accessible map %u", GetName(), mapId);
             RelocateToHomebind();
