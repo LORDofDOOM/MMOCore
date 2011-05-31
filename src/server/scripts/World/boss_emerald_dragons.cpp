@@ -114,7 +114,7 @@ struct emerald_dragonAI : public WorldBossAI
         me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE|UNIT_FLAG_NON_ATTACKABLE);
         me->SetReactState(REACT_AGGRESSIVE);
         events.ScheduleEvent(EVENT_TAIL_SWEEP, 4000);
-        events.ScheduleEvent(EVENT_NOXIOUS_BREATH, 7500, 15000);
+        events.ScheduleEvent(EVENT_NOXIOUS_BREATH, urand(7500, 15000));
         events.ScheduleEvent(EVENT_SEEPING_FOG, urand(12500, 20000));
     }
 
@@ -147,7 +147,7 @@ struct emerald_dragonAI : public WorldBossAI
             case EVENT_NOXIOUS_BREATH:
                 // Noxious Breath is cast on random intervals, no less than 7.5 seconds between
                 DoCast(me, SPELL_NOXIOUS_BREATH);
-                events.ScheduleEvent(EVENT_NOXIOUS_BREATH, 7500, 15000);
+                events.ScheduleEvent(EVENT_NOXIOUS_BREATH, urand(7500, 15000));
                 break;
             case EVENT_TAIL_SWEEP:
                 // Tail Sweep is cast every two seconds, no matter what goes on in front of the dragon
