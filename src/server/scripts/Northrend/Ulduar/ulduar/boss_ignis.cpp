@@ -125,19 +125,15 @@ public:
 
     CreatureAI* GetAI(Creature* pCreature) const
     {
-        return GetUlduarAI<boss_ignis_AI>(pCreature);
+        return new boss_ignis_AI (pCreature);
     }
 
     struct boss_ignis_AI : public BossAI
     {
         boss_ignis_AI(Creature *pCreature) : BossAI(pCreature, BOSS_IGNIS), vehicle(me->GetVehicleKit())
         {
-<<<<<<< HEAD
             me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
             me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
-=======
-            ASSERT(vehicle);
->>>>>>> 507dcdf5636385bde2eef3b8fa82ffe044741df1
         }
 
         Vehicle* vehicle;

@@ -248,13 +248,7 @@ public:
                 }
             }
 
-<<<<<<< HEAD
             DoMeleeAttackIfReady();
-=======
-        CreatureAI* GetAI(Creature* creature) const
-        {
-            return GetUlduarAI<boss_general_vezaxAI>(creature);
->>>>>>> 507dcdf5636385bde2eef3b8fa82ffe044741df1
         }
         
         void DoAction(const int32 action)

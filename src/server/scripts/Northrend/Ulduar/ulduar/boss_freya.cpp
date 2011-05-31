@@ -320,7 +320,6 @@ public:
                 if (Creature* Brightleaf = me->GetCreature(*me, instance->GetData64(DATA_BRIGHTLEAF)))
                     if (Brightleaf->isAlive())
                     {
-<<<<<<< HEAD
                         EldersCount++;
                         Brightleaf->SetInCombatWithZone();
                         Brightleaf->AddAura(SPELL_BRIGHTLEAFS_ESSENCE, Brightleaf);
@@ -330,30 +329,6 @@ public:
             
                 if (Creature* Ironbranch = me->GetCreature(*me, instance->GetData64(DATA_IRONBRANCH)))
                     if (Ironbranch->isAlive())
-=======
-                        Elder[n] = ObjectAccessor::GetCreature(*me, instance->GetData64(BOSS_BRIGHTLEAF + n));
-                        if (Elder[n] && Elder[n]->isAlive())
-                        {
-                            Elder[n]->setFaction(35);
-                            Elder[n]->RemoveAllAuras();
-                            Elder[n]->AttackStop();
-                            Elder[n]->CombatStop(true);
-                            Elder[n]->DeleteThreatList();
-                        }
-                    }
-                }
-            }
-
-            void EnterCombat(Unit* who)
-            {
-                _EnterCombat();
-                DoZoneInCombat();
-                Creature* Elder[3];
-                for (uint8 n = 0; n < 3; ++n)
-                {
-                    Elder[n] = ObjectAccessor::GetCreature(*me, instance->GetData64(BOSS_BRIGHTLEAF + n));
-                    if (Elder[n] && Elder[n]->isAlive())
->>>>>>> 507dcdf5636385bde2eef3b8fa82ffe044741df1
                     {
                         EldersCount++;
                         Ironbranch->SetInCombatWithZone();
@@ -483,27 +458,7 @@ public:
                 }
             }
 
-<<<<<<< HEAD
             DoMeleeAttackIfReady();
-=======
-            void TimeCheck()
-            {
-                if (waveCount >= 6)
-                    return;
-
-                waveInProgress = false;
-                uint32 timeDifference = WAVE_TIME - waveTime;
-                if (timeDifference <= TIME_DIFFERENCE)
-                    events.RescheduleEvent(EVENT_WAVE, timeDifference);
-                else
-                    events.RescheduleEvent(EVENT_WAVE, TIME_DIFFERENCE);
-            }
-        };
-
-        CreatureAI* GetAI(Creature* creature) const
-        {
-            return GetUlduarAI<boss_freyaAI>(creature);
->>>>>>> 507dcdf5636385bde2eef3b8fa82ffe044741df1
         }
     
         void randomizeSpawnOrder()
@@ -571,57 +526,7 @@ public:
                     Elemental[2] = me->SummonCreature(NPC_STORM_LASHER, me->GetPositionX() + randomX, me->GetPositionY() + randomY, me->GetPositionZ(), 0, TEMPSUMMON_MANUAL_DESPAWN);
                     break;
                 }
-<<<<<<< HEAD
                 case 2: 
-=======
-            }
-        };
-
-        CreatureAI* GetAI(Creature* creature) const
-        {
-            return GetUlduarAI<boss_elder_brightleafAI>(creature);
-        }
-};
-
-class boss_elder_stonebark : public CreatureScript
-{
-    public:
-        boss_elder_stonebark() : CreatureScript("boss_elder_stonebark") { }
-
-        struct boss_elder_stonebarkAI : public BossAI
-        {
-            boss_elder_stonebarkAI(Creature* creature) : BossAI(creature, BOSS_STONEBARK)
-            {
-            }
-
-            uint32 lumberjackTimer;
-            uint8 elderCount;
-            bool lumberjack;
-
-            void Reset()
-            {
-                _Reset();
-                if (me->HasAura(SPELL_DRAINED_OF_POWER))
-                    me->RemoveAurasDueToSpell(SPELL_DRAINED_OF_POWER);
-                events.ScheduleEvent(EVENT_TREMOR, urand(10000, 12000));
-                events.ScheduleEvent(EVENT_FISTS, urand(25000, 35000));
-                events.ScheduleEvent(EVENT_BARK, urand(37500, 40000));
-                elderCount = 0;
-                lumberjack = false;
-            }
-
-            void KilledUnit(Unit* who)
-            {
-                DoScriptText(RAND(SAY_STONEBARK_SLAY_1, SAY_STONEBARK_SLAY_2), me, who);
-            }
-
-            void JustDied(Unit* who)
-            {
-                _JustDied();
-                DoScriptText(SAY_STONEBARK_DEATH, me, who);
-
-                if (who && who->GetTypeId() == TYPEID_PLAYER)
->>>>>>> 507dcdf5636385bde2eef3b8fa82ffe044741df1
                 {
                     DoScriptText(SAY_SUMMON_CONSERVATOR, me);
                     int8 randomX = -25 + rand() % 50;
@@ -684,14 +589,10 @@ public:
 
         void Reset()
         {
-<<<<<<< HEAD
             uiUnstableSunbeamTimer = 5000;
             uiSolarFlareTimer = 10000;
             uiUnstableEnergyTimer = 20000;
             uiBrightleafFluxTimer = 0;
-=======
-            return GetUlduarAI<boss_elder_stonebarkAI>(creature);
->>>>>>> 507dcdf5636385bde2eef3b8fa82ffe044741df1
         }
 
         void EnterCombat(Unit* /*pWho*/)
@@ -772,15 +673,11 @@ public:
     {
         npc_sun_beamAI(Creature *pCreature) : Scripted_NoMovementAI(pCreature)
         {
-<<<<<<< HEAD
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             me->SetReactState(REACT_PASSIVE);
             me->SetDisplayId(23258);
             DoCast(SPELL_FREYA_UNSTABLE_ENERGY);
             DoCast(SPELL_UNSTABLE_SUN_BEAM_VISUAL);
-=======
-            return GetUlduarAI<boss_elder_ironbranchAI>(creature);
->>>>>>> 507dcdf5636385bde2eef3b8fa82ffe044741df1
         }
     };
 
