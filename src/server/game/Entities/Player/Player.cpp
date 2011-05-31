@@ -2120,6 +2120,11 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
 
         return false;                                       // normal client can't teleport to this map...
     }
+    else if((mEntry->Expansion() == 2 && mEntry->MapID != 609) &&  getLevel() < 68)
+    {
+        GetSession()->SendAreaTriggerMessage(GetSession()->GetTrinityString(LANG_LEVEL_MINREQUIRED),68);
+        return false;
+    }
     else
         sLog->outDebug(LOG_FILTER_MAPS, "Player %s is being teleported to map %u", GetName(), mapid);
 
@@ -5172,7 +5177,7 @@ void Player::KillPlayer()
     setDeathState(CORPSE);
     //SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_IN_PVP);
 
-    SetFlag(UNIT_DYNAMIC_FLAGS, 0x00);
+    SetUInt32Value(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_NONE);
     ApplyModFlag(PLAYER_FIELD_BYTES, PLAYER_FIELD_BYTE_RELEASE_TIMER, !sMapStore.LookupEntry(GetMapId())->Instanceable());
 
     // 6 minutes until repop at graveyard
@@ -16777,7 +16782,8 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
     // client without expansion support
     if (mapEntry)
     {
-        if (GetSession()->Expansion() < mapEntry->Expansion())
+        if (GetSession()->Expansion() < mapEntry->Expansion() || 
+            ((mapEntry->Expansion() == 2 && mapEntry->MapID != 609) &&  getLevel() < 68))
         {
             sLog->outDebug(LOG_FILTER_PLAYER_LOADING, "Player %s using client without required expansion tried login at non accessible map %u", GetName(), mapId);
             RelocateToHomebind();
