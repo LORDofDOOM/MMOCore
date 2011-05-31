@@ -1337,7 +1337,7 @@ void Unit::DealMeleeDamage(CalcDamageInfo *damageInfo, bool durabilityLoss)
         return;
 
     // Hmmmm dont like this emotes client must by self do all animations
-    if (damageInfo->HitInfo&HITINFO_CRITICALHIT)
+    if (damageInfo->HitInfo & HITINFO_CRITICALHIT)
         pVictim->HandleEmoteCommand(EMOTE_ONESHOT_WOUNDCRITICAL);
     if (damageInfo->blocked_amount && damageInfo->TargetState != VICTIMSTATE_BLOCKS)
         pVictim->HandleEmoteCommand(EMOTE_ONESHOT_PARRYSHIELD);
@@ -8956,7 +8956,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, AuraEffect* trig
             // Item - Warrior T10 Melee 4P Bonus
             if (AuraEffect const * aurEff = GetAuraEffect(70847, EFFECT_0))
             {
-                uint32 amount = aurEff->GetAmount();
+                int32 amount = aurEff->GetAmount();
                 if (roll_chance_i(amount))
                     CastSpell(this, 70849, true, castItem, triggeredByAura); // Extra Charge!
                 if (roll_chance_i(amount))

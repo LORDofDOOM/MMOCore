@@ -41,9 +41,15 @@ set(scripts_STAT_SRCS
   Northrend/Ulduar/HallsOfStone/boss_maiden_of_grief.cpp
   Northrend/Ulduar/HallsOfStone/boss_sjonnir.cpp
   Northrend/Ulduar/HallsOfStone/halls_of_stone.cpp
-  Northrend/ObsidianSanctum/instance_obsidian_sanctum.cpp
-  Northrend/ObsidianSanctum/obsidian_sanctum.h
-  Northrend/ObsidianSanctum/boss_sartharion.cpp
+  Northrend/ChamberOfAspects/ObsidianSanctum/instance_obsidian_sanctum.cpp
+  Northrend/ChamberOfAspects/ObsidianSanctum/obsidian_sanctum.h
+  Northrend/ChamberOfAspects/ObsidianSanctum/boss_sartharion.cpp
+  Northrend/ChamberOfAspects/RubySanctum/boss_baltharus.cpp
+  Northrend/ChamberOfAspects/RubySanctum/boss_halion.cpp
+  Northrend/ChamberOfAspects/RubySanctum/boss_ragefire.cpp
+  Northrend/ChamberOfAspects/RubySanctum/boss_zarithrian.cpp
+  Northrend/ChamberOfAspects/RubySanctum/instance_ruby_sanctum.cpp
+  Northrend/ChamberOfAspects/RubySanctum/ruby_sanctum.h
   Northrend/FrozenHalls/HallsOfReflection/halls_of_reflection.h
   Northrend/FrozenHalls/HallsOfReflection/boss_falric.cpp
   Northrend/FrozenHalls/HallsOfReflection/instance_halls_of_reflection.cpp
@@ -110,12 +116,6 @@ set(scripts_STAT_SRCS
   Northrend/Naxxramas/instance_naxxramas.cpp
   Northrend/Naxxramas/boss_grobbulus.cpp
   Northrend/Naxxramas/boss_noth.cpp
-  Northrend/RubySanctum/boss_baltharus.cpp
-  Northrend/RubySanctum/boss_halion.cpp
-  Northrend/RubySanctum/boss_ragefire.cpp
-  Northrend/RubySanctum/boss_zarithrian.cpp
-  Northrend/RubySanctum/instance_ruby_sanctum.cpp
-  Northrend/RubySanctum/ruby_sanctum.h
   Northrend/crystalsong_forest.cpp
   Northrend/VaultOfArchavon/boss_archavon.cpp
   Northrend/VaultOfArchavon/boss_koralon.cpp
