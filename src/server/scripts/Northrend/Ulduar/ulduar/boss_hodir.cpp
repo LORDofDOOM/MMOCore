@@ -73,10 +73,19 @@ enum Spells
 
 enum NPCs
 {
+<<<<<<< HEAD
     NPC_FLASH_FREEZE_PRE                        = 32926,
     NPC_FLASH_FREEZE                            = 32938,
     NPC_ICICLE_TARGET                           = 33174,
     NPC_HODIR                                   = 32845
+=======
+    NPC_ICE_BLOCK                                = 32938,
+    NPC_FLASH_FREEZE                             = 32926,
+    NPC_SNOWPACKED_ICICLE                        = 33174,
+    NPC_ICICLE                                   = 33169,
+    NPC_ICICLE_SNOWDRIFT                         = 33173,
+    NPC_TOASTY_FIRE                              = 33342,
+>>>>>>> 507dcdf5636385bde2eef3b8fa82ffe044741df1
 };
 
 enum Events
@@ -384,10 +393,37 @@ public:
 
         uint32 IcicleTimer;
 
+<<<<<<< HEAD
         void Reset()
         {
             IcicleTimer = 2000;
         }
+=======
+            void DamageTaken(Unit* /*who*/, uint32& damage)
+            {
+                if (damage >= me->GetHealth())
+                {
+                    damage = 0;
+                    _JustDied();
+                    DoScriptText(SAY_DEATH, me);
+
+                    me->RemoveAllAuras();
+                    me->RemoveAllAttackers();
+                    me->AttackStop();
+                    me->SetReactState(REACT_PASSIVE);
+                    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_DISABLE_MOVE);
+                    me->InterruptNonMeleeSpells(true);
+                    me->StopMoving();
+                    me->GetMotionMaster()->Clear();
+                    me->GetMotionMaster()->MoveIdle();
+                    me->SetControlled(true, UNIT_STAT_STUNNED);
+                    me->CombatStop(true);
+
+                    me->setFaction(35);
+                    me->DespawnOrUnsummon(10000);
+                }
+            }
+>>>>>>> 507dcdf5636385bde2eef3b8fa82ffe044741df1
 
         void UpdateAI(const uint32 diff)
         {
@@ -418,10 +454,16 @@ public:
     {
         npc_icicle_snowdriftAI(Creature *pCreature) : Scripted_NoMovementAI(pCreature)
         {
+<<<<<<< HEAD
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_PACIFIED);
             me->SetReactState(REACT_PASSIVE);
             me->SetDisplayId(28470);
         }
+=======
+            return GetUlduarAI<boss_hodirAI>(creature);
+        };
+};
+>>>>>>> 507dcdf5636385bde2eef3b8fa82ffe044741df1
 
         uint32 IcicleTimer;
 
@@ -706,6 +748,7 @@ public:
     {
         npc_hodir_mageAI(Creature *pCreature) : ScriptedAI(pCreature)
         {
+<<<<<<< HEAD
             pInstance = pCreature->GetInstanceScript();
             me->setFaction(1665);
         }
@@ -719,6 +762,37 @@ public:
             FireTimer = urand(15000, 20000);
             MeltIceTimer = 5000;
         }
+=======
+            npc_hodir_mageAI(Creature* creature) : ScriptedAI(creature), summons(me)
+            {
+                instance = me->GetInstanceScript();
+            }
+
+            void Reset()
+            {
+                events.Reset();
+                summons.DespawnAll();
+                events.ScheduleEvent(EVENT_CONJURE_FIRE, urand(10000, 12500));
+                events.ScheduleEvent(EVENT_MELT_ICE, 5000);
+            }
+
+            void JustSummoned(Creature* summoned)
+            {
+                if (summoned->GetEntry() == NPC_TOASTY_FIRE)
+                    summons.Summon(summoned);
+            }
+
+            void SummonedCreatureDespawn(Creature* summoned)
+            {
+                if (summoned->GetEntry() == NPC_TOASTY_FIRE)
+                    summons.remove(summoned->GetGUID());
+            }
+
+            void UpdateAI(uint32 const diff)
+            {
+                if (!UpdateVictim() || me->HasUnitState(UNIT_STAT_STUNNED) || me->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED))
+                    return;
+>>>>>>> 507dcdf5636385bde2eef3b8fa82ffe044741df1
 
         void AttackStart(Unit *who)
         {
@@ -741,15 +815,46 @@ public:
             {
                 if (Creature *pShard = me->FindNearestCreature(NPC_FLASH_FREEZE,50,true))
                 {
+<<<<<<< HEAD
                     DoCast(pShard, SPELL_MELT_ICE, true);
                     MeltIceTimer = urand(5000,10000);
+=======
+                    switch (eventId)
+                    {
+                        case EVENT_CONJURE_FIRE:
+                            if (summons.size() >= RAID_MODE(2, 4))
+                                break;
+                            DoCast(me, SPELL_CONJURE_FIRE, true);
+                            events.ScheduleEvent(EVENT_CONJURE_FIRE, urand(15000, 20000));
+                            break;
+                        case EVENT_MELT_ICE:
+                            if (Creature* FlashFreeze = me->FindNearestCreature(NPC_FLASH_FREEZE, 50.0f, true))
+                                DoCast(FlashFreeze, SPELL_MELT_ICE, true);
+                            events.ScheduleEvent(EVENT_MELT_ICE, urand(10000, 15000));
+                            break;
+                    }
+>>>>>>> 507dcdf5636385bde2eef3b8fa82ffe044741df1
                 }
                 MeltIceTimer = 5000;
             }
             else MeltIceTimer -= uiDiff;
 
+<<<<<<< HEAD
             DoSpellAttackIfReady(SPELL_FIREBALL);
         }
+=======
+            void JustDied(Unit* /*who*/)
+ 	        {
+  	            if (Creature* Hodir = ObjectAccessor::GetCreature(*me, instance ? instance->GetData64(BOSS_HODIR) : 0))
+                    Hodir->AI()->DoAction(ACTION_I_HAVE_THE_COOLEST_FRIENDS);
+  	        }
+
+        private:
+            InstanceScript* instance;
+            EventMap events;
+            SummonList summons;
+        };
+>>>>>>> 507dcdf5636385bde2eef3b8fa82ffe044741df1
 
         void JustDied(Unit* /*victim*/)
         {
@@ -776,11 +881,18 @@ public:
     {
         npc_toasty_fireAI(Creature *pCreature) : Scripted_NoMovementAI(pCreature)
         {
+<<<<<<< HEAD
             me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED);
             me->SetReactState(REACT_PASSIVE);
             me->SetDisplayId(15880);
         }
+=======
+            npc_toasty_fireAI(Creature* creature) : ScriptedAI(creature)
+            {
+                me->SetDisplayId(me->GetCreatureInfo()->Modelid2);
+            }
+>>>>>>> 507dcdf5636385bde2eef3b8fa82ffe044741df1
 
         void Reset()
         {
