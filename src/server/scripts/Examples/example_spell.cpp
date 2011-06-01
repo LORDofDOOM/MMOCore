@@ -259,7 +259,8 @@ class spell_ex_66244 : public SpellScriptLoader
             {
                 OnEffectApply += AuraEffectApplyFn(spell_ex_66244AuraScript::HandleOnEffectApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
                 OnEffectRemove += AuraEffectRemoveFn(spell_ex_66244AuraScript::HandleOnEffectRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
-                AfterEffectApply += AuraEffectApplyFn(spell_ex_66244AuraScript::HandleAfterEffectApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+                // AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK - makes handler to be called when aura is reapplied on target
+                AfterEffectApply += AuraEffectApplyFn(spell_ex_66244AuraScript::HandleAfterEffectApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
                 AfterEffectRemove += AuraEffectRemoveFn(spell_ex_66244AuraScript::HandleAfterEffectRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
                 OnEffectPeriodic += AuraEffectPeriodicFn(spell_ex_66244AuraScript::HandleEffectPeriodic, EFFECT_0, SPELL_AURA_DUMMY);
                 OnEffectUpdatePeriodic += AuraEffectUpdatePeriodicFn(spell_ex_66244AuraScript::HandleEffectPeriodicUpdate, EFFECT_0, SPELL_AURA_DUMMY);
@@ -290,6 +291,9 @@ class spell_ex_66244 : public SpellScriptLoader
             return new spell_ex_66244AuraScript();
         }
 };
+
+// example usage of OnEffectManaShield and AfterEffectManaShield hooks
+// see spell_ex_absorb_aura, these hooks work the same as OnEffectAbsorb and AfterEffectAbsorb
 
 // example usage of OnEffectAbsorb and AfterEffectAbsorb hooks
 class spell_ex_absorb_aura : public SpellScriptLoader
@@ -328,8 +332,33 @@ class spell_ex_absorb_aura : public SpellScriptLoader
         }
 };
 
-// example usage of OnEffectManaShield and AfterEffectManaShield hooks
-// see spell_ex_absorb_aura, these hooks work the same as OnEffectAbsorb and AfterEffectAbsorb
+class spell_ex_463 : public SpellScriptLoader
+{
+    public:
+        spell_ex_463() : SpellScriptLoader("spell_ex_463") { }
+
+        class spell_ex_463AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_ex_463AuraScript);
+
+            bool CheckAreaTarget(Unit* target)
+            {
+                sLog->outString("Area aura checks if unit is a valid target for it!");
+                // in our script we allow only players to be affected
+                return target->GetTypeId() == TYPEID_PLAYER;
+            }
+            void Register()
+            {
+                DoCheckAreaTarget += AuraCheckAreaTargetFn(spell_ex_463AuraScript::CheckAreaTarget);
+            }
+        };
+
+        // function which creates AuraScript
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_ex_463AuraScript();
+        }
+};
 
 // this function has to be added to function set in ScriptLoader.cpp
 void AddSC_example_spell_scripts()
@@ -337,6 +366,7 @@ void AddSC_example_spell_scripts()
     new spell_ex_5581;
     new spell_ex_66244;
     new spell_ex_absorb_aura;
+    new spell_ex_463;
 }
 
 /* empty script for copypasting
