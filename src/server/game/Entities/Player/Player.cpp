@@ -14756,6 +14756,15 @@ bool Player::CanRewardQuest(Quest const *pQuest, bool msg)
     if (GetQuestRewardStatus(pQuest->GetQuestId()))
         return false;
 
+    // anti wpe
+    if (!isGameMaster() && 
+          (!SatisfyQuestExclusiveGroup(pQuest, true)   || !SatisfyQuestRace(pQuest, true)
+        || !SatisfyQuestSkillOrClass(pQuest, true)  || !SatisfyQuestReputation(pQuest, true)
+        || !SatisfyQuestPreviousQuest(pQuest, true) /*|| !SatisfyQuestTimed(pQuest, true)*/
+        || !SatisfyQuestNextChain(pQuest, true)     || !SatisfyQuestPrevChain(pQuest, true)
+        || !SatisfyQuestConditions(pQuest, true)    || !SatisfyQuestLevel(pQuest, true)))
+            return false;
+
     // prevent receive reward with quest items in bank
     if (pQuest->HasFlag(QUEST_TRINITY_FLAGS_DELIVER))
     {
