@@ -311,6 +311,8 @@ Aura * Aura::Create(SpellEntry const* spellproto, uint8 effMask, WorldObject * o
     {
         case TYPEID_UNIT:
         case TYPEID_PLAYER:
+            if (aura = owner->ToUnit()->_TryStackingOrRefreshingExistingAura(spellproto, effMask, baseAmount, castItem, casterGUID))
+                return aura;
             aura = new UnitAura(spellproto, effMask, owner, caster, baseAmount, castItem, casterGUID);
             break;
         case TYPEID_DYNAMICOBJECT:
@@ -736,9 +738,6 @@ void Aura::SetDuration(int32 duration, bool withMods)
 void Aura::RefreshDuration()
 {
     SetDuration(GetMaxDuration());
-    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
-        if (m_effects[i])
-            m_effects[i]->ResetPeriodic();
 
     if (m_spellProto->manaPerSecond || m_spellProto->manaPerSecondPerLevel)
         m_timeCla = 1 * IN_MILLISECONDS;
@@ -767,31 +766,36 @@ bool Aura::DropCharge()
     return false;
 }
 
-void Aura::SetStackAmount(uint8 stackAmount, bool /*applied*/)
+void Aura::SetStackAmount(uint8 stackAmount)
 {
-    if (stackAmount != m_stackAmount)
-    {
-        m_stackAmount = stackAmount;
-        RecalculateAmountOfEffects();
-    }
+    m_stackAmount = stackAmount;
+    Unit * caster = GetCaster();
+    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
+        if (HasEffect(i))
+            m_effects[i]->ChangeAmount(m_effects[i]->CalculateAmount(caster), false, true);
     SetNeedClientUpdateForTargets();
 }
 
-bool Aura::ModStackAmount(int32 num)
+void Aura::ModStackAmount(int32 num, AuraRemoveMode removeMode)
 {
-    // Can`t mod
-    if (!m_spellProto->StackAmount || !GetStackAmount())
-        return true;
-
-    // Modify stack but limit it
     int32 stackAmount = m_stackAmount + num;
+
+    // limit the stack amount
     if (stackAmount > int32(m_spellProto->StackAmount))
-        stackAmount = m_spellProto->StackAmount;
-    else if (stackAmount <= 0) // Last aura from stack removed
     {
-        m_stackAmount = 0;
-        return true; // need remove aura
+        // not stackable aura - set stack amount to 1
+        if(!m_spellProto->StackAmount)
+            stackAmount = 1;
+        else
+            stackAmount = m_spellProto->StackAmount;
     }
+    // we're out of stacks, remove
+    else if (stackAmount <= 0)
+    {
+        Remove(removeMode);
+        return;
+    }
+
     bool refresh = stackAmount >= GetStackAmount();
 
     // Update stack amount
@@ -800,8 +804,6 @@ bool Aura::ModStackAmount(int32 num)
     if (refresh)
         RefreshDuration();
     SetNeedClientUpdateForTargets();
-
-    return false;
 }
 
 bool Aura::IsPassive() const
@@ -878,7 +880,7 @@ bool Aura::HasEffectType(AuraType type) const
 {
     for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
     {
-        if (m_effects[i] && m_effects[i]->GetAuraType() == type)
+        if (HasEffect(i) && m_effects[i]->GetAuraType() == type)
             return true;
     }
     return false;
@@ -889,11 +891,11 @@ void Aura::RecalculateAmountOfEffects()
     ASSERT (!IsRemoved());
     Unit * caster = GetCaster();
     for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
-        if (m_effects[i])
+        if (HasEffect(i))
             m_effects[i]->RecalculateAmount(caster);
 }
 
-void Aura::HandleAllEffects(AuraApplication const * aurApp, uint8 mode, bool apply)
+void Aura::HandleAllEffects(AuraApplication * aurApp, uint8 mode, bool apply)
 {
     ASSERT (!IsRemoved());
     for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
@@ -1154,7 +1156,7 @@ void Aura::HandleAuraSpecificMods(AuraApplication const * aurApp, Unit * caster,
     else
     {
         // Remove Linked Auras
-        if (removeMode != AURA_REMOVE_BY_STACK && removeMode != AURA_REMOVE_BY_DEATH)
+        if (removeMode != AURA_REMOVE_BY_DEATH)
         {
             if (uint32 customAttr = sSpellMgr->GetSpellCustomAttr(GetId()))
             {
@@ -1318,11 +1320,7 @@ void Aura::HandleAuraSpecificMods(AuraApplication const * aurApp, Unit * caster,
                 switch(GetId())
                 {
                    case 48018: // Demonic Circle
-                        // Do not remove GO when aura is removed by stack
-                        // to prevent remove GO added by new spell
-                        // old one is already removed
-                        if (removeMode != AURA_REMOVE_BY_STACK)
-                            target->RemoveGameObject(GetId(), true);
+                        target->RemoveGameObject(GetId(), true);
                         target->RemoveAura(62388);
                     break;
                 }
@@ -1461,14 +1459,6 @@ void Aura::HandleAuraSpecificMods(AuraApplication const * aurApp, Unit * caster,
 
                      // aura removed - remove death runes
                     target->ToPlayer()->RemoveRunesByAuraEffect(GetEffect(0));
-                }
-                switch(GetId())
-                {
-                    case 50514: // Summon Gargoyle
-                        if (removeMode != AURA_REMOVE_BY_EXPIRE)
-                            break;
-                        target->CastSpell(target, GetEffect(0)->GetAmount(), true, NULL, GetEffect(0));
-                        break;
                 }
                 break;
             case SPELLFAMILY_HUNTER:
@@ -1741,50 +1731,15 @@ bool Aura::CanBeAppliedOn(Unit *target)
         // not selfcasted single target auras mustn't be applied
         if (GetCasterGUID() != GetOwner()->GetGUID() && IsSingleTargetSpell(GetSpellProto()))
             return false;
+        return true;
     }
-    else if (GetOwner() != target)
+    else
         return CheckAreaTarget(target);
-    return true;
 }
 
-bool Aura::CheckAreaTarget(Unit *target)
+bool Aura::CheckAreaTarget(Unit* target)
 {
-    // for owner check use Spell::CheckTarget
-    ASSERT(GetOwner() != target);
-
-    // some special cases
-    switch(GetId())
-    {
-        case 45828: // AV Marshal's HP/DMG auras
-        case 45829:
-        case 45830:
-        case 45821:
-        case 45822: // AV Warmaster's HP/DMG auras
-        case 45823:
-        case 45824:
-        case 45826:
-            switch(target->GetEntry())
-            {
-                // alliance
-                case 14762: // Dun Baldar North Marshal
-                case 14763: // Dun Baldar South Marshal
-                case 14764: // Icewing Marshal
-                case 14765: // Stonehearth Marshal
-                case 11948: // Vandar Stormspike
-                // horde
-                case 14772: // East Frostwolf Warmaster
-                case 14776: // Tower Point Warmaster
-                case 14773: // Iceblood Warmaster
-                case 14777: // West Frostwolf Warmaster
-                case 11946: // Drek'thar
-                    return true;
-                default:
-                    return false;
-                    break;
-            }
-            break;
-    }
-    return true;
+    return CallScriptCheckAreaTargetHandlers(target);
 }
 
 void Aura::_DeleteRemovedApplications()
@@ -1812,6 +1767,20 @@ void Aura::LoadScripts()
         (*itr)->Register();
         ++itr;
     }
+}
+
+bool Aura::CallScriptCheckAreaTargetHandlers(Unit* target)
+{
+    for(std::list<AuraScript*>::iterator scritr = m_loadedScripts.begin(); scritr != m_loadedScripts.end() ; ++scritr)
+    {
+        (*scritr)->_PrepareScriptCall(AURA_SCRIPT_HOOK_CHECK_AREA_TARGET);
+        std::list<AuraScript::CheckAreaTargetHandler>::iterator hookItrEnd = (*scritr)->DoCheckAreaTarget.end(), hookItr = (*scritr)->DoCheckAreaTarget.begin();
+        for (; hookItr != hookItrEnd ; ++hookItr)
+            if(!(*hookItr).Call(*scritr, target))
+                return false;
+        (*scritr)->_FinishScriptCall();
+    }
+    return true;
 }
 
 bool Aura::CallScriptEffectApplyHandlers(AuraEffect const * aurEff, AuraApplication const * aurApp, AuraEffectHandleModes mode)
