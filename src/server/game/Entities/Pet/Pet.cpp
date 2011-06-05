@@ -193,7 +193,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
 
     SetDisplayId(fields[3].GetUInt32());
     SetNativeDisplayId(fields[3].GetUInt32());
-    uint32 petlevel = fields[4].GetUInt32();
+    uint32 petlevel = fields[4].GetUInt16();
     SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
     SetName(fields[8].GetString());
 
@@ -918,43 +918,6 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
         {
             switch (GetEntry())
             {
-                case 26125: // Risen Ghoul
-                {
-                    // Reference : http://www.wowwiki.com/Risen_Ghoul
-                    float strength_mult = 0.7f; 
-                    float stamina_mult  = 0.3f;
-
-                    if(HasAura(48965)) // Ravenous Death, rank 1
-                    {
-                        strength_mult += 0.2f;
-                        stamina_mult  += 0.2f;
-                    }
-
-                    if(HasAura(49571)) // Ravenous Death, rank 2
-                    {
-                        strength_mult += 0.4f;
-                        stamina_mult  += 0.4f;
-                    }
-
-                    if(HasAura(49572)) // Ravenous Death, rank 3
-                    {
-                        strength_mult += 0.6f;
-                        stamina_mult  += 0.6f;
-                    }
-
-                    if(HasAura(58686)) // Glyph of the Ghoul
-                    {
-                        strength_mult += 0.4f;
-                        stamina_mult  += 0.4f;
-                    }
-
-                    SetCreateHealth(75 * petlevel + float(m_owner->GetStat(STAT_STAMINA) * stamina_mult) * 10);
-                    SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(petlevel - (petlevel / 4)));
-                    SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(petlevel + (petlevel / 4)));
-                    SetBonusDamage(int32(m_owner->GetTotalAttackPowerValue(BASE_ATTACK) * 0.5f) * strength_mult);
-
-                    break;
-                }
                 case 510: // mage Water Elemental
                 {
                     SetBonusDamage(int32(m_owner->SpellBaseDamageBonus(SPELL_SCHOOL_MASK_FROST) * 0.33f));

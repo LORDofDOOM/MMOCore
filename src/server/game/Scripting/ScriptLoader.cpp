@@ -16,7 +16,6 @@
  */
 
 #include "ScriptLoader.h"
-#include "AnticheatMgr.h"
 
 //examples
 void AddSC_example_creature();
@@ -53,6 +52,8 @@ void AddSC_pryds_allinone();
 void AddSC_npcs_mini_boss();
 //Lottery
 //void AddSC_npc_lottery();
+// Killstreak PvP System
+//void AddSC_PVP_System();
 
 // spells
 void AddSC_deathknight_spell_scripts();
@@ -72,11 +73,7 @@ void AddSC_example_spell_scripts();
 
 void AddSC_SmartSCripts();
 
-// Killstreak PvP System
-void AddSC_PVP_System();
-
 //Commands
-void AddSC_anticheat_commandscript();
 void AddSC_account_commandscript();
 void AddSC_achievement_commandscript();
 void AddSC_debug_commandscript();
@@ -522,6 +519,10 @@ void AddSC_boss_sindragosa();
 void AddSC_icecrown_citadel_teleport();
 void AddSC_instance_icecrown_citadel();
 void AddSC_icecrown_citadel();
+void AddSC_instance_ruby_sanctum();      // Ruby Sanctum
+void AddSC_ruby_sanctum();
+void AddSC_boss_baltharus_the_warborn();
+void AddSC_boss_saviana_ragefire();
 
 void AddSC_dalaran();
 void AddSC_borean_tundra();
@@ -641,7 +642,6 @@ void AddScripts()
     AddSpellScripts();
     AddSC_SmartSCripts();
     AddCommandScripts();
-    sAnticheatMgr->StartScripts();
 #ifdef SCRIPTS
     AddWorldScripts();
     AddEasternKingdomsScripts();
@@ -683,7 +683,6 @@ void AddSpellScripts()
 
 void AddCommandScripts()
 {
-    AddSC_anticheat_commandscript();
     AddSC_account_commandscript();
     AddSC_achievement_commandscript();
     AddSC_debug_commandscript();
@@ -1230,7 +1229,10 @@ void AddNorthrendScripts()
     AddSC_icecrown_citadel_teleport();
     AddSC_instance_icecrown_citadel();
     AddSC_icecrown_citadel();
-
+    AddSC_instance_ruby_sanctum();      // Ruby Sanctum
+    AddSC_ruby_sanctum();
+    AddSC_boss_baltharus_the_warborn();
+    AddSC_boss_saviana_ragefire();
 
     AddSC_dalaran();
     AddSC_borean_tundra();
@@ -1282,6 +1284,7 @@ void AddCustomScripts()
     //TeleNPC2
     AddSC_npc_teleport();
     //Hunter Pet Vendor
+    //Hunter Pet Vendor
     AddSC_npc_hunterpetvendor();
 	//NPC Customizer
 	AddSC_npc_customize();		
@@ -1299,10 +1302,10 @@ void AddCustomScripts()
 	AddSC_npcs_mini_boss();
 	//Lottery
 	//AddSC_npc_lottery();	
+	// Killstreak PvP System
+	//AddSC_PVP_System();
     // Custom
     AddSC_DuelReset();
-	// Killstreak PvP System
-	AddSC_PVP_System();
     AddSC_npc_mount();		
     AddSC_ArgentTournament();
 #endif

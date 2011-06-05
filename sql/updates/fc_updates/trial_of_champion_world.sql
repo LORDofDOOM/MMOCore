@@ -185,4 +185,3 @@ UPDATE `creature_template` SET `mechanic_immune_mask`=`mechanic_immune_mask`|107
 (35309,35310, -- Argent Lightwielder
 35305,35306, -- Argent Monk
 35307,35308); -- Argent Priestess
-

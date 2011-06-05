@@ -16,7 +16,6 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "AnticheatMgr.h"
 #include "Common.h"
 #include "Language.h"
 #include "DatabaseEnv.h"
@@ -851,7 +850,6 @@ Player::Player (WorldSession *session): Unit(), m_achievementMgr(this), m_reputa
     isDebugAreaTriggers = false;
 
     SetPendingBind(NULL, 0);
-
 }
 
 Player::~Player ()
@@ -1492,8 +1490,6 @@ void Player::Update(uint32 p_time)
     if (!IsInWorld())
         return;
 
-    //sAnticheatMgr->HandleHackDetectionTimer(this, p_time);
-
     // undelivered mail
     if (m_nextMailDelivereTime && m_nextMailDelivereTime <= time(NULL))
     {
@@ -2075,8 +2071,6 @@ void Player::TeleportOutOfMap(Map *oldMap)
 
 bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientation, uint32 options)
 {
-    //sAnticheatMgr->DisableAnticheatDetection(this,true);
-
     if (!MapManager::IsValidMapCoord(mapid, x, y, z, orientation))
     {
         sLog->outError("TeleportTo: invalid map (%d) or invalid coordinates (X: %f, Y: %f, Z: %f, O: %f) given when teleporting player (GUID: %u, name: %s, map: %d, X: %f, Y: %f, Z: %f, O: %f).",
@@ -14755,15 +14749,6 @@ bool Player::CanRewardQuest(Quest const *pQuest, bool msg)
     // rewarded and not repeatable quest (only cheating case, then ignore without message)
     if (GetQuestRewardStatus(pQuest->GetQuestId()))
         return false;
-
-    // anti wpe
-    if (!isGameMaster() && 
-          (!SatisfyQuestExclusiveGroup(pQuest, true)   || !SatisfyQuestRace(pQuest, true)
-        || !SatisfyQuestSkillOrClass(pQuest, true)  || !SatisfyQuestReputation(pQuest, true)
-        || !SatisfyQuestPreviousQuest(pQuest, true) /*|| !SatisfyQuestTimed(pQuest, true)*/
-        || !SatisfyQuestNextChain(pQuest, true)     || !SatisfyQuestPrevChain(pQuest, true)
-        || !SatisfyQuestConditions(pQuest, true)    || !SatisfyQuestLevel(pQuest, true)))
-            return false;
 
     // prevent receive reward with quest items in bank
     if (pQuest->HasFlag(QUEST_TRINITY_FLAGS_DELIVER))

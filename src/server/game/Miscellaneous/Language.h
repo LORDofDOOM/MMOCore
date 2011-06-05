@@ -21,8 +21,6 @@
 
 enum TrinityStrings
 {
-	//GuildHouse
-	LANG_ERROR_GHPORT                   = 11500,
     // for chat commands
     LANG_SELECT_CHAR_OR_CREATURE        = 1,
     LANG_SELECT_CREATURE                = 2,

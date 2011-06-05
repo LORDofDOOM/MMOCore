@@ -19,8 +19,6 @@
 #ifndef DEF_SCHOLOMANCE_H
 #define DEF_SCHOLOMANCE_H
 
-#define ScholomanceScriptName "instance_scholomance"
-
 #define TYPE_GANDLING                       1
 #define DATA_DOCTORTHEOLENKRASTINOV_DEATH   2
 #define DATA_INSTRUCTORMALICIA_DEATH        3
