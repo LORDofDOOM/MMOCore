@@ -270,7 +270,7 @@ bool ChatHandler::HandleGHCommand(const char* args)
         if(result == NULL)
         {
                 //pokud guilda nema guildhouse zapsany v tabulce guildhouses
-                SendSysMessage(LANG_ERROR_GHPORT);
+                SendSysMessage("GH Port");
                 return false;
         }
 
