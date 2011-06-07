@@ -851,6 +851,7 @@ Player::Player (WorldSession *session): Unit(), m_achievementMgr(this), m_reputa
     isDebugAreaTriggers = false;
 
     SetPendingBind(NULL, 0);
+
 }
 
 Player::~Player ()
