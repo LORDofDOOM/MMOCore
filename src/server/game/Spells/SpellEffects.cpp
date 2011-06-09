@@ -434,10 +434,10 @@ void Spell::SpellDamageSchoolDmg(SpellEffIndex effIndex)
                         damage = unitTarget->CountPctFromMaxHealth(50);
                         break;
                     }
-                    // Tympanic Tantrum
-                    case 62775:
+                    case 56578: // Rapid-Fire Harpoon
+                    case 62775: // Tympanic Tantrum
                     {
-                        damage = unitTarget->CountPctFromMaxHealth(10);
+                        damage = unitTarget->CountPctFromMaxHealth(damage);
                         break;
                     }
                     // Gargoyle Strike
@@ -3243,8 +3243,7 @@ void Spell::EffectSummonType(SpellEffIndex effIndex)
             // The spell that this effect will trigger. It has SPELL_AURA_CONTROL_VEHICLE
             uint32 spell = VEHICLE_SPELL_RIDE_HARDCODED;
             if (SpellEntry const* spellProto = sSpellStore.LookupEntry(SpellMgr::CalculateSpellEffectAmount(m_spellInfo, effIndex)))
-                if (spellProto->Id > 1)
-                    spell = spellProto->Id;
+                spell = spellProto->Id;
 
             // Hard coded enter vehicle spell
             m_originalCaster->CastSpell(summon, spell, true);

@@ -1518,7 +1518,7 @@ void Player::Update(uint32 p_time)
     // If this is set during update SetSpellModTakingSpell call is missing somewhere in the code
     // Having this would prevent more aura charges to be dropped, so let's crash
     //ASSERT (!m_spellModTakingSpell);
-    if ( m_spellModTakingSpell)
+    if (m_spellModTakingSpell)
     {
         //sLog->outCrash("Player has m_pad %u during update!", m_pad);
         //if (m_spellModTakingSpell)
@@ -6473,13 +6473,13 @@ void Player::SetSkill(uint16 id, uint16 step, uint16 newVal, uint16 maxVal)
             AuraEffectList const& mModSkill = GetAuraEffectsByType(SPELL_AURA_MOD_SKILL);
             for (AuraEffectList::const_iterator j = mModSkill.begin(); j != mModSkill.end(); ++j)
                 if ((*j)->GetMiscValue() == int32(id))
-                        (*j)->HandleEffect(this, 0, true);
+                        (*j)->HandleEffect(this, AURA_EFFECT_HANDLE_SKILL, true);
 
             // permanent bonuses
             AuraEffectList const& mModSkillTalent = GetAuraEffectsByType(SPELL_AURA_MOD_SKILL_TALENT);
             for (AuraEffectList::const_iterator j = mModSkillTalent.begin(); j != mModSkillTalent.end(); ++j)
                 if ((*j)->GetMiscValue() == int32(id))
-                        (*j)->HandleEffect(this, 0, true);
+                        (*j)->HandleEffect(this, AURA_EFFECT_HANDLE_SKILL, true);
 
             // Learn all spells for skill
             learnSkillRewardedSpells(id, newVal);
@@ -21857,28 +21857,7 @@ void Player::SendAurasForTarget(Unit *target)
     for (Unit::VisibleAuraMap::const_iterator itr = visibleAuras->begin(); itr != visibleAuras->end(); ++itr)
     {
         AuraApplication * auraApp = itr->second;
-        Aura * aura = auraApp->GetBase();
-        data << uint8(auraApp->GetSlot());
-        data << uint32(aura->GetId());
-
-        // flags
-        uint32 flags = auraApp->GetFlags();
-        if (aura->GetMaxDuration() > 0)
-            flags |= AFLAG_DURATION;
-        data << uint8(flags);
-        // level
-        data << uint8(aura->GetCasterLevel());
-        // charges
-        data << uint8(aura->GetStackAmount() > 1 ? aura->GetStackAmount() : (aura->GetCharges()) ? aura->GetCharges() : 1);
-
-        if (!(flags & AFLAG_CASTER))
-            data.appendPackGUID(aura->GetCasterGUID());
-
-        if (flags & AFLAG_DURATION)          // include aura duration
-        {
-            data << uint32(aura->GetMaxDuration());
-            data << uint32(aura->GetDuration());
-        }
+        auraApp->BuildUpdatePacket(data, false);
     }
 
     GetSession()->SendPacket(&data);

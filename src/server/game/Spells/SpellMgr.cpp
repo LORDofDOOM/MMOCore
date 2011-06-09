@@ -4139,6 +4139,13 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->StackAmount = 4;
             ++count;
             break;
+        case 63018: // Searing Light
+        case 65121: // Searing Light (25m)
+        case 63024: // Gravity Bomb
+        case 64234: // Gravity Bomb (25m)
+            spellInfo->MaxAffectedTargets = 1;
+            count++;
+            break;
         // ENDOF ULDUAR SPELLS
         //
         // ICECROWN CITADEL SPELLS
