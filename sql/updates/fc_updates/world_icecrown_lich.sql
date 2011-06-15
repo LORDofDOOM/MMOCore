@@ -4,14 +4,17 @@ INSERT INTO `gameobject` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `positi
 ('2710388', '193070', '631', '15', '1', '520', '-2524', '1038.42', '4.47344', '0', '0', '0.786348', '-0.617784', '300', '255', '1');
 
 DELETE FROM `creature` WHERE `id` in (36823, 36824); 
-INSERT INTO `creature` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `DeathState`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES
-('250250', '36823', '631', '15', '1', '0', '0', '495', '-2502', '1050', '5.49385', '300', '0', '0', '315000', '59910', '0', '0', '0', '0', '0'),
-('250251', '36824', '631', '15', '1', '0', '0', '495', '-2546', '1050.23', '1.72709', '300', '0', '0', '252000', '0', '0', '0', '0', '0', '0');
+INSERT INTO `creature` (`id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `DeathState`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES
+('36823', '631', '15', '1', '0', '0', '495', '-2502', '1050', '5.49385', '300', '0', '0', '315000', '59910', '0', '0', '0', '0', '0'),
+('36824', '631', '15', '1', '0', '0', '495', '-2546', '1050.23', '1.72709', '300', '0', '0', '252000', '0', '0', '0', '0', '0', '0');
 
 -- GameObject
 -- test platform destruction
 UPDATE `gameobject_template` SET `flags` = 32 WHERE `entry` = 202161;
 UPDATE `gameobject` SET `state` = '1' WHERE `id` IN (202161);
+-- YTDB fix portals swaping
+-- UPDATE `gameobject` SET `id` = 202244 WHERE `guid` = 16797;
+-- UPDATE `gameobject` SET `id` = 202245 WHERE `guid` = 23368;
 
 -- Boss
 UPDATE `creature_template` SET `ScriptName`='boss_the_lich_king' WHERE `entry` = 36597;
@@ -30,6 +33,10 @@ UPDATE `creature_template` SET `ScriptName`='npc_shadow_trap' WHERE `entry` = 39
 UPDATE `creature_template` SET `faction_A` = 14, `faction_H` = 14 WHERE `entry` = 39137;
 UPDATE `creature_template` SET `unit_flags` = 0, `vehicleid` = 533 WHERE `entry` IN (36609, 39120, 39121, 39122);
 UPDATE `creature_template` SET `modelid1` = 11686 WHERE `entry` IN (15214,36633, 39305, 39306, 39307);
+UPDATE `creature_template` SET `mechanic_immune_mask` = 12582928 WHERE `entry` IN (36609, 39120, 39121, 39122);
+
+-- fix ice throne teleport falldown 
+UPDATE `creature` SET `spawntimesecs` = 604800 WHERE `id` IN (37534, 37533);
 
 -- Spell
 -- Linked spell
@@ -39,7 +46,8 @@ REPLACE INTO `spell_linked_spell` (`spell_trigger`,`spell_effect`,`type`,`commen
 (-70337,72846,0, 'The Lich King: Necrotic plague immun'),
 (-70338,70338,0, 'The Lich King: Necrotic jump'),
 (-69200,69201,0, 'The Lich King: Raging Spirit'),
-(-70338,74074,0, 'The Licg King: Plague Siphon');
+(-70338,74074,0, 'The Licg King: Plague Siphon'),
+(70860, 39432,2, 'Gravity when Frozen tron teleport - prevent fall down player');
 
 REPLACE INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (72743,'spell_lich_king_defile'),
