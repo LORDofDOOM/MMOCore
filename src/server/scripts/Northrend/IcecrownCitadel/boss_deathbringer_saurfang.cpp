@@ -20,6 +20,7 @@
 #include "ScriptedCreature.h"
 #include "ScriptedGossip.h"
 #include "SpellAuras.h"
+#include "Group.h"
 #include "icecrown_citadel.h"
 
 enum ScriptTexts
@@ -741,6 +742,13 @@ class npc_high_overlord_saurfang_icc : public CreatureScript
 
         bool OnGossipHello(Player* player, Creature* creature)
         {
+            if ((!player->GetGroup() || !player->GetGroup()->IsLeader(player->GetGUID())) && !player->isGameMaster())
+            {
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "I am not raid leader...", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
+                player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
+                return true;
+            }
+
             InstanceScript* instance = creature->GetInstanceScript();
             if (instance && instance->GetBossState(DATA_DEATHBRINGER_SAURFANG) != DONE)
             {
@@ -755,6 +763,10 @@ class npc_high_overlord_saurfang_icc : public CreatureScript
         {
             player->PlayerTalkClass->ClearMenus();
             player->CLOSE_GOSSIP_MENU();
+
+            if (action == GOSSIP_ACTION_INFO_DEF+2)
+                creature->MonsterSay("I'll wait for the raid leader.", LANG_UNIVERSAL, player->GetGUID());
+
             if (action == -ACTION_START_EVENT)
                 creature->AI()->DoAction(ACTION_START_EVENT);
 
