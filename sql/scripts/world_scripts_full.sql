@@ -1614,6 +1614,9 @@ UPDATE `creature_template` SET `ScriptName`='npc_eonars_gift' WHERE `entry`=3322
 UPDATE `creature_template` SET `ScriptName`='npc_healthy_spore' WHERE `entry`=33215;
 UPDATE `creature_template` SET `ScriptName`='npc_unstable_sun_beam' WHERE `entry`=33050;
 UPDATE `creature_template` SET `ScriptName`='npc_iron_roots' WHERE `entry` IN (33088,33168);
+UPDATE `creature_template` SET `ScriptName`='npc_feral_defender' WHERE `entry`=34035;
+UPDATE `creature_template` SET `ScriptName`='npc_sanctum_sentry' WHERE `entry`=34014;
+UPDATE `creature_template` SET `ScriptName`='npc_auriaya_seeping_trigger' WHERE `entry` =34098;
 
 
 /* UN'GORO CRATER */
@@ -1824,7 +1827,7 @@ UPDATE `outdoorpvp_template` SET `ScriptName`='outdoorpvp_si' WHERE `TypeId`=5;
 UPDATE `outdoorpvp_template` SET `ScriptName`='outdoorpvp_ep' WHERE `TypeId`=6;
 
 /* ACHIEVEMENTS */
-DELETE FROM `achievement_criteria_data` WHERE `criteria_id` IN (3693,3804,3805,3806,3807,3808,3809,3810,3811,3812,3813,1234,1239,5605,5606,12778,13036,13035,13037,12977,12967,12986,12982,12993,12780,13012,13011,13013,12062,12063,12064,12065,12183,12068,12060,12061,12822,12996,12972,12989,10062,10063,10054,10055,10046,10047,10048,10049,10050,10051,10044,10045,6446,7625,7628,5541,5542,5543,7573,7574,7265,7549,12971,12978,12979,12980) AND `type` IN (0,11);
+DELETE FROM `achievement_criteria_data` WHERE `criteria_id` IN (3693,3804,3805,3806,3807,3808,3809,3810,3811,3812,3813,1234,1239,5605,5606,12778,13036,13035,13037,12977,12967,12986,12982,12993,12780,13012,13011,13013,12062,12063,12064,12065,12183,12068,12060,12061,12822,12996,12972,12989,10062,10063,10054,10055,10046,10047,10048,10049,10050,10051,10044,10045,6446,7625,7628,5541,5542,5543,7573,7574,7265,7549,12971,12978,12979,12980,7598,7587,7264,7548,10068,10069,10173,10306,10451,10462,10447,10448,10449,10459,10460,10461) AND `type` IN (0,11);
 INSERT INTO `achievement_criteria_data` (`criteria_id`,`type`,`value1`,`value2`,`ScriptName`) VALUES
 (3693,11,0,0, 'achievement_storm_glory'),
 (3804,11,0,0, 'achievement_resilient_victory'),
@@ -1890,7 +1893,25 @@ INSERT INTO `achievement_criteria_data` (`criteria_id`,`type`,`value1`,`value2`,
 (12978,11,0,0,'achievement_portal_jockey'),
 (12979,11,0,0,'achievement_portal_jockey'),
 (12971,11,0,0,'achievement_portal_jockey'),
-(12980,11,0,0,'achievement_portal_jockey');
+(12980,11,0,0,'achievement_portal_jockey'),
+(7598,11,0,0,'achievement_kings_bane'),
+(7587,11,0,0,'achievement_void_dance'),
+(7264,11,0,0,'achievement_safety_dance'),
+(7548,11,0,0,'achievement_safety_dance'),
+(10068,11,0,0,'achievement_ignis_shattered'),
+(10069,11,0,0,'achievement_ignis_shattered'),
+(10173,11,0,0,'achievement_shadowdodger'),
+(10306,11,0,0,'achievement_shadowdodger'),
+(10451,11,0,0,'achievement_smell_saronite'),
+(10462,11,0,0,'achievement_smell_saronite'),
+(10447,11,0,0,'achievement_knock_on_wood'),
+(10448,11,0,0,'achievement_knock_knock_on_wood'),
+(10449,11,0,0,'achievement_knock_knock_knock_on_wood'),
+(10459,11,0,0,'achievement_knock_on_wood'),
+(10460,11,0,0,'achievement_knock_knock_on_wood'),
+(10461,11,0,0,'achievement_knock_knock_knock_on_wood'),
+(10445,11,0,0,'achievement_getting_back_to_nature'),
+(10758,11,0,0,'achievement_getting_back_to_nature');
 
 /* SPELLS */
 INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES
@@ -2204,6 +2225,8 @@ INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES
 ( 62166, 'spell_ulduar_stone_grip_cast_target'),
 ( 63981, 'spell_ulduar_stone_grip_cast_target'),
 ( 64702, 'spell_ulduar_squeezed_lifeless'),
+ (63720, 'spell_kologarn_stone_shout'),
+ (64004, 'spell_kologarn_stone_shout'),
 ( 63027, 'spell_ulduar_proximity_mines'),
 ( 63276, 'spell_mark_of_the_faceless'),
 ( 63489, 'spell_shield_of_runes'),
@@ -2218,6 +2241,7 @@ INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES
 ( 62775, 'spell_xt002_tympanic_tantrum'),
 ( 37751, 'spell_xt002_submerged'),
 ( 37752, 'spell_xt002_stand'),
+( 64381, 'spell_auriaya_strenght_of_the_pack'),
 -- Eye Of Eternity
 ( 56105, 'spell_malygos_vortex_dummy'),
 ( 55873, 'spell_malygos_vortex_visual'),
