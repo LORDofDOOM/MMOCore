@@ -94,6 +94,7 @@ enum ScriptsType
     SCRIPTS_GAMEOBJECT,
     SCRIPTS_EVENT,
     SCRIPTS_WAYPOINT,
+    SCRIPTS_GOSSIP,
 
     SCRIPTS_LAST
 };
@@ -328,6 +329,7 @@ extern ScriptMapMap sQuestStartScripts;
 extern ScriptMapMap sSpellScripts;
 extern ScriptMapMap sGameObjectScripts;
 extern ScriptMapMap sEventScripts;
+extern ScriptMapMap sGossipScripts;
 extern ScriptMapMap sWaypointScripts;
 
 std::string GetScriptsTableNameByType(ScriptsType type);
@@ -481,6 +483,7 @@ struct GossipMenuItems
     uint32          OptionNpcflag;
     uint32          ActionMenuId;
     uint32          ActionPoiId;
+    uint32          ActionScriptId;
     bool            BoxCoded;
     uint32          BoxMoney;
     std::string     BoxText;
@@ -859,6 +862,7 @@ class ObjectMgr
         void LoadQuestStartScripts();
         void LoadEventScripts();
         void LoadSpellScripts();
+        void LoadGossipScripts();
         void LoadWaypointScripts();
 
         void LoadSpellScriptNames();
