@@ -512,7 +512,7 @@ AuraState GetSpellAuraState(SpellEntry const* spellInfo)
 
 SpellSpecific GetSpellSpecific(SpellEntry const* spellInfo)
 {
-    switch(spellInfo->SpellFamilyName)
+    switch (spellInfo->SpellFamilyName)
     {
         case SPELLFAMILY_GENERIC:
         {
@@ -521,9 +521,9 @@ SpellSpecific GetSpellSpecific(SpellEntry const* spellInfo)
             {
                 bool food = false;
                 bool drink = false;
-                for (int i = 0; i < MAX_SPELL_EFFECTS; ++i)
+                for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
                 {
-                    switch(spellInfo->EffectApplyAuraName[i])
+                    switch (spellInfo->EffectApplyAuraName[i])
                     {
                         // Food
                         case SPELL_AURA_MOD_REGEN:
@@ -657,11 +657,11 @@ SpellSpecific GetSpellSpecific(SpellEntry const* spellInfo)
             break;
     }
 
-    for (int i = 0; i < MAX_SPELL_EFFECTS; ++i)
+    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
     {
         if (spellInfo->Effect[i] == SPELL_EFFECT_APPLY_AURA)
         {
-            switch(spellInfo->EffectApplyAuraName[i])
+            switch (spellInfo->EffectApplyAuraName[i])
             {
                 case SPELL_AURA_MOD_CHARM:
                 case SPELL_AURA_MOD_POSSESS_PET:
@@ -684,7 +684,7 @@ SpellSpecific GetSpellSpecific(SpellEntry const* spellInfo)
 // target not allow have more one spell specific from same caster
 bool IsSingleFromSpellSpecificPerCaster(SpellSpecific spellSpec1, SpellSpecific spellSpec2)
 {
-    switch(spellSpec1)
+    switch (spellSpec1)
     {
         case SPELL_SPECIFIC_SEAL:
         case SPELL_SPECIFIC_HAND:
@@ -702,7 +702,7 @@ bool IsSingleFromSpellSpecificPerCaster(SpellSpecific spellSpec1, SpellSpecific 
 
 bool IsSingleFromSpellSpecificPerTarget(SpellSpecific spellSpec1, SpellSpecific spellSpec2)
 {
-    switch(spellSpec1)
+    switch (spellSpec1)
     {
         case SPELL_SPECIFIC_PHASE:
         case SPELL_SPECIFIC_TRACKER:
@@ -735,7 +735,7 @@ bool IsSingleFromSpellSpecificPerTarget(SpellSpecific spellSpec1, SpellSpecific 
 bool IsPositiveTarget(uint32 targetA, uint32 targetB)
 {
     // non-positive targets
-    switch(targetA)
+    switch (targetA)
     {
         case TARGET_UNIT_NEARBY_ENEMY:
         case TARGET_UNIT_TARGET_ENEMY:
@@ -756,8 +756,9 @@ bool IsPositiveTarget(uint32 targetA, uint32 targetB)
 
 bool SpellMgr::_isPositiveEffect(uint32 spellId, uint32 effIndex, bool deep) const
 {
-    SpellEntry const *spellproto = sSpellStore.LookupEntry(spellId);
-    if (!spellproto) return false;
+    SpellEntry const* spellproto = sSpellStore.LookupEntry(spellId);
+    if (!spellproto)
+        return false;
 
     // not found a single positive spell with this attribute
     if (spellproto->Attributes & SPELL_ATTR0_NEGATIVE_1)
@@ -769,10 +770,14 @@ bool SpellMgr::_isPositiveEffect(uint32 spellId, uint32 effIndex, bool deep) con
             switch (spellId)
             {
                 case 34700: // Allergic Reaction
+                case 61716: // Rabbit Costume
+                case 61734: // Noblegarden Bunny
                 case 61987: // Avenging Wrath Marker
                 case 61988: // Divine Shield exclude aura
+                case 62532: // Conservator's Grip
                     return false;
                 case 30877: // Tag Murloc
+                case 62344: // Fists of Stone
                     return true;
                 default:
                     break;
@@ -824,19 +829,20 @@ bool SpellMgr::_isPositiveEffect(uint32 spellId, uint32 effIndex, bool deep) con
     }
 
     // Special case: effects which determine positivity of whole spell
-    for (uint8 i = 0; i<MAX_SPELL_EFFECTS; ++i)
+    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
     {
         if (spellproto->EffectApplyAuraName[i] == SPELL_AURA_MOD_STEALTH)
             return true;
     }
 
-    switch(spellproto->Effect[effIndex])
+    switch (spellproto->Effect[effIndex])
     {
         case SPELL_EFFECT_DUMMY:
             // some explicitly required dummy effect sets
-            switch(spellId)
+            switch (spellId)
             {
-                case 28441: return false;                   // AB Effect 000
+                case 28441:
+                    return false; // AB Effect 000
                 default:
                     break;
             }
@@ -853,7 +859,7 @@ bool SpellMgr::_isPositiveEffect(uint32 spellId, uint32 effIndex, bool deep) con
         case SPELL_EFFECT_APPLY_AURA:
         case SPELL_EFFECT_APPLY_AREA_AURA_FRIEND:
         {
-            switch(spellproto->EffectApplyAuraName[effIndex])
+            switch (spellproto->EffectApplyAuraName[effIndex])
             {
                 case SPELL_AURA_MOD_DAMAGE_DONE:            // dependent from bas point sign (negative -> negative)
                 case SPELL_AURA_MOD_STAT:
@@ -881,12 +887,12 @@ bool SpellMgr::_isPositiveEffect(uint32 spellId, uint32 effIndex, bool deep) con
                     if (!deep)
                     {
                         uint32 spellTriggeredId = spellproto->EffectTriggerSpell[effIndex];
-                        SpellEntry const *spellTriggeredProto = sSpellStore.LookupEntry(spellTriggeredId);
+                        SpellEntry const* spellTriggeredProto = sSpellStore.LookupEntry(spellTriggeredId);
 
                         if (spellTriggeredProto)
                         {
                             // non-positive targets of main spell return early
-                            for (int i = 0; i < MAX_SPELL_EFFECTS; ++i)
+                            for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
                             {
                                 if (!spellTriggeredProto->Effect[i])
                                     continue;
@@ -932,7 +938,7 @@ bool SpellMgr::_isPositiveEffect(uint32 spellId, uint32 effIndex, bool deep) con
                 case SPELL_AURA_MECHANIC_IMMUNITY:
                 {
                     // non-positive immunities
-                    switch(spellproto->EffectMiscValue[effIndex])
+                    switch (spellproto->EffectMiscValue[effIndex])
                     {
                         case MECHANIC_BANDAGE:
                         case MECHANIC_SHIELD:
@@ -942,12 +948,13 @@ bool SpellMgr::_isPositiveEffect(uint32 spellId, uint32 effIndex, bool deep) con
                         default:
                             break;
                     }
-                }   break;
+                    break;
+                }
                 case SPELL_AURA_ADD_FLAT_MODIFIER:          // mods
                 case SPELL_AURA_ADD_PCT_MODIFIER:
                 {
                     // non-positive mods
-                    switch(spellproto->EffectMiscValue[effIndex])
+                    switch (spellproto->EffectMiscValue[effIndex])
                     {
                         case SPELLMOD_COST:                 // dependent from bas point sign (negative -> positive)
                             if (SpellMgr::CalculateSpellEffectAmount(spellproto, effIndex) > 0)
@@ -955,7 +962,7 @@ bool SpellMgr::_isPositiveEffect(uint32 spellId, uint32 effIndex, bool deep) con
                                 if (!deep)
                                 {
                                     bool negative = true;
-                                    for (uint8 i=0; i<MAX_SPELL_EFFECTS; ++i)
+                                    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
                                     {
                                         if (i != effIndex)
                                             if (_isPositiveEffect(spellId, i, true))
@@ -972,7 +979,8 @@ bool SpellMgr::_isPositiveEffect(uint32 spellId, uint32 effIndex, bool deep) con
                         default:
                             break;
                     }
-                }   break;
+                    break;
+                }
                 default:
                     break;
             }
@@ -1011,35 +1019,39 @@ bool IsPositiveEffect(uint32 spellId, uint32 effIndex)
 {
     if (!sSpellStore.LookupEntry(spellId))
         return false;
-    switch(effIndex)
+    switch (effIndex)
     {
         default:
-        case 0: return !(sSpellMgr->GetSpellCustomAttr(spellId) & SPELL_ATTR0_CU_NEGATIVE_EFF0);
-        case 1: return !(sSpellMgr->GetSpellCustomAttr(spellId) & SPELL_ATTR0_CU_NEGATIVE_EFF1);
-        case 2: return !(sSpellMgr->GetSpellCustomAttr(spellId) & SPELL_ATTR0_CU_NEGATIVE_EFF2);
+        case 0:
+            return !(sSpellMgr->GetSpellCustomAttr(spellId) & SPELL_ATTR0_CU_NEGATIVE_EFF0);
+        case 1:
+            return !(sSpellMgr->GetSpellCustomAttr(spellId) & SPELL_ATTR0_CU_NEGATIVE_EFF1);
+        case 2:
+            return !(sSpellMgr->GetSpellCustomAttr(spellId) & SPELL_ATTR0_CU_NEGATIVE_EFF2);
     }
 }
 
 bool SpellMgr::_isPositiveSpell(uint32 spellId, bool deep) const
 {
-    SpellEntry const *spellproto = sSpellStore.LookupEntry(spellId);
-    if (!spellproto) return false;
+    SpellEntry const* spellproto = sSpellStore.LookupEntry(spellId);
+    if (!spellproto)
+        return false;
 
     // spells with at least one negative effect are considered negative
     // some self-applied spells have negative effects but in self casting case negative check ignored.
-    for (int i = 0; i < MAX_SPELL_EFFECTS; ++i)
+    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
         if (!_isPositiveEffect(spellId, i, deep))
             return false;
     return true;
 }
 
-bool IsSingleTargetSpell(SpellEntry const *spellInfo)
+bool IsSingleTargetSpell(SpellEntry const* spellInfo)
 {
     // all other single target spells have if it has AttributesEx5
     if (spellInfo->AttributesEx5 & SPELL_ATTR5_SINGLE_TARGET_SPELL)
         return true;
 
-    switch(GetSpellSpecific(spellInfo))
+    switch (GetSpellSpecific(spellInfo))
     {
         case SPELL_SPECIFIC_JUDGEMENT:
             return true;
@@ -1050,7 +1062,7 @@ bool IsSingleTargetSpell(SpellEntry const *spellInfo)
     return false;
 }
 
-bool IsSingleTargetSpells(SpellEntry const *spellInfo1, SpellEntry const *spellInfo2)
+bool IsSingleTargetSpells(SpellEntry const* spellInfo1, SpellEntry const* spellInfo2)
 {
     // TODO - need better check
     // Equal icon and spellfamily
@@ -1061,7 +1073,7 @@ bool IsSingleTargetSpells(SpellEntry const *spellInfo1, SpellEntry const *spellI
     // TODO - need found Judgements rule
     SpellSpecific spec1 = GetSpellSpecific(spellInfo1);
     // spell with single target specific types
-    switch(spec1)
+    switch (spec1)
     {
         case SPELL_SPECIFIC_JUDGEMENT:
         case SPELL_SPECIFIC_MAGE_POLYMORPH:
@@ -1075,7 +1087,7 @@ bool IsSingleTargetSpells(SpellEntry const *spellInfo1, SpellEntry const *spellI
     return false;
 }
 
-SpellCastResult GetErrorAtShapeshiftedCast (SpellEntry const *spellInfo, uint32 form)
+SpellCastResult GetErrorAtShapeshiftedCast(SpellEntry const* spellInfo, uint32 form)
 {
     // talents that learn spells can have stance requirements that need ignore
     // (this requirement only for client-side stance show in talent description)
@@ -1092,7 +1104,7 @@ SpellCastResult GetErrorAtShapeshiftedCast (SpellEntry const *spellInfo, uint32 
         return SPELL_CAST_OK;
 
     bool actAsShifted = false;
-    SpellShapeshiftEntry const *shapeInfo = NULL;
+    SpellShapeshiftEntry const* shapeInfo = NULL;
     if (form > 0)
     {
         shapeInfo = sSpellShapeshiftStore.LookupEntry(form);
@@ -2795,119 +2807,42 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
     if (IsPositiveSpell(spellproto->Id))
         return DIMINISHING_NONE;
 
+    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
+    {
+        if (spellproto->EffectApplyAuraName[i] == SPELL_AURA_MOD_TAUNT)
+            return DIMINISHING_TAUNT;
+    }
+
     // Explicit Diminishing Groups
     switch (spellproto->SpellFamilyName)
     {
         // Event spells
         case SPELLFAMILY_UNK1:
             return DIMINISHING_NONE;
-        case SPELLFAMILY_GENERIC:
-            // some generic arena related spells have by some strange reason MECHANIC_TURN
-            if (spellproto->Mechanic == MECHANIC_TURN)
-                return DIMINISHING_NONE;
-            switch (spellproto->Id)
-            {
-                // Noblegarden Bunny transforms
-                case 61716:
-                case 61734:
-                    return DIMINISHING_NONE;
-                default:
-                    break;
-            }
-            break;
-        case SPELLFAMILY_MAGE:
+        case SPELLFAMILY_DEATHKNIGHT:
         {
-            // Frostbite
-            if (spellproto->SpellFamilyFlags[1] & 0x80000000)
-                return DIMINISHING_TRIGGER_ROOT;
-            //Shattered Barrier: only flag SpellFamilyFlags[0] = 0x00080000 shared
-            //by most frost spells, using id instead
-            if (spellproto->Id == 55080)
-                return DIMINISHING_TRIGGER_ROOT;
-            // Frost Nova / Freeze (Water Elemental)
-            if (spellproto->SpellIconID == 193)
-                return DIMINISHING_CONTROL_ROOT;
-            break;
-        }
-        case SPELLFAMILY_ROGUE:
-        {
-            // Sap 0x80 Gouge 0x8
-            if (spellproto->SpellFamilyFlags[0] & 0x88)
-                return DIMINISHING_POLYMORPH;
-            // Blind
-            else if (spellproto->SpellFamilyFlags[0] & 0x1000000)
-                return DIMINISHING_FEAR_BLIND;
-            // Cheap Shot
-            else if (spellproto->SpellFamilyFlags[0] & 0x400)
-                return DIMINISHING_CHEAPSHOT_POUNCE;
-            // Crippling poison - Limit to 10 seconds in PvP (No SpellFamilyFlags)
-            else if (spellproto->SpellIconID == 163)
+            // Hungering Cold (no flags)
+            if (spellproto->SpellIconID == 2797)
+                return DIMINISHING_DISORIENT;
+            // Mark of Blood
+            else if ((spellproto->SpellFamilyFlags[0] & 0x10000000) && spellproto->SpellIconID == 2285)
                 return DIMINISHING_LIMITONLY;
-            break;
-        }
-        case SPELLFAMILY_WARLOCK:
-        {
-            // Death Coil
-            if (spellproto->SpellFamilyFlags[0] & 0x80000)
-                return DIMINISHING_DEATHCOIL;
-            // Curses/etc
-            else if (spellproto->SpellFamilyFlags[0] & 0x80000000)
-                return DIMINISHING_LIMITONLY;
-            // Howl of Terror
-            else if (spellproto->SpellFamilyFlags[1] & 0x8)
-                return DIMINISHING_FEAR_BLIND;
-            // Seduction
-            else if (spellproto->SpellFamilyFlags[1] & 0x10000000)
-                return DIMINISHING_FEAR_BLIND;
             break;
         }
         case SPELLFAMILY_DRUID:
         {
             // Pounce
             if (spellproto->SpellFamilyFlags[0] & 0x20000)
-                return DIMINISHING_CHEAPSHOT_POUNCE;
+                return DIMINISHING_OPENING_STUN;
             // Cyclone
             else if (spellproto->SpellFamilyFlags[1] & 0x20)
                 return DIMINISHING_CYCLONE;
-            // Entangling Roots: to force natures grasp proc to be control root
+            // Entangling Roots
+            // Nature's Grasp
             else if (spellproto->SpellFamilyFlags[0] & 0x00000200)
-                return DIMINISHING_CONTROL_ROOT;
+                return DIMINISHING_CONTROLLED_ROOT;
             // Faerie Fire
             else if (spellproto->SpellFamilyFlags[0] & 0x400)
-                return DIMINISHING_LIMITONLY;
-            break;
-        }
-        case SPELLFAMILY_WARRIOR:
-        {
-            // Hamstring - limit duration to 10s in PvP
-            if (spellproto->SpellFamilyFlags[0] & 0x2)
-                return DIMINISHING_LIMITONLY;
-            // Intimidating Shout
-            else if (spellproto->SpellFamilyFlags[0] & 0x40000)
-                return DIMINISHING_FEAR_BLIND;
-            // Charge Stun
-            else if (spellproto->SpellFamilyFlags[0] & 0x01000000)
-                return DIMINISHING_NONE;
-            break;
-        }
-        case SPELLFAMILY_PALADIN:
-        {
-            // Repentance
-            if (spellproto->SpellFamilyFlags[0] & 0x4)
-                return DIMINISHING_POLYMORPH;
-            // Judgement of Justice
-            if (spellproto->SpellFamilyFlags[0] & 0x100000)
-                return DIMINISHING_LIMITONLY;
-            break;
-        }
-        case SPELLFAMILY_DEATHKNIGHT:
-        {
-            // Hungering Cold (no flags)
-            if (spellproto->SpellIconID == 2797)
-                return DIMINISHING_POLYMORPH;
-            // Mark of Blood
-            else if ((spellproto->SpellFamilyFlags[0] & 0x10000000)
-                && spellproto->SpellIconID == 2285)
                 return DIMINISHING_LIMITONLY;
             break;
         }
@@ -2916,41 +2851,136 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // Hunter's mark
             if ((spellproto->SpellFamilyFlags[0] & 0x400) && spellproto->SpellIconID == 538)
                 return DIMINISHING_LIMITONLY;
-            // Scatter Shot
-            if ((spellproto->SpellFamilyFlags[0] & 0x40000) && spellproto->SpellIconID == 132)
-                return DIMINISHING_NONE;
+            // Scatter Shot (own diminishing)
+            else if ((spellproto->SpellFamilyFlags[0] & 0x40000) && spellproto->SpellIconID == 132)
+                return DIMINISHING_SCATTER_SHOT;
+            // Entrapment (own diminishing)
+            else if (spellproto->SpellVisual[0] == 7484 && spellproto->SpellIconID == 20)
+                return DIMINISHING_ENTRAPMENT;
+            // Wyvern Sting mechanic is MECHANIC_SLEEP but the diminishing is DIMINISHING_DISORIENT
+            else if ((spellproto->SpellFamilyFlags[1] & 0x1000) && spellproto->SpellIconID == 1721)
+                return DIMINISHING_DISORIENT;
+            // Freezing Arrow
+            else if (spellproto->SpellFamilyFlags[0] & 0x8)
+                return DIMINISHING_DISORIENT;
             break;
+        }
+        case SPELLFAMILY_PALADIN:
+        {
+            // Judgement of Justice - limit duration to 10s in PvP
+            if (spellproto->SpellFamilyFlags[0] & 0x100000)
+                return DIMINISHING_LIMITONLY;
+            // Turn Evil
+            else if ((spellproto->SpellFamilyFlags[1] & 0x804000) && spellproto->SpellIconID == 309)
+                return DIMINISHING_FEAR;
+            break;
+        }
+        case SPELLFAMILY_PRIEST:
+        {
+            // Psychic Horror
+            if (spellproto->SpellFamilyFlags[2] & 0x2000)
+                return DIMINISHING_HORROR;
+            break;
+        }
+        case SPELLFAMILY_ROGUE:
+        {
+            // Gouge
+            if (spellproto->SpellFamilyFlags[0] & 0x8)
+                return DIMINISHING_DISORIENT;
+            // Blind
+            else if (spellproto->SpellFamilyFlags[0] & 0x1000000)
+                return DIMINISHING_FEAR;
+            // Cheap Shot
+            else if (spellproto->SpellFamilyFlags[0] & 0x400)
+                return DIMINISHING_OPENING_STUN;
+            // Crippling poison - Limit to 10 seconds in PvP (No SpellFamilyFlags)
+            else if (spellproto->SpellIconID == 163)
+                return DIMINISHING_LIMITONLY;
+            break;
+        }
+        case SPELLFAMILY_MAGE:
+        {
+            // Frostbite
+            if (spellproto->SpellFamilyFlags[1] & 0x80000000)
+                return DIMINISHING_ROOT;
+            // Shattered Barrier
+            else if (spellproto->SpellVisual[0] == 12297)
+                return DIMINISHING_ROOT;
+            // Deep Freeze
+            else if (spellproto->SpellIconID == 2939 && spellproto->SpellVisual[0] == 9963)
+                return DIMINISHING_CONTROLLED_STUN;
+            // Frost Nova / Freeze (Water Elemental)
+            else if (spellproto->SpellIconID == 193)
+                return DIMINISHING_CONTROLLED_ROOT;
+            // Dragon's Breath
+            else if (spellproto->SpellFamilyFlags[0] & 0x800000)
+                return DIMINISHING_DISORIENT;
+            break;
+        }
+        case SPELLFAMILY_WARLOCK:
+        {
+            // Death Coil
+            if (spellproto->SpellFamilyFlags[0] & 0x80000)
+                return DIMINISHING_HORROR;
+            // Curses/etc
+            else if ((spellproto->SpellFamilyFlags[0] & 0x80000000) || (spellproto->SpellFamilyFlags[1] & 0x200))
+                return DIMINISHING_LIMITONLY;
+            // Seduction
+            else if (spellproto->SpellFamilyFlags[1] & 0x10000000)
+                return DIMINISHING_FEAR;
+            break;
+        }
+        case SPELLFAMILY_WARRIOR:
+        {
+            // Hamstring - limit duration to 10s in PvP
+            if (spellproto->SpellFamilyFlags[0] & 0x2)
+                return DIMINISHING_LIMITONLY;
+            // Improved Hamstring
+            else if (spellproto->AttributesEx3 & 0x80000 && spellproto->SpellIconID == 23)
+                return DIMINISHING_ROOT;
+            // Charge Stun (own diminishing)
+            else if (spellproto->SpellFamilyFlags[0] & 0x01000000)
+                return DIMINISHING_CHARGE;
+            break;
+        }
+        // Must be below SPELLFAMILY_WARRIOR for Charge to work
+        case SPELLFAMILY_GENERIC:
+        {
+            // Pet charge effects (Infernal Awakening, Demon Charge)
+            if (spellproto->SpellVisual[0] == 2816 && spellproto->SpellIconID == 15)
+                return DIMINISHING_CONTROLLED_STUN;
+            // Gnaw
+            else if (spellproto->Id == 47481)
+                return DIMINISHING_CONTROLLED_STUN;
         }
         default:
             break;
     }
 
-    // Get by mechanic
+    // Lastly - Set diminishing depending on mechanic
     uint32 mechanic = GetAllSpellMechanicMask(spellproto);
-    if (mechanic == MECHANIC_NONE)          return DIMINISHING_NONE;
-    if (mechanic & ((1<<MECHANIC_STUN) |
-                    (1<<MECHANIC_SHACKLE))) return triggered ? DIMINISHING_TRIGGER_STUN : DIMINISHING_CONTROL_STUN;
-    if (mechanic & ((1<<MECHANIC_SLEEP) |
-                    (1<<MECHANIC_FREEZE))) return DIMINISHING_FREEZE_SLEEP;
-    if (mechanic & (1<<MECHANIC_POLYMORPH)) return DIMINISHING_POLYMORPH;
-    if (mechanic & (1<<MECHANIC_ROOT))      return triggered ? DIMINISHING_TRIGGER_ROOT : DIMINISHING_CONTROL_ROOT;
-    if (mechanic & ((1<<MECHANIC_FEAR) |
-                    (1<<MECHANIC_TURN)))    return DIMINISHING_FEAR_BLIND;
-    if (mechanic & (1<<MECHANIC_CHARM))     return DIMINISHING_CHARM;
-    if (mechanic & (1<<MECHANIC_SILENCE))   return DIMINISHING_SILENCE;
-    if (mechanic & (1<<MECHANIC_DISARM))    return DIMINISHING_DISARM;
-    if (mechanic & (1<<MECHANIC_FREEZE))    return DIMINISHING_FREEZE_SLEEP;
-    if (mechanic & ((1<<MECHANIC_KNOCKOUT) |
-                    (1<<MECHANIC_SAPPED)))  return DIMINISHING_KNOCKOUT;
-    if (mechanic & (1<<MECHANIC_BANISH))    return DIMINISHING_BANISH;
-    if (mechanic & (1<<MECHANIC_HORROR))    return DIMINISHING_DEATHCOIL;
+    if (mechanic & (1 << MECHANIC_CHARM))
+        return DIMINISHING_MIND_CONTROL;
+    if (mechanic & (1 << MECHANIC_SILENCE))
+        return DIMINISHING_SILENCE;
+    if (mechanic & (1 << MECHANIC_SLEEP))
+        return DIMINISHING_SLEEP;
+    if (mechanic & ((1 << MECHANIC_SAPPED) | (1 << MECHANIC_POLYMORPH) | (1 << MECHANIC_SHACKLE)))
+        return DIMINISHING_DISORIENT;
+    // Mechanic Knockout, except Blast Wave
+    if (mechanic & (1 << MECHANIC_KNOCKOUT) && spellproto->SpellIconID != 292)
+        return DIMINISHING_DISORIENT;
+    if (mechanic & (1 << MECHANIC_DISARM))
+        return DIMINISHING_DISARM;
+    if (mechanic & (1 << MECHANIC_FEAR))
+        return DIMINISHING_FEAR;
+    if (mechanic & (1 << MECHANIC_STUN))
+        return triggered ? DIMINISHING_STUN : DIMINISHING_CONTROLLED_STUN;
+    if (mechanic & (1 << MECHANIC_BANISH))
+        return DIMINISHING_BANISH;
+    if (mechanic & (1 << MECHANIC_ROOT))
+        return triggered ? DIMINISHING_ROOT : DIMINISHING_CONTROLLED_ROOT;
 
-    // Get by effect
-    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
-    {
-        if (spellproto->EffectApplyAuraName[i] == SPELL_AURA_MOD_TAUNT)
-            return DIMINISHING_TAUNT;
-    }
     return DIMINISHING_NONE;
 }
 
@@ -2960,8 +2990,15 @@ int32 GetDiminishingReturnsLimitDuration(DiminishingGroup group, SpellEntry cons
         return 0;
 
     // Explicit diminishing duration
-    switch(spellproto->SpellFamilyName)
+    switch (spellproto->SpellFamilyName)
     {
+        case SPELLFAMILY_DRUID:
+        {
+            // Faerie Fire - limit to 40 seconds in PvP (3.1)
+            if (spellproto->SpellFamilyFlags[0] & 0x400)
+                return 40 * IN_MILLISECONDS;
+            break;
+        }
         case SPELLFAMILY_HUNTER:
         {
             // Wyvern Sting
@@ -2984,13 +3021,12 @@ int32 GetDiminishingReturnsLimitDuration(DiminishingGroup group, SpellEntry cons
             // Banish - limit to 6 seconds in PvP
             if (spellproto->SpellFamilyFlags[1] & 0x8000000)
                 return 6 * IN_MILLISECONDS;
-            break;
-        }
-        case SPELLFAMILY_DRUID:
-        {
-            // Faerie Fire - limit to 40 seconds in PvP (3.1)
-            if (spellproto->SpellFamilyFlags[0] & 0x400)
-                return 40 * IN_MILLISECONDS;
+            // Curse of Tongues - limit to 12 seconds in PvP
+            else if (spellproto->SpellFamilyFlags[2] & 0x800)
+                return 12 * IN_MILLISECONDS;
+            // Curse of Elements - limit to 120 seconds in PvP
+            else if (spellproto->SpellFamilyFlags[1] & 0x200)
+               return 120 * IN_MILLISECONDS;
             break;
         }
         default:
@@ -3002,21 +3038,22 @@ int32 GetDiminishingReturnsLimitDuration(DiminishingGroup group, SpellEntry cons
 
 bool IsDiminishingReturnsGroupDurationLimited(DiminishingGroup group)
 {
-    switch(group)
+    switch (group)
     {
-        case DIMINISHING_CONTROL_STUN:
-        case DIMINISHING_TRIGGER_STUN:
-        case DIMINISHING_FREEZE_SLEEP:
-        case DIMINISHING_CONTROL_ROOT:
-        case DIMINISHING_TRIGGER_ROOT:
-        case DIMINISHING_FEAR_BLIND:
-        case DIMINISHING_CHARM:
-        case DIMINISHING_POLYMORPH:
-        case DIMINISHING_KNOCKOUT:
+        case DIMINISHING_CONTROLLED_STUN:
+        case DIMINISHING_STUN:
+        case DIMINISHING_ENTRAPMENT:
+        case DIMINISHING_CONTROLLED_ROOT:
+        case DIMINISHING_ROOT:
+        case DIMINISHING_FEAR:
+        case DIMINISHING_MIND_CONTROL:
+        case DIMINISHING_DISORIENT:
         case DIMINISHING_CYCLONE:
         case DIMINISHING_BANISH:
         case DIMINISHING_LIMITONLY:
-        case DIMINISHING_CHEAPSHOT_POUNCE:
+        case DIMINISHING_OPENING_STUN:
+        case DIMINISHING_HORROR:
+        case DIMINISHING_SLEEP:
             return true;
         default:
             return false;
@@ -3025,7 +3062,7 @@ bool IsDiminishingReturnsGroupDurationLimited(DiminishingGroup group)
 
 DiminishingLevels GetDiminishingReturnsMaxLevel(DiminishingGroup group)
 {
-    switch(group)
+    switch (group)
     {
         case DIMINISHING_TAUNT:
             return DIMINISHING_LEVEL_TAUNT_IMMUNE;
@@ -3036,25 +3073,27 @@ DiminishingLevels GetDiminishingReturnsMaxLevel(DiminishingGroup group)
 
 DiminishingReturnsType GetDiminishingReturnsGroupType(DiminishingGroup group)
 {
-    switch(group)
+    switch (group)
     {
         case DIMINISHING_TAUNT:
-        case DIMINISHING_CONTROL_STUN:
-        case DIMINISHING_TRIGGER_STUN:
-        case DIMINISHING_CHEAPSHOT_POUNCE:
+        case DIMINISHING_CONTROLLED_STUN:
+        case DIMINISHING_STUN:
+        case DIMINISHING_OPENING_STUN:
         case DIMINISHING_CYCLONE:
+        case DIMINISHING_CHARGE:
             return DRTYPE_ALL;
-        case DIMINISHING_FEAR_BLIND:
-        case DIMINISHING_CONTROL_ROOT:
-        case DIMINISHING_TRIGGER_ROOT:
-        case DIMINISHING_CHARM:
-        case DIMINISHING_POLYMORPH:
+        case DIMINISHING_FEAR:
+        case DIMINISHING_CONTROLLED_ROOT:
+        case DIMINISHING_ROOT:
+        case DIMINISHING_MIND_CONTROL:
+        case DIMINISHING_DISORIENT:
+        case DIMINISHING_ENTRAPMENT:
         case DIMINISHING_SILENCE:
         case DIMINISHING_DISARM:
-        case DIMINISHING_DEATHCOIL:
-        case DIMINISHING_FREEZE_SLEEP:
         case DIMINISHING_BANISH:
-        case DIMINISHING_KNOCKOUT:
+        case DIMINISHING_SCATTER_SHOT:
+        case DIMINISHING_HORROR:
+        case DIMINISHING_SLEEP:
             return DRTYPE_PLAYER;
         default:
             break;

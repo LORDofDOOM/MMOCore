@@ -1380,14 +1380,16 @@ SpellMissInfo Spell::DoSpellHitOnUnit(Unit *unit, const uint32 effectMask, bool 
         if (m_spellInfo->speed > 0.0f && unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE) && unit->GetCharmerOrOwnerGUID() != m_caster->GetGUID())
             return SPELL_MISS_EVADE;
 
-        if (!m_caster->IsFriendlyTo(unit))
+        // check for IsHostileTo() instead of !IsFriendlyTo()
+        // ex: spell 47463 needs to be casted by different units on the same neutral target
+        if (m_caster->IsHostileTo(unit))
         {
             unit->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_HITBYSPELL);
             //TODO: This is a hack. But we do not know what types of stealth should be interrupted by CC
             if ((m_customAttr & SPELL_ATTR0_CU_AURA_CC) && unit->IsControlledByPlayer())
                 unit->RemoveAurasByType(SPELL_AURA_MOD_STEALTH);
         }
-        else
+        else if (m_caster->IsFriendlyTo(unit))
         {
             // for delayed spells ignore negative spells (after duel end) for friendly targets
             // TODO: this cause soul transfer bugged
@@ -2514,6 +2516,13 @@ void Spell::SelectEffectTargets(uint32 i, uint32 cur)
                     // TODO: move these to sql
                     switch (m_spellInfo->Id)
                     {
+                        //Icecrown Citadel: Highlord Tirion Fordring's Mass Resurrection
+                        //Requires players to have at least friendly reputation with Argent Crusade
+                        case 72429:
+                        {
+                            SearchAreaTarget(unitList, 300.0f, pushType, SPELL_TARGETS_ALLY);
+                            break;
+                        }
                         case 46584: // Raise Dead
                         {
                             if (WorldObject* result = FindCorpseUsing<Trinity::RaiseDeadObjectCheck> ())

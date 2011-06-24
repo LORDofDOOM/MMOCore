@@ -154,6 +154,7 @@ enum UlduarGameObjects
     GO_RAZOR_BROKEN_HARPOON                      = 194565,
     GO_HODIR_DOOR                                = 194634,
     GO_HODIR_ICE_DOOR                            = 194441,
+    GO_ARCHIVUM_DOOR                             = 194556,
 };
 
 enum UlduarTowerEvents
@@ -192,5 +193,18 @@ CreatureAI* GetUlduarAI(Creature* creature)
 
     return NULL;
 }
+
+class PlayerOrPetCheck
+{
+    public:
+        bool operator() (Unit* unit)
+        {
+            if (unit->GetTypeId() != TYPEID_PLAYER)
+                if (!unit->ToCreature()->isPet())
+                    return true;
+
+            return false;
+        }
+};
 
 #endif
