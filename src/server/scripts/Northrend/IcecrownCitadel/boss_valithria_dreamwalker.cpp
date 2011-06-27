@@ -339,13 +339,6 @@ class boss_valithria_dreamwalker : public CreatureScript
 
             void HealReceived(Unit* /*healer*/, uint32& heal)
             {
-                // Do not receive heal while encounter not in progress
-                if (_instance->GetBossState(DATA_VALITHRIA_DREAMWALKER) != IN_PROGRESS)
-                {
-                    heal = 0;
-                    return;
-                }
-
                 // encounter complete
                 if (me->HealthAbovePctHealed(100, heal) && !_done)
                 {
@@ -353,10 +346,8 @@ class boss_valithria_dreamwalker : public CreatureScript
                     Talk(SAY_VALITHRIA_SUCCESS);
                     _instance->SendEncounterUnit(ENCOUNTER_FRAME_REMOVE, me);
                     me->RemoveAurasDueToSpell(SPELL_CORRUPTION_VALITHRIA);
-                    //DoCast(me, SPELL_ACHIEVEMENT_CHECK);
-                    _instance->DoUpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, SPELL_ACHIEVEMENT_CHECK);
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 60.0f, false))
-                        DoCast(target, SPELL_DREAMWALKERS_RAGE);
+                    DoCast(me, SPELL_ACHIEVEMENT_CHECK);
+                    DoCast(me, SPELL_DREAMWALKERS_RAGE);
                     _events.ScheduleEvent(EVENT_DREAM_SLIP, 3500);
                     if (Creature* lichKing = ObjectAccessor::GetCreature(*me, _instance->GetData64(DATA_VALITHRIA_LICH_KING)))
                         lichKing->AI()->EnterEvadeMode();
@@ -366,6 +357,9 @@ class boss_valithria_dreamwalker : public CreatureScript
                     _over75PercentTalkDone = true;
                     Talk(SAY_VALITHRIA_75_PERCENT);
                 }
+                else if (_instance->GetBossState(DATA_VALITHRIA_DREAMWALKER) == NOT_STARTED)
+                    if (Creature* archmage = me->FindNearestCreature(NPC_RISEN_ARCHMAGE, 30.0f))
+                        archmage->AI()->DoZoneInCombat();   // call EnterCombat on one of them, that will make it all start
             }
 
             void DamageTaken(Unit* /*attacker*/, uint32& damage)
