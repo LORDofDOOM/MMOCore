@@ -409,8 +409,6 @@ public:
             {
                 pInstance->SetData(BOSS_BLACK_KNIGHT, DONE);
 
-                if (IsHeroic())
-                pInstance->DoCompleteAchievement(ACHIEV_WORSE);
             }
         }
     };
