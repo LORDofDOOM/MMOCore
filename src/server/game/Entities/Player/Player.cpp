@@ -8698,10 +8698,6 @@ void Player::RemovedInsignia(Player* looterPlr)
         RepopAtGraveyard();
     }
 
-    Corpse *corpse = GetCorpse();
-    if (!corpse)
-        return;
-
     // We have to convert player corpse to bones, not to be able to resurrect there
     // SpawnCorpseBones isn't handy, 'cos it saves player while he in BG
     Corpse *bones = sObjectAccessor->ConvertCorpseForPlayer(GetGUID(), true);
@@ -18314,8 +18310,8 @@ void Player::SaveToDB()
     outDebugValues();
 
     std::string sql_name = m_name;
-    CharacterDatabase.escape_string(sql_name);
-    
+    CharacterDatabase.EscapeString(sql_name);
+
     std::ostringstream ss;
     ss << "REPLACE INTO characters (guid, account, name, race, class, gender, level, xp, money, playerBytes, playerBytes2, playerFlags, "
         "map, instance_id, instance_mode_mask, position_x, position_y, position_z, orientation, "
@@ -23090,7 +23086,7 @@ void Player::AddGlobalCooldown(SpellEntry const *spellInfo, Spell* spell)
 
     float cdTime = float(spellInfo->StartRecoveryTime);
 
-    if (!(spellInfo->Attributes & (SPELL_ATTR0_UNK4|SPELL_ATTR0_PASSIVE)))
+    if (!(spellInfo->Attributes & (SPELL_ATTR0_ABILITY|SPELL_ATTR0_PASSIVE)))
         cdTime *= GetFloatValue(UNIT_MOD_CAST_SPEED);
     else if (IsRangedWeaponSpell(spellInfo) && spell && !spell->IsAutoRepeat())
         cdTime *= m_modAttackSpeedPct[RANGED_ATTACK];

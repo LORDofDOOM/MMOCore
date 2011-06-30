@@ -136,8 +136,8 @@ SpellMgr::SpellMgr()
                 break;
             case TARGET_UNIT_NEARBY_ENEMY:
             case TARGET_UNIT_NEARBY_ALLY:
-            case TARGET_UNIT_NEARBY_ALLY_UNK:
             case TARGET_UNIT_NEARBY_ENTRY:
+            case TARGET_UNIT_NEARBY_PARTY:
             case TARGET_UNIT_NEARBY_RAID:
             case TARGET_GAMEOBJECT_NEARBY_ENTRY:
                 SpellTargetType[i] = TARGET_TYPE_UNIT_NEARBY;
@@ -3246,8 +3246,6 @@ bool IsPartOfSkillLine(uint32 skillId, uint32 spellId)
 
 bool SpellArea::IsFitToRequirements(Player const* player, uint32 newZone, uint32 newArea) const
 {
-    OutdoorPvPWG *pvpWG = (OutdoorPvPWG*)sOutdoorPvPMgr->GetOutdoorPvPToZoneId(4197);
-
     if (gender != GENDER_NONE)                   // not in expected gender
         if (!player || gender != player->getGender())
             return false;
@@ -3288,19 +3286,25 @@ bool SpellArea::IsFitToRequirements(Player const* player, uint32 newZone, uint32
             break;
         }
         case 58730: // No fly Zone - Wintergrasp
-			{
-				if (sWorld->getBoolConfig(CONFIG_OUTDOORPVP_WINTERGRASP_ENABLED))
-				{
-				  if ((pvpWG->isWarTime()==false) || !player || (!player->HasAuraType(SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED) && !player->HasAuraType(SPELL_AURA_FLY)) || player->HasAura(45472) || player->HasAura(44795) || player->GetPositionZ())
-				    return false;
-				}
+            {
+                if (!player)
+                    return false;
+
+                if (sWorld->getBoolConfig(CONFIG_OUTDOORPVP_WINTERGRASP_ENABLED))
+                {
+                    OutdoorPvPWG *pvpWG = (OutdoorPvPWG*)sOutdoorPvPMgr->GetOutdoorPvPToZoneId(4197);
+                    if ((pvpWG->isWarTime()==false) || player->isDead() || (!player->HasAuraType(SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED) && !player->HasAuraType(SPELL_AURA_FLY)) || player->HasAura(45472) || player->HasAura(44795) || player->GetPositionZ() > 619.2f || player->isInFlight())
+                        return false;
+                }
                 break;
-			}
+            }
         case 58045: // Essence of Wintergrasp - Wintergrasp
         case 57940: // Essence of Wintergrasp - Northrend
-             if (!player || player->GetTeamId() != sWorld->getWorldState(WORLDSTATE_WINTERGRASP_CONTROLING_FACTION))
-             return false;
+            {
+                if (!player || player->GetTeamId() != sWorld->getWorldState(WORLDSTATE_WINTERGRASP_CONTROLING_FACTION))
+                    return false;
                 break;
+            }
         case 68719: // Oil Refinery - Isle of Conquest.
         case 68720: // Quarry - Isle of Conquest.
         {
