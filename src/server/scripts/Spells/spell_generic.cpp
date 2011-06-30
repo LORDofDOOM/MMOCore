@@ -647,7 +647,7 @@ class spell_gen_divine_storm_cd_reset : public SpellScriptLoader
 
             void HandleScript(SpellEffIndex /*effIndex*/)
             {
-                if (Player *caster = GetCaster()->ToPlayer())
+                if (Player* caster = GetCaster()->ToPlayer())
                     if (caster->HasSpellCooldown(SPELL_DIVINE_STORM))
                         caster->RemoveSpellCooldown(SPELL_DIVINE_STORM, true);
             }
@@ -1313,7 +1313,7 @@ class spell_gen_vehicle_scaling : public SpellScriptLoader
 {
     public:
         spell_gen_vehicle_scaling() : SpellScriptLoader("spell_gen_vehicle_scaling") { }
-        
+
         class spell_gen_vehicle_scaling_AuraScript : public AuraScript
         {
             PrepareAuraScript(spell_gen_vehicle_scaling_AuraScript);
@@ -1326,7 +1326,7 @@ class spell_gen_vehicle_scaling : public SpellScriptLoader
 
                 float factor;
                 uint16 baseItemLevel;
-                        
+
                 // TODO: Reserach coeffs for different vehicles
                 switch (GetId())
                 {
@@ -1339,14 +1339,14 @@ class spell_gen_vehicle_scaling : public SpellScriptLoader
                         baseItemLevel = 170;
                         break;
                 }
-                        
+
                 float avgILvl = caster->ToPlayer()->GetAverageItemLevel();
                 if (avgILvl < baseItemLevel)
                     return;                     // TODO: Research possibility of scaling down
-                        
+
                 amount = uint16((avgILvl - baseItemLevel) * factor);
             }
-                
+
             void Register()
             {
                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_gen_vehicle_scaling_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_MOD_HEALING_PCT);
@@ -1354,7 +1354,7 @@ class spell_gen_vehicle_scaling : public SpellScriptLoader
                 DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_gen_vehicle_scaling_AuraScript::CalculateAmount, EFFECT_2, SPELL_AURA_MOD_INCREASE_HEALTH_PERCENT);
             }
         };
- 
+
         AuraScript* GetAuraScript() const
         {
             return new spell_gen_vehicle_scaling_AuraScript();
