@@ -1,4 +1,8 @@
+-- All credit goes to ZxBiohazardZx for the work on referencing Trainer, all i did was copy table and rename entry to add in one trainer
 -- Master Trainer with entry #90001
+-- Trainer tested on Trinitycore build 8761 for client version 3.3.3a + TDB-333.9.31
+-- http://forum.trinitycore.org/topic/14336-custom-trainer-all-in-one/
+-- Reference class to add some missing spells you get from quest and some others.
 SET @Deathknight :=90001;
 SET @Druid :=90001; -- Adding missing spell you get from quest.
 SET @Shaman :=90001; -- Adding missing spell you get from quest.
