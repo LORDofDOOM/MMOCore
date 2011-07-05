@@ -143,7 +143,6 @@ struct GossipMenuItemData
 {
     uint32 GossipActionMenuId;  // MenuId of the gossip triggered by this action
     uint32 GossipActionPoi;
-    uint32 GossipActionScript;
 };
 
 // need an ordered container
