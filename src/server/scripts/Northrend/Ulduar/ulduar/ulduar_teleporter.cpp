@@ -104,6 +104,8 @@ class ulduar_teleporter : public GameObjectScript
 
         bool OnGossipHello(Player* player, GameObject* gameObject)
         {
+            if (InstanceScript* instance = gameObject->GetInstanceScript())
+            {
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Teleport to the Expedition Base Camp", GOSSIP_SENDER_MAIN, BASE_CAMP);
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Teleport to the Formation Grounds", GOSSIP_SENDER_MAIN, GROUNDS);
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Teleport to the Colossal Forge", GOSSIP_SENDER_MAIN, FORGE);
@@ -113,6 +115,7 @@ class ulduar_teleporter : public GameObjectScript
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Teleport to the Conservatory of Life", GOSSIP_SENDER_MAIN, CONSERVATORY);
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Teleport to the Spark of Imagination", GOSSIP_SENDER_MAIN, SPARK_IMAGINATION);
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Teleport to the Descent into Madness", GOSSIP_SENDER_MAIN, DESCENT_MADNESS);
+            }
 
             player->SEND_GOSSIP_MENU(gameObject->GetGOInfo()->GetGossipMenuId(), gameObject->GetGUID());
             return true;
