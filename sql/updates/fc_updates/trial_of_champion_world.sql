@@ -35,8 +35,22 @@ INSERT INTO `vehicle_template_accessory` (`entry`,`accessory_entry`,`seat_id`,`m
 (33297,35328,0,1, 'Stormwind Steed'),
 (33416,35330,0,1, 'Exodar Elekk'),
 (33298,35332,0,1, 'Darnassian Nightsaber');
+
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` in (33299,33418,33409,33300,33408,33301,33414,33297,33416,33298);
+INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `quest_start`, `quest_start_active`, `quest_end`, `cast_flags`, `aura_required`, `aura_forbidden`, `user_type`) VALUES
+(33299, 68503, 0, 0, 0, 1, 0, 0, 0),
+(33418, 68503, 0, 0, 0, 1, 0, 0, 0),
+(33409, 68503, 0, 0, 0, 1, 0, 0, 0),
+(33300, 68503, 0, 0, 0, 1, 0, 0, 0),
+(33408, 68503, 0, 0, 0, 1, 0, 0, 0),
+(33301, 68503, 0, 0, 0, 1, 0, 0, 0),
+(33414, 68503, 0, 0, 0, 1, 0, 0, 0),
+(33297, 68503, 0, 0, 0, 1, 0, 0, 0),
+(33416, 68503, 0, 0, 0, 1, 0, 0, 0),
+(33298, 68503, 0, 0, 0, 1, 0, 0, 0);
+
 DELETE FROM `vehicle_template_accessory` WHERE `entry` in (33318,33319,33316,33317,33217,33324,33322,33320,33323,33321);
-INSERT INTO `vehicle_template_accessory` (`entry`,`accessory_entry`,`minion`,`description`) VALUES 
+INSERT INTO `vehicle_template_accessory` (`entry`,`accessory_entry`,`minion`,`description`) VALUES
 ('33318', '35330', '1', 'Exodar Elekk'),
 ('33319', '35332', '1', 'Darnassian Nightsaber'),
 ('33316', '35329', '1', 'Ironforge Ram'),
@@ -133,9 +147,9 @@ INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entr
 -- Spawn Announcer in normal/heroic mode
 DELETE FROM `creature` WHERE `id` in (35004, 35005);
 DELETE FROM `creature` WHERE `guid` in (180100, 180101);
-INSERT INTO `creature` (`guid`,`id`,`map`,`spawnMask`,`phaseMask`,`modelid`,`equipment_id`,`position_x`,`position_y`,`position_z`,`orientation`,`spawntimesecs`,`spawndist`,`currentwaypoint`,`curhealth`,`curmana`,`DeathState`,`MovementType`) VALUES
-(180100, 35591, 650, 3, 64, 0, 0, 746.626, 618.54, 411.09, 4.63158, 86400, 0, 0, 10635, 0, 0, 0),
-(180101, 35592, 650, 3, 128, 0, 0, 746.626, 618.54, 411.09, 4.63158, 86400, 0, 0, 10635, 0, 0, 0);
+INSERT INTO `creature` (`guid`,`id`,`map`,`spawnMask`,`phaseMask`,`modelid`,`equipment_id`,`position_x`,`position_y`,`position_z`,`orientation`,`spawntimesecs`,`spawndist`,`currentwaypoint`,`curhealth`,`curmana`,`MovementType`) VALUES
+(180100, 35591, 650, 3, 64, 0, 0, 746.626, 618.54, 411.09, 4.63158, 86400, 0, 0, 10635, 0, 0),
+(180101, 35592, 650, 3, 128, 0, 0, 746.626, 618.54, 411.09, 4.63158, 86400, 0, 0, 10635, 0, 0);
 -- Addons
 REPLACE INTO `creature_template_addon` VALUES
 -- Argent
