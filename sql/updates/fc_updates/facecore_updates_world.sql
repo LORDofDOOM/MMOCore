@@ -834,3 +834,13 @@ INSERT INTO `spell_linked_spell` (`spell_trigger`,`spell_effect`,`type`,`comment
 DELETE FROM `spell_script_names` WHERE `spell_id`=45390;
 INSERT INTO `spell_script_names` (`spell_id`,`ScriptName`) VALUES
 (45390, 'spell_gen_ribbon_pole_dancer_check');
+
+-- Add cooldown for Sacred Shield after remove effect as expected
+DELETE FROM `spell_script_names` WHERE `spell_id` = 58597;
+INSERT INTO `spell_script_names` VALUES
+(58597, 'spell_pal_sacred_shield');
+
+-- Typo fix sor scriptname
+DELETE FROM `spell_script_names` WHERE `spell_id`= 47496;
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(47496, 'spell_dk_ghoul_explode');
