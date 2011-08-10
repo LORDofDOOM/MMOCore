@@ -129,8 +129,8 @@ class instance_icecrown_citadel : public InstanceMapScript
                 uiEdgeDestroyWarning = 0;
                 uilavaman = 0;
                 uihangingman = 0;
-                uiNeckDeep = 0;
-                uiNecroticStack = 0;
+                IsNeckDeep = true;
+                IsNecroticStack = true;
                 FrostwyrmCount = 0;
                 SpinestalkerTrashCount = 0;
                 RimefangTrashCount = 0;
@@ -545,10 +545,6 @@ class instance_icecrown_citadel : public InstanceMapScript
             {
                 switch (type)
                 {
-                    case DATA_NECK_DEEP_ACHIEVEMENT:         
-                        return uiNeckDeep;
-                    case DATA_BEEN_WAITING_ACHIEVEMENT:              
-                        return uiNecroticStack;
                     case DATA_SINDRAGOSA_FROSTWYRMS:
                         return FrostwyrmCount;
                     case DATA_SPINESTALKER:
@@ -811,10 +807,10 @@ class instance_icecrown_citadel : public InstanceMapScript
                 switch (type)
                 {
                     case DATA_NECK_DEEP_ACHIEVEMENT:         
-                        uiNeckDeep = data;
+                        IsNeckDeep = data ? true : false;
                         break;
                     case DATA_BEEN_WAITING_ACHIEVEMENT:         
-                        uiNecroticStack = data;
+                        IsNecroticStack = data ? true : false;
                         break;
                     case DATA_BONED_ACHIEVEMENT:
                         IsBonedEligible = data ? true : false;
@@ -962,6 +958,16 @@ class instance_icecrown_citadel : public InstanceMapScript
             {
                 switch (criteria_id)
                 {
+                    case CRITERIA_WAITING_A_LONG_TIME_10N:
+                    case CRITERIA_WAITING_A_LONG_TIME_10H:
+                    case CRITERIA_WAITING_A_LONG_TIME_25N:
+                    case CRITERIA_WAITING_A_LONG_TIME_25H:
+                        return IsNecroticStack;
+                    case CRITERIA_NECK_DEEP_IN_VILE_10N:
+                    case CRITERIA_NECK_DEEP_IN_VILE_10H:
+                    case CRITERIA_NECK_DEEP_IN_VILE_25N:
+                    case CRITERIA_NECK_DEEP_IN_VILE_25H:
+                        return IsNeckDeep;
                     case CRITERIA_BONED_10N:
                     case CRITERIA_BONED_25N:
                     case CRITERIA_BONED_10H:
@@ -1258,8 +1264,8 @@ class instance_icecrown_citadel : public InstanceMapScript
             uint64 uiEdgeDestroyWarning;
             uint64 uilavaman;
             uint64 uihangingman;
-            uint8  uiNeckDeep;
-            uint8  uiNecroticStack;
+            bool  IsNeckDeep;
+            bool  IsNecroticStack;
             uint32 TeamInInstance;
             uint32 BloodQuickeningTimer;
             uint32 ColdflameJetsState;

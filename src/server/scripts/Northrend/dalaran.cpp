@@ -72,7 +72,6 @@ public:
             Player* player = who->GetCharmerOrOwnerPlayerOrPlayerItself();
 
             if (!player || player->isGameMaster() || player->IsBeingTeleported() || who->HasAura(70971) || who->HasAura(70972) || who->HasAura(70973) || who->HasAura(70974))
-
                 return;
 
             switch (me->GetEntry())

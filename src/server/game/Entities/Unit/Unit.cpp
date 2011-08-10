@@ -730,6 +730,7 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
         Player* killer = ToPlayer();
 
         // in bg, count dmg if victim is also a player
+
         if (victim->GetTypeId() == TYPEID_PLAYER)
         {
             if (Battleground *bg = killer->GetBattleground())
@@ -5078,7 +5079,6 @@ bool Unit::HandleHasteAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 case 33735:
                 {
                     target = SelectNearbyTarget();
-
                     if (!target || target == victim)
                         return false;
                     basepoints0 = damage;
@@ -7731,6 +7731,9 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             // Mark of Blood
             if (dummySpell->Id == 49005)
             {
+                if (!target || target->GetTypeId() != TYPEID_PLAYER)
+                    return false;
+
                 // TODO: need more info (cooldowns/PPM)
                 triggered_spell_id = 61607;
                 break;

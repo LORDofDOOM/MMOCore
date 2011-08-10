@@ -7297,6 +7297,11 @@ void Spell::EffectCastButtons(SpellEffIndex effIndex)
 
         if (m_caster->GetPower(POWER_MANA) < cost)
             break;
+        if (!m_caster->HasSpell(spell_id) || IsPassiveSpell(spellInfo))
+            continue;
+
+        if (spellInfo->TotemCategory[0] < 2 || spellInfo->TotemCategory[0] > 5)
+            continue;
 
         if (!m_caster->HasSpell(spell_id) || IsPassiveSpell(spellInfo))
             continue;

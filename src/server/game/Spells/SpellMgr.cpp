@@ -3309,6 +3309,8 @@ bool IsPartOfSkillLine(uint32 skillId, uint32 spellId)
 
 bool SpellArea::IsFitToRequirements(Player const* player, uint32 newZone, uint32 newArea) const
 {
+    OutdoorPvPWG *pvpWG = (OutdoorPvPWG*)sOutdoorPvPMgr->GetOutdoorPvPToZoneId(4197);
+
     if (gender != GENDER_NONE)                   // not in expected gender
         if (!player || gender != player->getGender())
             return false;
@@ -3907,6 +3909,16 @@ void SpellMgr::LoadSpellCustomAttr()
         case 26863:
         case 48656:
         case 48657:
+        case 703: // Garrote
+        case 8631:
+        case 8632:
+        case 8633:
+        case 11289:
+        case 11290:
+        case 26839:
+        case 26884:
+        case 48675:
+        case 48676:
         case 5221: // Shred
         case 6800:
         case 8992:
@@ -3916,6 +3928,16 @@ void SpellMgr::LoadSpellCustomAttr()
         case 27002:
         case 48571:
         case 48572:
+        case 8676: // Ambush
+        case 8724:
+        case 8725:
+        case 11267:
+        case 11268:
+        case 11269:
+        case 27441:
+        case 48689:
+        case 48690:
+        case 48691:
         case 21987: // Lash of Pain
         case 23959: // Test Stab R50
         case 24825: // Test Backstab
@@ -3948,15 +3970,14 @@ void SpellMgr::LoadSpellCustomAttr()
             spellInfo->EffectImplicitTargetA[1] = TARGET_UNIT_TARGET_ENEMY;
             ++count;
             break;
-        // Chains of Ice
-        case 45524:
-            // this will fix self-damage caused by Glyph of Chains of Ice
-            spellInfo->EffectImplicitTargetA[2] = TARGET_UNIT_TARGET_ENEMY;
-            ++count;
-            break;
         case 8494: // Mana Shield (rank 2)
             // because of bug in dbc
             spellInfo->procChance = 0;
+            ++count;
+            break;
+        case 45524: // Chains of Ice
+            // this will fix self-damage caused by Glyph of Chains of Ice
+            spellInfo->EffectImplicitTargetA[2] = TARGET_UNIT_TARGET_ENEMY;
             ++count;
             break;
         case 32182: // Heroism
@@ -4237,6 +4258,10 @@ void SpellMgr::LoadSpellCustomAttr()
             ++count;
             break;
         // some dummy spell only has dest, should push caster in this case
+        case 62324: // Throw Passenger
+            spellInfo->Targets |= TARGET_FLAG_UNIT_ALLY;
+            ++count;
+            break;
         case 66665: // Burning Breath
             spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_TARGET_ENEMY;
             ++count;

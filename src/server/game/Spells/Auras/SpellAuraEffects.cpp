@@ -4894,6 +4894,7 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
                             target->CastSpell((Unit*)NULL, GetAmount(), true, NULL, this);
                             break;
                         case 58600: // Restricted Flight Area
+                        case 58730: // Restricted Flight Area
                             if (aurApp->GetRemoveMode() == AURA_REMOVE_BY_EXPIRE)
                                 target->CastSpell(target, 58601, true);
                             break;
@@ -4906,6 +4907,18 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
                         AuraRemoveMode mode = aurApp->GetRemoveMode();
                         if (caster && (mode == AURA_REMOVE_BY_ENEMY_SPELL || mode == AURA_REMOVE_BY_EXPIRE))
                             caster->CastSpell(target, GetAmount(), true);
+                    }
+                    break;
+                case SPELLFAMILY_ROGUE:
+                    switch (GetId())
+                    {
+                        case 59628: // Tricks of the Trade
+                            caster->SetReducedThreatPercent(0, 0);
+                            break;
+                        case 57934: // Tricks of the Trade
+                            if (aurApp->GetRemoveMode() != AURA_REMOVE_BY_DEFAULT)
+                                caster->SetReducedThreatPercent(0, 0);
+                            break;
                     }
                     break;
                 case SPELLFAMILY_WARLOCK:

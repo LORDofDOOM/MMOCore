@@ -2793,18 +2793,6 @@ void Spell::SelectEffectTargets(uint32 i, uint32 cur)
                         unitList.sort(Trinity::PowerPctOrderPred((Powers)power));
                         unitList.resize(maxSize);
                     }
-                    // Replenishment: refresh existing auras
-                    if (m_spellInfo->Id == 57669)
-                        for (std::list<Unit *>::iterator itr = unitList.begin(); itr != unitList.end();)
-                            if (AuraEffect * aurEff = (*itr)->GetAuraEffect(SPELL_AURA_PERIODIC_ENERGIZE, SPELLFAMILY_GENERIC, 3184, EFFECT_0))
-                            {
-                                aurEff->SetAmount((*itr)->GetMaxPower(POWER_MANA) * 25 / 10000);
-                                aurEff->GetBase()->RefreshDuration();
-
-                                itr = unitList.erase(itr);
-                            }
-                            else
-                                ++itr;
                 }
             }
 
@@ -5512,8 +5500,9 @@ SpellCastResult Spell::CheckCast(bool strict)
                         // Wintergrasp Antifly check
                         if (sWorld->getBoolConfig(CONFIG_OUTDOORPVP_WINTERGRASP_ENABLED))
                         {
-                          if (m_originalCaster->GetZoneId() == 4197 && pvpWG && pvpWG != 0  && pvpWG->isWarTime()==true)
-                          return m_IsTriggeredSpell ? SPELL_FAILED_DONT_REPORT : SPELL_FAILED_NOT_HERE;
+                            OutdoorPvPWG *pvpWG = (OutdoorPvPWG*)sOutdoorPvPMgr->GetOutdoorPvPToZoneId(4197);
+                            if (m_originalCaster->GetZoneId() == 4197 && pvpWG && pvpWG != 0  && pvpWG->isWarTime())
+                                return m_IsTriggeredSpell ? SPELL_FAILED_DONT_REPORT : SPELL_FAILED_NOT_HERE;
                         }
                     }
                 }
