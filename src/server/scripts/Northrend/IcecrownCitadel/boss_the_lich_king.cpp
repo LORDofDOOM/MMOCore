@@ -710,7 +710,7 @@ class boss_the_lich_king : public CreatureScript
                                 case EVENT_SUMMON_SHAMBLING_HORROR:
                                 {
                                     DoCast(SPELL_SUMMON_SHAMBLING_HORROR);
-                                    events.ScheduleEvent(EVENT_SUMMON_SHAMBLING_HORROR, 35000, 0, PHASE_1);
+                                    events.ScheduleEvent(EVENT_SUMMON_SHAMBLING_HORROR, 45000, 0, PHASE_1);
                                     break;
                                 }
                                 case EVENT_SUMMON_DRUDGE_GHOULS:
@@ -1858,8 +1858,8 @@ class spell_lich_king_pain_and_suffering_effect : public SpellScriptLoader
             void Register()
             {
                 OnUnitTargetSelect += SpellUnitTargetFn(spell_lich_king_pain_and_suffering_effect_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_TARGET_ENEMY);
-                OnUnitTargetSelect += SpellUnitTargetFn(spell_lich_king_pain_and_suffering_effect_SpellScript::FilterTargets, EFFECT_1, TARGET_UNIT_AREA_PATH);
-                OnUnitTargetSelect += SpellUnitTargetFn(spell_lich_king_pain_and_suffering_effect_SpellScript::FilterTargets, EFFECT_2, TARGET_UNIT_AREA_PATH);
+                OnUnitTargetSelect += SpellUnitTargetFn(spell_lich_king_pain_and_suffering_effect_SpellScript::FilterTargets, EFFECT_1, TARGET_UNIT_CONE_ENEMY_104);
+                OnUnitTargetSelect += SpellUnitTargetFn(spell_lich_king_pain_and_suffering_effect_SpellScript::FilterTargets, EFFECT_2, TARGET_UNIT_CONE_ENEMY_104);
             }
         };
 
@@ -2025,12 +2025,12 @@ class spell_lich_king_defile : public SpellScriptLoader
                 m_radius = 8.0f + m_hitCount;
                 //Find targets
                 std::list<Unit *> targets;
-                Trinity::AnyUnfriendlyAttackableVisibleUnitInObjectRangeCheck checker(caster, m_radius);
+                Trinity::AnyUnfriendlyUnitInObjectRangeCheck checker(caster, caster, m_radius); 
 
-                Trinity::UnitListSearcher<Trinity::AnyUnfriendlyAttackableVisibleUnitInObjectRangeCheck> searcher(caster, targets, checker);
+                Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(caster, targets, checker);
 
-                TypeContainerVisitor<Trinity::UnitListSearcher<Trinity::AnyUnfriendlyAttackableVisibleUnitInObjectRangeCheck>, WorldTypeMapContainer > world_unit_searcher(searcher);
-                TypeContainerVisitor<Trinity::UnitListSearcher<Trinity::AnyUnfriendlyAttackableVisibleUnitInObjectRangeCheck>, GridTypeMapContainer >  grid_unit_searcher(searcher);
+                TypeContainerVisitor<Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck>, WorldTypeMapContainer > world_unit_searcher(searcher);
+                TypeContainerVisitor<Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck>, GridTypeMapContainer >  grid_unit_searcher(searcher);
 
                 CellPair p(Trinity::ComputeCellPair(caster->GetPositionX(), caster->GetPositionY()));
                 Cell cell(p);
@@ -2047,7 +2047,7 @@ class spell_lich_king_defile : public SpellScriptLoader
                 if (SpellInfo const* defileDamage = sSpellMgr->GetSpellForDifficultyFromSpell(sSpellMgr->GetSpellInfo(SPELL_DEFILE_DAMAGE), caster))
                 {
                     triggeredSpellId = defileDamage->Id;
-                    triggeredSpellBaseDamage = (int32)(defileDamage->Effects[EFFECT_0].BasePoints * (1.0f + (pMap->IsHeroic() ? 0.1f : 0.05f) * m_hitCount));
+                    triggeredSpellBaseDamage = (int32)(defileDamage->Effects[EFFECT_0].CalcValue() * (1.0f + (pMap->IsHeroic() ? 0.1f : 0.05f) * m_hitCount));
                 }
 
                 values.AddSpellMod(SPELLVALUE_BASE_POINT0, ((int32)(triggeredSpellBaseDamage)));
@@ -2168,7 +2168,7 @@ class spell_lich_king_valkyr_summon : public SpellScriptLoader
                     caster->GetRandomNearPosition(randomPos, 10.0f);
                     randomPos.m_positionZ = caster->GetPositionZ() + 6.0f;
                     uint32 triggerSpellId = GetSpellInfo()->Effects[aurEff->GetEffIndex()].TriggerSpell;
-                    caster->CastSpell(randomPos.GetPositionX(), randomPos.GetPositionY(), randomPos.GetPositionZ(), triggerSpellId, true, NULL, NULL, GetCasterGUID(), caster);
+                    caster->CastSpell(randomPos.GetPositionX(), randomPos.GetPositionY(), randomPos.GetPositionZ(), triggerSpellId, true, NULL, NULL, GetCasterGUID());
                 }
             }
 
@@ -2216,7 +2216,7 @@ class spell_lich_king_vile_spirit_summon : public SpellScriptLoader
                 Position pos;
                 caster->GetRandomNearPosition(pos, 13.0f);
                 pos.m_positionZ = npc_vile_spirit_icc::Z_VILE_SPIRIT;
-                uint32 triggeredSpell = aurEff->GetSpellInfo()->Effects[aurEff->GetEffIndex()].TriggerSpell;
+                uint32 triggeredSpell = GetSpellInfo()->Effects[aurEff->GetEffIndex()].TriggerSpell;
                 caster->CastSpell(pos.m_positionX, pos.m_positionY, pos.m_positionZ, triggeredSpell, true);
             }
 
@@ -2252,7 +2252,7 @@ class spell_lich_king_vile_spirit_summon_visual : public SpellScriptLoader
                 Position pos;
                 caster->GetRandomNearPosition(pos, 13.0f);
                 pos.m_positionZ = npc_vile_spirit_icc::Z_VILE_SPIRIT;
-                uint32 triggeredSpell = aurEff->GetSpellInfo()->Effects[aurEff->GetEffIndex()].TriggerSpell;
+                uint32 triggeredSpell = GetSpellInfo()->Effects[aurEff->GetEffIndex()].TriggerSpell;
                 caster->CastSpell(pos.m_positionX, pos.m_positionY, pos.m_positionZ, triggeredSpell, true);
             }
 
@@ -2586,7 +2586,7 @@ class spell_valkyr_target_search : public SpellScriptLoader
 
             void Register()
             {
-                OnUnitTargetSelect += SpellUnitTargetFn(spell_valkyr_target_search_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_AREA_ENEMY_SRC);
+                OnUnitTargetSelect += SpellUnitTargetFn(spell_valkyr_target_search_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENEMY);
                 OnEffect += SpellEffectFn(spell_valkyr_target_search_SpellScript::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
             }
         };
