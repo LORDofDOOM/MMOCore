@@ -373,7 +373,6 @@ void AddSC_paladin_spell_scripts()
     new spell_pal_blessing_of_sanctuary();
     new spell_pal_sacred_shield();
     new spell_pal_guarded_by_the_light();
-    new spell_pal_sacred_shield();
     new spell_pal_holy_shock();
     new spell_pal_judgement_of_command();
 }
