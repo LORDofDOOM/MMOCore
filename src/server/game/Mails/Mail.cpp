@@ -302,7 +302,7 @@ void WorldSession::SendExternalMails()
             uint32 itemId = fields[5].GetUInt32();
             uint32 itemCount = fields[6].GetUInt32();
 
-            Player *receiver = sObjectMgr->GetPlayer( receiver_guid );
+            Player *receiver = ObjectAccessor::FindPlayer( receiver_guid );
 
             if (id != last_id)
             {
