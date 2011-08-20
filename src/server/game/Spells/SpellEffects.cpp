@@ -872,10 +872,6 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                     }
                     return;
                 }
-                case 20577:                                 // Cannibalize
-                    if (unitTarget)
-                        m_caster->CastSpell(m_caster, 20578, false, NULL);
-                    return;
                 case 23019:                                 // Crystal Prison Dummy DND
                 {
                     if (!unitTarget || !unitTarget->isAlive() || unitTarget->GetTypeId() != TYPEID_UNIT || unitTarget->ToCreature()->isPet())
@@ -3262,7 +3258,7 @@ void Spell::EffectDispel(SpellEffIndex effIndex)
         if (aura->IsPassive())
             continue;
 
-        if ((aura->GetSpellInfo()->GetDispelMask()) & dispelMask)
+        if (aura->GetSpellInfo()->GetDispelMask() & dispelMask)
         {
             if (aura->GetSpellInfo()->Dispel == DISPEL_MAGIC)
             {
@@ -5290,27 +5286,18 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                         m_caster->ToPlayer()->learnSpell(discoveredSpell, false);
                     return;
                 }
-                case 62428: // Load into Catapult
-                {
-                    if (Vehicle* seat = m_caster->GetVehicleKit())
-                        if (Unit* passenger = seat->GetPassenger(0))
-                            if (Unit* demolisher = m_caster->GetVehicleBase())
-                                passenger->CastSpell(demolisher, damage, true);
-                    return;
-                }
                 case 62482: // Grab Crate
                 {
                     if (unitTarget)
                     {
-                        if (Vehicle* seat = m_caster->GetVehicleKit())
+                        if (Unit* seat = m_caster->GetVehicleBase())
                         {
-                            if (Unit* passenger = seat->GetPassenger(1))
-                                if (Creature* oldContainer = passenger->ToCreature())
-                                    oldContainer->DisappearAndDie();
-
-                            // TODO: a hack, range = 11, should after some time cast, otherwise too far
-                            m_caster->CastSpell(seat->GetBase(), 62496, true);
-                            unitTarget->EnterVehicle(m_caster, 1);
+                            if (Unit* parent = seat->GetVehicleBase())
+                            {
+                                // TODO: a hack, range = 11, should after some time cast, otherwise too far
+                                m_caster->CastSpell(parent, 62496, true);
+                                unitTarget->CastSpell(parent, m_spellInfo->Effects[EFFECT_0].CalcValue());
+                            }
                         }
                     }
                     return;
