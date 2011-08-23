@@ -19,6 +19,8 @@
 #define _SPELLINFO_H
 
 #include "SharedDefines.h"
+#include "Util.h"
+#include "DBCStructure.h"
 
 class Unit;
 class Player;
@@ -390,6 +392,7 @@ public:
     bool IsRangedWeaponSpell() const;
     bool IsAutoRepeatRangedSpell() const;
 
+    bool IsAffectedBySpellMods() const;
     bool IsAffectedBySpellMod(SpellModifier* mod) const;
 
     bool CanPierceImmuneAura(SpellInfo const* aura) const;
