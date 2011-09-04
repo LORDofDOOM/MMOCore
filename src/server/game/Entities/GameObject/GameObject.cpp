@@ -1636,6 +1636,8 @@ void GameObject::CastSpell(Unit* target, uint32 spellId)
     if (Unit* owner = GetOwner())
     {
         trigger->setFaction(owner->getFaction());
+        // needed for GO casts for proper target validation checks
+        trigger->SetUInt64Value(UNIT_FIELD_SUMMONEDBY, owner->GetGUID());
         trigger->CastSpell(target ? target : trigger, spellInfo, true, 0, 0, owner->GetGUID());
     }
     else
@@ -1806,7 +1808,7 @@ void GameObject::SetDestructibleState(GameObjectDestructibleState state, Player*
             if (DestructibleModelDataEntry const* modelData = sDestructibleModelDataStore.LookupEntry(m_goInfo->building.destructibleData))
                 if (modelData->DamagedDisplayId)
                     modelId = modelData->DamagedDisplayId;
-            //Temporary hack for Fortress towers when it cannot be damaged after been half damaged
+            //WG Temporary hack for Fortress towers when it cannot be damaged after been half damaged
             if (m_goInfo->entry != 190378 && m_goInfo->entry != 190377 && m_goInfo->entry != 190373 && m_goInfo->entry != 190221)
             SetUInt32Value(GAMEOBJECT_DISPLAYID, modelId);
 
