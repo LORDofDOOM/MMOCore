@@ -967,13 +967,19 @@ SpellBonusEntry const* SpellMgr::GetSpellBonusData(uint32 spellId) const
     return NULL;
 }
 
-uint16 SpellMgr::GetSpellThreat(uint32 spellid) const
+SpellThreatEntry const* SpellMgr::GetSpellThreatEntry(uint32 spellID) const
 {
-    SpellThreatMap::const_iterator itr = mSpellThreatMap.find(spellid);
-    if (itr == mSpellThreatMap.end())
-        return 0;
-
-    return itr->second;
+    SpellThreatMap::const_iterator itr = mSpellThreatMap.find(spellID);
+    if (itr != mSpellThreatMap.end())
+        return &itr->second;
+    else
+    {
+        uint32 firstSpell = GetFirstSpellInChain(spellID);
+        SpellThreatMap::const_iterator itr = mSpellThreatMap.find(firstSpell);
+        if (itr != mSpellThreatMap.end())
+            return &itr->second;
+    }
+    return NULL;
 }
 
 SkillLineAbilityMapBounds SpellMgr::GetSkillLineAbilityMapBounds(uint32 spell_id) const
@@ -1962,8 +1968,8 @@ void SpellMgr::LoadSpellThreats()
 
     uint32 count = 0;
 
-    //                                                0      1
-    QueryResult result = WorldDatabase.Query("SELECT entry, Threat FROM spell_threat");
+    //                                                0      1        2       3
+    QueryResult result = WorldDatabase.Query("SELECT entry, flatMod, pctMod, apPctMod FROM spell_threat");
     if (!result)
     {
         sLog->outString(">> Loaded 0 aggro generating spells");
@@ -1976,7 +1982,6 @@ void SpellMgr::LoadSpellThreats()
         Field *fields = result->Fetch();
 
         uint32 entry = fields[0].GetUInt32();
-        uint16 Threat = fields[1].GetUInt16();
 
         if (!GetSpellInfo(entry))
         {
@@ -1984,12 +1989,16 @@ void SpellMgr::LoadSpellThreats()
             continue;
         }
 
-        mSpellThreatMap[entry] = Threat;
+        SpellThreatEntry ste;
+        ste.flatMod  = fields[1].GetInt16();
+        ste.pctMod   = fields[2].GetFloat();
+        ste.apPctMod = fields[3].GetFloat();
 
-        ++count;
+        mSpellThreatMap[entry] = ste;
+        count++;
     } while (result->NextRow());
 
-    sLog->outString(">> Loaded %u aggro generating spells in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
+    sLog->outString(">> Loaded %u SpellThreatEntries in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
     sLog->outString();
 }
 
@@ -2656,6 +2665,18 @@ void SpellMgr::LoadSpellCustomAttr()
                 case SPELL_AURA_MOD_STUN:
                     spellInfo->AttributesCu |= SPELL_ATTR0_CU_AURA_CC;
                     break;
+                case SPELL_AURA_PERIODIC_HEAL:
+                case SPELL_AURA_PERIODIC_DAMAGE:
+                case SPELL_AURA_PERIODIC_DAMAGE_PERCENT:
+                case SPELL_AURA_PERIODIC_LEECH:
+                case SPELL_AURA_PERIODIC_MANA_LEECH:
+                case SPELL_AURA_PERIODIC_HEALTH_FUNNEL:
+                case SPELL_AURA_PERIODIC_ENERGIZE:
+                case SPELL_AURA_OBS_MOD_HEALTH:
+                case SPELL_AURA_OBS_MOD_POWER:
+                case SPELL_AURA_POWER_BURN:
+                    spellInfo->AttributesCu |= SPELL_ATTR0_CU_NO_INITIAL_THREAT;
+                    break;
             }
 
             switch (spellInfo->Effects[j].Effect)
@@ -2667,6 +2688,16 @@ void SpellMgr::LoadSpellCustomAttr()
                 case SPELL_EFFECT_WEAPON_PERCENT_DAMAGE:
                 case SPELL_EFFECT_HEAL:
                     spellInfo->AttributesCu |= SPELL_ATTR0_CU_DIRECT_DAMAGE;
+                    break;
+                case SPELL_EFFECT_POWER_DRAIN:
+                case SPELL_EFFECT_POWER_BURN:
+                case SPELL_EFFECT_HEAL_MAX_HEALTH:
+                case SPELL_EFFECT_HEALTH_LEECH:
+                case SPELL_EFFECT_HEAL_PCT:
+                case SPELL_EFFECT_ENERGIZE_PCT:
+                case SPELL_EFFECT_ENERGIZE:
+                case SPELL_EFFECT_HEAL_MECHANICAL:
+                    spellInfo->AttributesCu |= SPELL_ATTR0_CU_NO_INITIAL_THREAT;
                     break;
                 case SPELL_EFFECT_CHARGE:
                 case SPELL_EFFECT_CHARGE_DEST:
@@ -2974,6 +3005,9 @@ void SpellMgr::LoadDbcDataCorrections()
                 spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_NEARBY_ENTRY;
                 spellInfo->EffectImplicitTargetB[0] = TARGET_DEST_NEARBY_ENTRY;
                 break;
+            case 19465: // Improved Stings, only rank 2 of this spell has target for effect 2 = TARGET_DST_DB
+                spellInfo->EffectImplicitTargetA[2] = TARGET_UNIT_CASTER;
+                break;
             case 59725: // Improved Spell Reflection - aoe aura
                 // Target entry seems to be wrong for this spell :/
                 spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_CASTER_AREA_PARTY;
@@ -3074,6 +3108,7 @@ void SpellMgr::LoadDbcDataCorrections()
             case 57761: // Fireball!
             case 39805: // Lightning Overload
             case 64823: // Item - Druid T8 Balance 4P Bonus
+            case 34477: // Misdirection
             case 44401: // Missile Barrage
                 spellInfo->procCharges = 1;
                 break;
@@ -3294,6 +3329,11 @@ void SpellMgr::LoadDbcDataCorrections()
                 // that will be clear if we get more spells with problem like this
                 spellInfo->AttributesEx |= SPELL_ATTR1_DISPEL_AURAS_ON_IMMUNITY;
                 break;
+            case 62584: // Lifebinder's Gift
+            case 64185: // Lifebinder's Gift
+                spellInfo->EffectImplicitTargetB[1] = TARGET_UNIT_NEARBY_ENTRY;
+                spellInfo->EffectImplicitTargetB[2] = TARGET_UNIT_NEARBY_ENTRY;
+                break;
             // ENDOF ULDUAR SPELLS
             //
             // TRIAL OF THE CRUSADER SPELLS
@@ -3409,6 +3449,16 @@ void SpellMgr::LoadDbcDataCorrections()
                 spellInfo->EffectImplicitTargetA[0] = TARGET_DEST_TARGET_ANY;
                 spellInfo->EffectImplicitTargetB[0] = TARGET_UNIT_TARGET_ANY;
                 spellInfo->Effect[1] = 0;
+                break;
+            case 68282: // Charge (ToC mount)
+                spellInfo->Effect[0] = SPELL_EFFECT_SCHOOL_DAMAGE;
+                spellInfo->Effect[1] = SPELL_EFFECT_CHARGE;
+                spellInfo->EffectImplicitTargetA[1] = TARGET_UNIT_TARGET_ENEMY;
+                spellInfo->EffectBasePoints[0] = 20*1000;
+            break;
+            case 51678: //WintergraspSiegeEngine Ram set damage radius to 5 yards
+                spellInfo->EffectRadiusIndex[0] = 52;
+                spellInfo->EffectRadiusIndex[1] = 52;
                 break;
             case 51590: // Toss Ice Boulder
                 spellInfo->MaxAffectedTargets = 1;

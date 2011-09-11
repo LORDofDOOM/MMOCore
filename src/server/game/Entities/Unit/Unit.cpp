@@ -800,12 +800,7 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
             victim->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_DIRECT_DAMAGE, spellProto ? spellProto->Id : 0);
 
         if (victim->GetTypeId() != TYPEID_PLAYER)
-        {
-            if (spellProto && IsDamageToThreatSpell(spellProto))
-                victim->AddThreat(this, damage * 2.0f, damageSchoolMask, spellProto);
-            else
-                victim->AddThreat(this, (float)damage, damageSchoolMask, spellProto);
-        }
+            victim->AddThreat(this, float(damage), damageSchoolMask, spellProto);
         else                                                // victim is a player
         {
             // random durability for items (HIT TAKEN)
@@ -906,12 +901,12 @@ void Unit::CastSpell(Unit* victim, uint32 spellId, TriggerCastFlags triggerFlags
     CastSpell(victim, spellInfo, triggerFlags, castItem, triggeredByAura, originalCaster);
 }
 
-void Unit::CastSpell(Unit* victim, SpellInfo const *spellInfo, bool triggered, Item *castItem/*= NULL*/, AuraEffect const* triggeredByAura /*= NULL*/, uint64 originalCaster /*= 0*/)
+void Unit::CastSpell(Unit* victim, SpellInfo const* spellInfo, bool triggered, Item *castItem/*= NULL*/, AuraEffect const* triggeredByAura /*= NULL*/, uint64 originalCaster /*= 0*/)
 {
     CastSpell(victim, spellInfo, triggered ? TRIGGERED_FULL_MASK : TRIGGERED_NONE, castItem, triggeredByAura, originalCaster);
 }
 
-void Unit::CastSpell(Unit* Victim, SpellInfo const* spellInfo, TriggerCastFlags triggerFlags, Item* castItem, AuraEffect const* triggeredByAura, uint64 originalCaster)
+void Unit::CastSpell(Unit* victim, SpellInfo const* spellInfo, TriggerCastFlags triggerFlags, Item* castItem, AuraEffect const* triggeredByAura, uint64 originalCaster)
 {
     if (!spellInfo)
     {
@@ -924,7 +919,7 @@ void Unit::CastSpell(Unit* Victim, SpellInfo const* spellInfo, TriggerCastFlags 
             originalCaster=owner->GetGUID();
 
     SpellCastTargets targets;
-    targets.SetUnitTarget(Victim);
+    targets.SetUnitTarget(victim);
 
     if (castItem)
         sLog->outStaticDebug("WORLD: cast Item spellId - %i", spellInfo->Id);
@@ -957,7 +952,7 @@ void Unit::CastCustomSpell(uint32 spellId, SpellValueMod mod, int32 value, Unit*
     CastCustomSpell(spellId, values, target, triggered, castItem, triggeredByAura, originalCaster);
 }
 
-void Unit::CastCustomSpell(uint32 spellId, CustomSpellValues const& value, Unit* Victim, bool triggered, Item* castItem, AuraEffect const* triggeredByAura, uint64 originalCaster)
+void Unit::CastCustomSpell(uint32 spellId, CustomSpellValues const& value, Unit* victim, bool triggered, Item* castItem, AuraEffect const* triggeredByAura, uint64 originalCaster)
 {
     SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId);
     if (!spellInfo)
@@ -967,7 +962,7 @@ void Unit::CastCustomSpell(uint32 spellId, CustomSpellValues const& value, Unit*
     }
 
     SpellCastTargets targets;
-    targets.SetUnitTarget(Victim);
+    targets.SetUnitTarget(victim);
 
     if (!originalCaster && triggeredByAura)
         originalCaster = triggeredByAura->GetCasterGUID();
@@ -2029,7 +2024,7 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst(const Unit* victim, WeaponAttackTy
 
     // Miss chance based on melee
     //float miss_chance = MeleeMissChanceCalc(victim, attType);
-    float miss_chance = MeleeSpellMissChance(victim, attType, int32(GetWeaponSkillValue(attType, victim)) - int32(victim->GetDefenseSkillValue(this)), 0);
+    float miss_chance = MeleeSpellMissChance(victim, attType, int32(GetWeaponSkillValue(attType, victim)) - int32(GetMaxSkillValueForLevel(this)), 0);
 
     // Critical hit chance
     float crit_chance = GetUnitCriticalChance(attType, victim);
@@ -2331,7 +2326,7 @@ int32 Unit::GetMechanicResistChance(const SpellInfo *spell)
     int32 resist_mech = 0;
     for (uint8 eff = 0; eff < MAX_SPELL_EFFECTS; ++eff)
     {
-        if (spell->Effects[eff].Effect == 0)
+        if (!spell->Effects[eff].IsEffect())
            break;
         int32 effect_mech = spell->GetEffectMechanic(eff);
         if (effect_mech)
@@ -2368,11 +2363,10 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit* victim, SpellInfo const* spell)
         attackerWeaponSkill = int32(GetWeaponSkillValue(attType, victim));
 
     int32 skillDiff = attackerWeaponSkill - int32(victim->GetMaxSkillValueForLevel(this));
-    int32 fullSkillDiff = attackerWeaponSkill - int32(victim->GetDefenseSkillValue(this));
 
     uint32 roll = urand (0, 10000);
 
-    uint32 missChance = uint32(MeleeSpellMissChance(victim, attType, fullSkillDiff, spell->Id) * 100.0f);
+    uint32 missChance = uint32(MeleeSpellMissChance(victim, attType, skillDiff, spell->Id) * 100.0f);
     // Roll miss
     uint32 tmp = missChance;
     if (roll < tmp)
@@ -2757,6 +2751,21 @@ float Unit::GetUnitParryChance() const
     }
 
     return chance > 0.0f ? chance : 0.0f;
+}
+
+float Unit::GetUnitMissChance(WeaponAttackType attType) const
+{
+    float miss_chance = 5.00f;
+
+    if (Player const* player = ToPlayer())
+        miss_chance += player->GetMissPercentageFromDefence();
+
+    if (attType == RANGED_ATTACK)
+        miss_chance -= GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_HIT_CHANCE);
+    else
+        miss_chance -= GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_HIT_CHANCE);
+
+    return miss_chance;
 }
 
 float Unit::GetUnitBlockChance() const
@@ -5828,20 +5837,17 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 {
                     switch (dummySpell->Id)
                     {
-                        case 11119: basepoints0 = int32(0.08f * damage); break;
-                        case 11120: basepoints0 = int32(0.16f * damage); break;
-                        case 12846: basepoints0 = int32(0.24f * damage); break;
-                        case 12847: basepoints0 = int32(0.32f * damage); break;
-                        case 12848: basepoints0 = int32(0.40f * damage); break;
+                        case 11119: basepoints0 = int32(0.04f * damage); break;
+                        case 11120: basepoints0 = int32(0.08f * damage); break;
+                        case 12846: basepoints0 = int32(0.12f * damage); break;
+                        case 12847: basepoints0 = int32(0.16f * damage); break;
+                        case 12848: basepoints0 = int32(0.20f * damage); break;
                         default:
                             sLog->outError("Unit::HandleDummyAuraProc: non handled spell id: %u (IG)", dummySpell->Id);
                             return false;
                     }
 
-                    // 2 damage tick
-                    basepoints0 /= 2;
                     triggered_spell_id = 12654;
-                    // Add remaining ticks to damage done
                     basepoints0 += victim->GetRemainingPeriodicAmount(GetGUID(), triggered_spell_id, SPELL_AURA_PERIODIC_DAMAGE);
                     break;
                 }
@@ -6690,6 +6696,12 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
 
             switch (dummySpell->Id)
             {
+                case 34477: // Misdirection
+                {
+                    triggered_spell_id = 35079; // 4 sec buff on self
+                    target = this;
+                    return true;
+                }
                 case 57870: // Glyph of Mend Pet
                 {
                     victim->CastSpell(victim, 57894, true, NULL, NULL, GetGUID());
@@ -8239,7 +8251,10 @@ bool Unit::HandleAuraProc(Unit* victim, uint32 damage, Aura* triggeredByAura, Sp
                     CastCustomSpell(this, 70845, &basepoints0, NULL, NULL, true);
                     break;
                 }
+                default:
+                    break;
             }
+            break;
         }
     }
     return false;
@@ -10477,6 +10492,9 @@ void Unit::EnergizeBySpell(Unit* victim, uint32 spellID, uint32 damage, Powers p
     SendEnergizeSpellLog(victim, spellID, damage, powerType);
     // needs to be called after sending spell log
     victim->ModifyPower(powerType, damage);
+
+    SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellID);
+    victim->getHostileRefManager().threatAssist(this, float(damage) * 0.5f, spellInfo);
 }
 
 uint32 Unit::SpellDamageBonus(Unit* victim, SpellInfo const* spellProto, uint32 pdamage, DamageEffectType damagetype, uint32 stack)
@@ -10507,7 +10525,7 @@ uint32 Unit::SpellDamageBonus(Unit* victim, SpellInfo const* spellProto, uint32 
 
     AuraEffectList const& mModDamagePercentDone = GetAuraEffectsByType(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
     for (AuraEffectList::const_iterator i = mModDamagePercentDone.begin(); i != mModDamagePercentDone.end(); ++i)
-        if ((*i)->GetMiscValue() & spellProto->GetSchoolMask() && !(spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_NORMAL))
+        if ((*i)->GetMiscValue() & spellProto->GetSchoolMask())
         {
             if ((*i)->GetSpellInfo()->EquippedItemClass == -1)
                 AddPctN(DoneTotalMod, (*i)->GetAmount());
@@ -11770,36 +11788,6 @@ bool Unit::IsImmunedToSpellEffect(SpellInfo const* spellInfo, uint32 index) cons
                 ((*iter)->GetMiscValue() & spellInfo->GetSchoolMask()) &&  // Check school
                 !spellInfo->IsPositiveEffect(index))                                  // Harmful
                 return true;
-    }
-
-    return false;
-}
-
-bool Unit::IsDamageToThreatSpell(SpellInfo const* spellInfo) const
-{
-    if (!spellInfo)
-        return false;
-
-    switch(spellInfo->SpellFamilyName)
-    {
-        case SPELLFAMILY_WARLOCK:
-            if (spellInfo->SpellFamilyFlags[0] == 0x100) // Searing Pain
-                return true;
-            break;
-        case SPELLFAMILY_SHAMAN:
-            if (spellInfo->SpellFamilyFlags[0] == SPELLFAMILYFLAG_SHAMAN_FROST_SHOCK)
-                return true;
-            break;
-        case SPELLFAMILY_DEATHKNIGHT:
-            if (spellInfo->SpellFamilyFlags[1] == 0x20000000) // Rune Strike
-                return true;
-            if (spellInfo->SpellFamilyFlags[2] == 0x8) // Death and Decay
-                return true;
-            break;
-        case SPELLFAMILY_WARRIOR:
-            if (spellInfo->SpellFamilyFlags[0] == 0x80) // Thunder Clap
-                return true;
-            break;
     }
 
     return false;
@@ -14395,7 +14383,7 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* pTarget, uint32 procFlag, 
             continue;
 
         // Triggered spells not triggering additional spells
-        bool triggered= !(spellProto->AttributesEx3 & SPELL_ATTR3_CAN_PROC_WITH_TRIGGERED) ?
+        bool triggered = !(spellProto->AttributesEx3 & SPELL_ATTR3_CAN_PROC_WITH_TRIGGERED) ?
             (procExtra & PROC_EX_INTERNAL_TRIGGERED && !(procFlag & PROC_FLAG_DONE_TRAP_ACTIVATION)) : false;
 
         for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
@@ -16580,51 +16568,43 @@ void Unit::ApplyResilience(Unit const* victim, float* crit, int32* damage, bool 
 // Crit or block - determined on damage calculation phase! (and can be both in some time)
 float Unit::MeleeSpellMissChance(const Unit* victim, WeaponAttackType attType, int32 skillDiff, uint32 spellId) const
 {
-    // Calculate hit chance (more correct for chance mod)
-    int32 HitChance;
+    //calculate miss chance
+    float missChance = victim->GetUnitMissChance(attType);
 
-    // PvP - PvE melee chances
-    if (spellId || attType == RANGED_ATTACK || !haveOffhandWeapon())
-        HitChance = 95;
-    else
-        HitChance = 76;
-
-    // Hit chance depends from victim auras
-    if (attType == RANGED_ATTACK)
-        HitChance += victim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_HIT_CHANCE);
-    else
-        HitChance += victim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_HIT_CHANCE);
-
-    // Spellmod from SPELLMOD_RESIST_MISS_CHANCE
-    if (spellId)
-    {
-        if (Player* modOwner = GetSpellModOwner())
-            modOwner->ApplySpellMod(spellId, SPELLMOD_RESIST_MISS_CHANCE, HitChance);
-    }
-
-    // Miss = 100 - hit
-    float miss_chance = 100.0f - HitChance;
-
-    // Bonuses from attacker aura and ratings
-    if (attType == RANGED_ATTACK)
-        miss_chance -= m_modRangedHitChance;
-    else
-        miss_chance -= m_modMeleeHitChance;
+    if (!spellId && haveOffhandWeapon())
+        missChance += 19;
 
     // bonus from skills is 0.04%
     //miss_chance -= skillDiff * 0.04f;
     int32 diff = -skillDiff;
     if (victim->GetTypeId() == TYPEID_PLAYER)
-        miss_chance += diff > 0 ? diff * 0.04f : diff * 0.02f;
+        missChance += diff > 0 ? diff * 0.04f : diff * 0.02f;
     else
-        miss_chance += diff > 10 ? diff * 0.4f - 3.0f : diff * 0.1f;
+        missChance += diff > 10 ? 1 + (diff - 10) * 0.4f : diff * 0.1f;
+
+    // Calculate hit chance
+    float hitChance = 100.0f;
+
+    // Spellmod from SPELLMOD_RESIST_MISS_CHANCE
+    if (spellId)
+    {
+        if (Player* modOwner = GetSpellModOwner())
+            modOwner->ApplySpellMod(spellId, SPELLMOD_RESIST_MISS_CHANCE, hitChance);
+    }
+
+    missChance += hitChance - 100.0f;
+
+    if (attType == RANGED_ATTACK)
+        missChance -= m_modRangedHitChance;
+    else
+        missChance -= m_modMeleeHitChance;
 
     // Limit miss chance from 0 to 60%
-    if (miss_chance < 0.0f)
+    if (missChance < 0.0f)
         return 0.0f;
-    if (miss_chance > 60.0f)
+    if (missChance > 60.0f)
         return 60.0f;
-    return miss_chance;
+    return missChance;
 }
 
 void Unit::SetPhaseMask(uint32 newPhaseMask, bool update)
