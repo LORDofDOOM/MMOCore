@@ -102,7 +102,7 @@ public:
             pInstance = c->GetInstanceScript();
         }
 
-        InstanceScript *pInstance;
+        InstanceScript* pInstance;
 
         bool SisterDeath;
         bool Enraged;
@@ -361,7 +361,7 @@ public:
             IntroStepCounter = 10;
         }
 
-        InstanceScript *pInstance;
+        InstanceScript* pInstance;
 
         bool SisterDeath;
         bool Enraged;
@@ -437,9 +437,8 @@ public:
             if (!who || me->getVictim())
                 return;
 
-            if (who->isTargetableForAttack() && who->isInAccessiblePlaceFor(me) && me->IsHostileTo(who))
+            if (me->canCreatureAttack(who))
             {
-
                 float attackRadius = me->GetAttackDistance(who);
                 if (me->IsWithinDistInMap(who, attackRadius) && me->GetDistanceZ(who) <= CREATURE_Z_ATTACK_RANGE && me->IsWithinLOSInMap(who))
                 {

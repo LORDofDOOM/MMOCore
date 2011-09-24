@@ -171,3 +171,13 @@ UPDATE `item_loot_template` SET `ChanceOrQuestChance` = 10 WHERE `item` IN (3387
 DELETE FROM `gossip_menu_option` WHERE `menu_id` = 10368 AND `option_id` = 2;
 INSERT INTO `gossip_menu_option` (`menu_id`, `id`, `option_icon`, `option_text`, `option_id`, `npc_option_npcflag`, `action_menu_id`, `action_poi_id`, `box_coded`, `box_money`, `box_text`) 
  VALUES (10368, 0, 0, 'GOSSIP_OPTION_QUESTGIVER', 2, 2, 0, 0, 0, 0, NULL);
+
+-- Delete non-attackable flag from Army of the Dead Ghoul NPC (24207)
+UPDATE `creature_template` SET `unit_flags`=0 WHERE `entry` =24207;
+
+-- Fix gossips for Dread Captain DeMeza NPC (28048)
+DELETE FROM `conditions` WHERE `SourceGroup`=9647;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(14, 9647, 13059, 0, 11, 50517, 0, 0, 0, '', 'Pirates Day: DeMeza gossip'),
+(14, 9647, 13065, 0, 1, 50517, 0, 0, 0, '', 'Pirates Day: DeMeza gossip'),
+(15, 9647, 0, 0, 11, 50517, 0, 0, 0, '', 'Pirates Day: DeMeza gossip');

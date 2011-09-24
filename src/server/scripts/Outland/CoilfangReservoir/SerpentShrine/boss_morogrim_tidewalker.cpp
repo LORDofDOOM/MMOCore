@@ -96,7 +96,7 @@ public:
 
         InstanceScript* pInstance;
 
-        Map::PlayerList const *PlayerList;
+        Map::PlayerList const* PlayerList;
 
         uint32 TidalWave_Timer;
         uint32 WateryGrave_Timer;
@@ -316,7 +316,7 @@ public:
             if (!who || me->getVictim())
                 return;
 
-            if (who->isTargetableForAttack() && who->isInAccessiblePlaceFor(me) && me->IsHostileTo(who))
+            if (me->canCreatureAttack(who))
             {
                 //no attack radius check - it attacks the first target that moves in his los
                 //who->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);

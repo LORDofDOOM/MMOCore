@@ -47,7 +47,7 @@ public:
         }
     };
 
-    CreatureAI *GetAI(Creature* creature) const
+    CreatureAI* GetAI(Creature* creature) const
     {
         return new npc_agnetta_tyrsdottarAI(creature);
     }
@@ -223,7 +223,7 @@ public:
 
     };
 
-    CreatureAI *GetAI(Creature* creature) const
+    CreatureAI* GetAI(Creature* creature) const
     {
         return new npc_goblin_prisonerAI(creature);
     }
@@ -320,7 +320,7 @@ public:
         return true;
     }
 
-    CreatureAI *GetAI(Creature* creature) const
+    CreatureAI* GetAI(Creature* creature) const
     {
         return new npc_victorious_challengerAI(creature);
     }
@@ -446,7 +446,7 @@ public:
         }
     };
 
-    CreatureAI *GetAI(Creature* creature) const
+    CreatureAI* GetAI(Creature* creature) const
     {
         return new npc_injured_goblinAI(creature);
     }
@@ -466,7 +466,7 @@ public:
         return true;
     }
 
-    bool OnQuestAccept(Player* /*player*/, Creature* creature, Quest const *quest)
+    bool OnQuestAccept(Player* /*player*/, Creature* creature, Quest const* quest)
     {
         if (quest->GetQuestId() == QUEST_BITTER_DEPARTURE)
             DoScriptText(SAY_QUEST_ACCEPT, creature);
@@ -558,7 +558,7 @@ public:
     {
         npc_brunnhildar_prisonerAI(Creature* creature) : ScriptedAI(creature) {}
 
-        Unit* drake;
+        uint64 drakeGUID;
         uint16 enter_timer;
         bool hasEmptySeats;
 
@@ -566,14 +566,25 @@ public:
         {
             me->CastSpell(me, SPELL_ICE_PRISON, true);
             enter_timer = 0;
-            drake = NULL;
+            drakeGUID = 0;
             hasEmptySeats = false;
         }
 
         void UpdateAI(const uint32 diff)
         {
+            //TODO: not good script
+            if (!drakeGUID)
+                return;
+
+            Creature* drake = Unit::GetCreature(*me, drakeGUID);
+            if (!drake)
+            {
+                drakeGUID = 0;
+                return;
+            }
+
             // drake unsummoned, passengers dropped
-            if (drake && !me->IsOnVehicle(drake) && !hasEmptySeats)
+            if (!me->IsOnVehicle(drake) && !hasEmptySeats)
                 me->ForcedDespawn(3000);
 
             if (enter_timer <= 0)
@@ -593,8 +604,15 @@ public:
 
         void MoveInLineOfSight(Unit* unit)
         {
-            if (!unit || !drake)
+            if (!unit || !drakeGUID)
                 return;
+
+            Creature* drake = Unit::GetCreature(*me, drakeGUID);
+            if (!drake)
+            {
+                drakeGUID = 0;
+                return;
+            }
 
             if (!me->IsOnVehicle(drake) && !me->HasAura(SPELL_ICE_PRISON))
             {
@@ -651,7 +669,7 @@ public:
             enter_timer = 500;
 
             if (hitter->IsVehicle())
-                drake = hitter;
+                drakeGUID = hitter->GetGUID();
             else
                 return;
 
@@ -660,7 +678,7 @@ public:
         }
     };
 
-    CreatureAI *GetAI(Creature* creature) const
+    CreatureAI* GetAI(Creature* creature) const
     {
         return new npc_brunnhildar_prisonerAI(creature);
     }

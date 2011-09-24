@@ -187,6 +187,15 @@ void Log::Initialize()
     }
 }
 
+void Log::ReloadConfig()
+{
+    m_logLevel     = sConfig->GetIntDefault("LogLevel", LOGL_NORMAL);
+    m_logFileLevel = sConfig->GetIntDefault("LogFileLevel", LOGL_NORMAL);
+    m_dbLogLevel   = sConfig->GetIntDefault("DBLogLevel", LOGL_NORMAL);
+
+    m_DebugLogMask = DebugLogFilters(sConfig->GetIntDefault("DebugLogMask", LOG_FILTER_NONE));
+}
+
 FILE* Log::openLogFile(char const* configFileName, char const* configTimeStampFlag, char const* mode)
 {
     std::string logfn=sConfig->GetStringDefault(configFileName, "");
@@ -956,7 +965,7 @@ void Log::outChar(const char * str, ...)
 
 void Log::outCharDump(const char * str, uint32 account_id, uint32 guid, const char * name)
 {
-    FILE *file = NULL;
+    FILE* file = NULL;
     if (m_charLog_Dump_Separate)
     {
         char fileName[29]; // Max length: name(12) + guid(11) + _.log (5) + \0

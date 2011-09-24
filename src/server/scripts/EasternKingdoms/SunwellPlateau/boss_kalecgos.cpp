@@ -124,7 +124,7 @@ public:
             me->setActive(true);
         }
 
-        InstanceScript *pInstance;
+        InstanceScript* pInstance;
 
         uint32 ArcaneBuffetTimer;
         uint32 FrostBreathTimer;
@@ -331,7 +331,7 @@ public:
             if (bJustReset)//boss is invisible, don't attack
                 return;
 
-            if (!me->getVictim() && who->isTargetableForAttack() && (me->IsHostileTo(who)))
+            if (!me->getVictim() && me->IsValidAttackTarget(who))
             {
                 float attackRadius = me->GetAttackDistance(who);
                 if (me->IsWithinDistInMap(who, attackRadius))
@@ -445,7 +445,7 @@ public:
 
     struct boss_kalecAI : public ScriptedAI
     {
-        InstanceScript *pInstance;
+        InstanceScript* pInstance;
 
         uint32 RevitalizeTimer;
         uint32 HeroicStrikeTimer;
@@ -582,7 +582,7 @@ public:
             KalecgosGUID = 0;
         }
 
-        InstanceScript *pInstance;
+        InstanceScript* pInstance;
 
         uint32 CorruptionStrikeTimer;
         uint32 AgonyCurseTimer;

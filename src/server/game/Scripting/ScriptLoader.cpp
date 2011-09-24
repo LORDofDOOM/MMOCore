@@ -85,6 +85,7 @@ void AddSC_go_commandscript();
 void AddSC_gobject_commandscript();
 void AddSC_honor_commandscript();
 void AddSC_learn_commandscript();
+void AddSC_misc_commandscript();
 void AddSC_modify_commandscript();
 void AddSC_npc_commandscript();
 void AddSC_quest_commandscript();
@@ -125,6 +126,7 @@ void AddSC_boss_high_interrogator_gerstahn();
 void AddSC_boss_magmus();
 void AddSC_boss_moira_bronzebeard();
 void AddSC_boss_tomb_of_seven();
+void AddSC_boss_coren_direbrew();
 void AddSC_instance_blackrock_depths();
 void AddSC_boss_drakkisath();                //Blackrock Spire
 void AddSC_boss_halycon();
@@ -694,6 +696,7 @@ void AddCommandScripts()
     AddSC_gobject_commandscript();
     AddSC_honor_commandscript();
     AddSC_learn_commandscript();
+    AddSC_misc_commandscript();
     AddSC_modify_commandscript();
     AddSC_npc_commandscript();
     AddSC_quest_commandscript();
@@ -741,6 +744,7 @@ void AddEasternKingdomsScripts()
     AddSC_boss_magmus();
     AddSC_boss_moira_bronzebeard();
     AddSC_boss_tomb_of_seven();
+    AddSC_boss_coren_direbrew();
     AddSC_instance_blackrock_depths();
     AddSC_boss_drakkisath();                //Blackrock Spire
     AddSC_boss_halycon();
