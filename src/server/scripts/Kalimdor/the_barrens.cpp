@@ -101,9 +101,9 @@ class npc_gilthares : public CreatureScript
 public:
     npc_gilthares() : CreatureScript("npc_gilthares") { }
 
-    bool OnQuestAccept(Player* player, Creature* creature, const Quest* pQuest)
+    bool OnQuestAccept(Player* player, Creature* creature, const Quest* quest)
     {
-        if (pQuest->GetQuestId() == QUEST_FREE_FROM_HOLD)
+        if (quest->GetQuestId() == QUEST_FREE_FROM_HOLD)
         {
             creature->setFaction(FACTION_ESCORTEE);
             creature->SetStandState(UNIT_STAND_STATE_STAND);
@@ -111,7 +111,7 @@ public:
             DoScriptText(SAY_GIL_START, creature, player);
 
             if (npc_giltharesAI* pEscortAI = CAST_AI(npc_gilthares::npc_giltharesAI, creature->AI()))
-                pEscortAI->Start(false, false, player->GetGUID(), pQuest);
+                pEscortAI->Start(false, false, player->GetGUID(), quest);
         }
         return true;
     }
@@ -134,7 +134,7 @@ public:
             if (!player)
                 return;
 
-            switch(uiPointId)
+            switch (uiPointId)
             {
                 case 16:
                     DoScriptText(SAY_GIL_AT_LAST, me, player);
@@ -597,7 +597,7 @@ public:
             if (!player)
                 return;
 
-            switch(uiPointId)
+            switch (uiPointId)
             {
             case 0:
                 DoScriptText(SAY_STARTUP1, me);
@@ -606,9 +606,9 @@ public:
                 SetRun(false);
                 break;
             case 17:
-                if (Creature* pTemp = me->SummonCreature(NPC_MERCENARY, 1128.489f, -3037.611f, 92.701f, 1.472f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 120000))
+                if (Creature* temp = me->SummonCreature(NPC_MERCENARY, 1128.489f, -3037.611f, 92.701f, 1.472f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 120000))
                 {
-                    DoScriptText(SAY_MERCENARY, pTemp);
+                    DoScriptText(SAY_MERCENARY, temp);
                     me->SummonCreature(NPC_MERCENARY, 1160.172f, -2980.168f, 97.313f, 3.690f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 120000);
                 }
                 break;
@@ -625,7 +625,7 @@ public:
             if (!player)
                 return;
 
-            switch(uiPointId)
+            switch (uiPointId)
             {
                 case 9:
                     DoScriptText(SAY_STARTUP2, me, player);
@@ -654,7 +654,7 @@ public:
                 {
                     if (m_uiPostEventTimer <= uiDiff)
                     {
-                        switch(m_uiPostEventCount)
+                        switch (m_uiPostEventCount)
                         {
                             case 0:
                                 DoScriptText(SAY_PROGRESS_2, me);

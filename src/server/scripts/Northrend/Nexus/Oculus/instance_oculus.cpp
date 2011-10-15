@@ -31,14 +31,14 @@ class instance_oculus : public InstanceMapScript
 public:
     instance_oculus() : InstanceMapScript("instance_oculus", 578) { }
 
-    InstanceScript* GetInstanceScript(InstanceMap* pMap) const
+    InstanceScript* GetInstanceScript(InstanceMap* map) const
     {
-        return new instance_oculus_InstanceMapScript(pMap);
+        return new instance_oculus_InstanceMapScript(map);
     }
 
     struct instance_oculus_InstanceMapScript : public InstanceScript
     {
-        instance_oculus_InstanceMapScript(Map* pMap) : InstanceScript(pMap) {}
+        instance_oculus_InstanceMapScript(Map* map) : InstanceScript(map) {}
 
         void Initialize()
         {
@@ -99,7 +99,7 @@ public:
 
         void OnCreatureCreate(Creature* creature)
         {
-            switch(creature->GetEntry())
+            switch (creature->GetEntry())
             {
                 case NPC_DRAKOS:
                     drakosGUID = creature->GetGUID();
@@ -170,7 +170,7 @@ public:
 
         void SetData(uint32 type, uint32 data)
         {
-            switch(type)
+            switch (type)
             {
                 case DATA_UROM_PLATAFORM:
                     platformUrom = data;
@@ -180,7 +180,7 @@ public:
 
         uint32 GetData(uint32 type)
         {
-            switch(type)
+            switch (type)
             {
                 case DATA_UROM_PLATAFORM:              return platformUrom;
                 // used by condition system
@@ -192,7 +192,7 @@ public:
 
         uint64 GetData64(uint32 identifier)
         {
-            switch(identifier)
+            switch (identifier)
             {
                 case DATA_DRAKOS:                 return drakosGUID;
                 case DATA_VAROS:                  return varosGUID;

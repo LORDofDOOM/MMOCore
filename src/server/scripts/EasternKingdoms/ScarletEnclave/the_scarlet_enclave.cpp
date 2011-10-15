@@ -53,7 +53,7 @@ public:
             me->GetPosition(x, y, z);
             z += 4; x -= 3.5; y -= 5;
             me->GetMotionMaster()->Clear(false);
-            me->GetMap()->CreatureRelocation(me, x, y, z, 0.0f);
+            me->SetPosition(x, y, z, 0.0f);
         }
 
         void UpdateAI(const uint32 diff)
@@ -69,7 +69,7 @@ public:
                 if (!player)
                     phase = 3;
 
-                switch(phase)
+                switch (phase)
                 {
                     case 0:
                         me->RemoveUnitMovementFlag(MOVEMENTFLAG_WALKING);

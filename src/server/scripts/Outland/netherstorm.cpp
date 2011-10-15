@@ -117,7 +117,7 @@ public:
                 Unit* p = Unit::GetUnit((*me), someplayer);
                 if (p && p->GetTypeId() == TYPEID_PLAYER)
                 {
-                    switch(me->GetEntry())
+                    switch (me->GetEntry())
                     {
                         case ENTRY_BNAAR_C_CONSOLE:
                             CAST_PLR(p)->FailQuest(10299);
@@ -141,14 +141,14 @@ public:
 
             if (goConsole)
             {
-                if (GameObject* pGo = GameObject::GetGameObject((*me), goConsole))
-                    pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
+                if (GameObject* go = GameObject::GetGameObject((*me), goConsole))
+                    go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
             }
         }
 
         void DoWaveSpawnForCreature(Creature* creature)
         {
-            switch(creature->GetEntry())
+            switch (creature->GetEntry())
             {
                 case ENTRY_BNAAR_C_CONSOLE:
                     if (rand()%2)
@@ -202,7 +202,7 @@ public:
         }
         void DoFinalSpawnForCreature(Creature* creature)
         {
-            switch(creature->GetEntry())
+            switch (creature->GetEntry())
             {
                 case ENTRY_BNAAR_C_CONSOLE:
                     add = me->SummonCreature(ENTRY_SUNFURY_TECH, 2946.52f, 4201.42f, 163.47f, 3.54f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 120000);
@@ -237,7 +237,7 @@ public:
         {
             if (Event_Timer <= diff)
             {
-                switch(Phase)
+                switch (Phase)
                 {
                     case 1:
                         if (someplayer)
@@ -277,8 +277,8 @@ public:
                         }
                         if (goConsole)
                         {
-                            if (GameObject* pGo = GameObject::GetGameObject((*me), goConsole))
-                                pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
+                            if (GameObject* go = GameObject::GetGameObject((*me), goConsole))
+                                go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
                         }
                         ++Phase;
                         break;
@@ -307,17 +307,17 @@ class go_manaforge_control_console : public GameObjectScript
 public:
     go_manaforge_control_console() : GameObjectScript("go_manaforge_control_console") { }
 
-    bool OnGossipHello(Player* player, GameObject* pGo)
+    bool OnGossipHello(Player* player, GameObject* go)
     {
-        if (pGo->GetGoType() == GAMEOBJECT_TYPE_QUESTGIVER)
+        if (go->GetGoType() == GAMEOBJECT_TYPE_QUESTGIVER)
         {
-            player->PrepareQuestMenu(pGo->GetGUID());
-            player->SendPreparedQuest(pGo->GetGUID());
+            player->PrepareQuestMenu(go->GetGUID());
+            player->SendPreparedQuest(go->GetGUID());
         }
 
         Creature* manaforge = NULL;
 
-        switch(pGo->GetAreaId())
+        switch (go->GetAreaId())
         {
             case 3726:                                          //b'naar
                 if ((player->GetQuestStatus(10299) == QUEST_STATUS_INCOMPLETE || player->GetQuestStatus(10329) == QUEST_STATUS_INCOMPLETE) &&
@@ -344,8 +344,8 @@ public:
         if (manaforge)
         {
             CAST_AI(npc_manaforge_control_console::npc_manaforge_control_consoleAI, manaforge->AI())->someplayer = player->GetGUID();
-            CAST_AI(npc_manaforge_control_console::npc_manaforge_control_consoleAI, manaforge->AI())->goConsole = pGo->GetGUID();
-            pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
+            CAST_AI(npc_manaforge_control_console::npc_manaforge_control_consoleAI, manaforge->AI())->goConsole = go->GetGUID();
+            go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
         }
         return true;
     }
@@ -565,7 +565,7 @@ public:
                 break;
                 //Phase 6
             case 6:
-                switch(PhaseSubphase)
+                switch (PhaseSubphase)
                 {
                     //Subphase 1: Turn Dawnforge and Ardonis
                 case 0:
@@ -584,7 +584,7 @@ public:
                 break;
                 //Phase 7 Pathaleons say 3 Sentence, every sentence need a subphase
             case 7:
-                switch(PhaseSubphase)
+                switch (PhaseSubphase)
                 {
                     //Subphase 1
                 case 0:
@@ -640,7 +640,7 @@ class at_commander_dawnforge : public AreaTriggerScript
 public:
     at_commander_dawnforge() : AreaTriggerScript("at_commander_dawnforge") { }
 
-    bool OnTrigger(Player* player, const AreaTriggerEntry*  /*at*/)
+    bool OnTrigger(Player* player, const AreaTriggerEntry* /*at*/)
     {
         //if player lost aura or not have at all, we should not try start event.
         if (!player->HasAura(SPELL_SUNFURY_DISGUISE))
@@ -782,7 +782,7 @@ public:
                 PlayerGUID = who->GetGUID();
         }
 
-        void SpellHit(Unit* /*caster*/, const SpellInfo*  /*spell*/)
+        void SpellHit(Unit* /*caster*/, const SpellInfo* /*spell*/)
         {
             DoCast(me, SPELL_DE_MATERIALIZE);
         }
@@ -809,10 +809,10 @@ public:
 
                 for (std::list<HostileReference*>::const_iterator itr = AggroList.begin(); itr != AggroList.end(); ++itr)
                 {
-                    if (Unit* pUnit = Unit::GetUnit(*me, (*itr)->getUnitGuid()))
+                    if (Unit* unit = Unit::GetUnit(*me, (*itr)->getUnitGuid()))
                     {
-                        if (pUnit->GetCreateMana() > 0)
-                            UnitsWithMana.push_back(pUnit);
+                        if (unit->GetCreateMana() > 0)
+                            UnitsWithMana.push_back(unit);
                     }
                 }
                 if (!UnitsWithMana.empty())
@@ -903,7 +903,7 @@ public:
             if (!player)
                 return;
 
-            switch(i)
+            switch (i)
             {
                 case 3: //first spawn
                     me->SummonCreature(SPAWN_FIRST, 2449.67f, 2183.11f, 96.85f, 6.20f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 25000);
@@ -1032,9 +1032,9 @@ public:
         }
     };
 
-    bool OnQuestAccept(Player* player, Creature* creature, const Quest* pQuest)
+    bool OnQuestAccept(Player* player, Creature* creature, const Quest* quest)
     {
-        if (pQuest->GetQuestId() == QUEST_MARK_V_IS_ALIVE)
+        if (quest->GetQuestId() == QUEST_MARK_V_IS_ALIVE)
         {
             if (npc_maxx_a_million_escortAI* pEscortAI = CAST_AI(npc_maxx_a_million_escort::npc_maxx_a_million_escortAI, creature->AI()))
             {

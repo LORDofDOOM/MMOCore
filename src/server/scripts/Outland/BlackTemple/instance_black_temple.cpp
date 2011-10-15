@@ -45,14 +45,14 @@ class instance_black_temple : public InstanceMapScript
 public:
     instance_black_temple() : InstanceMapScript("instance_black_temple", 564) { }
 
-    InstanceScript* GetInstanceScript(InstanceMap* pMap) const
+    InstanceScript* GetInstanceScript(InstanceMap* map) const
     {
-        return new instance_black_temple_InstanceMapScript(pMap);
+        return new instance_black_temple_InstanceMapScript(map);
     }
 
     struct instance_black_temple_InstanceMapScript : public InstanceScript
     {
-        instance_black_temple_InstanceMapScript(Map* pMap) : InstanceScript(pMap) {}
+        instance_black_temple_InstanceMapScript(Map* map) : InstanceScript(map) {}
 
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string str_data;
@@ -142,7 +142,7 @@ public:
 
         void OnCreatureCreate(Creature* creature)
         {
-            switch(creature->GetEntry())
+            switch (creature->GetEntry())
             {
             case 22887:    Najentus = creature->GetGUID();                  break;
             case 23089:    Akama = creature->GetGUID();                     break;
@@ -161,7 +161,7 @@ public:
 
         void OnGameObjectCreate(GameObject* go)
         {
-            switch(go->GetEntry())
+            switch (go->GetEntry())
             {
             case 185483: NajentusGate = go->GetGUID();// Gate past Naj'entus (at the entrance to Supermoose's courtyards)
                 if (m_auiEncounter[0] == DONE)HandleGameObject(0, true, go);break;
@@ -190,7 +190,7 @@ public:
 
         uint64 GetData64(uint32 identifier)
         {
-            switch(identifier)
+            switch (identifier)
             {
             case DATA_HIGHWARLORDNAJENTUS:         return Najentus;
             case DATA_AKAMA:                       return Akama;
@@ -216,7 +216,7 @@ public:
 
         void SetData(uint32 type, uint32 data)
         {
-            switch(type)
+            switch (type)
             {
             case DATA_HIGHWARLORDNAJENTUSEVENT:
                 if (data == DONE)
@@ -298,7 +298,7 @@ public:
 
         uint32 GetData(uint32 type)
         {
-            switch(type)
+            switch (type)
             {
             case DATA_HIGHWARLORDNAJENTUSEVENT:         return m_auiEncounter[0];
             case DATA_SUPREMUSEVENT:                    return m_auiEncounter[1];

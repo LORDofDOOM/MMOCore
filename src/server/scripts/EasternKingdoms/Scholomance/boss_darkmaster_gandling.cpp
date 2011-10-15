@@ -64,10 +64,10 @@ public:
     {
         boss_darkmaster_gandlingAI(Creature* c) : ScriptedAI(c)
         {
-            pInstance = me->GetInstanceScript();
+            instance = me->GetInstanceScript();
         }
 
-        InstanceScript* pInstance;
+        InstanceScript* instance;
 
         uint32 ArcaneMissiles_Timer;
         uint32 ShadowShield_Timer;
@@ -88,8 +88,8 @@ public:
 
         void JustDied(Unit* /*killer*/)
         {
-            if (pInstance)
-                pInstance->SetData(TYPE_GANDLING, DONE);
+            if (instance)
+                instance->SetData(TYPE_GANDLING, DONE);
         }
 
         void UpdateAI(const uint32 diff)
@@ -132,7 +132,7 @@ public:
                             DoModifyThreatPercent(target, -100);
 
                         Creature* Summoned = NULL;
-                        switch(rand()%6)
+                        switch (rand()%6)
                         {
                             case 0:
                                 DoTeleportPlayer(target, 250.0696f, 0.3921f, 84.8408f, 3.149f);

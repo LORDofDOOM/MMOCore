@@ -102,7 +102,7 @@ public:
             Player* player = GetPlayerForEscort();
             if (!player)
                 return;
-            switch(i)
+            switch (i)
             {
                 case 1:
                     me->SetReactState(REACT_AGGRESSIVE);
@@ -306,7 +306,7 @@ public:
     bool OnGossipSelect(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 uiAction)
     {
         player->PlayerTalkClass->ClearMenus();
-        switch(uiAction)
+        switch (uiAction)
         {
             case GOSSIP_ACTION_INFO_DEF+1:
                 player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_MG_II, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
@@ -348,9 +348,9 @@ class npc_daegarn : public CreatureScript
 public:
     npc_daegarn() : CreatureScript("npc_daegarn") { }
 
-    bool OnQuestAccept(Player* player, Creature* creature, const Quest* pQuest)
+    bool OnQuestAccept(Player* player, Creature* creature, const Quest* quest)
     {
-        if (pQuest->GetQuestId() == QUEST_DEFEAT_AT_RING)
+        if (quest->GetQuestId() == QUEST_DEFEAT_AT_RING)
         {
             if (npc_daegarnAI* pDaegarnAI = CAST_AI(npc_daegarn::npc_daegarnAI, creature->AI()))
                 pDaegarnAI->StartEvent(player->GetGUID());

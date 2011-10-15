@@ -80,8 +80,8 @@ class InstanceSave
 
         /* online players bound to the instance (perm/solo)
            does not include the members of the group unless they have permanent saves */
-        void AddPlayer(Player* player) { m_playerList.push_back(player); }
-        bool RemovePlayer(Player* player) { m_playerList.remove(player); return UnloadIfEmpty(); }
+        void AddPlayer(Player* player) { ACE_GUARD(ACE_Thread_Mutex, guard, _lock); m_playerList.push_back(player); }
+        bool RemovePlayer(Player* player) { ACE_GUARD_RETURN(ACE_Thread_Mutex, guard, _lock, false); m_playerList.remove(player); return UnloadIfEmpty(); }
         /* all groups bound to the instance */
         void AddGroup(Group* group) { m_groupList.push_back(group); }
         bool RemoveGroup(Group* group) { m_groupList.remove(group); return UnloadIfEmpty(); }
@@ -110,6 +110,8 @@ class InstanceSave
         uint32 m_mapid;
         Difficulty m_difficulty;
         bool m_canReset;
+
+        ACE_Thread_Mutex _lock;
 };
 
 typedef UNORDERED_MAP<uint32 /*PAIR32(map, difficulty)*/, time_t /*resetTime*/> ResetTimeByMapDifficultyMap;
@@ -118,6 +120,8 @@ class InstanceSaveManager
 {
     friend class ACE_Singleton<InstanceSaveManager, ACE_Thread_Mutex>;
     friend class InstanceSave;
+
+    private:
         InstanceSaveManager() : lock_instLists(false) {};
         ~InstanceSaveManager();
 
@@ -148,10 +152,12 @@ class InstanceSaveManager
             ResetTimeByMapDifficultyMap::const_iterator itr  = m_resetTimeByMapDifficulty.find(MAKE_PAIR32(mapid, d));
             return itr != m_resetTimeByMapDifficulty.end() ? itr->second : 0;
         }
+
         void SetResetTimeFor(uint32 mapid, Difficulty d, time_t t)
         {
             m_resetTimeByMapDifficulty[MAKE_PAIR32(mapid, d)] = t;
         }
+
         ResetTimeByMapDifficultyMap const& GetResetTimeMap() const
         {
             return m_resetTimeByMapDifficulty;
@@ -160,7 +166,8 @@ class InstanceSaveManager
 
         void Update();
 
-        InstanceSave* AddInstanceSave(uint32 mapId, uint32 instanceId, Difficulty difficulty, time_t resetTime, bool canReset, bool load = false);
+        InstanceSave* AddInstanceSave(uint32 mapId, uint32 instanceId, Difficulty difficulty, time_t resetTime,
+            bool canReset, bool load = false);
         void RemoveInstanceSave(uint32 InstanceId);
         static void DeleteInstanceFromDB(uint32 instanceid);
 
@@ -175,7 +182,6 @@ class InstanceSaveManager
         static uint16 ResetTimeDelay[];
 
     private:
-
         void _ResetOrWarnAll(uint32 mapid, Difficulty difficulty, bool warn, time_t resetTime);
         void _ResetInstance(uint32 mapid, uint32 instanceId);
         void _ResetSave(InstanceSaveHashMap::iterator &itr);

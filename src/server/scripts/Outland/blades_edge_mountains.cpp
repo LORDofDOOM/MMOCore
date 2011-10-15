@@ -194,7 +194,7 @@ public:
             {
                 if (NihilSpeech_Timer <= diff)
                 {
-                    switch(NihilSpeech_Phase)
+                    switch (NihilSpeech_Phase)
                     {
                         case 0:
                             DoScriptText(SAY_NIHIL_1, me);
@@ -385,11 +385,11 @@ class go_legion_obelisk : public GameObjectScript
 public:
     go_legion_obelisk() : GameObjectScript("go_legion_obelisk") { }
 
-    bool OnGossipHello(Player* player, GameObject* pGo)
+    bool OnGossipHello(Player* player, GameObject* go)
     {
         if (player->GetQuestStatus(10821) == QUEST_STATUS_INCOMPLETE)
         {
-            switch(pGo->GetEntry())
+            switch (go->GetEntry())
             {
                 case LEGION_OBELISK_ONE:
                       obelisk_one = true;
@@ -410,7 +410,7 @@ public:
 
             if (obelisk_one == true && obelisk_two == true && obelisk_three == true && obelisk_four == true && obelisk_five == true)
             {
-                pGo->SummonCreature(19963, 2943.40f, 4778.20f, 284.49f, 0.94f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 120000);
+                go->SummonCreature(19963, 2943.40f, 4778.20f, 284.49f, 0.94f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 120000);
                 //reset global var
                 obelisk_one = false;
                 obelisk_two = false;
@@ -452,7 +452,7 @@ public:
     {
         npc_bloodmaul_brutebaneAI(Creature* creature) : ScriptedAI(creature)
         {
-           if(Creature* Ogre = me->FindNearestCreature(NPC_OGRE_BRUTE, 50, true))
+           if (Creature* Ogre = me->FindNearestCreature(NPC_OGRE_BRUTE, 50, true))
            {
                Ogre->SetReactState(REACT_DEFENSIVE);
                Ogre->GetMotionMaster()->MovePoint(1, me->GetPositionX()-1, me->GetPositionY()+1, me->GetPositionZ());
@@ -503,7 +503,8 @@ public:
             if (me->IsWithinDistInMap(who, 50.0f))
             {
                 if (who->GetTypeId() == TYPEID_PLAYER)
-                    if (who->ToPlayer()->GetQuestStatus(QUEST_GETTING_THE_BLADESPIRE_TANKED || QUEST_BLADESPIRE_KEGGER) == QUEST_STATUS_INCOMPLETE)
+                    if (who->ToPlayer()->GetQuestStatus(QUEST_GETTING_THE_BLADESPIRE_TANKED) == QUEST_STATUS_INCOMPLETE
+                        || who->ToPlayer()->GetQuestStatus(QUEST_BLADESPIRE_KEGGER) == QUEST_STATUS_INCOMPLETE)
                         PlayerGUID = who->GetGUID();
             }
         }

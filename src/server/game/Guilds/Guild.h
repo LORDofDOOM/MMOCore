@@ -473,7 +473,7 @@ private:
 
         void SetInfo(const std::string& name, const std::string& icon);
         void SetText(const std::string& text);
-        void SendText(const Guild* pGuild, WorldSession* session) const;
+        void SendText(const Guild* guild, WorldSession* session) const;
 
         inline Item* GetItem(uint8 slotId) const { return slotId < GUILD_BANK_MAX_SLOTS ?  m_items[slotId] : NULL; }
         bool SetItem(SQLTransaction& trans, uint8 slotId, Item* pItem);
@@ -492,7 +492,7 @@ private:
     class MoveItemData
     {
     public:
-        MoveItemData(Guild* pGuild, Player* player, uint8 container, uint8 slotId) : m_pGuild(pGuild), m_pPlayer(player),
+        MoveItemData(Guild* guild, Player* player, uint8 container, uint8 slotId) : m_pGuild(guild), m_pPlayer(player),
             m_container(container), m_slotId(slotId), m_pItem(NULL), m_pClonedItem(NULL) { }
         virtual ~MoveItemData() { }
 
@@ -524,7 +524,7 @@ private:
         uint8 GetContainer() const { return m_container; }
         uint8 GetSlotId() const { return m_slotId; }
     protected:
-        virtual InventoryResult _CanStore(Item* pItem, bool swap) = 0;
+        virtual InventoryResult CanStore(Item* pItem, bool swap) = 0;
 
         Guild* m_pGuild;
         Player* m_pPlayer;
@@ -538,8 +538,8 @@ private:
     class PlayerMoveItemData : public MoveItemData
     {
     public:
-        PlayerMoveItemData(Guild* pGuild, Player* player, uint8 container, uint8 slotId) :
-            MoveItemData(pGuild, player, container, slotId) { }
+        PlayerMoveItemData(Guild* guild, Player* player, uint8 container, uint8 slotId) :
+            MoveItemData(guild, player, container, slotId) { }
 
         bool IsBank() const { return false; }
         bool InitItem();
@@ -547,14 +547,14 @@ private:
         Item* StoreItem(SQLTransaction& trans, Item* pItem);
         void LogBankEvent(SQLTransaction& trans, MoveItemData* pFrom, uint32 count) const;
     protected:
-        InventoryResult _CanStore(Item* pItem, bool swap);
+        InventoryResult CanStore(Item* pItem, bool swap);
     };
 
     class BankMoveItemData : public MoveItemData
     {
     public:
-        BankMoveItemData(Guild* pGuild, Player* player, uint8 container, uint8 slotId) :
-            MoveItemData(pGuild, player, container, slotId) { }
+        BankMoveItemData(Guild* guild, Player* player, uint8 container, uint8 slotId) :
+            MoveItemData(guild, player, container, slotId) { }
 
         bool IsBank() const { return true; }
         bool InitItem();
@@ -566,12 +566,12 @@ private:
         void LogAction(MoveItemData* pFrom) const;
 
     protected:
-        InventoryResult _CanStore(Item* pItem, bool swap);
+        InventoryResult CanStore(Item* pItem, bool swap);
 
     private:
         Item* _StoreItem(SQLTransaction& trans, BankTab* pTab, Item* pItem, ItemPosCount& pos, bool clone) const;
         bool _ReserveSpace(uint8 slotId, Item* pItem, Item* pItemDest, uint32& count);
-        void _CanStoreItemInTab(Item* pItem, uint8 skipSlotId, bool merge, uint32& count);
+        void CanStoreItemInTab(Item* pItem, uint8 skipSlotId, bool merge, uint32& count);
     };
 
     typedef UNORDERED_MAP<uint32, Member*> Members;

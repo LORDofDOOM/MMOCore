@@ -162,8 +162,10 @@ typedef std::map<uint32, GmTicket*> GmTicketList;
 
 class TicketMgr
 {
-    TicketMgr();
     friend class ACE_Singleton<TicketMgr, ACE_Null_Mutex>;
+
+private:
+    TicketMgr();
 
 public:
     void LoadTickets();
@@ -211,6 +213,7 @@ public:
     uint32 GetNextSurveyID() { return ++_lastSurveyId; }
 
     void Initialize();
+    void ResetTickets();
 
     void ShowList(ChatHandler& handler, bool onlineOnly) const;
     void ShowClosedList(ChatHandler& handler) const;

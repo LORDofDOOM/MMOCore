@@ -173,7 +173,7 @@ public:
 
         void UpdateAI(const uint32 diff)
         {
-            switch(phase)
+            switch (phase)
             {
             case PHASE_CHAINED:
                 if (!anchorGUID)
@@ -247,7 +247,7 @@ public:
 
                 while (uint32 eventId = events.ExecuteEvent())
                 {
-                    switch(eventId)
+                    switch (eventId)
                     {
                     case EVENT_ICY_TOUCH:
                         DoCast(me->getVictim(), SPELL_ICY_TOUCH);
@@ -313,9 +313,9 @@ class go_acherus_soul_prison : public GameObjectScript
 public:
     go_acherus_soul_prison() : GameObjectScript("go_acherus_soul_prison") { }
 
-    bool OnGossipHello(Player* player, GameObject* pGo)
+    bool OnGossipHello(Player* player, GameObject* go)
     {
-        if (Creature* anchor = pGo->FindNearestCreature(29521, 15))
+        if (Creature* anchor = go->FindNearestCreature(29521, 15))
             if (uint64 prisonerGUID = anchor->AI()->GetGUID())
                 if (Creature* prisoner = Creature::GetCreature(*player, prisonerGUID))
                     CAST_AI(npc_unworthy_initiate::npc_unworthy_initiateAI, prisoner->AI())->EventStart(anchor, player);
@@ -478,8 +478,8 @@ public:
                     {
                         me->setFaction(FACTION_HOSTILE);
 
-                        if (Unit* pUnit = Unit::GetUnit(*me, m_uiDuelerGUID))
-                            AttackStart(pUnit);
+                        if (Unit* unit = Unit::GetUnit(*me, m_uiDuelerGUID))
+                            AttackStart(unit);
                     }
                     else
                         m_uiDuelTimer -= uiDiff;
@@ -553,7 +553,7 @@ public:
 
             if (PhaseTimer <= diff)
             {
-                switch(Phase)
+                switch (Phase)
                 {
                    case 0:
                         me->MonsterSay(SAY_DARK_RIDER, LANG_UNIVERSAL, 0);

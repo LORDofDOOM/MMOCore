@@ -1293,18 +1293,18 @@ class Player : public Unit, public GridObject<Player>
         bool CanNoReagentCast(SpellInfo const* spellInfo) const;
         bool HasItemOrGemWithIdEquipped(uint32 item, uint32 count, uint8 except_slot = NULL_SLOT) const;
         bool HasItemOrGemWithLimitCategoryEquipped(uint32 limitCategory, uint32 count, uint8 except_slot = NULL_SLOT) const;
-        InventoryResult CanTakeMoreSimilarItems(Item* pItem) const { return _CanTakeMoreSimilarItems(pItem->GetEntry(), pItem->GetCount(), pItem); }
-        InventoryResult CanTakeMoreSimilarItems(uint32 entry, uint32 count) const { return _CanTakeMoreSimilarItems(entry, count, NULL); }
+        InventoryResult CanTakeMoreSimilarItems(Item* pItem) const { return CanTakeMoreSimilarItems(pItem->GetEntry(), pItem->GetCount(), pItem); }
+        InventoryResult CanTakeMoreSimilarItems(uint32 entry, uint32 count) const { return CanTakeMoreSimilarItems(entry, count, NULL); }
         InventoryResult CanStoreNewItem(uint8 bag, uint8 slot, ItemPosCountVec& dest, uint32 item, uint32 count, uint32* no_space_count = NULL) const
         {
-            return _CanStoreItem(bag, slot, dest, item, count, NULL, false, no_space_count);
+            return CanStoreItem(bag, slot, dest, item, count, NULL, false, no_space_count);
         }
         InventoryResult CanStoreItem(uint8 bag, uint8 slot, ItemPosCountVec& dest, Item* pItem, bool swap = false) const
         {
             if (!pItem)
                 return EQUIP_ERR_ITEM_NOT_FOUND;
             uint32 count = pItem->GetCount();
-            return _CanStoreItem(bag, slot, dest, pItem->GetEntry(), count, pItem, swap, NULL);
+            return CanStoreItem(bag, slot, dest, pItem->GetEntry(), count, pItem, swap, NULL);
 
         }
         InventoryResult CanStoreItems(Item** pItem, int count) const;
@@ -1331,8 +1331,8 @@ class Player : public Unit, public GridObject<Player>
         void AutoStoreLoot(uint32 loot_id, LootStore const& store, bool broadcast = false) { AutoStoreLoot(NULL_BAG, NULL_SLOT, loot_id, store, broadcast); }
         void StoreLootItem(uint8 lootSlot, Loot* loot);
 
-        InventoryResult _CanTakeMoreSimilarItems(uint32 entry, uint32 count, Item* pItem, uint32* no_space_count = NULL) const;
-        InventoryResult _CanStoreItem(uint8 bag, uint8 slot, ItemPosCountVec& dest, uint32 entry, uint32 count, Item* pItem = NULL, bool swap = false, uint32* no_space_count = NULL) const;
+        InventoryResult CanTakeMoreSimilarItems(uint32 entry, uint32 count, Item* pItem, uint32* no_space_count = NULL) const;
+        InventoryResult CanStoreItem(uint8 bag, uint8 slot, ItemPosCountVec& dest, uint32 entry, uint32 count, Item* pItem = NULL, bool swap = false, uint32* no_space_count = NULL) const;
 
         void AddRefundReference(uint32 it);
         void DeleteRefundReference(uint32 it);
@@ -1368,8 +1368,8 @@ class Player : public Unit, public GridObject<Player>
         void RemoveItemFromBuyBackSlot(uint32 slot, bool del);
         uint32 GetMaxKeyringSize() const { return KEYRING_SLOT_END-KEYRING_SLOT_START; }
         void SendEquipError(InventoryResult msg, Item* pItem, Item* pItem2 = NULL, uint32 itemid = 0);
-        void SendBuyError(BuyResult msg, Creature* pCreature, uint32 item, uint32 param);
-        void SendSellError(SellResult msg, Creature* pCreature, uint64 guid, uint32 param);
+        void SendBuyError(BuyResult msg, Creature* creature, uint32 item, uint32 param);
+        void SendSellError(SellResult msg, Creature* creature, uint64 guid, uint32 param);
         void AddWeaponProficiency(uint32 newflag) { m_WeaponProficiency |= newflag; }
         void AddArmorProficiency(uint32 newflag) { m_ArmorProficiency |= newflag; }
         uint32 GetWeaponProficiency() const { return m_WeaponProficiency; }
@@ -1388,7 +1388,7 @@ class Player : public Unit, public GridObject<Player>
         bool BuyItemFromVendorSlot(uint64 vendorguid, uint32 vendorslot, uint32 item, uint8 count, uint8 bag, uint8 slot);
         bool _StoreOrEquipNewItem(uint32 vendorslot, uint32 item, uint8 count, uint8 bag, uint8 slot, int32 price, ItemTemplate const* pProto, Creature* pVendor, VendorItem const* crItem, bool bStore);
 
-        float GetReputationPriceDiscount(Creature const* pCreature) const;
+        float GetReputationPriceDiscount(Creature const* creature) const;
 
         Player* GetTrader() const { return m_trade ? m_trade->GetTrader() : NULL; }
         TradeData* GetTradeData() const { return m_trade; }
@@ -1433,23 +1433,23 @@ class Player : public Unit, public GridObject<Player>
         /***                    QUEST SYSTEM                   ***/
         /*********************************************************/
 
-        int32 GetQuestLevel(Quest const* pQuest) const { return pQuest && (pQuest->GetQuestLevel() > 0) ? pQuest->GetQuestLevel() : getLevel(); }
+        int32 GetQuestLevel(Quest const* quest) const { return quest && (quest->GetQuestLevel() > 0) ? quest->GetQuestLevel() : getLevel(); }
 
         void PrepareQuestMenu(uint64 guid);
         void SendPreparedQuest(uint64 guid);
         bool IsActiveQuest(uint32 quest_id) const;
-        Quest const* GetNextQuest(uint64 guid, Quest const* pQuest);
-        bool CanSeeStartQuest(Quest const* pQuest);
-        bool CanTakeQuest(Quest const* pQuest, bool msg);
-        bool CanAddQuest(Quest const* pQuest, bool msg);
+        Quest const* GetNextQuest(uint64 guid, Quest const* quest);
+        bool CanSeeStartQuest(Quest const* quest);
+        bool CanTakeQuest(Quest const* quest, bool msg);
+        bool CanAddQuest(Quest const* quest, bool msg);
         bool CanCompleteQuest(uint32 quest_id);
-        bool CanCompleteRepeatableQuest(Quest const* pQuest);
-        bool CanRewardQuest(Quest const* pQuest, bool msg);
-        bool CanRewardQuest(Quest const* pQuest, uint32 reward, bool msg);
-        void AddQuest(Quest const* pQuest, Object* questGiver);
+        bool CanCompleteRepeatableQuest(Quest const* quest);
+        bool CanRewardQuest(Quest const* quest, bool msg);
+        bool CanRewardQuest(Quest const* quest, uint32 reward, bool msg);
+        void AddQuest(Quest const* quest, Object* questGiver);
         void CompleteQuest(uint32 quest_id);
         void IncompleteQuest(uint32 quest_id);
-        void RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver, bool announce = true);
+        void RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, bool announce = true);
         void FailQuest(uint32 quest_id);
         bool SatisfyQuestSkillOrClass(Quest const* qInfo, bool msg);
         bool SatisfyQuestLevel(Quest const* qInfo, bool msg);
@@ -1465,7 +1465,7 @@ class Player : public Unit, public GridObject<Player>
         bool SatisfyQuestPrevChain(Quest const* qInfo, bool msg);
         bool SatisfyQuestDay(Quest const* qInfo, bool msg);
         bool SatisfyQuestWeek(Quest const* qInfo, bool msg);
-        bool GiveQuestSourceItem(Quest const* pQuest);
+        bool GiveQuestSourceItem(Quest const* quest);
         bool TakeQuestSourceItem(uint32 questId, bool msg);
         bool GetQuestRewardStatus(uint32 quest_id) const;
         QuestStatus GetQuestStatus(uint32 quest_id) const;
@@ -1531,15 +1531,15 @@ class Player : public Unit, public GridObject<Player>
         bool CanShareQuest(uint32 quest_id) const;
 
         void SendQuestComplete(uint32 quest_id);
-        void SendQuestReward(Quest const* pQuest, uint32 XP, Object* questGiver);
+        void SendQuestReward(Quest const* quest, uint32 XP, Object* questGiver);
         void SendQuestFailed(uint32 questId, InventoryResult reason = EQUIP_ERR_OK);
         void SendQuestTimerFailed(uint32 quest_id);
         void SendCanTakeQuestResponse(uint32 msg);
-        void SendQuestConfirmAccept(Quest const* pQuest, Player* pReceiver);
-        void SendPushToPartyResponse(Player* pPlayer, uint32 msg);
-        void SendQuestUpdateAddItem(Quest const* pQuest, uint32 item_idx, uint16 count);
-        void SendQuestUpdateAddCreatureOrGo(Quest const* pQuest, uint64 guid, uint32 creatureOrGO_idx, uint16 old_count, uint16 add_count);
-        void SendQuestUpdateAddPlayer(Quest const* pQuest, uint16 old_count, uint16 add_count);
+        void SendQuestConfirmAccept(Quest const* quest, Player* pReceiver);
+        void SendPushToPartyResponse(Player* player, uint32 msg);
+        void SendQuestUpdateAddItem(Quest const* quest, uint32 item_idx, uint16 count);
+        void SendQuestUpdateAddCreatureOrGo(Quest const* quest, uint64 guid, uint32 creatureOrGO_idx, uint16 old_count, uint16 add_count);
+        void SendQuestUpdateAddPlayer(Quest const* quest, uint16 old_count, uint16 add_count);
 
         uint64 GetDivider() { return m_divider; }
         void SetDivider(uint64 guid) { m_divider = guid; }
@@ -1857,7 +1857,7 @@ class Player : public Unit, public GridObject<Player>
         bool IsInSameGroupWith(Player const* p) const;
         bool IsInSameRaidWith(Player const* p) const { return p == this || (GetGroup() != NULL && GetGroup() == p->GetGroup()); }
         void UninviteFromGroup();
-        static void RemoveFromGroup(Group* group, uint64 guid, RemoveMethod method = GROUP_REMOVEMETHOD_DEFAULT, uint64 kicker = 0 , const char* reason = NULL);
+        static void RemoveFromGroup(Group* group, uint64 guid, RemoveMethod method = GROUP_REMOVEMETHOD_DEFAULT, uint64 kicker = 0, const char* reason = NULL);
         void RemoveFromGroup(RemoveMethod method = GROUP_REMOVEMETHOD_DEFAULT) { RemoveFromGroup(GetGroup(), GetGUID(), method); }
         void SendUpdateToOutOfRangeGroupMembers();
 
@@ -1988,8 +1988,8 @@ class Player : public Unit, public GridObject<Player>
         void SendResetInstanceFailed(uint32 reason, uint32 MapId);
         void SendResetFailedNotify(uint32 mapid);
 
-        virtual bool SetPosition(float x, float y, float z, float orientation, bool teleport = false);
-        bool SetPosition(const Position &pos, bool teleport = false) { return SetPosition(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), pos.GetOrientation(), teleport); }
+        virtual bool UpdatePosition(float x, float y, float z, float orientation, bool teleport = false);
+        bool UpdatePosition(const Position &pos, bool teleport = false) { return UpdatePosition(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), pos.GetOrientation(), teleport); }
         void UpdateUnderwaterState(Map* m, float x, float y, float z);
 
         void SendMessageToSet(WorldPacket* data, bool self) {SendMessageToSetInRange(data, GetVisibilityRange(), self); };// overwrite Object::SendMessageToSet
@@ -2083,7 +2083,7 @@ class Player : public Unit, public GridObject<Player>
         ReputationMgr const& GetReputationMgr() const { return m_reputationMgr; }
         ReputationRank GetReputationRank(uint32 faction_id) const;
         void RewardReputation(Unit* pVictim, float rate);
-        void RewardReputation(Quest const* pQuest);
+        void RewardReputation(Quest const* quest);
 
         void UpdateSkillsForLevel();
         void UpdateSkillsToMaxSkillsForLevel();             // for .levelup
@@ -2378,7 +2378,7 @@ class Player : public Unit, public GridObject<Player>
 
         bool HaveAtClient(WorldObject const* u) const { return u == this || m_clientGUIDs.find(u->GetGUID()) != m_clientGUIDs.end(); }
 
-        bool isValid() const;
+        bool IsNeverVisible() const;
 
         bool IsVisibleGloballyFor(Player* pl) const;
 
@@ -2791,17 +2791,17 @@ class Player : public Unit, public GridObject<Player>
         Runes *m_runes;
         EquipmentSets m_EquipmentSets;
 
-        bool canSeeAlways(WorldObject const* obj) const;
+        bool CanAlwaysSee(WorldObject const* obj) const;
 
-        bool isAlwaysDetectableFor(WorldObject const* seer) const;
+        bool IsAlwaysDetectableFor(WorldObject const* seer) const;
 
         uint8 m_grantableLevels;
 
     private:
         // internal common parts for CanStore/StoreItem functions
-        InventoryResult _CanStoreItem_InSpecificSlot(uint8 bag, uint8 slot, ItemPosCountVec& dest, ItemTemplate const* pProto, uint32& count, bool swap, Item* pSrcItem) const;
-        InventoryResult _CanStoreItem_InBag(uint8 bag, ItemPosCountVec& dest, ItemTemplate const* pProto, uint32& count, bool merge, bool non_specialized, Item* pSrcItem, uint8 skip_bag, uint8 skip_slot) const;
-        InventoryResult _CanStoreItem_InInventorySlots(uint8 slot_begin, uint8 slot_end, ItemPosCountVec& dest, ItemTemplate const* pProto, uint32& count, bool merge, Item* pSrcItem, uint8 skip_bag, uint8 skip_slot) const;
+        InventoryResult CanStoreItem_InSpecificSlot(uint8 bag, uint8 slot, ItemPosCountVec& dest, ItemTemplate const* pProto, uint32& count, bool swap, Item* pSrcItem) const;
+        InventoryResult CanStoreItem_InBag(uint8 bag, ItemPosCountVec& dest, ItemTemplate const* pProto, uint32& count, bool merge, bool non_specialized, Item* pSrcItem, uint8 skip_bag, uint8 skip_slot) const;
+        InventoryResult CanStoreItem_InInventorySlots(uint8 slot_begin, uint8 slot_end, ItemPosCountVec& dest, ItemTemplate const* pProto, uint32& count, bool merge, Item* pSrcItem, uint8 skip_bag, uint8 skip_slot) const;
         Item* _StoreItem(uint16 pos, Item* pItem, uint32 count, bool clone, bool update);
         Item* _LoadItem(SQLTransaction& trans, uint32 zoneId, uint32 timeDiff, Field* fields);
 
@@ -2813,7 +2813,7 @@ class Player : public Unit, public GridObject<Player>
         void AddKnownCurrency(uint32 itemId);
 
         int32 CalculateReputationGain(uint32 creatureOrQuestLevel, int32 rep, int32 faction, bool for_quest, bool noQuestBonus = false);
-        void AdjustQuestReqItemCount(Quest const* pQuest, QuestStatusData& questStatusData);
+        void AdjustQuestReqItemCount(Quest const* quest, QuestStatusData& questStatusData);
 
         bool IsCanDelayTeleport() const { return m_bCanDelayTeleport; }
         void SetCanDelayTeleport(bool setting) { m_bCanDelayTeleport = setting; }

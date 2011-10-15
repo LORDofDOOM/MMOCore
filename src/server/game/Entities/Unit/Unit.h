@@ -618,6 +618,7 @@ enum UnitFlags2
     UNIT_FLAG2_DISARM_OFFHAND       = 0x00000080,
     UNIT_FLAG2_DISARM_RANGED        = 0x00000400,   // this does not disable ranged weapon display (maybe additional flag needed?)
     UNIT_FLAG2_REGENERATE_POWER     = 0x00000800,
+    UNIT_FLAG2_ALLOW_ENEMY_INTERACT = 0x00004000,
     UNIT_FLAG2_ALLOW_CHEAT_SPELLS   = 0x00040000,   // allows casting spells with AttributesEx7 & SPELL_ATTR7_IS_CHEAT_SPELL
 };
 
@@ -1247,6 +1248,7 @@ class Unit : public WorldObject
         void AddToWorld();
         void RemoveFromWorld();
 
+        void CleanupBeforeRemoveFromMap(bool finalCleanup);
         void CleanupsBeforeDelete(bool finalCleanup = true);                        // used in ~Creature/~Player (or before mass creature delete to remove cross-references to already deleted units)
 
         DiminishingLevels GetDiminishing(DiminishingGroup  group);
@@ -1370,6 +1372,7 @@ class Unit : public WorldObject
         void SetMaxPower(Powers power, uint32 val);
         // returns the change in power
         int32 ModifyPower(Powers power, int32 val);
+        int32 ModifyPowerPct(Powers power, float pct, bool apply = true);
 
         uint32 GetAttackTime(WeaponAttackType att) const
         {
@@ -1444,7 +1447,7 @@ class Unit : public WorldObject
         int32 DealHeal(Unit* pVictim, uint32 addhealth);
 
         void ProcDamageAndSpell(Unit* pVictim, uint32 procAttacker, uint32 procVictim, uint32 procEx, uint32 amount, WeaponAttackType attType = BASE_ATTACK, SpellInfo const* procSpell = NULL, SpellInfo const* procAura = NULL);
-        void ProcDamageAndSpellFor(bool isVictim, Unit* pTarget, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, SpellInfo const* procSpell, uint32 damage , SpellInfo const* procAura = NULL);
+        void ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, SpellInfo const* procSpell, uint32 damage, SpellInfo const* procAura = NULL);
 
         void GetProcAurasTriggeredOnEvent(std::list<AuraApplication*>& aurasTriggeringProc, std::list<AuraApplication*>* procAuras, ProcEventInfo eventInfo);
         void TriggerAurasProcOnEvent(CalcDamageInfo& damageInfo);
@@ -1491,7 +1494,7 @@ class Unit : public WorldObject
         int32 GetMechanicResistChance(const SpellInfo* spell);
         bool CanUseAttackType(uint8 attacktype) const
         {
-            switch(attacktype)
+            switch (attacktype)
             {
                 case BASE_ATTACK: return !HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISARMED);
                 case OFF_ATTACK: return !HasFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_DISARM_OFFHAND);
@@ -1600,9 +1603,9 @@ class Unit : public WorldObject
         void SendSpellDamageImmune(Unit* target, uint32 spellId);
 
         void NearTeleportTo(float x, float y, float z, float orientation, bool casting = false);
-        virtual bool SetPosition(float x, float y, float z, float ang, bool teleport = false);
+        virtual bool UpdatePosition(float x, float y, float z, float ang, bool teleport = false);
         // returns true if unit's position really changed
-        bool SetPosition(const Position &pos, bool teleport = false) { return SetPosition(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), pos.GetOrientation(), teleport); }
+        bool UpdatePosition(const Position &pos, bool teleport = false) { return UpdatePosition(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), pos.GetOrientation(), teleport); }
 
         void KnockbackFrom(float x, float y, float speedXY, float speedZ);
         void JumpTo(float speedXY, float speedZ, bool forward = true);
@@ -1784,7 +1787,7 @@ class Unit : public WorldObject
         AuraEffect* GetAuraEffect(uint32 spellId, uint8 effIndex, uint64 casterGUID = 0) const;
         AuraEffect* GetAuraEffectOfRankedSpell(uint32 spellId, uint8 effIndex, uint64 casterGUID = 0) const;
         AuraEffect* GetAuraEffect(AuraType type, SpellFamilyNames name, uint32 iconId, uint8 effIndex) const; // spell mustn't have familyflags
-        AuraEffect* GetAuraEffect(AuraType type, SpellFamilyNames family, uint32 familyFlag1 , uint32 familyFlag2, uint32 familyFlag3, uint64 casterGUID =0);
+        AuraEffect* GetAuraEffect(AuraType type, SpellFamilyNames family, uint32 familyFlag1, uint32 familyFlag2, uint32 familyFlag3, uint64 casterGUID =0);
         inline AuraEffect* GetDummyAuraEffect(SpellFamilyNames name, uint32 iconId, uint8 effIndex) const { return GetAuraEffect(SPELL_AURA_DUMMY, name, iconId, effIndex);}
 
         AuraApplication * GetAuraApplication(uint32 spellId, uint64 casterGUID = 0, uint64 itemCasterGUID = 0, uint8 reqEffMask = 0, AuraApplication * except = NULL) const;
@@ -1927,8 +1930,8 @@ class Unit : public WorldObject
         virtual void UpdateAttackPowerAndDamage(bool ranged = false) = 0;
         virtual void UpdateDamagePhysical(WeaponAttackType attType) = 0;
         float GetTotalAttackPowerValue(WeaponAttackType attType) const;
-        float GetWeaponDamageRange(WeaponAttackType attType , WeaponDamageRange type) const;
-        void SetBaseWeaponDamage(WeaponAttackType attType , WeaponDamageRange damageRange, float value) { m_weaponDamage[attType][damageRange] = value; }
+        float GetWeaponDamageRange(WeaponAttackType attType, WeaponDamageRange type) const;
+        void SetBaseWeaponDamage(WeaponAttackType attType, WeaponDamageRange damageRange, float value) { m_weaponDamage[attType][damageRange] = value; }
 
         bool isInFrontInMap(Unit const* target, float distance, float arc = M_PI) const;
         void SetInFront(Unit const* target)
@@ -1944,9 +1947,6 @@ class Unit : public WorldObject
         void SetVisible(bool x);
 
         // common function for visibility checks for player/creatures with detection code
-
-        bool isValid() const { return WorldObject::isValid(); }
-
         void SetPhaseMask(uint32 newPhaseMask, bool update);// overwrite WorldObject::SetPhaseMask
         void UpdateObjectVisibility(bool forced = true);
 
@@ -2284,12 +2284,8 @@ class Unit : public WorldObject
 
         uint32 m_unitTypeMask;
 
-        bool isAlwaysVisibleFor(WorldObject const* seer) const;
-        bool canSeeAlways(WorldObject const* obj) const { return WorldObject::canSeeAlways(obj); }
-
-        bool isVisibleForInState(WorldObject const* seer) const { return WorldObject::isVisibleForInState(seer); };
-
-        bool isAlwaysDetectableFor(WorldObject const* seer) const;
+        bool IsAlwaysVisibleFor(WorldObject const* seer) const;
+        bool IsAlwaysDetectableFor(WorldObject const* seer) const;
     private:
         bool IsTriggeredAtSpellProcEvent(Unit* pVictim, Aura* aura, SpellInfo const* procSpell, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, bool isVictim, bool active, SpellProcEventEntry const* & spellProcEvent);
         bool HandleDummyAuraProc(Unit* pVictim, uint32 damage, AuraEffect* triggeredByAura, SpellInfo const* procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);

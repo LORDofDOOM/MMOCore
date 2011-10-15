@@ -376,7 +376,7 @@ public:
             if (!player)
                 return;
 
-            switch(i)
+            switch (i)
             {
             case 0:
                 DoScriptText(SAY_START, me, player);
@@ -479,7 +479,7 @@ public:
         {
             Creature* Spark = Unit::GetCreature(*me, SparkGUID);
 
-            switch(Step)
+            switch (Step)
             {
             case 0:
                 if (Spark)
@@ -586,11 +586,11 @@ class go_ravager_cage : public GameObjectScript
 public:
     go_ravager_cage() : GameObjectScript("go_ravager_cage") { }
 
-    bool OnGossipHello(Player* player, GameObject* pGo)
+    bool OnGossipHello(Player* player, GameObject* go)
     {
         if (player->GetQuestStatus(QUEST_STRENGTH_ONE) == QUEST_STATUS_INCOMPLETE)
         {
-            if (Creature* ravager = pGo->FindNearestCreature(NPC_DEATH_RAVAGER, 5.0f, true))
+            if (Creature* ravager = go->FindNearestCreature(NPC_DEATH_RAVAGER, 5.0f, true))
             {
                 ravager->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
                 ravager->SetReactState(REACT_AGGRESSIVE);

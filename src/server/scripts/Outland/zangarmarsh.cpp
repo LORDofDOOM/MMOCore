@@ -328,7 +328,7 @@ public:
             if (!player)
                 return;
 
-            switch(i)
+            switch (i)
             {
                 case 4:
                     DoScriptText(SAY_AMBUSH1, me, player);
@@ -356,9 +356,9 @@ public:
         }
     };
 
-    bool OnQuestAccept(Player* player, Creature* creature, Quest const* pQuest)
+    bool OnQuestAccept(Player* player, Creature* creature, Quest const* quest)
     {
-        if (pQuest->GetQuestId() == QUEST_ESCAPE_FROM)
+        if (quest->GetQuestId() == QUEST_ESCAPE_FROM)
         {
             DoScriptText(SAY_START, creature, player);
 
@@ -407,7 +407,7 @@ public:
     bool OnGossipSelect(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 uiAction)
     {
         player->PlayerTalkClass->ClearMenus();
-        switch(uiAction)
+        switch (uiAction)
         {
             case GOSSIP_ACTION_INFO_DEF+1:
                 player->SEND_GOSSIP_MENU(GOSSIP_TEXTID_TIMOTHY_DANIELS1, creature->GetGUID());

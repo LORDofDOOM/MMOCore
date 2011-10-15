@@ -90,9 +90,9 @@ class npc_bartleby : public CreatureScript
 public:
     npc_bartleby() : CreatureScript("npc_bartleby") { }
 
-    bool OnQuestAccept(Player* player, Creature* creature, Quest const* pQuest)
+    bool OnQuestAccept(Player* player, Creature* creature, Quest const* quest)
     {
-        if (pQuest->GetQuestId() == QUEST_BEAT)
+        if (quest->GetQuestId() == QUEST_BEAT)
         {
             creature->setFaction(FACTION_ENEMY);
             creature->AI()->AttackStart(player);
@@ -162,9 +162,9 @@ class npc_dashel_stonefist : public CreatureScript
 public:
     npc_dashel_stonefist() : CreatureScript("npc_dashel_stonefist") { }
 
-    bool OnQuestAccept(Player* player, Creature* creature, Quest const* pQuest)
+    bool OnQuestAccept(Player* player, Creature* creature, Quest const* quest)
     {
-        if (pQuest->GetQuestId() == QUEST_MISSING_DIPLO_PT8)
+        if (quest->GetQuestId() == QUEST_MISSING_DIPLO_PT8)
         {
             creature->setFaction(FACTION_HOSTILE);
             CAST_AI(npc_dashel_stonefist::npc_dashel_stonefistAI, creature->AI())->AttackStart(player);
@@ -346,7 +346,7 @@ public:
 
         void WaypointReached(uint32 uiPointId)
         {
-            switch(uiPointId)
+            switch (uiPointId)
             {
                 case 14:
                     SetEscortPaused(true);
@@ -387,7 +387,7 @@ public:
             {
                 if (uiTimer <= uiDiff)
                 {
-                    switch(uiPhase)
+                    switch (uiPhase)
                     {
                         case 1:
                             if (Creature* pGuard = me->FindNearestCreature(NPC_STORMWIND_ROYAL, 8.0f, true))
@@ -577,7 +577,7 @@ public:
 
         void WaypointReached(uint32 uiPointId)
         {
-            switch(uiPointId)
+            switch (uiPointId)
             {
                 case 1:
                     SetEscortPaused(true);
@@ -605,7 +605,7 @@ public:
             {
                 if (uiTimer <= uiDiff)
                 {
-                    switch(uiPhase)
+                    switch (uiPhase)
                     {
                         case 1:
                             DoScriptText(SAY_QUEST_ACCEPT_ATTACK, me);
@@ -696,9 +696,9 @@ class npc_tyrion : public CreatureScript
 public:
     npc_tyrion() : CreatureScript("npc_tyrion") { }
 
-    bool OnQuestAccept(Player* player, Creature* creature, Quest const* pQuest)
+    bool OnQuestAccept(Player* player, Creature* creature, Quest const* quest)
     {
-        if (pQuest->GetQuestId() == QUEST_THE_ATTACK)
+        if (quest->GetQuestId() == QUEST_THE_ATTACK)
         {
             if (Creature* pSpybot = creature->FindNearestCreature(NPC_TYRION_SPYBOT, 5.0f, true))
             {

@@ -45,16 +45,16 @@ public:
 
     bool OnGossipHello(Player* /*player*/, GameObject* go)
     {
-        InstanceScript* pInstance = go->GetInstanceScript();
+        InstanceScript* instance = go->GetInstanceScript();
 
-        if (!pInstance)
+        if (!instance)
             return false;
 
-        if (go->GetEntry() == ACCESS_PANEL_HYDRO && (pInstance->GetData(TYPE_HYDROMANCER_THESPIA) == DONE || pInstance->GetData(TYPE_HYDROMANCER_THESPIA) == SPECIAL))
-            pInstance->SetData(TYPE_HYDROMANCER_THESPIA, SPECIAL);
+        if (go->GetEntry() == ACCESS_PANEL_HYDRO && (instance->GetData(TYPE_HYDROMANCER_THESPIA) == DONE || instance->GetData(TYPE_HYDROMANCER_THESPIA) == SPECIAL))
+            instance->SetData(TYPE_HYDROMANCER_THESPIA, SPECIAL);
 
-        if (go->GetEntry() == ACCESS_PANEL_MEK && (pInstance->GetData(TYPE_MEKGINEER_STEAMRIGGER) == DONE || pInstance->GetData(TYPE_MEKGINEER_STEAMRIGGER) == SPECIAL))
-            pInstance->SetData(TYPE_MEKGINEER_STEAMRIGGER, SPECIAL);
+        if (go->GetEntry() == ACCESS_PANEL_MEK && (instance->GetData(TYPE_MEKGINEER_STEAMRIGGER) == DONE || instance->GetData(TYPE_MEKGINEER_STEAMRIGGER) == SPECIAL))
+            instance->SetData(TYPE_MEKGINEER_STEAMRIGGER, SPECIAL);
 
         return true;
     }
@@ -66,14 +66,14 @@ class instance_steam_vault : public InstanceMapScript
 public:
     instance_steam_vault() : InstanceMapScript("instance_steam_vault", 545) { }
 
-    InstanceScript* GetInstanceScript(InstanceMap* pMap) const
+    InstanceScript* GetInstanceScript(InstanceMap* map) const
     {
-        return new instance_steam_vault_InstanceMapScript(pMap);
+        return new instance_steam_vault_InstanceMapScript(map);
     }
 
     struct instance_steam_vault_InstanceMapScript : public InstanceScript
     {
-        instance_steam_vault_InstanceMapScript(Map* pMap) : InstanceScript(pMap) {}
+        instance_steam_vault_InstanceMapScript(Map* map) : InstanceScript(map) {}
 
         uint32 m_auiEncounter[MAX_ENCOUNTER];
 
@@ -108,7 +108,7 @@ public:
 
         void OnCreatureCreate(Creature* creature)
         {
-              switch(creature->GetEntry())
+              switch (creature->GetEntry())
             {
               case 17797: ThespiaGUID = creature->GetGUID(); break;
               case 17796: MekgineerGUID = creature->GetGUID(); break;
@@ -118,7 +118,7 @@ public:
 
         void OnGameObjectCreate(GameObject* go)
         {
-            switch(go->GetEntry())
+            switch (go->GetEntry())
             {
             case MAIN_CHAMBERS_DOOR: MainChambersDoor = go->GetGUID(); break;
             case ACCESS_PANEL_HYDRO: AccessPanelHydro = go->GetGUID(); break;
@@ -128,7 +128,7 @@ public:
 
         void SetData(uint32 type, uint32 data)
         {
-            switch(type)
+            switch (type)
             {
                 case TYPE_HYDROMANCER_THESPIA:
                     if (data == SPECIAL)
@@ -168,7 +168,7 @@ public:
 
         uint32 GetData(uint32 type)
         {
-            switch(type)
+            switch (type)
             {
                 case TYPE_HYDROMANCER_THESPIA:
                     return m_auiEncounter[0];
@@ -184,7 +184,7 @@ public:
 
         uint64 GetData64(uint32 data)
         {
-            switch(data)
+            switch (data)
             {
                 case DATA_THESPIA:
                     return ThespiaGUID;

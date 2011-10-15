@@ -65,17 +65,7 @@ class icecrown_citadel_teleport : public GameObjectScript
             }
 
             if (sender == GOSSIP_SENDER_ICC_PORT)
-            {
-                //Preload the Lich King's platform before teleporting player to there
-                if (action == FROZEN_THRONE_TELEPORT)
-                    player->GetMap()->LoadGrid(530.3f, -2122.67f);
-
                 player->CastSpell(player, spell, true);
-
-                //Give him 2 tries after teleport, just in case if player will fall through the ground
-                if (action == FROZEN_THRONE_TELEPORT)
-                    TeleportPlayerToFrozenThrone(player);
-            }
 
             return true;
         }
@@ -88,6 +78,13 @@ class at_frozen_throne_teleport : public AreaTriggerScript
 
         bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/)
         {
+            if (player->isInCombat())
+            {
+                if (SpellInfo const* spell = sSpellMgr->GetSpellInfo(FROZEN_THRONE_TELEPORT))
+                    Spell::SendCastResult(player, spell, 0, SPELL_FAILED_AFFECTING_COMBAT);
+                return true;
+            }
+            
             if (InstanceScript* instance = player->GetInstanceScript())
                 if (instance->GetBossState(DATA_PROFESSOR_PUTRICIDE) == DONE &&
                     instance->GetBossState(DATA_BLOOD_QUEEN_LANA_THEL) == DONE &&

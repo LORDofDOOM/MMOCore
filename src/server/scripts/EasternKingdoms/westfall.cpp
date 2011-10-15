@@ -54,9 +54,9 @@ class npc_daphne_stilwell : public CreatureScript
 public:
     npc_daphne_stilwell() : CreatureScript("npc_daphne_stilwell") { }
 
-    bool OnQuestAccept(Player* player, Creature* creature, const Quest* pQuest)
+    bool OnQuestAccept(Player* player, Creature* creature, const Quest* quest)
     {
-        if (pQuest->GetQuestId() == QUEST_TOME_VALOR)
+        if (quest->GetQuestId() == QUEST_TOME_VALOR)
         {
             DoScriptText(SAY_DS_START, creature);
 
@@ -83,7 +83,7 @@ public:
         {
             if (HasEscortState(STATE_ESCORT_ESCORTING))
             {
-                switch(uiWPHolder)
+                switch (uiWPHolder)
                 {
                     case 7: DoScriptText(SAY_DS_DOWN_1, me); break;
                     case 8: DoScriptText(SAY_DS_DOWN_2, me); break;
@@ -105,7 +105,7 @@ public:
 
             uiWPHolder = uiPoint;
 
-            switch(uiPoint)
+            switch (uiPoint)
             {
                 case 4:
                     SetEquipmentSlots(false, EQUIP_NO_CHANGE, EQUIP_NO_CHANGE, EQUIP_ID_RIFLE);

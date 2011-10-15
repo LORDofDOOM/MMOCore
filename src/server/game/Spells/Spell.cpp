@@ -574,7 +574,7 @@ m_caster((info->AttributesEx6 & SPELL_ATTR6_CAST_BY_CHARMER && caster->GetCharme
 Spell::~Spell()
 {
     // unload scripts
-    while(!m_loadedScripts.empty())
+    while (!m_loadedScripts.empty())
     {
         std::list<SpellScript*>::iterator itr = m_loadedScripts.begin();
         (*itr)->_Unload();
@@ -796,6 +796,14 @@ void Spell::SelectEffectTypeImplicitTargets(uint8 effIndex)
                     AddUnitTarget(target, 1 << effIndex, false);
             }
             return;
+        case SPELL_EFFECT_DUMMY:
+        {
+            if (m_targets.GetUnitTarget())
+                AddUnitTarget(m_targets.GetUnitTarget(), 1 << effIndex, false);
+            else
+                AddUnitTarget(m_caster, 1 << effIndex, false);
+            return;
+        }
         default:
             break;
     }
@@ -847,6 +855,8 @@ void Spell::SelectEffectTypeImplicitTargets(uint8 effIndex)
         case EFFECT_IMPLICIT_TARGET_CASTER:
             if (targetMask & TARGET_FLAG_UNIT_MASK)
                 AddUnitTarget(m_caster, 1 << effIndex, false);
+            break;
+        default:
             break;
     }
 }
@@ -1445,7 +1455,7 @@ SpellMissInfo Spell::DoSpellHitOnUnit(Unit* unit, const uint32 effectMask, bool 
         if (m_spellInfo->Speed > 0.0f && unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE) && unit->GetCharmerOrOwnerGUID() != m_caster->GetGUID())
             return SPELL_MISS_EVADE;
 
-        if (m_caster->IsValidAttackTarget(unit))
+        if (m_caster->_IsValidAttackTarget(unit, m_spellInfo))
         {
             unit->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_HITBYSPELL);
             //TODO: This is a hack. But we do not know what types of stealth should be interrupted by CC
@@ -1866,11 +1876,12 @@ void Spell::SearchChainTarget(std::list<Unit*> &TagUnitMap, float max_range, uin
                 break;
 
             // Check if (*next) is a valid chain target. If not, don't add to TagUnitMap, and repeat loop.
-            // If you want to add any conditions to exclude a target from TagUnitMap, add condition in this while() loop.
+            // If you want to add any conditions to exclude a target from TagUnitMap, add condition in this while () loop.
             while ((m_spellInfo->DmgClass == SPELL_DAMAGE_CLASS_MELEE
                 && !m_caster->isInFrontInMap(*next, max_range))
                 || !m_caster->canSeeOrDetect(*next)
                 || !cur->IsWithinLOSInMap(*next)
+                || (*next)->GetCreatureType() == CREATURE_TYPE_CRITTER
                 || ((GetSpellInfo()->AttributesEx6 & SPELL_ATTR6_CANT_TARGET_CROWD_CONTROLLED) && !(*next)->CanFreeMove()))
             {
                 ++next;
@@ -2718,10 +2729,10 @@ uint32 Spell::SelectEffectTargets(uint32 i, SpellImplicitTargetInfo const& cur)
                         Player* targetPlayer = m_targets.GetUnitTarget() && m_targets.GetUnitTarget()->GetTypeId() == TYPEID_PLAYER
                             ? (Player*)m_targets.GetUnitTarget() : NULL;
 
-                        Group* pGroup = targetPlayer ? targetPlayer->GetGroup() : NULL;
-                        if (pGroup)
+                        Group* group = targetPlayer ? targetPlayer->GetGroup() : NULL;
+                        if (group)
                         {
-                            for (GroupReference* itr = pGroup->GetFirstMember(); itr != NULL; itr = itr->next())
+                            for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
                             {
                                 Player* Target = itr->getSource();
 
@@ -3460,7 +3471,7 @@ void Spell::_handle_immediate_phase()
             }
         }
         // Proc damage for spells which have only dest targets (2484 should proc 51486 for example)
-        m_originalCaster->ProcDamageAndSpell(0, procAttacker, 0, m_procEx | PROC_EX_NORMAL_HIT, 0, BASE_ATTACK, m_spellInfo, m_triggeredByAuraSpell);
+        m_originalCaster->ProcDamageAndSpell(NULL, procAttacker, 0, m_procEx | PROC_EX_NORMAL_HIT, 0, BASE_ATTACK, m_spellInfo, m_triggeredByAuraSpell);
     }
 }
 
@@ -4632,7 +4643,10 @@ SpellCastResult Spell::CheckCast(bool strict)
     }
 
     if (m_spellInfo->AttributesEx7 & SPELL_ATTR7_IS_CHEAT_SPELL && !m_caster->HasFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_ALLOW_CHEAT_SPELLS))
-        return SPELL_FAILED_SPELL_UNAVAILABLE;
+    {
+        m_customError = SPELL_CUSTOM_ERROR_GM_ONLY;
+        return SPELL_FAILED_CUSTOM_ERROR;
+    }
 
     // Check global cooldown
     if (strict && !(_triggeredCastFlags & TRIGGERED_IGNORE_GCD) && HasGlobalCooldown())
@@ -4681,7 +4695,12 @@ SpellCastResult Spell::CheckCast(bool strict)
         }
     }
 
-    bool reqCombat=true;
+    Unit::AuraEffectList const& blockSpells = m_caster->GetAuraEffectsByType(SPELL_AURA_BLOCK_SPELL_FAMILY);
+    for (Unit::AuraEffectList::const_iterator blockItr = blockSpells.begin(); blockItr != blockSpells.end(); ++blockItr)
+        if ((*blockItr)->GetMiscValue() == m_spellInfo->SpellFamilyName)
+            return SPELL_FAILED_SPELL_UNAVAILABLE;
+
+    bool reqCombat = true;
     Unit::AuraEffectList const& stateAuras = m_caster->GetAuraEffectsByType(SPELL_AURA_ABILITY_IGNORE_AURASTATE);
     for (Unit::AuraEffectList::const_iterator j = stateAuras.begin(); j != stateAuras.end(); ++j)
     {
@@ -5217,12 +5236,12 @@ SpellCastResult Spell::CheckCast(bool strict)
             // RETURN HERE
             case SPELL_EFFECT_SUMMON_RAF_FRIEND:
             {
-                if(m_caster->GetTypeId() != TYPEID_PLAYER)
+                if (m_caster->GetTypeId() != TYPEID_PLAYER)
                     return SPELL_FAILED_BAD_TARGETS;
 
                 Player* playerCaster = m_caster->ToPlayer();
                     //
-                if(!(playerCaster->GetSelection()))
+                if (!(playerCaster->GetSelection()))
                     return SPELL_FAILED_BAD_TARGETS;
 
                 Player* target = ObjectAccessor::FindPlayer(playerCaster->GetSelection());

@@ -25,14 +25,14 @@ class instance_razorfen_downs : public InstanceMapScript
 public:
     instance_razorfen_downs() : InstanceMapScript("instance_razorfen_downs", 129) { }
 
-    InstanceScript* GetInstanceScript(InstanceMap* pMap) const
+    InstanceScript* GetInstanceScript(InstanceMap* map) const
     {
-        return new instance_razorfen_downs_InstanceMapScript(pMap);
+        return new instance_razorfen_downs_InstanceMapScript(map);
     }
 
     struct instance_razorfen_downs_InstanceMapScript : public InstanceScript
     {
-        instance_razorfen_downs_InstanceMapScript(Map* pMap) : InstanceScript(pMap)
+        instance_razorfen_downs_InstanceMapScript(Map* map) : InstanceScript(map)
         {
         }
 
@@ -100,7 +100,7 @@ public:
 
         void OnGameObjectCreate(GameObject* go)
         {
-            switch(go->GetEntry())
+            switch (go->GetEntry())
             {
                 case GO_GONG:
                     uiGongGUID = go->GetGUID();
@@ -118,7 +118,7 @@ public:
             {
                 uiGongWaves = uiData;
 
-                switch(uiGongWaves)
+                switch (uiGongWaves)
                 {
                     case 9:
                     case 14:
@@ -139,7 +139,7 @@ public:
                         uint32 uiCreature = 0;
                         uint8 uiSummonTimes = 0;
 
-                        switch(uiGongWaves)
+                        switch (uiGongWaves)
                         {
                             case 1:
                                 uiCreature = CREATURE_TOMB_FIEND;
@@ -186,7 +186,7 @@ public:
 
         uint32 GetData(uint32 uiType)
         {
-            switch(uiType)
+            switch (uiType)
             {
                 case DATA_GONG_WAVES:
                     return uiGongWaves;
@@ -197,7 +197,7 @@ public:
 
         uint64 GetData64(uint32 uiType)
         {
-            switch(uiType)
+            switch (uiType)
             {
                 case DATA_GONG: return uiGongGUID;
             }

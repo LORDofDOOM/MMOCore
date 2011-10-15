@@ -151,38 +151,38 @@ class Object
 
         int32 GetInt32Value(uint16 index) const
         {
-            //ASSERT(index < m_valuesCount || PrintIndexError(index , false));
+            //ASSERT(index < m_valuesCount || PrintIndexError(index, false));
             return m_int32Values[index];
         }
 
         uint32 GetUInt32Value(uint16 index) const
         {
-            //ASSERT(index < m_valuesCount || PrintIndexError(index , false));
+            //ASSERT(index < m_valuesCount || PrintIndexError(index, false));
             return m_uint32Values[index];
         }
 
         uint64 GetUInt64Value(uint16 index) const
         {
-            //ASSERT(index + 1 < m_valuesCount || PrintIndexError(index , false));
+            //ASSERT(index + 1 < m_valuesCount || PrintIndexError(index, false));
             return *((uint64*)&(m_uint32Values[index]));
         }
 
         float GetFloatValue(uint16 index) const
         {
-            //ASSERT(index < m_valuesCount || PrintIndexError(index , false));
+            //ASSERT(index < m_valuesCount || PrintIndexError(index, false));
             return m_floatValues[index];
         }
 
         uint8 GetByteValue(uint16 index, uint8 offset) const
         {
-            //ASSERT(index < m_valuesCount || PrintIndexError(index , false));
+            //ASSERT(index < m_valuesCount || PrintIndexError(index, false));
             //ASSERT(offset < 4);
             return *(((uint8*)&m_uint32Values[index])+offset);
         }
 
         uint16 GetUInt16Value(uint16 index, uint8 offset) const
         {
-            //ASSERT(index < m_valuesCount || PrintIndexError(index , false));
+            //ASSERT(index < m_valuesCount || PrintIndexError(index, false));
             //ASSERT(offset < 2);
             return *(((uint16*)&m_uint32Values[index])+offset);
         }
@@ -227,7 +227,7 @@ class Object
 
         bool HasFlag(uint16 index, uint32 flag) const
         {
-            if (index >= m_valuesCount && !PrintIndexError(index , false)) return false;
+            if (index >= m_valuesCount && !PrintIndexError(index, false)) return false;
             return (m_uint32Values[index] & flag) != 0;
         }
 
@@ -244,7 +244,7 @@ class Object
 
         bool HasByteFlag(uint16 index, uint8 offset, uint8 flag) const
         {
-            ASSERT(index < m_valuesCount || PrintIndexError(index , false));
+            ASSERT(index < m_valuesCount || PrintIndexError(index, false));
             ASSERT(offset < 4);
             return (((uint8*)&m_uint32Values[index])[offset] & flag) != 0;
         }
@@ -278,7 +278,7 @@ class Object
 
         bool HasFlag64(uint16 index, uint64 flag) const
         {
-            ASSERT(index < m_valuesCount || PrintIndexError(index , false));
+            ASSERT(index < m_valuesCount || PrintIndexError(index, false));
             return (GetUInt64Value(index) & flag) != 0;
         }
 
@@ -294,7 +294,7 @@ class Object
         virtual bool hasQuest(uint32 /* quest_id */) const { return false; }
         virtual bool hasInvolvedQuest(uint32 /* quest_id */) const { return false; }
         virtual void BuildUpdate(UpdateDataMapType&) {}
-        void BuildFieldsUpdate(Player* , UpdateDataMapType &) const;
+        void BuildFieldsUpdate(Player*, UpdateDataMapType &) const;
 
         // FG: some hacky helpers
         void ForceValuesUpdateAtIndex(uint32);
@@ -679,7 +679,6 @@ class WorldObject : public Object, public WorldLocation
             { return IsInDist2d(x, y, dist + GetObjectSize()); }
         bool IsWithinDist2d(const Position* pos, float dist) const
             { return IsInDist2d(pos, dist + GetObjectSize()); }
-        virtual bool _IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D) const;
         // use only if you will sure about placing both object at same map
         bool IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D = true) const
         {
@@ -726,19 +725,6 @@ class WorldObject : public Object, public WorldLocation
 
         virtual void SaveRespawnTime() {}
         void AddObjectToRemoveList();
-
-        virtual bool isValid() const;
-
-        virtual bool isAlwaysVisibleFor(WorldObject const* /*seer*/) const { return false; }
-        virtual bool canSeeAlways(WorldObject const* /*obj*/) const { return false; }
-        bool canDetect(WorldObject const* obj, bool ignoreStealth) const;
-
-        virtual bool isVisibleForInState(WorldObject const* /*seer*/) const { return true; }
-
-        bool canDetectInvisibilityOf(WorldObject const* obj) const;
-        bool canDetectStealthOf(WorldObject const* obj) const;
-
-        virtual bool isAlwaysDetectableFor(WorldObject const* /*seer*/) const { return false; }
 
         float GetGridActivationRange() const;
         float GetVisibilityRange() const;
@@ -856,6 +842,11 @@ class WorldObject : public Object, public WorldLocation
         void SetLocationMapId(uint32 _mapId) { m_mapId = _mapId; }
         void SetLocationInstanceId(uint32 _instanceId) { m_InstanceId = _instanceId; }
 
+        virtual bool IsNeverVisible() const { return !IsInWorld(); }
+        virtual bool IsAlwaysVisibleFor(WorldObject const* /*seer*/) const { return false; }
+        virtual bool IsInvisibleDueToDespawn() const { return false; }
+        //difference from IsAlwaysVisibleFor: 1. after distance check; 2. use owner or charmer as seer
+        virtual bool IsAlwaysDetectableFor(WorldObject const* /*seer*/) const { return false; }
     private:
         Map* m_currMap;                                    //current object's Map location
 
@@ -865,6 +856,14 @@ class WorldObject : public Object, public WorldLocation
 
         uint16 m_notifyflags;
         uint16 m_executed_notifies;
+
+        virtual bool _IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D) const;
+
+        bool CanNeverSee(WorldObject const* obj) const { return GetMap() != obj->GetMap() || !InSamePhase(obj); }
+        virtual bool CanAlwaysSee(WorldObject const* /*obj*/) const { return false; }
+        bool CanDetect(WorldObject const* obj, bool ignoreStealth) const;
+        bool CanDetectInvisibilityOf(WorldObject const* obj) const;
+        bool CanDetectStealthOf(WorldObject const* obj) const;
 };
 
 namespace Trinity

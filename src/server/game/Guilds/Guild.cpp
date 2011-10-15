@@ -489,7 +489,7 @@ bool Guild::BankTab::SetItem(SQLTransaction& trans, uint8 slotId, Item* pItem)
     return true;
 }
 
-void Guild::BankTab::SendText(const Guild* pGuild, WorldSession* session) const
+void Guild::BankTab::SendText(const Guild* guild, WorldSession* session) const
 {
     WorldPacket data(MSG_QUERY_GUILD_BANK_TEXT, 1 + m_text.size() + 1);
     data << uint8(m_tabId);
@@ -498,7 +498,7 @@ void Guild::BankTab::SendText(const Guild* pGuild, WorldSession* session) const
     if (session)
         session->SendPacket(&data);
     else
-        pGuild->BroadcastPacket(&data);
+        guild->BroadcastPacket(&data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -671,7 +671,7 @@ void Guild::Member::DecreaseBankRemainingValue(SQLTransaction& trans, uint8 tabI
 // If (tabId == GUILD_BANK_MAX_TABS) return money amount.
 // Otherwise return remaining items amount for specified tab.
 // If reset time was more than 24 hours ago, renew reset time and reset amount to maximum value.
-uint32 Guild::Member::GetBankRemainingValue(uint8 tabId, const Guild* pGuild) const
+uint32 Guild::Member::GetBankRemainingValue(uint8 tabId, const Guild* guild) const
 {
     // Guild master has unlimited amount.
     if (IsRank(GR_GUILDMASTER))
@@ -679,7 +679,7 @@ uint32 Guild::Member::GetBankRemainingValue(uint8 tabId, const Guild* pGuild) co
 
     // Check rights for non-money tab.
     if (tabId != GUILD_BANK_MAX_TABS)
-        if ((pGuild->_GetRankBankTabRights(m_rankId, tabId) & GUILD_BANK_RIGHT_VIEW_TAB) != GUILD_BANK_RIGHT_VIEW_TAB)
+        if ((guild->_GetRankBankTabRights(m_rankId, tabId) & GUILD_BANK_RIGHT_VIEW_TAB) != GUILD_BANK_RIGHT_VIEW_TAB)
             return 0;
 
     uint32 curTime = uint32(::time(NULL) / MINUTE); // minutes
@@ -688,8 +688,8 @@ uint32 Guild::Member::GetBankRemainingValue(uint8 tabId, const Guild* pGuild) co
         RemainingValue& rv = const_cast <RemainingValue&> (m_bankRemaining[tabId]);
         rv.resetTime = curTime;
         rv.value = tabId == GUILD_BANK_MAX_TABS ?
-            pGuild->_GetRankBankMoneyPerDay(m_rankId) :
-            pGuild->_GetRankBankTabSlotsPerDay(m_rankId, tabId);
+            guild->_GetRankBankMoneyPerDay(m_rankId) :
+            guild->_GetRankBankTabSlotsPerDay(m_rankId, tabId);
 
         PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(
             tabId == GUILD_BANK_MAX_TABS ?
@@ -762,7 +762,7 @@ bool Guild::MoveItemData::CheckItem(uint32& splitedAmount)
 bool Guild::MoveItemData::CanStore(Item* pItem, bool swap, bool sendError)
 {
     m_vec.clear();
-    InventoryResult msg = _CanStore(pItem, swap);
+    InventoryResult msg = CanStore(pItem, swap);
     if (sendError && msg != EQUIP_ERR_OK)
         m_pPlayer->SendEquipError(msg, pItem);
     return (msg == EQUIP_ERR_OK);
@@ -850,7 +850,7 @@ void Guild::PlayerMoveItemData::LogBankEvent(SQLTransaction& trans, MoveItemData
         pFrom->GetItem()->GetEntry(), count);
 }
 
-inline InventoryResult Guild::PlayerMoveItemData::_CanStore(Item* pItem, bool swap)
+inline InventoryResult Guild::PlayerMoveItemData::CanStore(Item* pItem, bool swap)
 {
     return m_pPlayer->CanStoreItem(m_container, m_slotId, m_vec, pItem, swap);
 }
@@ -1002,11 +1002,11 @@ bool Guild::BankMoveItemData::_ReserveSpace(uint8 slotId, Item* pItem, Item* pIt
     return true;
 }
 
-void Guild::BankMoveItemData::_CanStoreItemInTab(Item* pItem, uint8 skipSlotId, bool merge, uint32& count)
+void Guild::BankMoveItemData::CanStoreItemInTab(Item* pItem, uint8 skipSlotId, bool merge, uint32& count)
 {
     for (uint8 slotId = 0; (slotId < GUILD_BANK_MAX_SLOTS) && (count > 0); ++slotId)
     {
-        // Skip slot already processed in _CanStore (when destination slot was specified)
+        // Skip slot already processed in CanStore (when destination slot was specified)
         if (slotId == skipSlotId)
             continue;
 
@@ -1022,7 +1022,7 @@ void Guild::BankMoveItemData::_CanStoreItemInTab(Item* pItem, uint8 skipSlotId, 
     }
 }
 
-InventoryResult Guild::BankMoveItemData::_CanStore(Item* pItem, bool swap)
+InventoryResult Guild::BankMoveItemData::CanStore(Item* pItem, bool swap)
 {
     sLog->outDebug(LOG_FILTER_GUILD, "GUILD STORAGE: CanStore() tab = %u, slot = %u, item = %u, count = %u",
         m_container, m_slotId, pItem->GetEntry(), pItem->GetCount());
@@ -1055,13 +1055,13 @@ InventoryResult Guild::BankMoveItemData::_CanStore(Item* pItem, bool swap)
     // Search for stacks to merge with
     if (pItem->GetMaxStackCount() > 1)
     {
-        _CanStoreItemInTab(pItem, m_slotId, true, count);
+        CanStoreItemInTab(pItem, m_slotId, true, count);
         if (count == 0)
             return EQUIP_ERR_OK;
     }
 
     // Search free slot for item
-    _CanStoreItemInTab(pItem, m_slotId, false, count);
+    CanStoreItemInTab(pItem, m_slotId, false, count);
     if (count == 0)
         return EQUIP_ERR_OK;
 
@@ -1293,7 +1293,7 @@ void Guild::HandleSetEmblem(WorldSession* session, const EmblemInfo& emblemInfo)
 {
     Player* player = session->GetPlayer();
     if (!_IsLeader(player))
-        // "Only pGuild leaders can create emblems."
+        // "Only guild leaders can create emblems."
         SendSaveEmblemResult(session, ERR_GUILDEMBLEM_NOTGUILDMASTER);
     else if (!player->HasEnoughMoney(EMBLEM_PRICE))
         // "You can't afford to do that."
@@ -1634,7 +1634,7 @@ void Guild::HandleMemberDepositMoney(WorldSession* session, uint32 amount)
     if (!AccountMgr::IsPlayerAccount(player->GetSession()->GetSecurity()) && sWorld->getBoolConfig(CONFIG_GM_LOG_TRADE))
     {
         sLog->outCommand(player->GetSession()->GetAccountId(),
-            "GM %s (Account: %u) deposit money (Amount: %u) to pGuild bank (Guild ID %u)",
+            "GM %s (Account: %u) deposit money (Amount: %u) to guild bank (Guild ID %u)",
             player->GetName(), player->GetSession()->GetAccountId(), amount, m_id);
     }
     // Log guild bank event
@@ -2022,7 +2022,7 @@ bool Guild::Validate()
         _SetLeaderGUID(pLeader);
 
     // Check config if multiple guildmasters are allowed
-    if (!sConfig->GetBoolDefault("Guild.AllowMultipleGuildMaster", 0))
+    if (!ConfigMgr::GetBoolDefault("Guild.AllowMultipleGuildMaster", 0))
         for (Members::iterator itr = m_members.begin(); itr != m_members.end(); ++itr)
             if (itr->second->GetRankId() == GR_GUILDMASTER && !itr->second->IsSamePlayer(m_leaderGuid))
                 itr->second->ChangeRank(GR_OFFICER);

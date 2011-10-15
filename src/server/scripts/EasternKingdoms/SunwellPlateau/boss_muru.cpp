@@ -85,8 +85,8 @@ float DarkFiends[8][4] =
     {1801.98f,   633.62f,    69.74f,    5.71f},
     {1830.88f,   629.99f,    69.73f,    3.52f},
     {1800.38f,   621.41f,    69.74f,    0.22f},
-    {1808.3f ,   612.45f,    69.73f,    1.02f},
-    {1823.9f ,   639.69f,    69.74f,    4.12f},
+    {1808.3f,   612.45f,    69.73f,    1.02f},
+    {1823.9f,   639.69f,    69.74f,    4.12f},
     {1811.85f,   640.46f,    69.73f,    4.97f}
 };
 
@@ -95,7 +95,7 @@ float Humanoides[6][5] =
     {CREATURE_FURY_MAGE, 1780.16f,    666.83f,    71.19f,    5.21f},
     {CREATURE_FURY_MAGE, 1847.93f,    600.30f,    71.30f,    2.57f},
     {CREATURE_BERSERKER, 1779.97f,    660.64f,    71.19f,    5.28f},
-    {CREATURE_BERSERKER, 1786.2f ,    661.01f,    71.19f,    4.51f},
+    {CREATURE_BERSERKER, 1786.2f,    661.01f,    71.19f,    4.51f},
     {CREATURE_BERSERKER, 1845.17f,    602.63f,    71.28f,    2.43f},
     {CREATURE_BERSERKER, 1842.91f,    599.93f,    71.23f,    2.44f}
 };
@@ -115,10 +115,10 @@ public:
     {
         boss_entropiusAI(Creature* c) : ScriptedAI(c), Summons(me)
         {
-            pInstance = c->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
-        InstanceScript* pInstance;
+        InstanceScript* instance;
         SummonList Summons;
 
         uint32 BlackHoleSummonTimer;
@@ -130,8 +130,8 @@ public:
 
             Summons.DespawnAll();
 
-            if (pInstance)
-                pInstance->SetData(DATA_MURU_EVENT, NOT_STARTED);
+            if (instance)
+                instance->SetData(DATA_MURU_EVENT, NOT_STARTED);
         }
 
         void EnterCombat(Unit* /*who*/)
@@ -139,13 +139,13 @@ public:
             DoCastAOE(SPELL_NEGATIVE_ENERGY_E, true);
             DoCast(me, SPELL_ENTROPIUS_SPAWN, false);
 
-            if (pInstance)
-                pInstance->SetData(DATA_MURU_EVENT, IN_PROGRESS);
+            if (instance)
+                instance->SetData(DATA_MURU_EVENT, IN_PROGRESS);
         }
 
         void JustSummoned(Creature* summoned)
         {
-            switch(summoned->GetEntry())
+            switch (summoned->GetEntry())
             {
                 case CREATURE_DARK_FIENDS:
                     summoned->CastSpell(summoned, SPELL_DARKFIEND_VISUAL, false);
@@ -165,8 +165,8 @@ public:
         {
             Summons.DespawnAll();
 
-            if (pInstance)
-                pInstance->SetData(DATA_MURU_EVENT, DONE);
+            if (instance)
+                instance->SetData(DATA_MURU_EVENT, DONE);
         }
 
         void UpdateAI(const uint32 diff)
@@ -215,10 +215,10 @@ public:
     {
         boss_muruAI(Creature* c) : Scripted_NoMovementAI(c), Summons(me)
         {
-            pInstance = c->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
-        InstanceScript* pInstance;
+        InstanceScript* instance;
         SummonList Summons;
 
         uint8 Phase;
@@ -242,16 +242,16 @@ public:
 
             Summons.DespawnAll();
 
-            if (pInstance)
-                pInstance->SetData(DATA_MURU_EVENT, NOT_STARTED);
+            if (instance)
+                instance->SetData(DATA_MURU_EVENT, NOT_STARTED);
         }
 
         void EnterCombat(Unit* /*who*/)
         {
             DoCastAOE(SPELL_NEGATIVE_ENERGY, false);
 
-            if (pInstance)
-                pInstance->SetData(DATA_MURU_EVENT, IN_PROGRESS);
+            if (instance)
+                instance->SetData(DATA_MURU_EVENT, IN_PROGRESS);
         }
 
         void DamageTaken(Unit* /*done_by*/, uint32 &damage)
@@ -270,7 +270,7 @@ public:
 
         void JustSummoned(Creature* summoned)
         {
-            switch(summoned->GetEntry())
+            switch (summoned->GetEntry())
             {
                 case BOSS_ENTROPIUS:
                     me->SetVisible(false);
@@ -292,9 +292,9 @@ public:
             {
                 if (Timer[TIMER_PHASE] <= diff)
                 {
-                    if (!pInstance)
+                    if (!instance)
                         return;
-                    switch(pInstance->GetData(DATA_MURU_EVENT))
+                    switch (instance->GetData(DATA_MURU_EVENT))
                     {
                         case NOT_STARTED:
                             Reset();
@@ -318,7 +318,7 @@ public:
             {
                 if (Timer[i] <= diff)
                 {
-                    switch(i)
+                    switch (i)
                     {
                         case TIMER_DARKNESS:
                             if (!DarkFiend)
@@ -380,10 +380,10 @@ public:
     {
         npc_muru_portalAI(Creature* c) : Scripted_NoMovementAI(c), Summons(me)
         {
-            pInstance = c->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
-        InstanceScript* pInstance;
+        InstanceScript* instance;
 
         SummonList Summons;
 
@@ -406,8 +406,8 @@ public:
 
         void JustSummoned(Creature* summoned)
         {
-            if (pInstance)
-                if (Player* Target = Unit::GetPlayer(*me, pInstance->GetData64(DATA_PLAYER_GUID)))
+            if (instance)
+                if (Player* Target = Unit::GetPlayer(*me, instance->GetData64(DATA_PLAYER_GUID)))
                     summoned->AI()->AttackStart(Target);
 
             Summons.Summon(summoned);
@@ -419,7 +419,7 @@ public:
             me->GetHomePosition(x, y, z, o);
             DoTeleportTo(x, y, z);
             InAction = true;
-            switch(Spell->Id)
+            switch (Spell->Id)
             {
                 case SPELL_OPEN_ALL_PORTALS:
                     DoCastAOE(SPELL_OPEN_PORTAL, false);
@@ -435,7 +435,7 @@ public:
         {
             if (!SummonSentinel)
             {
-                if (InAction && pInstance && pInstance->GetData(DATA_MURU_EVENT) == NOT_STARTED)
+                if (InAction && instance && instance->GetData(DATA_MURU_EVENT) == NOT_STARTED)
                     Reset();
                 return;
             }
@@ -583,10 +583,10 @@ public:
     {
         npc_blackholeAI(Creature* c) : ScriptedAI(c)
         {
-            pInstance = c->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
-        InstanceScript* pInstance;
+        InstanceScript* instance;
 
         uint32 DespawnTimer;
         uint32 SpellTimer;
@@ -607,7 +607,7 @@ public:
         {
             if (SpellTimer <= diff)
             {
-                Unit* Victim = Unit::GetUnit(*me, pInstance ? pInstance->GetData64(DATA_PLAYER_GUID) : 0);
+                Unit* Victim = Unit::GetUnit(*me, instance ? instance->GetData64(DATA_PLAYER_GUID) : 0);
                 switch (NeedForAHack)
                 {
                     case 0:

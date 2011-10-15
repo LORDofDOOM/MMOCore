@@ -439,11 +439,8 @@ class Battleground
 
         // Map pointers
         void SetBgMap(BattlegroundMap* map) { m_Map = map; }
-        BattlegroundMap* GetBgMap()
-        {
-            ASSERT(m_Map);
-            return m_Map;
-        }
+        BattlegroundMap* GetBgMap() const { ASSERT(m_Map); return m_Map; }
+        BattlegroundMap* FindBgMap() const { return m_Map; }
 
         void SetTeamStartLoc(uint32 TeamID, float X, float Y, float Z, float O);
         void GetTeamStartLoc(uint32 TeamID, float &X, float &Y, float &Z, float &O) const
@@ -580,6 +577,8 @@ class Battleground
 
         void RewardXPAtKill(Player* killer, Player* victim);
         bool CanAwardArenaPoints() const { return m_LevelMin >= BG_AWARD_ARENA_POINTS_MIN_LEVEL; }
+
+        virtual uint64 GetFlagPickerGUID(int32 /*team*/ = -1) const { return 0; }
 
     protected:
         // this method is called, when BG cannot spawn its own spirit guide, or something is wrong, It correctly ends Battleground
