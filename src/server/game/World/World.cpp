@@ -1942,8 +1942,8 @@ void World::Update(uint32 diff)
         ResetRandomBG();
 
 
-    // Handle external mail
-    if (sWorld->getBoolConfig(CONFIG_EXTERNAL_MAIL))
+	/// Handle external mail
+    if (m_int_configs[CONFIG_EXTERNAL_MAIL] != 0)
     {
         extmail_timer.Update(diff);
         if (extmail_timer.Passed())
@@ -1951,7 +1951,7 @@ void World::Update(uint32 diff)
             WorldSession::SendExternalMails();
             extmail_timer.Reset();
         }
-    }
+    } 
      
     /// <ul><li> Handle auctions when the timer has passed
     if (m_timers[WUPDATE_AUCTIONS].Passed())

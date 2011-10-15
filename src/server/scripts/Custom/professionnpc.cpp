@@ -33,15 +33,15 @@ public:
 
 bool OnGossipHello(Player* pPlayer, Creature* pCreature)
 {
-	if(sConfig->GetBoolDefault("ProfessionNPC.OnlyGMs", false)) // If ProfessionNPC.OnlyGMs is enabled in trinitycore.conf
+	if(ConfigMgr::GetBoolDefault("ProfessionNPC.OnlyGMs", false)) // If ProfessionNPC.OnlyGMs is enabled in trinitycore.conf
 		if (pPlayer->GetSession()->GetSecurity() == SEC_PLAYER)
 		{
 			pCreature->MonsterWhisper("Sorry, I can only trade to game masters.", pPlayer->GetGUID());
 			return true;
 		}
 
-	bool EnableProfessions = sConfig->GetBoolDefault("ProfessionNPC.EnableProfessions", true);
-	bool EnableSecondarySkills = sConfig->GetBoolDefault("ProfessionNPC.EnableSecondarySkills", true);
+	bool EnableProfessions = ConfigMgr::GetBoolDefault("ProfessionNPC.EnableProfessions", true);
+	bool EnableSecondarySkills = ConfigMgr::GetBoolDefault("ProfessionNPC.EnableSecondarySkills", true);
 
 	// Main Menu for Alliance
     if (pPlayer->GetTeam() == ALLIANCE)
@@ -79,11 +79,11 @@ if (pPlayer->isInCombat())
 	return;
 }
 
-	bool EnableProfessions = sConfig->GetBoolDefault("ProfessionNPC.EnableProfessions", true);
-	bool EnableSecondarySkills = sConfig->GetBoolDefault("ProfessionNPC.EnableSecondarySkills", true);
+	bool EnableProfessions = ConfigMgr::GetBoolDefault("ProfessionNPC.EnableProfessions", true);
+	bool EnableSecondarySkills = ConfigMgr::GetBoolDefault("ProfessionNPC.EnableSecondarySkills", true);
 
 //Mony Check
-if (pPlayer->GetMoney() < (sConfig->GetFloatDefault("SkillGoldCost",0)))
+if (pPlayer->GetMoney() < (ConfigMgr::GetFloatDefault("SkillGoldCost",0)))
 {
     pPlayer->CLOSE_GOSSIP_MENU();
     pCreature->MonsterWhisper("You don't have enough money.", pPlayer->GetGUID());
@@ -154,8 +154,8 @@ case 1001: // Alchemy
 		return;
 	}
 
-	pPlayer->UpdateSkill(171,(sConfig->GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(171,(ConfigMgr::GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(ConfigMgr::GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -167,8 +167,8 @@ case 1002: // Blacksmithing
 		return;
 	}
 
-	pPlayer->UpdateSkill(164,(sConfig->GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(164,(ConfigMgr::GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(ConfigMgr::GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -180,8 +180,8 @@ case 1003: // Enchanting
 		return;
 	}
 
-	pPlayer->UpdateSkill(333,(sConfig->GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(333,(ConfigMgr::GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(ConfigMgr::GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -193,8 +193,8 @@ case 1004: // Engineering
 		return;
 	}
 
-	pPlayer->UpdateSkill(202,(sConfig->GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(202,(ConfigMgr::GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(ConfigMgr::GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -206,8 +206,8 @@ case 1005: // Herbalism
 		return;
 	}
 
-	pPlayer->UpdateSkill(182,(sConfig->GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(182,(ConfigMgr::GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(ConfigMgr::GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -219,8 +219,8 @@ case 1006: // Inscription
 		return;
 	}
 
-	pPlayer->UpdateSkill(773,(sConfig->GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(773,(ConfigMgr::GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(ConfigMgr::GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -232,8 +232,8 @@ case 1007: // Jewelcrafting
 		return;
 	}
 
-	pPlayer->UpdateSkill(755,(sConfig->GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(755,(ConfigMgr::GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(ConfigMgr::GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -245,8 +245,8 @@ case 1008: // Leatherworking
 		return;
 	}
 
-	pPlayer->UpdateSkill(165,(sConfig->GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(165,(ConfigMgr::GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(ConfigMgr::GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -258,8 +258,8 @@ case 1009: // Mining
 		return;
 	}
 
-	pPlayer->UpdateSkill(186,(sConfig->GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(186,(ConfigMgr::GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(ConfigMgr::GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -271,8 +271,8 @@ case 1010: // Skinning
 		return;
 	}
 
-	pPlayer->UpdateSkill(393,(sConfig->GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(393,(ConfigMgr::GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(ConfigMgr::GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -284,8 +284,8 @@ case 1011: // Tailoring
 		return;
 	}
 
-	pPlayer->UpdateSkill(197,(sConfig->GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(197,(ConfigMgr::GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(ConfigMgr::GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -299,8 +299,8 @@ case 2001: // Cooking
 		return;
 	}
 
-	pPlayer->UpdateSkill(185,(sConfig->GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(185,(ConfigMgr::GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(ConfigMgr::GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -312,8 +312,8 @@ case 2002: // First Aid
 		return;
 	}
 
-	pPlayer->UpdateSkill(129,(sConfig->GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(129,(ConfigMgr::GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(ConfigMgr::GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -325,8 +325,8 @@ case 2003: // Fishing
 		return;
 	}
 
-	pPlayer->UpdateSkill(356,(sConfig->GetFloatDefault("SkillPoints",0)));
-	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
+	pPlayer->UpdateSkill(356,(ConfigMgr::GetFloatDefault("SkillPoints",0)));
+	pPlayer->ModifyMoney(-(ConfigMgr::GetFloatDefault("SkillGoldCost",0)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 
@@ -338,8 +338,8 @@ break;
 //		return;
 //	}
 //
-//	pPlayer->UpdateSkill(,(sConfig->GetFloatDefault("SkillPoints",0)));
-//	pPlayer->ModifyMoney(-(sConfig->GetFloatDefault("SkillGoldCost",0)));
+//	pPlayer->UpdateSkill(,(ConfigMgr::GetFloatDefault("SkillPoints",0)));
+//	pPlayer->ModifyMoney(-(ConfigMgr::GetFloatDefault("SkillGoldCost",0)));
 //	pPlayer->CLOSE_GOSSIP_MENU();
 //break;
 

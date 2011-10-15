@@ -37,23 +37,23 @@ class pryds_allinone : public CreatureScript
 bool OnGossipHello(Player  *player, Creature* pCreature)
 {
 	//Config sConfig;
-	if (!sConfig->SetSource(_TRINITY_CORE_CONFIG))
+	if (!ConfigMgr::Load(_TRINITY_CORE_CONFIG))
 		sLog->outError("TScript: Unable to open configuration file");
 
-	if (sConfig->GetBoolDefault("pryds_allinone.OnlyGMs", false)) // If pryds_allinone.OnlyGMs is enabled in trinitycore.conf
+	if (ConfigMgr::GetBoolDefault("pryds_allinone.OnlyGMs", false)) // If pryds_allinone.OnlyGMs is enabled in trinitycore.conf
 		if (player->GetSession()->GetSecurity() == SEC_PLAYER)
 		{
 			pCreature->MonsterWhisper("Sorry, I am set only for Game Masters.", player->GetGUID());
 			return true;
 		}
 
-	bool EnableBuffs = sConfig->GetBoolDefault("pryds_allinone.EnableBuffs", true);
-	bool EnableProfessionsSkillUp = sConfig->GetBoolDefault("pryds_allinone.EnableProfessionsSkillUp", true);
-	bool EnableTrainers = sConfig->GetBoolDefault("pryds_allinone.EnableTrainers", true);
-	bool EnableBots = sConfig->GetBoolDefault("pryds_allinone.EnableBots", true);
-	bool EnablePlayerTools = sConfig->GetBoolDefault("pryds_allinone.EnablePlayerTools", true);
-	bool EnableRemoveResSickness = sConfig->GetBoolDefault("pryds_allinone.EnableRemoveResSickness", true);
-	bool EnableMorph = sConfig->GetBoolDefault("pryds_allinone.EnableMorph", true);
+	bool EnableBuffs = ConfigMgr::GetBoolDefault("pryds_allinone.EnableBuffs", true);
+	bool EnableProfessionsSkillUp = ConfigMgr::GetBoolDefault("pryds_allinone.EnableProfessionsSkillUp", true);
+	bool EnableTrainers = ConfigMgr::GetBoolDefault("pryds_allinone.EnableTrainers", true);
+	bool EnableBots = ConfigMgr::GetBoolDefault("pryds_allinone.EnableBots", true);
+	bool EnablePlayerTools = ConfigMgr::GetBoolDefault("pryds_allinone.EnablePlayerTools", true);
+	bool EnableRemoveResSickness = ConfigMgr::GetBoolDefault("pryds_allinone.EnableRemoveResSickness", true);
+	bool EnableMorph = ConfigMgr::GetBoolDefault("pryds_allinone.EnableMorph", true);
 
 	// Main Menu for Alliance
     if (player->GetTeam() == ALLIANCE)
@@ -113,25 +113,25 @@ if (player->isInCombat())
 }
 
 //Config sConfig;
-if (!sConfig->SetSource(_TRINITY_CORE_CONFIG))
+if (!ConfigMgr::Load(_TRINITY_CORE_CONFIG))
 		sLog->outError("TScript: Unable to open configuration file");
-	bool EnableBuffs = sConfig->GetBoolDefault("pryds_allinone.EnableBuffs", true);
-	bool EnableProfessionsSkillUp = sConfig->GetBoolDefault("pryds_allinone.EnableProfessionsSkillUp", true);
-	bool EnableSmallBuff = sConfig->GetBoolDefault("pryds_allinone.EnableSmallBuff", true);
-	bool EnableGreatBuff = sConfig->GetBoolDefault("pryds_allinone.EnableGreatBuff", true);
-	bool EnableGMBuff = sConfig->GetBoolDefault("pryds_allinone.EnableGMBuff", true);
-	bool EnableTrainers = sConfig->GetBoolDefault("pryds_allinone.EnableTrainers", true);
-	bool EnableClassTrainers = sConfig->GetBoolDefault("pryds_allinone.EnableClassTrainers", true);
-	bool EnableProfessionsTrainers = sConfig->GetBoolDefault("pryds_allinone.EnableProfessionsTrainers", true);
-	bool EnablePlayerTools = sConfig->GetBoolDefault("pryds_allinone.EnablePlayerTools", true);
-	bool EnableRemoveResSickness = sConfig->GetBoolDefault("pryds_allinone.EnableRemoveResSickness", true);
-	bool EnableGivemeGold = sConfig->GetBoolDefault("pryds_allinone.EnableGivemeGold", true);
-	bool EnableProfessions = sConfig->GetBoolDefault("pryds_allinone.EnableProfessions", true);
-	bool EnableSecondarySkills = sConfig->GetBoolDefault("pryds_allinone.EnableSecondarySkills", true);
-	bool EnableMorph = sConfig->GetBoolDefault("pryds_allinone.EnableMorph", true);
+	bool EnableBuffs = ConfigMgr::GetBoolDefault("pryds_allinone.EnableBuffs", true);
+	bool EnableProfessionsSkillUp = ConfigMgr::GetBoolDefault("pryds_allinone.EnableProfessionsSkillUp", true);
+	bool EnableSmallBuff = ConfigMgr::GetBoolDefault("pryds_allinone.EnableSmallBuff", true);
+	bool EnableGreatBuff = ConfigMgr::GetBoolDefault("pryds_allinone.EnableGreatBuff", true);
+	bool EnableGMBuff = ConfigMgr::GetBoolDefault("pryds_allinone.EnableGMBuff", true);
+	bool EnableTrainers = ConfigMgr::GetBoolDefault("pryds_allinone.EnableTrainers", true);
+	bool EnableClassTrainers = ConfigMgr::GetBoolDefault("pryds_allinone.EnableClassTrainers", true);
+	bool EnableProfessionsTrainers = ConfigMgr::GetBoolDefault("pryds_allinone.EnableProfessionsTrainers", true);
+	bool EnablePlayerTools = ConfigMgr::GetBoolDefault("pryds_allinone.EnablePlayerTools", true);
+	bool EnableRemoveResSickness = ConfigMgr::GetBoolDefault("pryds_allinone.EnableRemoveResSickness", true);
+	bool EnableGivemeGold = ConfigMgr::GetBoolDefault("pryds_allinone.EnableGivemeGold", true);
+	bool EnableProfessions = ConfigMgr::GetBoolDefault("pryds_allinone.EnableProfessions", true);
+	bool EnableSecondarySkills = ConfigMgr::GetBoolDefault("pryds_allinone.EnableSecondarySkills", true);
+	bool EnableMorph = ConfigMgr::GetBoolDefault("pryds_allinone.EnableMorph", true);
 
 //Mony Check
-if (player->GetMoney() < (sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)))
+if (player->GetMoney() < (ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)))
 {
     player->CLOSE_GOSSIP_MENU();
     pCreature->MonsterWhisper("You don't have enough money.", player->GetGUID());
@@ -420,73 +420,73 @@ break;
 case 1001: // Buff me Mark of the Wild
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,48469,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 1005: // Buff me Thorns
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,53307,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 1010: // Buff me Amplify Magic
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,43017,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 1015: // Buff me Arcane Intellect
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,42995,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 1020: // Buff me Dalaran Intellect
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,61024,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 1025: // Buff me Dampen Magic
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,43015,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 1030: // Buff me Blessing of Kings
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,20217,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 1035: // Buff me Blessing of Might
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,48932,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 1040: // Buff me Blessing of Wisdom
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,48936,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 1045: // Buff me Divine Spirit
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,48073,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 1050: // Buff me Power Word: Fortitude
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,48161,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 1055: // Buff me Shadow Protection
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,48169,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 //////////////////////////////////////////////////Great Buff///////////////////////////////////////////////////////////////
@@ -494,61 +494,61 @@ break;
 case 2001: // Buff me Gift of the Wild
     player->CLOSE_GOSSIP_MENU();
     player->CastSpell(player,48470,true);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 2005: // Buff me Arcane Brilliance
     player->CLOSE_GOSSIP_MENU();
     player->CastSpell(player,43002,true);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 2010: // Buff me Dalaran Brilliance
     player->CLOSE_GOSSIP_MENU();
     player->CastSpell(player,61316,true);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 2015: // Buff me Greater Blessing of Kings
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,25898,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 2020: // Buff me Greater Blessing of Might
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,48934,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 2025: // Buff me Greater Blessing of Sanctuary
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,25899,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 2030: // Buff me Greater Blessing of Wisdom
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,48938,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 2035: // Buff me Prayer of Fortitude
     player->CLOSE_GOSSIP_MENU();
     player->CastSpell(player,48162,true);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 2040: // Buff me Prayer of Shadow Protection
     player->CLOSE_GOSSIP_MENU();
     player->CastSpell(player,48170,true);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 2045: // Buff me Prayer of Spirit
     player->CLOSE_GOSSIP_MENU();
     player->CastSpell(player,48074,true);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 //////////////////////////////////////////////////GM Buff///////////////////////////////////////////////////////////////
@@ -556,55 +556,55 @@ break;
 case 3001: // Buff me Agamaggan's Agility
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,17013,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 3005: // Buff me Agamaggan's Strength
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,16612,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 3010: // Buff me Armor Magic
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,58453,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 3015: // Buff me Armor Penetration
     player->CLOSE_GOSSIP_MENU();
     player->CastSpell(player,34106,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 3020: // Buff me Increased Stamina
     player->CLOSE_GOSSIP_MENU();
     player->CastSpell(player,25661,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 3025: // Buff me Razorhide
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,16610,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 3030: // Buff me Rising Spirit
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,10767,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 3035: // Buff me Spirit of the Wind
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,16618,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 3040: // Buff me Wisdom of Agamaggan
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,7764,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 //////////////////////////////////////////////////Trainers ///////////////////////////////////////////////////////////////
@@ -943,36 +943,36 @@ break;
 case 4005://Give me Soul Shard
     player->CLOSE_GOSSIP_MENU();
     player->CastSpell(player,24827,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 4010: // Heal me please
     player->CLOSE_GOSSIP_MENU();
     pCreature->CastSpell(player,38588,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 4015: // Heal me and party members Please
     player->CLOSE_GOSSIP_MENU();
     player->CastSpell(player,53251,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 4020: // Conjure Refreshment
     player->CLOSE_GOSSIP_MENU();
     player->CastSpell(player,42956,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 break;
 
 case 4025: // Conjure Mana Gem
     player->CLOSE_GOSSIP_MENU();
     player->CastSpell(player,42985,false);
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
 
 case 4026: // Update Skill to Max for Level
     player->CLOSE_GOSSIP_MENU();
     player->UpdateSkillsToMaxSkillsForLevel();
-    player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
+    player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneBuffGoldCost",0)));
     pCreature->MonsterSay("Your Skills have now been Maxed for your Level.", LANG_UNIVERSAL, NULL);
     
 break;
@@ -1014,8 +1014,8 @@ case 1101: // Alchemy
 		return;
 	}
 
-	player->UpdateSkill(171,(sConfig->GetFloatDefault("pryds_allinoneSkillPoints",0)));
-	player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
+	player->UpdateSkill(171,(ConfigMgr::GetFloatDefault("pryds_allinoneSkillPoints",0)));
+	player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
 	player->CLOSE_GOSSIP_MENU();
 break;
 
@@ -1027,8 +1027,8 @@ case 1102: // Blacksmithing
 		return;
 	}
 
-	player->UpdateSkill(164,(sConfig->GetFloatDefault("pryds_allinoneSkillPoints",0)));
-	player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
+	player->UpdateSkill(164,(ConfigMgr::GetFloatDefault("pryds_allinoneSkillPoints",0)));
+	player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
 	player->CLOSE_GOSSIP_MENU();
 break;
 
@@ -1040,8 +1040,8 @@ case 1103: // Enchanting
 		return;
 	}
 
-	player->UpdateSkill(333,(sConfig->GetFloatDefault("pryds_allinoneSkillPoints",0)));
-	player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
+	player->UpdateSkill(333,(ConfigMgr::GetFloatDefault("pryds_allinoneSkillPoints",0)));
+	player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
 	player->CLOSE_GOSSIP_MENU();
 break;
 
@@ -1053,8 +1053,8 @@ case 1104: // Engineering
 		return;
 	}
 
-	player->UpdateSkill(202,(sConfig->GetFloatDefault("pryds_allinoneSkillPoints",0)));
-	player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
+	player->UpdateSkill(202,(ConfigMgr::GetFloatDefault("pryds_allinoneSkillPoints",0)));
+	player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
 	player->CLOSE_GOSSIP_MENU();
 break;
 
@@ -1066,8 +1066,8 @@ case 1105: // Herbalism
 		return;
 	}
 
-	player->UpdateSkill(182,(sConfig->GetFloatDefault("pryds_allinoneSkillPoints",0)));
-	player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
+	player->UpdateSkill(182,(ConfigMgr::GetFloatDefault("pryds_allinoneSkillPoints",0)));
+	player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
 	player->CLOSE_GOSSIP_MENU();
 break;
 
@@ -1079,8 +1079,8 @@ case 1106: // Inscription
 		return;
 	}
 
-	player->UpdateSkill(773,(sConfig->GetFloatDefault("pryds_allinoneSkillPoints",0)));
-	player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
+	player->UpdateSkill(773,(ConfigMgr::GetFloatDefault("pryds_allinoneSkillPoints",0)));
+	player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
 	player->CLOSE_GOSSIP_MENU();
 break;
 
@@ -1092,8 +1092,8 @@ case 1107: // Jewelcrafting
 		return;
 	}
 
-	player->UpdateSkill(755,(sConfig->GetFloatDefault("pryds_allinoneSkillPoints",0)));
-	player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
+	player->UpdateSkill(755,(ConfigMgr::GetFloatDefault("pryds_allinoneSkillPoints",0)));
+	player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
 	player->CLOSE_GOSSIP_MENU();
 break;
 
@@ -1105,8 +1105,8 @@ case 1108: // Leatherworking
 		return;
 	}
 
-	player->UpdateSkill(165,(sConfig->GetFloatDefault("pryds_allinoneSkillPoints",0)));
-	player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
+	player->UpdateSkill(165,(ConfigMgr::GetFloatDefault("pryds_allinoneSkillPoints",0)));
+	player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
 	player->CLOSE_GOSSIP_MENU();
 break;
 
@@ -1118,8 +1118,8 @@ case 1109: // Mining
 		return;
 	}
 
-	player->UpdateSkill(186,(sConfig->GetFloatDefault("pryds_allinoneSkillPoints",0)));
-	player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
+	player->UpdateSkill(186,(ConfigMgr::GetFloatDefault("pryds_allinoneSkillPoints",0)));
+	player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
 	player->CLOSE_GOSSIP_MENU();
 break;
 
@@ -1131,8 +1131,8 @@ case 1110: // Skinning
 		return;
 	}
 
-	player->UpdateSkill(393,(sConfig->GetFloatDefault("pryds_allinoneSkillPoints",0)));
-	player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
+	player->UpdateSkill(393,(ConfigMgr::GetFloatDefault("pryds_allinoneSkillPoints",0)));
+	player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
 	player->CLOSE_GOSSIP_MENU();
 break;
 
@@ -1144,8 +1144,8 @@ case 1111: // Tailoring
 		return;
 	}
 
-	player->UpdateSkill(197,(sConfig->GetFloatDefault("pryds_allinoneSkillPoints",0)));
-	player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
+	player->UpdateSkill(197,(ConfigMgr::GetFloatDefault("pryds_allinoneSkillPoints",0)));
+	player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
 	player->CLOSE_GOSSIP_MENU();
 break;
 
@@ -1159,8 +1159,8 @@ case 2101: // Cooking
 		return;
 	}
 
-	player->UpdateSkill(185,(sConfig->GetFloatDefault("pryds_allinoneSkillPoints",0)));
-	player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
+	player->UpdateSkill(185,(ConfigMgr::GetFloatDefault("pryds_allinoneSkillPoints",0)));
+	player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
 	player->CLOSE_GOSSIP_MENU();
 break;
 
@@ -1172,8 +1172,8 @@ case 2102: // First Aid
 		return;
 	}
 
-	player->UpdateSkill(129,(sConfig->GetFloatDefault("pryds_allinoneSkillPoints",0)));
-	player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
+	player->UpdateSkill(129,(ConfigMgr::GetFloatDefault("pryds_allinoneSkillPoints",0)));
+	player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
 	player->CLOSE_GOSSIP_MENU();
 break;
 
@@ -1185,8 +1185,8 @@ case 2103: // Fishing
 		return;
 	}
 
-	player->UpdateSkill(356,(sConfig->GetFloatDefault("pryds_allinoneSkillPoints",0)));
-	player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
+	player->UpdateSkill(356,(ConfigMgr::GetFloatDefault("pryds_allinoneSkillPoints",0)));
+	player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
 	player->CLOSE_GOSSIP_MENU();
 break;
 
@@ -1198,8 +1198,8 @@ break;
 //		return;
 //	}
 //
-//	player->UpdateSkill(,(sConfig->GetFloatDefault("pryds_allinoneSkillPoints",0)));
-//	player->ModifyMoney(-(sConfig->GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
+//	player->UpdateSkill(,(ConfigMgr::GetFloatDefault("pryds_allinoneSkillPoints",0)));
+//	player->ModifyMoney(-(ConfigMgr::GetFloatDefault("pryds_allinoneSkillGoldCost",0)));
 //	player->CLOSE_GOSSIP_MENU();
 //break;
  player->CLOSE_GOSSIP_MENU();
