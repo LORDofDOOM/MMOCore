@@ -90,7 +90,7 @@ public:
                 "SET gm = '%s', unsetdate = unsetdate + %u "
                 "WHERE id = %u", gm.c_str(), durationSecs, targetAccountId);
 
-            handler->PSendSysMessage("VIP updated.");
+            handler->PSendSysMessage("Elite geupdated.");
 
             return true;
         }
@@ -102,7 +102,7 @@ public:
             "VALUES ('%u', '%s', UNIX_TIMESTAMP(), UNIX_TIMESTAMP() + %u, 1)",
             targetAccountId, gm.c_str(), durationSecs);
 
-        handler->PSendSysMessage("The account is now set as VIP.");
+        handler->PSendSysMessage("Der Account ist jetzt als Elite Account geflaggt.");
 
         return true;
     }
@@ -140,9 +140,9 @@ public:
         uint32 days = AccountMgr::VipDaysLeft(accountId);
 
         if (days > 0)
-            handler->PSendSysMessage("Account is not VIP.", days);
+            handler->PSendSysMessage("Du hast keinen Elite Account.", days);
         else
-            handler->PSendSysMessage("VIP ends in %u days.");
+            handler->PSendSysMessage("Dein Elite Account endet in %u Tagen.");
 
         return true;
     }
