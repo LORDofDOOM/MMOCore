@@ -57,6 +57,8 @@ void AddSC_fake_commandscript();
 void AddSC_level_rewards();
 //EventBoss und Quest
 void AddSC_npc_legion_master();
+//EventNPCs
+void AddSC_event_npc();
 //Lottery
 //void AddSC_npc_lottery();
 // Killstreak PvP System
@@ -1316,6 +1318,8 @@ void AddCustomScripts()
     AddSC_level_rewards();
 	//EventBoss und Quest
 	AddSC_npc_legion_master();	
+	//EventNPCs
+	AddSC_event_npc();	
 	//Lottery
 	//AddSC_npc_lottery();	
 	// Killstreak PvP System
