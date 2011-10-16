@@ -65,11 +65,11 @@ enum eEnums
     GO_ICE_DOOR_2                                    =201911,
 };
 
-#define FIRE_SAY_AGGRO                                "Você não tem nada para fazer aqui. Saia enquanto ainda está vivo!"
-#define FIRE_SAY_FRENZY                               "A raiva me fortalece!"
-#define FIRE_SAY_SUMMON_TITAN                         "Ajudem-me servos!"
-#define FIRE_SAY_KILL                                 "Um fim a você!"
-#define FIRE_SAY_DIE                                  "Neste momento... você teve sorte..."
+#define FIRE_SAY_AGGRO                                "Ihr habt hier nichts zu suchen!"
+#define FIRE_SAY_FRENZY                               "Wur macht mich stärker!"
+#define FIRE_SAY_SUMMON_TITAN                         "Helft mir, Diener!"
+#define FIRE_SAY_KILL                                 "Euer Ende"
+#define FIRE_SAY_DIE                                  "Dieser Moment... Ihr hattet Glück..."
 
 class event_npc_firelord : public CreatureScript
 {
@@ -317,11 +317,11 @@ class event_npc_firelord : public CreatureScript
 
 };
 
-#define ICE_SAY_AGGRO                                "Tem certeza que deseja me enfrentar?"
-#define ICE_SAY_KILL                                 "Apenas mais um pedaço de gelo inútil!"
-#define ICE_SAY_DIE                                  "Mas! Eu era imortal..."
+#define ICE_SAY_AGGRO                                "Ihr seid sicher, dass ihr mich bekämpfen wollt?"
+#define ICE_SAY_KILL                                 "Ein nutzloses Stück Eis seid ihr!"
+#define ICE_SAY_DIE                                  "Niemals! Ich war unsterblich..."
 
-#define EMOTE_ICE_SHIELD_ICE                         "Uma crosta de gelo protege Alcides"
+#define EMOTE_ICE_SHIELD_ICE                         "Eine Kruste aus Eis schützt Alcides"
 
 class event_npc_icelord : public CreatureScript
 {
@@ -486,10 +486,10 @@ class event_npc_icelord : public CreatureScript
 
 };
 
-#define EARTH_SAY_AGGRO                               "Você não devia ter vindo aqui! Este lugar será seu túmulo!"
-#define EARTH_EMOTE_NATURE                            "Acrylic se preenche com poder ta terra"
-#define EARTH_SAY_KILL                                "Volte para o chão!"
-#define EARTH_SAY_DIE                                 "Terra, me ajude ... oh ..."
+#define EARTH_SAY_AGGRO                               "Ihr hättet nichthierher kommen sollen! Dieser Ort wird euer Grab sein!"
+#define EARTH_EMOTE_NATURE                            "Acrylic füllt sich mit der Macht der Erde"
+#define EARTH_SAY_KILL                                "Zurück in den Boden mit euch!"
+#define EARTH_SAY_DIE                                 "Erde... Hilf mir..."
 
 class event_npc_earthlord : public CreatureScript
 {
@@ -661,11 +661,11 @@ class event_npc_earthlord : public CreatureScript
 
 };
 
-#define DARK_SAY_AGGRO                                "Visitantes? Tão derrepente..."
-#define DARK_SAY_FRENZY                               "Sim! Sua raiva me fortalece!"
-#define DARK_SAY_SUMMON                               "Procure pelas almas que estavam aqui antes de você."
-#define DARK_SAY_KILL                                 "Sua alma se juntará ao meu exército!"
-#define DARK_SAY_DIE                                  "Estou muito velho para batalhas como esta..."
+#define DARK_SAY_AGGRO                                "Besucher? So unerwartet..."
+#define DARK_SAY_FRENZY                               "Ja! Eure Wut gibt mir Kraft!"
+#define DARK_SAY_SUMMON                               "Achtet auf die Seelen, die hier vor euch gewesen sind."
+#define DARK_SAY_KILL                                 "Deine Seele wird zu meiner Armee gehören!"
+#define DARK_SAY_DIE                                  "Ich bin zu alt für Schlachten wie diese..."
 
 class event_npc_darklord : public CreatureScript
 {
