@@ -2862,6 +2862,13 @@ Anticheat.DetectionsEnabled = 31
 
 Anticheat.MaxReportsForDailyReport = 70
 
+#     Anticheat.Ban
+#        Description: Make anticheat active (Ban cheaters character for 1 hour.)
+#        Default:     1 - (Enabled)
+#                     0 - (Disabled)
+
+Anticheat.Ban = 1
+
 ###################################################################################################
 
 
