@@ -3131,6 +3131,9 @@ void SpellMgr::LoadDbcDataCorrections()
             case 29809: // Desecration Arm - 36 instead of 37 - typo? :/
                 spellInfo->EffectRadiusIndex[0] = 37;
                 break;
+            case 68766: // Desecration
+                spellInfo->rangeIndex = 2;
+                break;				
             // Master Shapeshifter: missing stance data for forms other than bear - bear version has correct data
             // To prevent aura staying on target after talent unlearned
             case 48420:
