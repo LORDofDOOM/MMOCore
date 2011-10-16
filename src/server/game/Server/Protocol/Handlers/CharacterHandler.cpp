@@ -844,6 +844,15 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder * holder)
         std::string str_motd = sWorld->GetMotd();
         std::string::size_type pos, nextpos;
 
+        if (IsPremium())
+       {
+           uint32 days = AccountMgr::VipDaysLeft(GetAccountId());
+           char buffer[40];
+           sprintf(buffer, "@Seu VIP ist noch %u Tag(e) aktiv.", days);
+           str_motd.append(buffer);
+       }
+
+		
         pos = 0;
         while ((nextpos= str_motd.find('@', pos)) != std::string::npos)
         {

@@ -49,6 +49,8 @@ namespace AccountMgr
         uint32 GetCharactersCount(uint32 accountId);
         std::string CalculateShaPassHash(std::string& name, std::string& password);
 
+        uint32 VipDaysLeft(uint32 accountId);		
+		
         bool normalizeString(std::string& utf8String);
         bool IsPlayerAccount(uint32 gmlevel);
         bool IsModeratorAccount(uint32 gmlevel);
