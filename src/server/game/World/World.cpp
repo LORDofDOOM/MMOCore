@@ -1724,7 +1724,7 @@ void World::SetInitialWorldSettings()
     mail_timer = ((((localtime(&m_gameTime)->tm_hour + 20) % 24)* HOUR * IN_MILLISECONDS) / m_timers[WUPDATE_AUCTIONS].GetInterval());
                                                             //1440
     extmail_timer.SetInterval(m_int_configs[CONFIG_EXTERNAL_MAIL_INTERVAL] * MINUTE * IN_MILLISECONDS);                                                          //1440
-    mail_timer_expires = ((DAY * IN_MILLISECONDS) / (m_timers[WUPDATE_AUCTIONS].GetInterval()));
+    extmail_timer.SetInterval(m_int_configs[CONFIG_EXTERNAL_MAIL_INTERVAL] * MINUTE * IN_MILLISECONDS);
     sLog->outDetail("Mail timer set to: " UI64FMTD ", mail return is called every " UI64FMTD " minutes", uint64(mail_timer), uint64(mail_timer_expires));
 
     ///- Initilize static helper structures
@@ -1946,16 +1946,16 @@ void World::Update(uint32 diff)
         ResetRandomBG();
 
 
-	/// Handle external mail
-    if (m_int_configs[CONFIG_EXTERNAL_MAIL] != 0)
-    {
-        extmail_timer.Update(diff);
-        if (extmail_timer.Passed())
-        {
-            WorldSession::SendExternalMails();
-            extmail_timer.Reset();
-        }
-    } 
+    // Handle external mail
+   if (sWorld->getBoolConfig(CONFIG_EXTERNAL_MAIL))
+   {
+       extmail_timer.Update(diff);
+       if (extmail_timer.Passed())
+       {
+           WorldSession::SendExternalMails();
+           extmail_timer.Reset();
+       }
+   }
      
     /// <ul><li> Handle auctions when the timer has passed
     if (m_timers[WUPDATE_AUCTIONS].Passed())
