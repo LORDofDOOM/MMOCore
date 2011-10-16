@@ -51,6 +51,8 @@ void AddSC_professionnpc();
 void AddSC_pryds_allinone();
 //Mini Boss
 void AddSC_npcs_mini_boss();
+//Fake Players
+void AddSC_fake_commandscript();
 //Lottery
 //void AddSC_npc_lottery();
 // Killstreak PvP System
@@ -1304,6 +1306,8 @@ void AddCustomScripts()
 	AddSC_pryds_allinone();
 	//Mini Boss
 	AddSC_npcs_mini_boss();
+	//Fake Players
+	AddSC_fake_commandscript();	
 	//Lottery
 	//AddSC_npc_lottery();	
 	// Killstreak PvP System
