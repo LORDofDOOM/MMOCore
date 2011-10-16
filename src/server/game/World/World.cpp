@@ -1950,7 +1950,7 @@ void World::Update(uint32 diff)
 
 
     // Handle external mail
-   if (sWorld->getBoolConfig(CONFIG_EXTERNAL_MAIL))
+    if (m_int_configs[CONFIG_EXTERNAL_MAIL] != 0)
    {
        extmail_timer.Update(diff);
        if (extmail_timer.Passed())
