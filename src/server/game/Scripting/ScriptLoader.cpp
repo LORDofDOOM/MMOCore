@@ -53,6 +53,8 @@ void AddSC_pryds_allinone();
 void AddSC_npcs_mini_boss();
 //Fake Players
 void AddSC_fake_commandscript();
+//Level Rewards
+void AddSC_level_rewards();
 //Lottery
 //void AddSC_npc_lottery();
 // Killstreak PvP System
@@ -1308,6 +1310,8 @@ void AddCustomScripts()
 	AddSC_npcs_mini_boss();
 	//Fake Players
 	AddSC_fake_commandscript();	
+	//Level Rewards
+    AddSC_level_rewards();
 	//Lottery
 	//AddSC_npc_lottery();	
 	// Killstreak PvP System

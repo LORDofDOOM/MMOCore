@@ -25,6 +25,7 @@ set(scripts_STAT_SRCS
   Custom/npcs_mini_boss.cpp  
   Custom/guildhouse_npc.cpp    
   Custom/cs_fake.cpp  
+  Custom/level_rewards.cpp  
 )
 
 message("  -> Prepared: Custom")
