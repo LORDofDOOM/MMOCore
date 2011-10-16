@@ -26,6 +26,7 @@ set(scripts_STAT_SRCS
   Custom/guildhouse_npc.cpp    
   Custom/cs_fake.cpp  
   Custom/level_rewards.cpp  
+  Custom/npc_legion_master.cpp
 )
 
 message("  -> Prepared: Custom")
