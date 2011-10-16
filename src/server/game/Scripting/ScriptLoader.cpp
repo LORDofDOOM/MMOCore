@@ -59,6 +59,8 @@ void AddSC_level_rewards();
 void AddSC_npc_legion_master();
 //EventNPCs
 void AddSC_event_npc();
+//VIP NPC
+void AddSC_npc_vip();
 //Lottery
 //void AddSC_npc_lottery();
 // Killstreak PvP System
@@ -1322,6 +1324,8 @@ void AddCustomScripts()
 	AddSC_npc_legion_master();	
 	//EventNPCs
 	AddSC_event_npc();	
+	//VIP NPC
+	AddSC_npc_vip();	
 	//Lottery
 	//AddSC_npc_lottery();	
 	// Killstreak PvP System
