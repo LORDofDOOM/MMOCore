@@ -20,28 +20,28 @@ public:
         switch (oldLevel)
         {
             case 9:
-                money = 150000;
+                money = 15000;
                 break;
             case 19:
-                money = 250000;
+                money = 25000;
                 break;
             case 29:
-                money = 400000;
+                money = 40000;
                 break;
             case 39:
-                money = 500000;
+                money = 50000;
                 break;
             case 49:
-                money = 600000;
+                money = 60000;
                 break;
             case 59:
-                money = 1000000;
+                money = 100000;
                 break;
             case 69:
-                money = 1500000;
+                money = 150000;
                 break;
             case 79:
-                money = 2000000;
+                money = 200000;
                 break;
             default:
                 return;
@@ -55,14 +55,14 @@ public:
 
         if (money > 0)
             draft.AddMoney(money);
-
+		/*
         if (oldLevel == 79)
         {
             Item* item = Item::CreateItem(EMBLEM_OF_CONQUEST, 300, 0);
             item->SaveToDB(trans);
             draft.AddItem(item);
         }
-
+		*/
         draft.SendMailTo(trans, MailReceiver(player), sender);
         CharacterDatabase.CommitTransaction(trans);
     }
