@@ -35,6 +35,6 @@ UPDATE `creature_template` SET `npcflag`=3 WHERE `entry`=23872;
 DELETE FROM `item_loot_template` WHERE `entry` =54535 AND `item` =49426;
 -- add drop item 54535 from Coren Direbrew NPC(23872)
 DELETE FROM `creature_loot_template` WHERE `entry` =23872 AND `item` =54535;
-INSERT INTO `worldx100lk`.`creature_loot_template` VALUES 
+INSERT INTO `creature_loot_template` VALUES 
 ('23872', '54535', '100', '1', '0', '1', '1');
 
