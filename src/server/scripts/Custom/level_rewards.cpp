@@ -20,28 +20,28 @@ public:
         switch (oldLevel)
         {
             case 9:
-                money = 15000;
-                break;
-            case 19:
-                money = 25000;
-                break;
-            case 29:
-                money = 40000;
-                break;
-            case 39:
-                money = 50000;
-                break;
-            case 49:
-                money = 60000;
-                break;
-            case 59:
-                money = 100000;
-                break;
-            case 69:
                 money = 150000;
                 break;
+            case 19:
+                money = 250000;
+                break;
+            case 29:
+                money = 400000;
+                break;
+            case 39:
+                money = 500000;
+                break;
+            case 49:
+                money = 600000;
+                break;
+            case 59:
+                money = 1000000;
+                break;
+            case 69:
+                money = 1500000;
+                break;
             case 79:
-                money = 200000;
+                money = 2000000;
                 break;
             default:
                 return;
