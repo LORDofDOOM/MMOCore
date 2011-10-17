@@ -425,6 +425,8 @@ ChatCommand* ChatHandler::getCommandTable()
         { "roulette",       SEC_PLAYER,         false, OldHandler<&ChatHandler::HandleRouletteCommand>,            "", NULL },
 		//Mall Teleporter
 		{ "mall",			SEC_PLAYER,			false, OldHandler<&ChatHandler::HandleMallCommand>,				"", NULL }, 		
+		//Dalaran Teleporter
+		{ "dala",			SEC_PLAYER,			false, OldHandler<&ChatHandler::HandleDalaCommand>,				"", NULL }, 				
 		//Buffer
 		{ "buffs",			SEC_PLAYER,			false, OldHandler<&ChatHandler::HandleBuffsCommand>,				"", NULL }, 
 		//GuildHouse Tele

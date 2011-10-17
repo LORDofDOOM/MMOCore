@@ -195,6 +195,33 @@ bool ChatHandler::HandleMallCommand(const char* /*args*/)
         return true;
 }
 
+//Dalaran Teleporter
+bool ChatHandler::HandleDalaCommand(const char* /*args*/)
+{
+        //MALL command
+        
+        Player *chr = m_session->GetPlayer();
+
+        if (chr->isInCombat())
+        {
+        SendSysMessage(LANG_YOU_IN_COMBAT);
+        SetSentErrorMessage(true);
+        return false;
+        }
+        if (chr->isInFlight())
+        {
+        SendSysMessage(LANG_YOU_IN_FLIGHT);
+        SetSentErrorMessage(true);
+        return false;
+        }
+
+        chr->ResurrectPlayer(0.5, false);
+
+        chr->TeleportTo(571, 5813.93f, 449.06f, 658.75f, 1.276612f);    // Insert Dala Coords
+
+        return true;
+}
+
 //Buffer
 bool ChatHandler::HandleBuffsCommand(const char* /*args*/)              
 {

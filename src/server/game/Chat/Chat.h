@@ -279,6 +279,8 @@ class ChatHandler
 		bool HandleGambleCommand(const char* args);		
 		//Mall Teleporter
 		bool HandleMallCommand(const char* args);	
+		//Dala Teleporter
+		bool HandleDalaCommand(const char* args);			
 		//Buffer
 		bool HandleBuffsCommand(const char* args);	
 		//GuildHouse
