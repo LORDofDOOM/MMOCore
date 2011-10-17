@@ -1726,8 +1726,8 @@ void World::SetInitialWorldSettings()
     //TODO: Get rid of magic numbers
     mail_timer = ((((localtime(&m_gameTime)->tm_hour + 20) % 24)* HOUR * IN_MILLISECONDS) / m_timers[WUPDATE_AUCTIONS].GetInterval());
                                                             //1440
-    extmail_timer.SetInterval(m_int_configs[CONFIG_EXTERNAL_MAIL_INTERVAL] * MINUTE * IN_MILLISECONDS);                                                          //1440
     extmail_timer.SetInterval(m_int_configs[CONFIG_EXTERNAL_MAIL_INTERVAL] * MINUTE * IN_MILLISECONDS);
+	mail_timer_expires = ((DAY * IN_MILLISECONDS) / (m_timers[WUPDATE_AUCTIONS].GetInterval()));	
     sLog->outDetail("Mail timer set to: " UI64FMTD ", mail return is called every " UI64FMTD " minutes", uint64(mail_timer), uint64(mail_timer_expires));
 
     ///- Initilize static helper structures
@@ -1950,7 +1950,7 @@ void World::Update(uint32 diff)
 
 
     // Handle external mail
-    if (m_int_configs[CONFIG_EXTERNAL_MAIL] != 0)
+    if (m_bool_configs[CONFIG_EXTERNAL_MAIL])
    {
        extmail_timer.Update(diff);
        if (extmail_timer.Passed())
