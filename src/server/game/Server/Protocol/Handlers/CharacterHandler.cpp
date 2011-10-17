@@ -848,7 +848,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder * holder)
        {
            uint32 days = AccountMgr::VipDaysLeft(GetAccountId());
            char buffer[40];
-           sprintf(buffer, "@Seu VIP ist noch %u Tag(e) aktiv.", days);
+           sprintf(buffer, "@Dein Elite Account ist noch %u Tag(e) aktiv.", days);
            str_motd.append(buffer);
        }
 
