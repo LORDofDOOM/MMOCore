@@ -2342,7 +2342,7 @@ bool ChatHandler::HandleHideAreaCommand(const char *args)
 bool ChatHandler::HandleBankCommand(const char* /*args*/)
 {
    AccountTypes level = m_session->GetSecurity();
-   if (uint32(level) == 0 && !m_session->IsVIP())
+   if (uint32(level) == 0 && !m_session->IsPremium())
    {
        SendSysMessage("[ELITE] Dieses Kommando funktioniert nur bei der MMO Elite.");
        SetSentErrorMessage(true);
