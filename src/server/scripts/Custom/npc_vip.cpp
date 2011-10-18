@@ -26,7 +26,7 @@ public:
             player->PrepareQuestMenu(creature->GetGUID());
 
 		player->ADD_GOSSIP_ITEM(7, "[Morphs - Famous] ->"               , GOSSIP_SENDER_MAIN, 1204);	
-		player->ADD_GOSSIP_ITEM(7, "[Morphs - Funny] ->"               , GOSSIP_SENDER_MAIN, 1205);		
+		//player->ADD_GOSSIP_ITEM(7, "[Morphs - Funny] ->"               , GOSSIP_SENDER_MAIN, 1205);		
         player->ADD_GOSSIP_ITEM(7, "[Buffs] ->"                , GOSSIP_SENDER_MAIN, 1206);
         player->ADD_GOSSIP_ITEM(5, "DeMorph"                , GOSSIP_SENDER_MAIN, 1207);		
 		
@@ -111,31 +111,31 @@ public:
                 player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
                 break;
             case 1204: // Morphs Famous
-                player->ADD_GOSSIP_ITEM(5, "Algalon", GOSSIP_SENDER_MAIN, 711);
-                player->ADD_GOSSIP_ITEM(5, "Doomwalker", GOSSIP_SENDER_MAIN, 712);
-				player->ADD_GOSSIP_ITEM(5, "Doomlord kazzak", GOSSIP_SENDER_MAIN, 713);
-                player->ADD_GOSSIP_ITEM(5, "Onyxia", GOSSIP_SENDER_MAIN, 714);
-                player->ADD_GOSSIP_ITEM(5, "Thaddius", GOSSIP_SENDER_MAIN, 715);
-                player->ADD_GOSSIP_ITEM(5, "Gluth", GOSSIP_SENDER_MAIN, 716);
-                player->ADD_GOSSIP_ITEM(5, "Maexxna", GOSSIP_SENDER_MAIN, 717);
-                player->ADD_GOSSIP_ITEM(5, "Sapphiron", GOSSIP_SENDER_MAIN, 718);
-                player->ADD_GOSSIP_ITEM(5, "Noth The Plaguebringer", GOSSIP_SENDER_MAIN, 719);
-                player->ADD_GOSSIP_ITEM(5, "Kel'Thuzad", GOSSIP_SENDER_MAIN, 720);
-                player->ADD_GOSSIP_ITEM(5, "Kael'thas Sunstrider", GOSSIP_SENDER_MAIN, 721);
-                player->ADD_GOSSIP_ITEM(5, "C'thun", GOSSIP_SENDER_MAIN, 722);
+                //player->ADD_GOSSIP_ITEM(5, "Algalon", GOSSIP_SENDER_MAIN, 711);
+                //player->ADD_GOSSIP_ITEM(5, "Doomwalker", GOSSIP_SENDER_MAIN, 712);
+				//player->ADD_GOSSIP_ITEM(5, "Doomlord kazzak", GOSSIP_SENDER_MAIN, 713);
+                //player->ADD_GOSSIP_ITEM(5, "Onyxia", GOSSIP_SENDER_MAIN, 714);
+                //player->ADD_GOSSIP_ITEM(5, "Thaddius", GOSSIP_SENDER_MAIN, 715);
+                //player->ADD_GOSSIP_ITEM(5, "Gluth", GOSSIP_SENDER_MAIN, 716);
+                //player->ADD_GOSSIP_ITEM(5, "Maexxna", GOSSIP_SENDER_MAIN, 717);
+                //player->ADD_GOSSIP_ITEM(5, "Sapphiron", GOSSIP_SENDER_MAIN, 718);
+                //player->ADD_GOSSIP_ITEM(5, "Noth The Plaguebringer", GOSSIP_SENDER_MAIN, 719);
+                //player->ADD_GOSSIP_ITEM(5, "Kel'Thuzad", GOSSIP_SENDER_MAIN, 720);
+                //player->ADD_GOSSIP_ITEM(5, "Kael'thas Sunstrider", GOSSIP_SENDER_MAIN, 721);
+                //player->ADD_GOSSIP_ITEM(5, "C'thun", GOSSIP_SENDER_MAIN, 722);
                 player->ADD_GOSSIP_ITEM(5, "Thrall", GOSSIP_SENDER_MAIN, 723);
                 player->ADD_GOSSIP_ITEM(5, "Sylvanas Windrunner", GOSSIP_SENDER_MAIN, 724);			
                 player->ADD_GOSSIP_ITEM(5, "Alexstrasza (Blutelf)", GOSSIP_SENDER_MAIN, 725);		
                 player->ADD_GOSSIP_ITEM(5, "Varian Wrynn", GOSSIP_SENDER_MAIN, 726);		
-                player->ADD_GOSSIP_ITEM(5, "Varimathras", GOSSIP_SENDER_MAIN, 727);		
-                player->ADD_GOSSIP_ITEM(5, "Alexstrasza (Drache)", GOSSIP_SENDER_MAIN, 728);		
-                player->ADD_GOSSIP_ITEM(5, "Mal'ganis", GOSSIP_SENDER_MAIN, 729);		
-                player->ADD_GOSSIP_ITEM(5, "Illidan", GOSSIP_SENDER_MAIN, 500);
+                //player->ADD_GOSSIP_ITEM(5, "Varimathras", GOSSIP_SENDER_MAIN, 727);		
+                //player->ADD_GOSSIP_ITEM(5, "Alexstrasza (Drache)", GOSSIP_SENDER_MAIN, 728);		
+                //player->ADD_GOSSIP_ITEM(5, "Mal'ganis", GOSSIP_SENDER_MAIN, 729);		
+                //player->ADD_GOSSIP_ITEM(5, "Illidan", GOSSIP_SENDER_MAIN, 500);
                 player->ADD_GOSSIP_ITEM(5, "Akama", GOSSIP_SENDER_MAIN, 502);
                 player->ADD_GOSSIP_ITEM(5, "Todesritter", GOSSIP_SENDER_MAIN, 503);
                 player->ADD_GOSSIP_ITEM(5, "Taure", GOSSIP_SENDER_MAIN, 504);
                 player->ADD_GOSSIP_ITEM(5, "Untoter", GOSSIP_SENDER_MAIN, 505);
-                player->ADD_GOSSIP_ITEM(5, "Mensch", GOSSIP_SENDER_MAIN, 506);
+                //player->ADD_GOSSIP_ITEM(5, "Mensch", GOSSIP_SENDER_MAIN, 506);
                 player->ADD_GOSSIP_ITEM(5, "Lich König", GOSSIP_SENDER_MAIN, 507);
                 player->ADD_GOSSIP_ITEM(5, "Tirion", GOSSIP_SENDER_MAIN, 508);
                 player->ADD_GOSSIP_ITEM(5, "Uther Lichtbringer", GOSSIP_SENDER_MAIN, 509);
