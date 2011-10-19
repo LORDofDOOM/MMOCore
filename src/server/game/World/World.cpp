@@ -672,6 +672,12 @@ void World::LoadConfigSettings(bool reload)
     m_bool_configs[CONFIG_ALLOW_TWO_SIDE_ADD_FRIEND]          = ConfigMgr::GetBoolDefault("AllowTwoSide.AddFriend", false);
     m_bool_configs[CONFIG_ALLOW_TWO_SIDE_TRADE]               = ConfigMgr::GetBoolDefault("AllowTwoSide.trade", false);
     m_bool_configs[CONFIG_FAKE_WHO_LIST]                      = ConfigMgr::GetBoolDefault("Fake.WHO.List", false);	
+    // Lottery
+    m_bool_configs[CONFIG_LOTTERY_ENABLE]           = ConfigMgr::GetBoolDefault("Lottery.Enable", false);
+    m_int_configs[CONFIG_LOTTERY_MAXNUMBER]         = ConfigMgr::GetIntDefault("Lottery.MaxNubmer", 30);
+    m_int_configs[CONFIG_LOTTERY_BETCOST]           = ConfigMgr::GetIntDefault("Lottery.BetCost", 500000);
+    m_int_configs[CONFIG_LOTTERY_MINLVL]            = ConfigMgr::GetIntDefault("Lottery.MinUserLVL", 60);
+
     m_int_configs[CONFIG_STRICT_PLAYER_NAMES]                 = ConfigMgr::GetIntDefault ("StrictPlayerNames",  0);
     m_int_configs[CONFIG_STRICT_CHARTER_NAMES]                = ConfigMgr::GetIntDefault ("StrictCharterNames", 0);
     m_int_configs[CONFIG_STRICT_PET_NAMES]                    = ConfigMgr::GetIntDefault ("StrictPetNames",     0);

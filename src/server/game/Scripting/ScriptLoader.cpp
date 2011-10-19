@@ -62,7 +62,7 @@ void AddSC_event_npc();
 //VIP NPC
 void AddSC_npc_vip();
 //Lottery
-//void AddSC_npc_lottery();
+void AddSC_npc_lottery();
 // Killstreak PvP System
 //void AddSC_PVP_System();
 
@@ -1327,7 +1327,7 @@ void AddCustomScripts()
 	//VIP NPC
 	AddSC_npc_vip();	
 	//Lottery
-	//AddSC_npc_lottery();	
+	AddSC_npc_lottery();	
 	// Killstreak PvP System
 	//AddSC_PVP_System();
     // Custom

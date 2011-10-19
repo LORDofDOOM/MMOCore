@@ -1082,6 +1082,9 @@ enum TrinityStrings
     LANG_INVALID_REALMID                = 11001,
     LANG_BAN_CHEATER                    = 11002,	
     LANG_FAKE_DND                       = 12003,	
+    LANG_LOTTERY_ANNOUNCE                   = 11005,
+    LANG_LOTTERY_ANNOUNCE_JACKPOT           = 11006,
+    LANG_LOTTERY_ANNOUNCE_JACKPOT_M_PLAYERS = 11007,	
     VIP_CANT_DO                         = 11778,
     VIP_CANT_DO_2                       = 11779,	
 
