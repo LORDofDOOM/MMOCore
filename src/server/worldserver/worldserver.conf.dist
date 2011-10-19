@@ -3081,6 +3081,12 @@ LevelNPC.EnableLevel150 = 0
 LevelNPC.EnableLevel200 = 0
 LevelNPC.EnableLevel255 = 0
 
+#     LevelNPC.ItemEntryNum
+#        Description: Token ID
+#        Default:     99998
+
+LevelNPC.ItemEntryNum = 99998
+
 #     LevelNPC.UseTokens
 #        Description: Pay LevelNPC with Tokens
 #        Default:     0
@@ -3089,9 +3095,9 @@ LevelNPC.UseTokens = 0
  
 #     LevelNPC.SkillGoldCost
 #        Description: Skillcost Price in Gold
-#        Default:     10
+#        Default:     100000
 
-LevelNPC.SkillGoldCost = 10
+LevelNPC.SkillGoldCost = 100000
  
 ###############################################################################
 

@@ -31,27 +31,28 @@ public:
 
 bool OnGossipHello(Player* pPlayer, Creature* pCreature)
 {
-	if(sConfig->GetBoolDefault("LevelNPC.OnlyGMs", false)) // If LevelNPC.OnlyGMs is enabled in trinitycore.conf
+	if(sWorld->getBoolConfig(CONFIG_LEVELNPC_ONLYGMS)) // If LevelNPC.OnlyGMs is enabled in trinitycore.conf
 		if (pPlayer->GetSession()->GetSecurity() == SEC_PLAYER)
 		{
-			pCreature->MonsterWhisper("Sorry, I can only add levels to Platinum Members.", pPlayer->GetGUID());
+			pCreature->MonsterWhisper("Sorry ich kann nur EliteAccounts Level hinzufügen.", pPlayer->GetGUID());
 			return true;
 		}
 
-	bool EnableLevel80 = sConfig->GetBoolDefault("LevelNPC.EnableLevel80", true);
-	bool EnableLevel100 = sConfig->GetBoolDefault("LevelNPC.EnableLevel100", true);
-	bool EnableLevel150 = sConfig->GetBoolDefault("LevelNPC.EnableLevel150", true);
-	bool EnableLevel200 = sConfig->GetBoolDefault("LevelNPC.EnableLevel200", true);
-	bool EnableLevel255 = sConfig->GetBoolDefault("LevelNPC.EnableLevel255", true);
+	bool EnableLevel80 = sWorld->getBoolConfig(CONFIG_LEVELNPC_ENABLELEVEL80);
+	bool EnableLevel100 = sWorld->getBoolConfig(CONFIG_LEVELNPC_ENABLELEVEL100);
+	bool EnableLevel150 = sWorld->getBoolConfig(CONFIG_LEVELNPC_ENABLELEVEL150);
+	bool EnableLevel200 = sWorld->getBoolConfig(CONFIG_LEVELNPC_ENABLELEVEL200);
+	bool EnableLevel255 = sWorld->getBoolConfig(CONFIG_LEVELNPC_ENABLELEVEL255);
+	bool UseTokens 		= sWorld->getBoolConfig(CONFIG_LEVELNPC_ENABLELEVEL255);	
     if (pPlayer->GetTeam() == ALLIANCE)
 	{
 		pPlayer->ADD_GOSSIP_ITEM( 7, "Instant Levels ->"        , GOSSIP_SENDER_MAIN, 1000);
-		pPlayer->ADD_GOSSIP_ITEM( 10, "Remove Resurrect Sickness" , GOSSIP_SENDER_MAIN, 5000);
+		pPlayer->ADD_GOSSIP_ITEM( 10, "Todenachwirkungen entfernen" , GOSSIP_SENDER_MAIN, 5000);
 	}
 	else
 	{
 		pPlayer->ADD_GOSSIP_ITEM( 7, "Instant Levels ->"        , GOSSIP_SENDER_MAIN, 1000);
-		pPlayer->ADD_GOSSIP_ITEM( 10, "Remove Resurrect Sickness" , GOSSIP_SENDER_MAIN, 5000);
+		pPlayer->ADD_GOSSIP_ITEM( 10, "Todenachwirkungen entfernen" , GOSSIP_SENDER_MAIN, 5000);
 	}
     pPlayer->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE,pCreature->GetGUID());
 
@@ -65,30 +66,31 @@ void SendDefaultMenu(Player* pPlayer, Creature* pCreature, uint32 uiAction)
 if (pPlayer->isInCombat())
 {
     pPlayer->CLOSE_GOSSIP_MENU();
-    pCreature->MonsterSay("You are in combat!", LANG_UNIVERSAL, NULL);
+    pCreature->MonsterSay("Du befindest dich im Kampf!", LANG_UNIVERSAL, NULL);
 	return;
 }
 
-	bool EnableLevel80 = sConfig->GetBoolDefault("LevelNPC.EnableLevel80", true);
-	bool EnableLevel100 = sConfig->GetBoolDefault("LevelNPC.EnableLevel100", true);
-	bool EnableLevel150 = sConfig->GetBoolDefault("LevelNPC.EnableLevel150", true);
-	bool EnableLevel200 = sConfig->GetBoolDefault("LevelNPC.EnableLevel200", true);
-	bool EnableLevel255 = sConfig->GetBoolDefault("LevelNPC.EnableLevel255", true);
+	bool EnableLevel80 = sWorld->getBoolConfig(CONFIG_LEVELNPC_ENABLELEVEL80);
+	bool EnableLevel100 = sWorld->getBoolConfig(CONFIG_LEVELNPC_ENABLELEVEL100);
+	bool EnableLevel150 = sWorld->getBoolConfig(CONFIG_LEVELNPC_ENABLELEVEL150);
+	bool EnableLevel200 = sWorld->getBoolConfig(CONFIG_LEVELNPC_ENABLELEVEL200);
+	bool EnableLevel255 = sWorld->getBoolConfig(CONFIG_LEVELNPC_ENABLELEVEL255);
+	bool UseTokens 		= sWorld->getBoolConfig(CONFIG_LEVELNPC_ENABLELEVEL255);	
 	
 //Mony Check
-if(sConfig->GetBoolDefault("LevelNPC.UseTokens", true))
+if(sWorld->getBoolConfig(CONFIG_LEVELNPC_USETOKENS))
 {
-if (!pPlayer->HasItemCount((sConfig->GetIntDefault("LevelNPC.ItemEntryNum",0)), 0))
+if (!pPlayer->HasItemCount((sWorld->getIntConfig(CONFIG_LEVELNPC_ITEMENTRYNUM)), 0))
 {
     pPlayer->CLOSE_GOSSIP_MENU();
-    pCreature->MonsterWhisper("You ain't gots no darn chips.", pPlayer->GetGUID());
+    pCreature->MonsterWhisper("Du hast keine Tokens.", pPlayer->GetGUID());
 	return;
 }
 }
-else if(pPlayer->GetMoney() < (sConfig->GetIntDefault("LevelNPC.SkillGoldCost",0)))
+else if(pPlayer->GetMoney() < (sWorld->getIntConfig(CONFIG_LEVELNPC_SKILLGOLDCOST)))
 {
     pPlayer->CLOSE_GOSSIP_MENU();
-    pCreature->MonsterWhisper("You don't have enough money.", pPlayer->GetGUID());
+    pCreature->MonsterWhisper("Du hast nicht genug Gold.", pPlayer->GetGUID());
 	return;
 }
 
@@ -97,16 +99,26 @@ switch(uiAction)
 
 //////////////////////////////////////////////////Leveling///////////////////////////////////////////////////////////////
 case 1000: //Leveling
-	if(EnableLevel80 && pPlayer->getLevel() < 80)
+	if(EnableLevel80 && pPlayer->getLevel() < 80 && UseTokens)
 		pPlayer->ADD_GOSSIP_ITEM( 7, "(1 Donation Chip) Instant 80 ->"         , GOSSIP_SENDER_MAIN, 1001);
-	if(EnableLevel100 && pPlayer->getLevel() < 100 && pPlayer->getLevel() >= 80)
+	if(EnableLevel80 && pPlayer->getLevel() < 80 && !UseTokens)
+		pPlayer->ADD_GOSSIP_ITEM( 7, "(100 Gold) Instant 80 ->"         , GOSSIP_SENDER_MAIN, 1001);	
+	if(EnableLevel100 && pPlayer->getLevel() < 100 && pPlayer->getLevel() >= 80 && UseTokens)
 		pPlayer->ADD_GOSSIP_ITEM( 7, "(2 Donation Chips) Instant 100 ->"        , GOSSIP_SENDER_MAIN, 1002);
-	if(EnableLevel150 && pPlayer->getLevel() < 150 && pPlayer->getLevel() >= 100)
+	if(EnableLevel100 && pPlayer->getLevel() < 100 && pPlayer->getLevel() >= 80 && !UseTokens)
+		pPlayer->ADD_GOSSIP_ITEM( 7, "(2 Donation Chips) Instant 100 ->"        , GOSSIP_SENDER_MAIN, 1002);
+	if(EnableLevel150 && pPlayer->getLevel() < 150 && pPlayer->getLevel() >= 100 && UseTokens)
 		pPlayer->ADD_GOSSIP_ITEM( 7, "(5 Donation Chips) Instant 150 ->"        , GOSSIP_SENDER_MAIN, 1003);
-	if(EnableLevel200 && pPlayer->getLevel() < 200 && pPlayer->getLevel() >= 150)
+	if(EnableLevel150 && pPlayer->getLevel() < 150 && pPlayer->getLevel() >= 100 && !UseTokens)
+		pPlayer->ADD_GOSSIP_ITEM( 7, "(5 Donation Chips) Instant 150 ->"        , GOSSIP_SENDER_MAIN, 1003);
+	if(EnableLevel200 && pPlayer->getLevel() < 200 && pPlayer->getLevel() >= 150 && UseTokens)
 		pPlayer->ADD_GOSSIP_ITEM( 7, "(10 Donation Chips) Instant 200 ->"       , GOSSIP_SENDER_MAIN, 1004);
-	if(EnableLevel255 && pPlayer->getLevel() < 255 && pPlayer->getLevel() >= 200)
+	if(EnableLevel200 && pPlayer->getLevel() < 200 && pPlayer->getLevel() >= 150 && !UseTokens)
+		pPlayer->ADD_GOSSIP_ITEM( 7, "(10 Donation Chips) Instant 200 ->"       , GOSSIP_SENDER_MAIN, 1004);
+	if(EnableLevel255 && pPlayer->getLevel() < 255 && pPlayer->getLevel() >= 200 && UseTokens)
 		pPlayer->ADD_GOSSIP_ITEM( 7, "(20 Donation Chips) Instant 255 ->"       , GOSSIP_SENDER_MAIN, 1005);
+	if(EnableLevel255 && pPlayer->getLevel() < 255 && pPlayer->getLevel() >= 200 && !UseTokens)
+		pPlayer->ADD_GOSSIP_ITEM( 7, "(20 Donation Chips) Instant 255 ->"       , GOSSIP_SENDER_MAIN, 1005);		
 		pPlayer->ADD_GOSSIP_ITEM( 7, "<- Main Menu"                       , GOSSIP_SENDER_MAIN, 3000);
 	pPlayer->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE,pCreature->GetGUID());
 break;
@@ -117,48 +129,48 @@ case 3000: //Leveling
 break;
 case 1001: // Leveling
 	pPlayer->GiveLevel(80);
-	if(sConfig->GetBoolDefault("LevelNPC.UseTokens", true))
+	if(sWorld->getBoolConfig(CONFIG_LEVELNPC_USETOKENS))
 	pPlayer->DestroyItemCount(99998, 1, true);
 	else
-	pPlayer->ModifyMoney(-(sConfig->GetIntDefault("LevelNPC.SkillGoldCost",0)));
+	pPlayer->ModifyMoney(-(sWorld->getIntConfig(CONFIG_LEVELNPC_SKILLGOLDCOST)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 case 1002: // Leveling
 	pPlayer->GiveLevel(100);
-	if(sConfig->GetBoolDefault("LevelNPC.UseTokens", true))
+	if(sWorld->getBoolConfig(CONFIG_LEVELNPC_USETOKENS))
 	pPlayer->DestroyItemCount(99998, 2, true);
 	else
-	pPlayer->ModifyMoney(-(sConfig->GetIntDefault("LevelNPC.SkillGoldCost",0)));
+	pPlayer->ModifyMoney(-(sWorld->getIntConfig(CONFIG_LEVELNPC_SKILLGOLDCOST)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 case 1003: // Leveling
 	pPlayer->GiveLevel(150);
-	if(sConfig->GetBoolDefault("LevelNPC.UseTokens", true))
+	if(sWorld->getBoolConfig(CONFIG_LEVELNPC_USETOKENS))
 	pPlayer->DestroyItemCount(99998, 5, true);
 	else
-	pPlayer->ModifyMoney(-(sConfig->GetIntDefault("LevelNPC.SkillGoldCost",0)));
+	pPlayer->ModifyMoney(-(sWorld->getIntConfig(CONFIG_LEVELNPC_SKILLGOLDCOST)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 case 1004: // Leveling
 	pPlayer->GiveLevel(200);
-	if(sConfig->GetBoolDefault("LevelNPC.UseTokens", true))
+	if(sWorld->getBoolConfig(CONFIG_LEVELNPC_USETOKENS))
 	pPlayer->DestroyItemCount(99998, 10, true);
 	else
-	pPlayer->ModifyMoney(-(sConfig->GetIntDefault("LevelNPC.SkillGoldCost",0)));
+	pPlayer->ModifyMoney(-(sWorld->getIntConfig(CONFIG_LEVELNPC_SKILLGOLDCOST)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 case 1005: // Leveling
 	pPlayer->GiveLevel(255);
-	if(sConfig->GetBoolDefault("LevelNPC.UseTokens", true))
+	if(sWorld->getBoolConfig(CONFIG_LEVELNPC_USETOKENS))
 	pPlayer->DestroyItemCount(99998, 20, true);
 	else
-	pPlayer->ModifyMoney(-(sConfig->GetIntDefault("LevelNPC.SkillGoldCost",0)));
+	pPlayer->ModifyMoney(-(sWorld->getIntConfig(CONFIG_LEVELNPC_SKILLGOLDCOST)));
 	pPlayer->CLOSE_GOSSIP_MENU();
 break;
 case 5000://Remove Res Sickness
 	if(!pPlayer->HasAura(SPELL_RESURRECTION_SICKNESS_15007,0))
 	{
-		pCreature->MonsterWhisper("You don't have resurrection sickness.", pPlayer->GetGUID());
+		pCreature->MonsterWhisper("Du hast keine Todesnachwirkungen", pPlayer->GetGUID());
 		OnGossipHello(pPlayer, pCreature);
 		return;
 	}

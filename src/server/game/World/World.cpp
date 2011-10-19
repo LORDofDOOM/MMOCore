@@ -678,6 +678,17 @@ void World::LoadConfigSettings(bool reload)
     m_int_configs[CONFIG_LOTTERY_BETCOST]           = ConfigMgr::GetIntDefault("Lottery.BetCost", 500000);
     m_int_configs[CONFIG_LOTTERY_MINLVL]            = ConfigMgr::GetIntDefault("Lottery.MinUserLVL", 60);
 
+    // LevelNPC
+	m_bool_configs[CONFIG_LEVELNPC_ONLYGMS]			=	ConfigMgr::GetBoolDefault("LevelNPC.OnlyGMs", false);
+	m_bool_configs[CONFIG_LEVELNPC_ENABLELEVEL80]	=	ConfigMgr::GetBoolDefault("LevelNPC.EnableLevel80", true);
+	m_bool_configs[CONFIG_LEVELNPC_ENABLELEVEL100]	=	ConfigMgr::GetBoolDefault("LevelNPC.EnableLevel100", true);
+	m_bool_configs[CONFIG_LEVELNPC_ENABLELEVEL150]	=	ConfigMgr::GetBoolDefault("LevelNPC.EnableLevel150", true);
+	m_bool_configs[CONFIG_LEVELNPC_ENABLELEVEL200]	=   ConfigMgr::GetBoolDefault("LevelNPC.EnableLevel200", true);
+	m_bool_configs[CONFIG_LEVELNPC_ENABLELEVEL255]	=   ConfigMgr::GetBoolDefault("LevelNPC.EnableLevel255", true);
+	m_bool_configs[CONFIG_LEVELNPC_USETOKENS]		=	ConfigMgr::GetBoolDefault("LevelNPC.UseTokens", true);
+	m_int_configs[CONFIG_LEVELNPC_ITEMENTRYNUM]		=	ConfigMgr::GetIntDefault("LevelNPC.ItemEntryNum",0);
+	m_int_configs[CONFIG_LEVELNPC_SKILLGOLDCOST]	=	ConfigMgr::GetIntDefault("LevelNPC.SkillGoldCost",0);
+	
     m_int_configs[CONFIG_STRICT_PLAYER_NAMES]                 = ConfigMgr::GetIntDefault ("StrictPlayerNames",  0);
     m_int_configs[CONFIG_STRICT_CHARTER_NAMES]                = ConfigMgr::GetIntDefault ("StrictCharterNames", 0);
     m_int_configs[CONFIG_STRICT_PET_NAMES]                    = ConfigMgr::GetIntDefault ("StrictPetNames",     0);
