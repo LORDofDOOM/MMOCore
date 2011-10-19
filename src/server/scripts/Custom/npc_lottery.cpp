@@ -12,23 +12,21 @@ public:
 
     bool OnGossipHello(Player* player, Creature* pCreature)
     {
-        //if (player && !player->isGameMaster() && ConfigMgr::GetBoolDefault("Lottery.Enable", false))
-        //{
-            if (player->getLevel() >= uint32(ConfigMgr::GetIntDefault("Lottery.MinUserLVL", 60)) && player->GetMoney() >= uint32(ConfigMgr::GetIntDefault("Lottery.BetCost", 500000)))
+        if (player && !player->isGameMaster() && sWorld->getBoolConfig(CONFIG_LOTTERY_ENABLE))
+        {
+            if (player->getLevel() >= uint32(sWorld->getIntConfig(CONFIG_LOTTERY_MINLVL)) && player->GetMoney() >= uint32(sWorld->getIntConfig(CONFIG_LOTTERY_BETCOST)))
             {
-                std::string wh = ("Hallo MMOler. Möchtest du dein Glück versuchen? Es ist ganz einfach - Gib mir 5 Zahlen von 1 bis" + 
-                                    std::string(ConfigMgr::GetStringDefault("Lottery.MaxNumber", "30")) + " (durch Leerzeichen getrennt), sowie die Kosten für die Teilnahme und warten auf die Ziehung.");
-                pCreature->MonsterWhisper(wh.c_str(), player->GetGUID());
+				pCreature->MonsterWhisper("Hallo MMOler. MÃ¶chtest du dein GlÃ¼ck versuchen? Es ist ganz einfach - Gib mir 5 Zahlen von 1 bis 30 (durch Leerzeichen getrennt), sowie die Kosten fÃ¼r die Teilnahme und warten auf die Ziehung.");
                 player->PrepareGossipMenu(pCreature);
                 player->ADD_GOSSIP_ITEM_EXTENDED(0, GOSSIP_BUY_TICKET, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF, "", 0, true);
                 player->SEND_GOSSIP_MENU(player->GetGossipTextId(pCreature), pCreature->GetGUID());
             }
             else
             {
-                std::string wh = ("Du hast nicht genug Gold (erfordert " + std::string(ConfigMgr::GetStringDefault("Lottery.BetCost", "500000"))+ "Kupfer oder dein Level ist noch nicht hoch genug (erfordert Level " + std::string(ConfigMgr::GetStringDefault("Lottery.MinUserLVL", "60")) + ").");
+                std::string wh = ("Du hast nicht genug Gold (erfordert 80 Gold oder dein Level ist noch nicht hoch genug (erfordert Level 60");
                 pCreature->MonsterWhisper(wh.c_str(), player->GetGUID());
             }
-        //}
+        }
         return true;
     }
 
@@ -45,9 +43,9 @@ public:
                     std::string strCode = (char*)code;
                     char * tmp;
                     int32 number[5];
-                    std::string error = ("Du hast eine ungültige Zahl eingegeben. Die Zahlen müssen im Bereich von 1 bis " + std::string(ConfigMgr::GetStringDefault("Lottery.MaxNumber", "30")));
-                    std::string errordub = ("Du hast bereits auf die nächste Ziehung gesetzt");
-                    std::string numbers = ("Du kannst auf folgende Zahlen wetten " + std::string(strCode));
+                    std::string error = ("Du hast eine ungÃ¼ltige Zahl eingegeben. Die Zahlen mÃ¼ssen im Bereich von 1 bis 30");
+                    std::string errordub = ("Du hast bereits auf die nÃ¤chste Ziehung gesetzt");
+                    std::string numbers = ("Du hast auf folgende Zahlen getippt " + std::string(strCode));
 
                     tmp = strtok (charCode," ");
                     for (int8 n = 0; n < 5; ++n)
@@ -96,7 +94,7 @@ public:
 
                     WorldDatabase.PExecute("INSERT INTO lottery_bets (id, name, guid, bet) VALUES ('%u', '%s', '%u', '%s')", betMaxID+1, player->GetName(), player->GetGUIDLow(), strCode.c_str());
                     pCreature->MonsterWhisper(numbers.c_str(), player->GetGUID());
-                    player->ModifyMoney(-ConfigMgr::GetIntDefault("Lottery.BetCost", 500000));
+                    player->ModifyMoney(-sWorld->getIntConfig(CONFIG_LOTTERY_BETCOST));
 
                     player->CLOSE_GOSSIP_MENU();
 
@@ -183,22 +181,22 @@ public:
                             {
                                 case 1:
                                 {
-                                    cash = uint32(betMaxID * ConfigMgr::GetIntDefault("Lottery.BetCost", 500000) * 0.005f);
+                                    cash = uint32(betMaxID * sWorld->getIntConfig(CONFIG_LOTTERY_BETCOST) * 0.005f);
                                     break;
                                 }
                                 case 2:
                                 {
-                                    cash = uint32(betMaxID * ConfigMgr::GetIntDefault("Lottery.BetCost", 500000) * 0.01f);
+                                    cash = uint32(betMaxID * sWorld->getIntConfig(CONFIG_LOTTERY_BETCOST) * 0.01f);
                                     break;
                                 }
                                 case 3:
                                 {
-                                    cash = uint32(betMaxID * ConfigMgr::GetIntDefault("Lottery.BetCost", 500000) * 0.05f);
+                                    cash = uint32(betMaxID * sWorld->getIntConfig(CONFIG_LOTTERY_BETCOST) * 0.05f);
                                     break;
                                 }
                                 case 4:
                                 {
-                                    cash = uint32(betMaxID * ConfigMgr::GetIntDefault("Lottery.BetCost", 500000) * 0.2f);
+                                    cash = uint32(betMaxID * sWorld->getIntConfig(CONFIG_LOTTERY_BETCOST) * 0.2f);
                                     break;
                                 }
                                 case 5:
@@ -213,7 +211,7 @@ public:
 
                             Player *pWinner = sObjectMgr->GetPlayerByLowGUID(guid);
                             SQLTransaction trans = CharacterDatabase.BeginTransaction();
-                            MailDraft("Gewonnen", "Herzlichen Glückwunsch! Du hast auf die richtigen Zahlen gesetzt!")
+                            MailDraft("Gewonnen", "Herzlichen GlÃ¼ckwunsch! Du hast auf die richtigen Zahlen gesetzt!")
                                 .AddMoney(cash)
                                 .SendMailTo(trans, MailReceiver(pWinner, GUID_LOPART(guid)), MailSender(MAIL_NORMAL, 0, MAIL_STATIONERY_GM));
                             CharacterDatabase.CommitTransaction(trans);
@@ -222,7 +220,7 @@ public:
                         } while (qBets->NextRow());
                         uint64 jackpot;
                         uint64 rJackpot;
-                        uint64 defJackpot = uint64(betMaxID * ConfigMgr::GetIntDefault("Lottery.BetCost", 500000) * 0.7f);
+                        uint64 defJackpot = uint64(betMaxID * sWorld->getIntConfig(CONFIG_LOTTERY_BETCOST) * 0.7f);
                         QueryResult qJackpot  = WorldDatabase.PQuery("SELECT jackpot FROM lottery WHERE id = '%u'", lotteryID);
                         if (qJackpot)
                             jackpot = qJackpot->Fetch()->GetUInt32();
@@ -248,8 +246,8 @@ public:
 
                                     Player *pJPWinner = sObjectMgr->GetPlayerByLowGUID(JPguid);
                                     SQLTransaction trans = CharacterDatabase.BeginTransaction();
-                                    MailDraft("Jackpot!", "WoW! Du hast einfach massig Glück! Herzlichen Glückwunsch")
-                                        .AddMoney(jackpot = 0 ? uint64(betMaxID * ConfigMgr::GetIntDefault("Lottery.BetCost", 500000) * 0.7f) : jackpot)
+                                    MailDraft("Jackpot!", "WoW! Du hast einfach massig GlÃ¼ck! Herzlichen GlÃ¼ckwunsch")
+                                        .AddMoney(jackpot = 0 ? uint64(betMaxID * sWorld->getIntConfig(CONFIG_LOTTERY_BETCOST) * 0.7f) : jackpot)
                                         .SendMailTo(trans, MailReceiver(pJPWinner, GUID_LOPART(JPguid)), MailSender(MAIL_NORMAL, 0, MAIL_STATIONERY_GM));
                                     CharacterDatabase.CommitTransaction(trans);
                                 } while (qJackpotWinners->NextRow());
@@ -258,10 +256,10 @@ public:
                             if (jackpotWinners == 1 && qJackpotWinnersName)
                             {
                                 std::string wName = qJackpotWinnersName->Fetch()->GetString();
-                                sWorld->SendWorldText(LANG_LOTTERY_ANNOUNCE_JACKPOT, betMaxID, luckyNumber[0], luckyNumber[1], luckyNumber[2], luckyNumber[3], luckyNumber[4], ((jackpot = 0 ? uint64(betMaxID * ConfigMgr::GetIntDefault("Lottery.BetCost", 500000) * 0.7f) : rJackpot) * 0.0001f), wName.c_str());
+                                sWorld->SendWorldText(LANG_LOTTERY_ANNOUNCE_JACKPOT, betMaxID, luckyNumber[0], luckyNumber[1], luckyNumber[2], luckyNumber[3], luckyNumber[4], ((jackpot = 0 ? uint64(betMaxID * sWorld->getIntConfig(CONFIG_LOTTERY_BETCOST) * 0.7f) : rJackpot) * 0.0001f), wName.c_str());
                             }
                             else
-                                sWorld->SendWorldText(LANG_LOTTERY_ANNOUNCE_JACKPOT_M_PLAYERS, betMaxID, luckyNumber[0], luckyNumber[1], luckyNumber[2], luckyNumber[3], luckyNumber[4], ((jackpot = 0 ? uint64(betMaxID * ConfigMgr::GetIntDefault("Lottery.BetCost", 500000) * 0.7f) : rJackpot) * 0.0001f), jackpotWinners);
+                                sWorld->SendWorldText(LANG_LOTTERY_ANNOUNCE_JACKPOT_M_PLAYERS, betMaxID, luckyNumber[0], luckyNumber[1], luckyNumber[2], luckyNumber[3], luckyNumber[4], ((jackpot = 0 ? uint64(betMaxID * sWorld->getIntConfig(CONFIG_LOTTERY_BETCOST) * 0.7f) : rJackpot) * 0.0001f), jackpotWinners);
 
                             WorldDatabase.PExecute("INSERT INTO lottery (number_1, number_2, number_3, number_4, number_5, jackpot) VALUES ('%u', '%u', '%u', '%u', '%u', '%u')", luckyNumber[0], luckyNumber[1], luckyNumber[2], luckyNumber[3], luckyNumber[4], defJackpot);
                         }
