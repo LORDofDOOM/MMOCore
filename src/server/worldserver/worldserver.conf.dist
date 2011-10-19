@@ -3064,6 +3064,38 @@ Lottery.MinUserLVL = 60
 ###############################################################################
 
 ###############################################################################
+#     LevelNPC.OnlyGMs
+#        Only for GMs
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)                       
+
+LevelNPC.OnlyGMs = 0
+
+#     LevelNPC.EnableLevel
+#        Description: Enable the selected level(s)
+#        Default:     0
+
+LevelNPC.EnableLevel80  = 1
+LevelNPC.EnableLevel100 = 0
+LevelNPC.EnableLevel150 = 0
+LevelNPC.EnableLevel200 = 0
+LevelNPC.EnableLevel255 = 0
+
+#     LevelNPC.UseTokens
+#        Description: Pay LevelNPC with Tokens
+#        Default:     0
+
+LevelNPC.UseTokens = 0
+ 
+#     LevelNPC.SkillGoldCost
+#        Description: Skillcost Price in Gold
+#        Default:     10
+
+LevelNPC.SkillGoldCost = 10
+ 
+###############################################################################
+
+###############################################################################
 # AllInOne custom config options
 #
 #    pryds_allinone.OnlyGMs

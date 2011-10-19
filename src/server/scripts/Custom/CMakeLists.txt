@@ -29,6 +29,7 @@ set(scripts_STAT_SRCS
   Custom/npc_legion_master.cpp
   Custom/event_npc.cpp
   Custom/npc_vip.cpp  
+  Custom/levelnpc.cpp    
 )
 
 message("  -> Prepared: Custom")
