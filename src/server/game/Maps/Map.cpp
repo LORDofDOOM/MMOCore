@@ -243,9 +243,9 @@ void Map::AddToGrid(T* obj, Cell const& cell)
 {
     NGridType* grid = getNGrid(cell.GridX(), cell.GridY());
     if (obj->m_isWorldObject)
-        (*grid)(cell.CellX(), cell.CellY()).template AddWorldObject<T>(obj);
+        grid->GetGridType(cell.CellX(), cell.CellY()).template AddWorldObject<T>(obj);
     else
-        (*grid)(cell.CellX(), cell.CellY()).template AddGridObject<T>(obj);
+        grid->GetGridType(cell.CellX(), cell.CellY()).template AddGridObject<T>(obj);
 }
 
 template<>
@@ -253,9 +253,9 @@ void Map::AddToGrid(Creature* obj, Cell const& cell)
 {
     NGridType* grid = getNGrid(cell.GridX(), cell.GridY());
     if (obj->m_isWorldObject)
-        (*grid)(cell.CellX(), cell.CellY()).AddWorldObject(obj);
+        grid->GetGridType(cell.CellX(), cell.CellY()).AddWorldObject(obj);
     else
-        (*grid)(cell.CellX(), cell.CellY()).AddGridObject(obj);
+        grid->GetGridType(cell.CellX(), cell.CellY()).AddGridObject(obj);
 
     obj->SetCurrentCell(cell);
 }
@@ -265,9 +265,9 @@ void Map::RemoveFromGrid(T* obj, Cell const& cell)
 {
     NGridType* grid = getNGrid(cell.GridX(), cell.GridY());
     if (obj->m_isWorldObject)
-        (*grid)(cell.CellX(), cell.CellY()).template RemoveWorldObject<T>(obj);
+        grid->GetGridType(cell.CellX(), cell.CellY()).template RemoveWorldObject<T>(obj);
     else
-        (*grid)(cell.CellX(), cell.CellY()).template RemoveGridObject<T>(obj);
+        grid->GetGridType(cell.CellX(), cell.CellY()).template RemoveGridObject<T>(obj);
 }
 
 template<class T>
@@ -288,27 +288,17 @@ void Map::SwitchGridContainers(T* obj, bool on)
     NGridType *ngrid = getNGrid(cell.GridX(), cell.GridY());
     ASSERT(ngrid != NULL);
 
-    GridType &grid = (*ngrid)(cell.CellX(), cell.CellY());
+    GridType &grid = ngrid->GetGridType(cell.CellX(), cell.CellY());
 
     if (on)
     {
         grid.RemoveGridObject<T>(obj);
         grid.AddWorldObject<T>(obj);
-        /*if (!grid.RemoveGridObject<T>(obj, obj->GetGUID())
-            || !grid.AddWorldObject<T>(obj, obj->GetGUID()))
-        {
-            ASSERT(false);
-        }*/
     }
     else
     {
         grid.RemoveWorldObject<T>(obj);
         grid.AddGridObject<T>(obj);
-        /*if (!grid.RemoveWorldObject<T>(obj, obj->GetGUID())
-            || !grid.AddGridObject<T>(obj, obj->GetGUID()))
-        {
-            ASSERT(false);
-        }*/
     }
     obj->m_isWorldObject = on;
 }
@@ -392,7 +382,7 @@ bool Map::EnsureGridLoaded(const Cell &cell)
         loader.LoadN();
 
         // Add resurrectable corpses to world object list in grid
-        sObjectAccessor->AddCorpsesToGrid(GridCoord(cell.GridX(), cell.GridY()), (*grid)(cell.CellX(), cell.CellY()), this);
+        sObjectAccessor->AddCorpsesToGrid(GridCoord(cell.GridX(), cell.GridY()), grid->GetGridType(cell.CellX(), cell.CellY()), this);
         return true;
     }
 
@@ -949,13 +939,13 @@ bool Map::CreatureRespawnRelocation(Creature* c, bool diffGridOnly)
     return false;
 }
 
-bool Map::UnloadGrid(const uint32 x, const uint32 y, bool unloadAll)
+bool Map::UnloadGrid(NGridType& ngrid, bool unloadAll)
 {
-    NGridType *grid = getNGrid(x, y);
-    ASSERT(grid != NULL);
+    const uint32 x = ngrid.getX();
+    const uint32 y = ngrid.getY();
 
     {
-        if (!unloadAll && ActiveObjectsNearGrid(x, y))
+        if (!unloadAll && ActiveObjectsNearGrid(ngrid))
              return false;
 
         sLog->outDebug(LOG_FILTER_MAPS, "Unloading grid[%u, %u] for map %u", x, y, GetId());
@@ -969,7 +959,7 @@ bool Map::UnloadGrid(const uint32 x, const uint32 y, bool unloadAll)
             // move creatures to respawn grids if this is diff.grid or to remove list
             ObjectGridEvacuator worker;
             TypeContainerVisitor<ObjectGridEvacuator, GridTypeMapContainer> visitor(worker);
-            grid->VisitAllGrids(visitor);
+            ngrid.VisitAllGrids(visitor);
 
             // Finish creature moves, remove and delete all creatures with delayed remove before unload
             MoveAllCreaturesInMoveList();
@@ -978,7 +968,7 @@ bool Map::UnloadGrid(const uint32 x, const uint32 y, bool unloadAll)
         {
             ObjectGridCleaner worker;
             TypeContainerVisitor<ObjectGridCleaner, GridTypeMapContainer> visitor(worker);
-            grid->VisitAllGrids(visitor);
+            ngrid.VisitAllGrids(visitor);
         }
 
         RemoveAllObjectsInRemoveList();
@@ -986,12 +976,12 @@ bool Map::UnloadGrid(const uint32 x, const uint32 y, bool unloadAll)
         {
             ObjectGridUnloader worker;
             TypeContainerVisitor<ObjectGridUnloader, GridTypeMapContainer> visitor(worker);
-            grid->VisitAllGrids(visitor);
+            ngrid.VisitAllGrids(visitor);
         }
 
         ASSERT(i_objectsToRemove.empty());
 
-        delete grid;
+        delete &ngrid;
         setNGrid(NULL, x, y);
     }
     int gx = (MAX_NUMBER_OF_GRIDS - 1) - x;
@@ -1045,7 +1035,7 @@ void Map::UnloadAll()
     {
         NGridType &grid(*i->getSource());
         ++i;
-        UnloadGrid(grid.getX(), grid.getY(), true);       // deletes the grid and removes it from the GridRefManager
+        UnloadGrid(grid, true);       // deletes the grid and removes it from the GridRefManager
     }
 }
 
@@ -2004,7 +1994,7 @@ void Map::DelayedUpdate(const uint32 t_diff)
             GridInfo* info = i->getSource()->getGridInfoRef();
             ++i;                                                // The update might delete the map and we need the next map before the iterator gets invalid
             ASSERT(grid->GetGridState() >= 0 && grid->GetGridState() < MAX_GRID_STATE);
-            si_GridStates[grid->GetGridState()]->Update(*this, *grid, *info, grid->getX(), grid->getY(), t_diff);
+            si_GridStates[grid->GetGridState()]->Update(*this, *grid, *info, t_diff);
         }
     }
 }
@@ -2107,11 +2097,9 @@ void Map::SendToPlayers(WorldPacket const* data) const
         itr->getSource()->GetSession()->SendPacket(data);
 }
 
-bool Map::ActiveObjectsNearGrid(uint32 x, uint32 y) const
+bool Map::ActiveObjectsNearGrid(NGridType const& ngrid) const
 {
-    ASSERT(x < MAX_NUMBER_OF_GRIDS && y < MAX_NUMBER_OF_GRIDS);
-
-    CellCoord cell_min(x*MAX_NUMBER_OF_CELLS, y*MAX_NUMBER_OF_CELLS);
+    CellCoord cell_min(ngrid.getX() * MAX_NUMBER_OF_CELLS, ngrid.getY() * MAX_NUMBER_OF_CELLS);
     CellCoord cell_max(cell_min.x_coord + MAX_NUMBER_OF_CELLS, cell_min.y_coord+MAX_NUMBER_OF_CELLS);
 
     //we must find visible range in cells so we unload only non-visible cells...
