@@ -1593,7 +1593,7 @@ SpellMissInfo Spell::DoSpellHitOnUnit(Unit* unit, const uint32 effectMask, bool 
                     if (AuraApplication* aurApp = m_spellAura->GetApplicationOfTarget(m_originalCaster->GetGUID()))
                         positive = aurApp->IsPositive();
 
-                    duration = m_originalCaster->ModSpellDuration(aurSpellInfo, unit, duration, positive);
+                    duration = m_originalCaster->ModSpellDuration(aurSpellInfo, unit, duration, positive, effectMask);
 
                     // Haste modifies duration of channeled spells
                     if (m_spellInfo->IsChanneled())
@@ -5198,6 +5198,13 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (m_caster->GetCharmGUID())
                     return SPELL_FAILED_ALREADY_HAVE_CHARM;
 
+                break;
+            }
+            case SPELL_EFFECT_TRANS_DOOR:
+            {
+                // Ritual of Summoning shouldn't be used in Battlegrounds or Arenas
+                if (m_spellInfo->Id == 698 && m_caster->GetTypeId() == TYPEID_PLAYER && m_caster->ToPlayer()->InBattleground())
+                    return SPELL_FAILED_NOT_HERE;
                 break;
             }
             case SPELL_EFFECT_SUMMON_PLAYER:
