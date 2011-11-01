@@ -65,6 +65,7 @@ public:
             { "allowmove",      SEC_ADMINISTRATOR,  false, &HandleNpcSetAllowMovementCommand,  "", NULL },
             { "entry",          SEC_ADMINISTRATOR,  false, &HandleNpcSetEntryCommand,          "", NULL },
             { "factionid",      SEC_GAMEMASTER,     false, &HandleNpcSetFactionIdCommand,      "", NULL },
+            { "emote",          SEC_ADMINISTRATOR,  false, &HandleNpcSetEmoteCommand,          "", NULL },
             { "flag",           SEC_GAMEMASTER,     false, &HandleNpcSetFlagCommand,           "", NULL },
             { "level",          SEC_GAMEMASTER,     false, &HandleNpcSetLevelCommand,          "", NULL },
             { "link",           SEC_GAMEMASTER,     false, &HandleNpcSetLinkCommand,           "", NULL },
@@ -641,6 +642,29 @@ public:
         return true;
     }
 
+    // Set Emote
+    static bool HandleNpcSetEmoteCommand(ChatHandler* handler, const char* args)
+    {
+        uint32 emote = atoi((char*)args);
+        uint32 lowguid;
+
+        Creature* target = handler->getSelectedCreature();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        lowguid = target->GetDBTableGUIDLow();
+
+        WorldDatabase.PExecute("DELETE FROM creature_addon WHERE guid = %u", lowguid);
+        WorldDatabase.PExecute("INSERT INTO creature_addon (guid, emote) VALUES (%u, %u)", lowguid, emote);
+
+        target->SetUInt32Value(UNIT_NPC_EMOTESTATE, emote);
+
+        return true;
+    }
     //play npc emote
     static bool HandleNpcPlayEmoteCommand(ChatHandler* handler, const char* args)
     {
