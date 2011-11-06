@@ -2331,6 +2331,13 @@ void Spell::EffectHeal(SpellEffIndex /*effIndex*/)
 
             addhealth += damageAmount;
         }
+        // Runic Healing Injector (heal increased by 25% for engineers - 3.2.0 patch change)
+        else if (m_spellInfo->Id == 67489)
+        {
+            if (Player* player = m_caster->ToPlayer())
+                if (player->HasSkill(SKILL_ENGINEERING))
+                    AddPctN(addhealth, 25);
+        }
         // Swiftmend - consumes Regrowth or Rejuvenation
         else if (m_spellInfo->TargetAuraState == AURA_STATE_SWIFTMEND && unitTarget->HasAuraState(AURA_STATE_SWIFTMEND, m_spellInfo, m_caster))
         {
@@ -2727,6 +2734,13 @@ void Spell::EffectEnergize(SpellEffIndex effIndex)
         case 48542:                                         // Revitalize
             damage = int32(CalculatePctN(unitTarget->GetMaxPower(power), damage));
             break;
+        case 67490:                                         // Runic Mana Injector (mana gain increased by 25% for engineers - 3.2.0 patch change)
+        {
+            if (Player* player = m_caster->ToPlayer())
+                if (player->HasSkill(SKILL_ENGINEERING))
+                    AddPctN(damage, 25);
+            break;
+        }
         case 71132:                                         // Glyph of Shadow Word: Pain
             damage = int32(CalculatePctN(unitTarget->GetCreateMana(), 1));  // set 1 as value, missing in dbc
             break;
@@ -4439,15 +4453,18 @@ void Spell::EffectInterruptCast(SpellEffIndex effIndex)
 
     // TODO: not all spells that used this effect apply cooldown at school spells
     // also exist case: apply cooldown to interrupted cast only and to all spells
-    for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; ++i)
+    // there is no CURRENT_AUTOREPEAT_SPELL spells that can be interrupted
+    for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_AUTOREPEAT_SPELL; ++i)
     {
         if (Spell* spell = unitTarget->GetCurrentSpell(CurrentSpellTypes(i)))
         {
             SpellInfo const* curSpellInfo = spell->m_spellInfo;
             // check if we can interrupt spell
             if ((spell->getState() == SPELL_STATE_CASTING
-                || (spell->getState() == SPELL_STATE_PREPARING && spell->CalcCastTime() > 0.0f))
-                && curSpellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_INTERRUPT && curSpellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE)
+                || (spell->getState() == SPELL_STATE_PREPARING && spell->GetCastTime() > 0.0f))
+                && curSpellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE
+                && ((i == CURRENT_GENERIC_SPELL && curSpellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_INTERRUPT)
+                || (i == CURRENT_CHANNELED_SPELL && curSpellInfo->ChannelInterruptFlags & CHANNEL_INTERRUPT_FLAG_INTERRUPT)))
             {
                 if (m_originalCaster)
                 {
@@ -7301,9 +7318,9 @@ void Spell::SummonGuardian(uint32 i, uint32 entry, SummonPropertiesEntry const* 
     // level of pet summoned using engineering item based at engineering skill level
     if (m_CastItem && caster->GetTypeId() == TYPEID_PLAYER)
         if (ItemTemplate const* proto = m_CastItem->GetTemplate())
-            if (proto->RequiredSkill == SKILL_ENGINERING)
-                if (uint16 skill202 = caster->ToPlayer()->GetSkillValue(SKILL_ENGINERING))
-                    level = skill202/5;
+            if (proto->RequiredSkill == SKILL_ENGINEERING)
+                if (uint16 skill202 = caster->ToPlayer()->GetSkillValue(SKILL_ENGINEERING))
+                    level = skill202 / 5;
 
     //float radius = GetSpellRadiusForFriend(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[i]));
     float radius = 5.0f;

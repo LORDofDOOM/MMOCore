@@ -2225,7 +2225,9 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         if (!sMapMgr->CanPlayerEnter(mapid, this, false))
             return false;
 
-        Map* map = sMapMgr->CreateMap(mapid, this, 0);
+        // If the map is not created, assume it is possible to enter it.
+        // It will be created in the WorldPortAck.
+        Map* map = sMapMgr->FindMap(mapid);
         if (!map || map->CanEnter(this))
         {
             //lets reset near teleport flag if it wasn't reset during chained teleports
@@ -19035,7 +19037,7 @@ void Player::_SaveSpells(SQLTransaction& trans)
 
         // add only changed/new not dependent spells
         if (!itr->second->dependent && (itr->second->state == PLAYERSPELL_NEW || itr->second->state == PLAYERSPELL_CHANGED))
-            trans->PAppend("INSERT INTO character_spell (guid, spell, active, disabled) VALUES ('%u', '%u', '%u', '%u')", GetGUIDLow(), itr->first, itr->second->active ? 1 : 0, itr->second->disabled ? 1 : 0);
+            trans->PAppend("INSERT  IGNORE INTO character_spell (guid, spell, active, disabled) VALUES ('%u', '%u', '%u', '%u')", GetGUIDLow(), itr->first, itr->second->active ? 1 : 0, itr->second->disabled ? 1 : 0);
 
         if (itr->second->state == PLAYERSPELL_REMOVED)
         {
