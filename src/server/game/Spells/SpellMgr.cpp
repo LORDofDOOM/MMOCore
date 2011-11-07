@@ -3403,16 +3403,11 @@ void SpellMgr::LoadDbcDataCorrections()
             case 64172: // Titanic Storm
                 spellInfo->excludeTargetAuraSpell = 65294; // Empowered
                 break;
-            case 63830: // Malady of the Mind
             case 63881: // Malady of the Mind proc
             case 63795: // Psychosis
                 spellInfo->EffectImplicitTargetB[0] = TARGET_UNIT_TARGET_ANY;
                 spellInfo->EffectImplicitTargetB[1] = TARGET_UNIT_TARGET_ANY;
                 spellInfo->EffectImplicitTargetB[2] = TARGET_UNIT_TARGET_ANY;
-                break;
-            case 63802: // Brain Link
-                spellInfo->MaxAffectedTargets = 2;
-                spellInfo->EffectRadiusIndex[0] = 12; // 100 yard
                 break;
             case 63050: // Sanity
                 spellInfo->AttributesEx3 |= SPELL_ATTR3_DEATH_PERSISTENT;

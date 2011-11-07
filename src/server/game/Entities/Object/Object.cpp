@@ -2177,18 +2177,8 @@ TempSummon* Map::SummonCreature(uint32 entry, Position const& pos, SummonPropert
             summon = new Puppet(properties, summoner);
             break;
         case UNIT_MASK_TOTEM:
-        {
-            if(summoner->isCharmed())
-            {
-                //If the caster is charmed, assume it is a Bot.  This might not always be
-                //the case, but oh well.  This will allow the affects of the totem
-                //(ex healing, stoneskin, etc, to affect the bot owner insteadof the
-                //bot. Thats ok, the bot is expendable  :-)
-                summon = new Totem      (properties, summoner->GetCharmer());  break;
-            } else {
-                summon = new Totem      (properties, summoner);  break;
-            }
-        }
+            summon = new Totem(properties, summoner);
+            break;
         case UNIT_MASK_MINION:
             summon = new Minion(properties, summoner);
             break;
@@ -2353,7 +2343,7 @@ Pet* Player::SummonPet(uint32 entry, float x, float y, float z, float ang, PetTy
     return pet;
 }
 
-GameObject* WorldObject::SummonGameObject(uint32 entry, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 respawnTime)
+GameObject* WorldObject::SummonGameObject(uint32 entry, const Position &pos, float rotation0, float rotation1, float rotation2, float rotation3, uint32 respawnTime) const
 {
     if (!IsInWorld())
         return NULL;
@@ -2366,7 +2356,7 @@ GameObject* WorldObject::SummonGameObject(uint32 entry, float x, float y, float 
     }
     Map* map = GetMap();
     GameObject* go = new GameObject();
-    if (!go->Create(sObjectMgr->GenerateLowGuid(HIGHGUID_GAMEOBJECT), entry, map, GetPhaseMask(), x, y, z, ang, rotation0, rotation1, rotation2, rotation3, 100, GO_STATE_READY))
+    if (!go->Create(sObjectMgr->GenerateLowGuid(HIGHGUID_GAMEOBJECT), entry, map, GetPhaseMask(), pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), pos.GetOrientation(), rotation0, rotation1, rotation2, rotation3, 100, GO_STATE_READY))
     {
         delete go;
         return NULL;
