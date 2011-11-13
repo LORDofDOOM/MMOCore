@@ -2672,6 +2672,7 @@ public:
         {
             m_pInstance = c->GetInstanceScript();
             me->SetReactState(REACT_PASSIVE);
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
         }
 
         SummonList Summons;
@@ -2711,8 +2712,7 @@ public:
                 pSummoned->setFaction(14);
                 pSummoned->CastSpell(pSummoned,SPELL_DEATH_RAY_WARNING_VISUAL,true,0,0,me->GetGUID());
                 pSummoned->SetReactState(REACT_PASSIVE);
-                pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
                 break;
             }
 

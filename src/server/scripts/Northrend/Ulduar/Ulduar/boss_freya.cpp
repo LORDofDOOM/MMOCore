@@ -336,6 +336,7 @@ class boss_freya : public CreatureScript
                     me->CombatStop(true);
                     me->DespawnOrUnsummon(7500);
                     me->CastSpell(me, SPELL_KNOCK_ON_WOOD_CREDIT, true);
+                    instance->SetBossState(BOSS_FREYA, DONE);
 
                     Creature* Elder[3];
                     for (uint8 n = 0; n < 3; ++n)

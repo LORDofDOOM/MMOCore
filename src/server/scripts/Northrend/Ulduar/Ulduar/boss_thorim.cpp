@@ -301,6 +301,7 @@ public:
 
         uint8 PreAddsCount;
         uint32 EncounterTime;
+        uint32 _checkTargetTimer;
         bool Wipe;
         bool HardMode;
         bool OrbSummoned;
@@ -326,6 +327,7 @@ public:
             HardMode = false;
             OrbSummoned = false;
             summonChampion = false;
+            _checkTargetTimer = 7000;
             PreAddsCount = 0;
 
             // Respawn Mini Bosses
@@ -399,7 +401,10 @@ public:
             events.ScheduleEvent(EVENT_SAY_AGGRO_2, 10000, 0, PHASE_1);
 
             if (Creature* runic = me->GetCreature(*me, instance->GetData64(DATA_RUNIC_COLOSSUS)))
+            {
+                runic->setActive(true);
                 runic->AI()->DoAction(ACTION_RUNIC_SMASH);
+            }
 
             if (GameObject* go = me->FindNearestGameObject(GO_LEVER, 500.0f))
                 go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
@@ -425,6 +430,19 @@ public:
                 me->getVictim()->getHostileRefManager().deleteReference(me);
                 return;
             }
+
+            if (_checkTargetTimer < diff)
+            {
+                // workaround, see mimiron script
+                if (!SelectTarget(SELECT_TARGET_RANDOM, 0, 200.0f, true))
+                {
+                    EnterEvadeMode();
+                    return;
+                }
+                _checkTargetTimer = 7000;
+            }
+            else
+                _checkTargetTimer -= diff;
 
             // still needed?
             if (phase == PHASE_2 && !IN_ARENA(me))
@@ -856,6 +874,7 @@ class npc_runic_colossus : public CreatureScript
                 RunicSmashTimer = 1000;
                 Side = 0;
 
+                me->setActive(false);
                 me->GetMotionMaster()->MoveTargetedHome();
 
                 // Runed Door closed

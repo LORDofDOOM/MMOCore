@@ -170,6 +170,8 @@ enum UlduarGameObjects
     GO_ALGALON_INVISDOOR                  = 194910,
     GO_ALGALON_CONSOLE                    = 194628,
     GO_GIFT_OF_THE_OBSERVER               = 194821,
+    GO_IRON_COUNCIL_ENTRANCE              = 194554,
+    GO_XT002_DOOR                         = 194631,
 };
 
 enum UlduarSharedActions

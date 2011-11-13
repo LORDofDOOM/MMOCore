@@ -327,7 +327,7 @@ class boss_algalon : public CreatureScript
                     StartIntro(20000); // respawn in 20 Seconds.
             }
 			
-			uint32 GetData(uint32 type)
+            uint32 GetData(uint32 type)
             {
                 switch (type)
                 {
@@ -496,37 +496,37 @@ class boss_algalon : public CreatureScript
                 }
             }
 
-			void HandleHeraldAchievement()
-			{
-				uint32 playercount;
-				uint32 playermatchedreq;
-				playermatchedreq = 0;
-				playercount = 0;
+            void HandleHeraldAchievement()
+            {
+                uint32 playercount;
+                uint32 playermatchedreq;
+                playermatchedreq = 0;
+                playercount = 0;
 
-				if(me->GetMap() && me->GetMap()->IsDungeon())
-				{
-					Map::PlayerList const& players = me->GetMap()->GetPlayers();
-					if (!players.isEmpty())
-					{
-						for(Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
-						{
-							playercount++;
-							if (Player* plr = itr->getSource())
-							{
-								if(plr->GetAverageItemLevel() <= 232)
-								{
-									playermatchedreq++;
-								}
-							}
-						}
-					}
-				}
-				if (playermatchedreq != playercount) // check if the whole raid have an average ilvl of 232 or less
-				{
-					Creature* Algalon = ObjectAccessor::GetCreature(*me, instance->GetData64(BOSS_ALGALON));
-					Algalon->AI()->DoAction(ACTION_HERALD);
-				}
-			}
+                if(me->GetMap() && me->GetMap()->IsDungeon())
+                {
+                    Map::PlayerList const& players = me->GetMap()->GetPlayers();
+                    if (!players.isEmpty())
+                    {
+                        for(Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+                        {
+                            playercount++;
+                            if (Player* plr = itr->getSource())
+                            {
+                                if(plr->GetAverageItemLevel() <= 232)
+                                {
+                                   playermatchedreq++;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (playermatchedreq != playercount) // check if the whole raid have an average ilvl of 232 or less
+                {
+                    Creature* Algalon = ObjectAccessor::GetCreature(*me, instance->GetData64(BOSS_ALGALON));
+                    Algalon->AI()->DoAction(ACTION_HERALD);
+                }
+            }
 
             void HandleTalkingSequences()
             {
@@ -809,7 +809,7 @@ class boss_algalon : public CreatureScript
 
                 if (Phase == PHASE_2 && HealthBelowPct(3))
                 {
-					HandleHeraldAchievement();
+                    HandleHeraldAchievement();
                     Phase = PHASE_INTRO;
                     summons.DespawnAll();
                     instance->SetData(DATA_ALGALON_TIMER, DONE);
@@ -1356,21 +1356,20 @@ class go_celestial_console : public GameObjectScript
 
         bool OnGossipHello(Player* player, GameObject* go)
         {
-			InstanceScript* _instance = go->GetInstanceScript();
+            InstanceScript* _instance = go->GetInstanceScript();
 
-			uint32 item = uint32(go->GetMap()->GetDifficulty() == RAID_DIFFICULTY_10MAN_NORMAL ? 45796 : 45798);
-			if (player->HasItemCount(item, 1))
-			{
-				if (Creature* Brann = go->SummonCreature(NPC_BRANN_ALGALON, WPs_ulduar[0][0],WPs_ulduar[0][1], WPs_ulduar[0][2])) 
-				{
-					go->SetFlag(GAMEOBJECT_FLAGS,  GO_FLAG_NOT_SELECTABLE);
-					Brann->AI()->DoAction(ACTION_BRANN_INTRO);
-					if (GameObject* Door = ObjectAccessor::GetGameObject(*go, go->GetInstanceScript()->GetData64((GO_ALGALON_DOOR))))
-						Door->SetGoState(GO_STATE_ACTIVE);
-
-				}
-			}
-			return true;
+            uint32 item = uint32(go->GetMap()->GetDifficulty() == RAID_DIFFICULTY_10MAN_NORMAL ? 45796 : 45798);
+            if (player->HasItemCount(item, 1))
+            {
+                if (Creature* Brann = go->SummonCreature(NPC_BRANN_ALGALON, WPs_ulduar[0][0],WPs_ulduar[0][1], WPs_ulduar[0][2])) 
+                {
+                    go->SetFlag(GAMEOBJECT_FLAGS,  GO_FLAG_NOT_SELECTABLE);
+                    Brann->AI()->DoAction(ACTION_BRANN_INTRO);
+                    if (GameObject* Door = ObjectAccessor::GetGameObject(*go, go->GetInstanceScript()->GetData64((GO_ALGALON_DOOR))))
+                        Door->SetGoState(GO_STATE_ACTIVE);
+                }
+            }
+            return true;
         }
 };
 
@@ -1407,7 +1406,7 @@ class spell_algalon_cosmic_smash_initial : public SpellScriptLoader
 
             void HandleForceCast(SpellEffIndex effIndex)
             {
-				PreventHitEffect(effIndex);
+                PreventHitEffect(effIndex);
                 if (!GetHitUnit())
                     return;
 
@@ -1419,8 +1418,8 @@ class spell_algalon_cosmic_smash_initial : public SpellScriptLoader
             {
                 OnUnitTargetSelect += SpellUnitTargetFn(spell_algalon_cosmic_smash_initial_SpellScript::FilterTargetsInitial, EFFECT_0, TARGET_UNIT_SRC_AREA_ENEMY);
                 OnUnitTargetSelect += SpellUnitTargetFn(spell_algalon_cosmic_smash_initial_SpellScript::FillTargetsSubsequential, EFFECT_1, TARGET_UNIT_SRC_AREA_ENEMY);
-				OnEffectHitTarget += SpellEffectFn(spell_algalon_cosmic_smash_initial_SpellScript::HandleForceCast, EFFECT_0, SPELL_EFFECT_FORCE_CAST);
-				OnEffectHitTarget += SpellEffectFn(spell_algalon_cosmic_smash_initial_SpellScript::HandleForceCast, EFFECT_1, SPELL_EFFECT_FORCE_CAST);
+                OnEffectHitTarget += SpellEffectFn(spell_algalon_cosmic_smash_initial_SpellScript::HandleForceCast, EFFECT_0, SPELL_EFFECT_FORCE_CAST);
+                OnEffectHitTarget += SpellEffectFn(spell_algalon_cosmic_smash_initial_SpellScript::HandleForceCast, EFFECT_1, SPELL_EFFECT_FORCE_CAST);
             }
 
             std::list<Unit*> m_unitList; 
@@ -1602,5 +1601,5 @@ void AddSC_boss_algalon()
     new spell_algalon_black_hole();
     new spell_algalon_cosmic_smash_initial();
     new go_celestial_console();
-	new achievement_herald_of_the_titans();
+    new achievement_herald_of_the_titans();
 }
