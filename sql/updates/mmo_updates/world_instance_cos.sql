@@ -18,7 +18,7 @@ INSERT INTO `script_texts` (entry, content_default, content_loc6, content_loc7) 
 (-1595051, 'Scourge forces has been spotted near the King Square fountain!', '¡Tropas de la plaga han sido avistadas cerca de la fuente de la Plaza del Rey!.', content_loc6);
 
 -- Exit AreaTrigger Teleport
-UPDATE `areatrigger_teleport` SET id = 5181 WHERE id = 5148;
+-- UPDATE `areatrigger_teleport` SET id = 5181 WHERE id = 5148;
 
 -- Spell: Robar Carne
 DELETE FROM `spell_linked_spell` WHERE spell_trigger IN (-52708, 52708);
@@ -30,7 +30,7 @@ DELETE FROM `creature` WHERE `id` IN (27737,27729,27734,27736,28199,28200,28201,
 
 SET @GUID := 142600;
 
-INSERT INTO `creature` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`)
+REPLACE INTO `creature` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`)
 VALUES
 (@GUID+00,27737,595,3,1,25543,0,2319.89,1285.78,131.407,1.72169,60,10,0,630,0,1,0,0,0),
 (@GUID+01,27737,595,3,1,10979,0,2308.12,1304.21,127.601,4.39662,60,10,0,630,0,1,0,0,0),
