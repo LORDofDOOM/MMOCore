@@ -642,9 +642,9 @@ void LFGMgr::Join(Player* player, uint8 roles, const LfgDungeonSet& selectedDung
         }
 
         if(isRandom)
-            plr->CastSpell(plr, LFG_SPELL_DUNGEON_COOLDOWN, true);
+            player->CastSpell(player, LFG_SPELL_DUNGEON_COOLDOWN, true);
 
-        AddToQueue(guid, uint8(plr->GetTeam()));
+        AddToQueue(guid, uint8(player->GetTeam()));
     }
     sLog->outDebug(LOG_FILTER_LFG, "LFGMgr::Join: [" UI64FMTD "] joined with %u members. dungeons: %u", guid, grp ? grp->GetMembersCount() : 1, uint8(dungeons.size()));
 }
@@ -1823,7 +1823,7 @@ void LFGMgr::TeleportPlayer(Player* player, bool out, bool fromOpcode /*= false*
                     // FIXME - HACK - this should be done by teleport, when teleporting far
                     player->RemoveAurasByType(SPELL_AURA_MOUNTED);
                     if(dungeon->type == LFG_TYPE_RANDOM)
-                        plr->CastSpell(plr, LFG_SPELL_LUCK_OF_THE_DRAW, true);
+                        player->CastSpell(player, LFG_SPELL_LUCK_OF_THE_DRAW, true);
                 }
                 else
                 {
