@@ -1,4 +1,6 @@
--- Missing Script Names
+-- ########################################################################################################################
+-- ############################## Missing Script Names
+-- ########################################################################################################################
 
 REPLACE INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid1`, `modelid2`, `modelid3`, `modelid4`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction_A`, `faction_H`, `npcflag`, `speed_walk`, `speed_run`, `scale`, `rank`, `mindmg`, `maxdmg`, `dmgschool`, `attackpower`, `dmg_multiplier`, `baseattacktime`, `rangeattacktime`, `unit_class`, `unit_flags`, `dynamicflags`, `family`, `trainer_type`, `trainer_spell`, `trainer_class`, `trainer_race`, `minrangedmg`, `maxrangedmg`, `rangedattackpower`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `resistance1`, `resistance2`, `resistance3`, `resistance4`, `resistance5`, `resistance6`, `spell1`, `spell2`, `spell3`, `spell4`, `spell5`, `spell6`, `spell7`, `spell8`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `InhabitType`, `Health_mod`, `Mana_mod`, `Armor_mod`, `RacialLeader`, `questItem1`, `questItem2`, `questItem3`, `questItem4`, `questItem5`, `questItem6`, `movementId`, `RegenHealth`, `equipment_id`, `mechanic_immune_mask`, `flags_extra`, `ScriptName`, `WDBVerified`) VALUES
 (33142, 0, 0, 0, 0, 0, 28829, 0, 0, 0, 'Leviathan Defense Turret', '', '', 0, 80, 80, 2, 2101, 2101, 0, 1, 1, 1, 0, 422, 586, 0, 642, 1, 2000, 0, 1, 33554432, 8, 0, 0, 0, 0, 0, 345, 509, 103, 9, 12288, 0, 0, 0, 0, 0, 0, 0, 0, 0, 62402, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 3, 5.07937, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 'npc_flame_leviathan_defense_turret', 12340),
@@ -56,3 +58,41 @@ REPLACE INTO `achievement_criteria_data` (`criteria_id`, `type`, `value1`, `valu
 (10089, 11, 0, 0, 'achievement_but_i_am_on_your_side'),
 (10420, 11, 0, 0, 'achievement_but_i_am_on_your_side'),
 (10421, 11, 0, 0, 'achievement_but_i_am_on_your_side');
+
+-- ########################################################################################################################
+-- ############################## Other
+-- ########################################################################################################################
+
+-- Fix PDC Start NPC
+UPDATE `creature_template` SET `faction_A` = 35, `faction_H` = 35, `npcflag` = 1, `ScriptName` = "npc_announcer_toc5" WHERE `entry` = 35005;
+
+-- Fix Boss Fix ewiger Verderber
+DELETE FROM `creature_template` WHERE `entry` = 32273;
+INSERT INTO `creature_template` VALUES ('32273', '32313', '0', '0', '0', '0', '19326', '0', '0', '0', 'Infinite Corruptor', '', '', '0', '82', '82', '2', '1720', '1720', '0', '1', '1.14286', '1', '1', '488', '642', '0', '782', '7.5', '2000', '0', '1', '320', '8', '0', '0', '0', '0', '0', '363', '521', '121', '2', '72', '32273', '0', '70210', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '', '0', '3', '25', '1', '1', '0', '0', '0', '0', '0', '0', '0', '144', '1', '1838', '0', '1', 'boss_infinite_corruptor', '12340');
+
+-- Fix Priest Quest Nachtelfen level 10
+UPDATE `quest_template` SET `ReqCreatureOrGOId1` = 0, `ReqCreatureOrGOCount1` = 0 WHERE `entry` = 5621;
+
+-- Fix Den Urtum Kraft verleihen
+UPDATE `creature_template` SET `IconName` = 0, `faction_A` = 115768, `faction_H` = 115768, `npcflag` = 14 WHERE `entry` = 26421;
+
+-- Fix Quest Der Fokus am Strand
+UPDATE `quest_template` SET `ReqSourceId1` = 0, `ReqSourceCount1` = 0, `ReqCreatureOrGOCount1` = 0, `ReqCreatureOrGOCount1` = 0 WHERE `entry` = 12065;
+
+-- Fix Quest Der Fokus am Strand
+UPDATE `quest_template` SET `ReqSourceId1` = 0, `ReqSourceCount1` = 0, `ReqCreatureOrGOCount1` = 0, `ReqCreatureOrGOCount1` = 0 WHERE `entry` = 12084;
+
+-- Fix Quest Der Fokus am Strand
+UPDATE `quest_template` SET `ReqSourceId1` = 0, `ReqSourceCount1` = 0, `ReqCreatureOrGOCount1` = 0, `ReqCreatureOrGOCount1` = 0 WHERE `entry` = 12107;
+
+-- Fix Quest Die vergessene Geschichte
+UPDATE `quest_template` SET `SrcItemId` = 0, `ReqSourceId4` = 0, `ReqCreatureOrGOCount1` = 0, `ReqCreatureOrGOCount1` = 0 WHERE`entry` = 12291;
+
+-- Fix Flug des Verteidigers
+UPDATE `creature_template` SET `faction_A` = 115768, `npcflag` = 14 WHERE `entry` = 27336;
+
+-- Fix Quest Die vergessene Geschichte
+UPDATE `quest_template` SET `SrcItemId` = 0, `ReqSourceId4` = 0, `ReqCreatureOrGOCount1` = 0, `ReqCreatureOrGOCount1` = 0 WHERE `entry` = 12237;
+
+-- Fix Quest Spirituelle eingebung
+UPDATE `quest_template` SET `ReqSourceId1` = 0, `ReqSourceCount1` = 0, `ReqSpellCast1` = 47190, `ReqCreatureOrGOCount1` = 0 WHERE `entry` = 12237;
