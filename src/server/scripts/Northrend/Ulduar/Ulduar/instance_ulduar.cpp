@@ -99,6 +99,7 @@ class instance_ulduar : public InstanceMapScript
             uint64 HodirChestGUID;
             uint64 HodirDoorGUID;
             uint64 HodirIceDoorGUID;
+            uint64 HodirStoneDoorGUID;
             uint64 ArchivumDoorGUID;
             uint64 XT002DoorGUID;
             uint64 IronCouncilEntranceGUID;
@@ -160,6 +161,7 @@ class instance_ulduar : public InstanceMapScript
                 VezaxDoorGUID                    = 0;
                 HodirDoorGUID                    = 0;
                 HodirIceDoorGUID                 = 0;
+                HodirStoneDoorGUID               = 0;
                 ArchivumDoorGUID                 = 0;
                 IronCouncilEntranceGUID          = 0;
                 TeamInInstance                   = 0;
@@ -543,11 +545,17 @@ class instance_ulduar : public InstanceMapScript
                         break;
                     case GO_HODIR_ICE_DOOR:
                         HodirIceDoorGUID = gameObject->GetGUID();
+                        if (GetBossState(BOSS_HODIR) == DONE)
+                            HandleGameObject(HodirIceDoorGUID, true);
+                        break;
+                    case GO_HODIR_STONE_DOOR:
+                        HodirStoneDoorGUID = gameObject->GetGUID();
+                        if (GetBossState(BOSS_HODIR) == DONE)
+                            HandleGameObject(HodirStoneDoorGUID, true);
                         break;
                     case GO_ARCHIVUM_DOOR:
                         ArchivumDoorGUID = gameObject->GetGUID();
-                        if (GetBossState(BOSS_ASSEMBLY_OF_IRON) != DONE)
-                            HandleGameObject(ArchivumDoorGUID, false);
+                        HandleGameObject(0, GetBossState(BOSS_ASSEMBLY_OF_IRON) == DONE, gameObject);
                         break;
                     case GO_MIMIRON_TRAIN:
                         gameObject->setActive(true);
@@ -729,7 +737,7 @@ class instance_ulduar : public InstanceMapScript
                             HandleGameObject(ArchivumDoorGUID, false);
                         HandleGameObject(IronCouncilEntranceGUID, state != IN_PROGRESS);
                         if (state == DONE)
-                        HandleGameObject(ArchivumDoorGUID, true);
+                            HandleGameObject(ArchivumDoorGUID, true);
                         break;
                     case BOSS_VEZAX:
                         if (state == DONE)
@@ -760,6 +768,7 @@ class instance_ulduar : public InstanceMapScript
                                 HodirChest->SetRespawnTime(HodirChest->GetRespawnDelay());
                             HandleGameObject(HodirDoorGUID, true);
                             HandleGameObject(HodirIceDoorGUID, true);
+                            HandleGameObject(HodirStoneDoorGUID, true);
                         }
                         break;
                     case BOSS_THORIM:
