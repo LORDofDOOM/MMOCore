@@ -34,7 +34,7 @@ UPDATE `creature_template` SET `minlevel`=80, `maxlevel`=80, `exp`=2, `faction_A
 UPDATE `creature_template` SET `mechanic_immune_mask`=650854239 WHERE `entry` IN (25740,25865);
 UPDATE `creature_template` SET `mindmg`=417, `maxdmg`=582, `dmg_multiplier`=2 WHERE `entry` IN (25756,25757);
 UPDATE `creature_template` SET `mindmg`=417, `maxdmg`=582, `dmg_multiplier`=5 WHERE `entry`=25755;
-UPDATE `quest_template` SET `SpecialFlags`=9 WHERE `entry`=25484;
+UPDATE `quest_template` SET `SpecialFlags`=9 WHERE `Id`=25484;
 UPDATE `gameobject_template` SET `flags`=16 WHERE `entry`=188077;
 
 -- Frozen Core Hitbox

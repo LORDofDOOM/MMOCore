@@ -40,7 +40,7 @@ INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comm
 -- Inmunidades
 UPDATE `creature_template` SET `mechanic_immune_mask` = `mechanic_immune_mask`|1|2|8|16|32|64|128|256|512|1024|2048|4096|8192|65536|131072|524288|4194304|8388608|33554432|67108864|536870912 WHERE `entry` IN (23872,26822,26764);
 
-UPDATE `quest_template` SET `SpecialFlags`=9 WHERE `entry`=25483;
+UPDATE `quest_template` SET `SpecialFlags`=9 WHERE `Id`=25483;
 UPDATE `creature_template` SET `npcflag`=3 WHERE `entry`=23872;
 
 -- Tapper Swindlekeg SAI
@@ -286,14 +286,14 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,
 (13,0,42518,0,26,33096,0,0,0,'',"Spell Create Complimentary Brewfest Sampler targets players");
 
 -- Fix Quest Chug and chuck (A/H) and Bark for... (Q 11294,11408,11293,11407)
-UPDATE `quest_template` SET `PrevQuestId`='11409' WHERE (`entry`='12194');
-UPDATE `quest_template` SET `PrevQuestId`='12191' WHERE (`entry`='12192');
+UPDATE `quest_template` SET `PrevQuestId`='11409' WHERE (`Id`='12194');
+UPDATE `quest_template` SET `PrevQuestId`='12191' WHERE (`Id`='12192');
 DELETE FROM  `spell_linked_spell` WHERE `spell_trigger` = 42436;
 INSERT INTO `spell_linked_spell` (`spell_trigger`,`spell_effect`,`type`,`comment`)
 VALUES ('42436','47173','0','Brewfest Sampler');
 UPDATE `item_template` SET `ScriptName`='item_brewfest_ChugAndChuck' WHERE (`entry`='33096');
 UPDATE `creature_template` SET `scale`='0.01',`AIName`='',`flags_extra`='0',`ScriptName`='npc_brewfest_trigger' WHERE `entry` in (24202, 24203, 24204, 24205);
-UPDATE `quest_template` SET `PrevQuestId`='0' WHERE (`entry`='12193');
+UPDATE `quest_template` SET `PrevQuestId`='0' WHERE (`Id`='12193');
 
 -- Ram Barrel Run Quest
 DELETE FROM `spell_linked_spell` WHERE `spell_trigger` IN (-43880, 42994, 42993, 42992, 43310, 43332, -43332);
@@ -375,7 +375,7 @@ VALUES
 UPDATE `item_template` SET `ScriptName`='item_brewfest_ram_reins' WHERE (`entry`='33306');
 
 -- Spell de quest faltante Rental Racing Ram al tomar la quest para quedar montado
-UPDATE `quest_template` SET `SrcSpell`=43883 WHERE `entry` IN (11293,11294,11407,11408,11409,11122,11412);
+UPDATE `quest_template` SET `SourceSpellId`=43883 WHERE `Id` IN (11293,11294,11407,11408,11409,11122,11412);
 
 -- Cambio de Modelo(Uno invisible) y asociacion de script al npc Barker Bunny
 UPDATE `creature_template` SET `modelid1`=11686, `ScriptName`='npc_brewfest_trigger' WHERE `entry`=24202;
@@ -791,7 +791,7 @@ INSERT INTO `creature_text` (`entry`,`groupid`,`id`,`text`,`type`,`language`,`pr
 (@ENTRY,2,1,"Down the free brew and pelt the Guzzlers with your mug!",12,0,100,1,0,0,"Ita Thunderbrew");
 
 -- Quest 12491 y 12492 no tienen prerequisito en el 2010
-UPDATE `quest_template` SET `PrevQuestId`=0 WHERE `entry`IN (12491,12492);
+UPDATE `quest_template` SET `PrevQuestId`=0 WHERE `Id`IN (12491,12492);
 
 -- Fix Vendedores Blix Fixwidget y Ray'ma Horda
 -- Fix Vendedores Belbi Quikswitch y Larkin Thunderbrew Alianza

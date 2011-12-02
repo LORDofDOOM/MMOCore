@@ -71,28 +71,28 @@ DELETE FROM `creature_template` WHERE `entry` = 32273;
 INSERT INTO `creature_template` VALUES ('32273', '32313', '0', '0', '0', '0', '19326', '0', '0', '0', 'Infinite Corruptor', '', '', '0', '82', '82', '2', '1720', '1720', '0', '1', '1.14286', '1', '1', '488', '642', '0', '782', '7.5', '2000', '0', '1', '320', '8', '0', '0', '0', '0', '0', '363', '521', '121', '2', '72', '32273', '0', '70210', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '', '0', '3', '25', '1', '1', '0', '0', '0', '0', '0', '0', '0', '144', '1', '1838', '0', '1', 'boss_infinite_corruptor', '12340');
 
 -- Fix Priest Quest Nachtelfen level 10
-UPDATE `quest_template` SET `ReqCreatureOrGOId1` = 0, `ReqCreatureOrGOCount1` = 0 WHERE `entry` = 5621;
+UPDATE `quest_template` SET `RequiredNpcOrGo1` = 0, `RequiredNpcOrGoCount1` = 0 WHERE `Id` = 5621;
 
 -- Fix Den Urtum Kraft verleihen
 UPDATE `creature_template` SET `IconName` = 0, `faction_A` = 115768, `faction_H` = 115768, `npcflag` = 14 WHERE `entry` = 26421;
 
 -- Fix Quest Der Fokus am Strand
-UPDATE `quest_template` SET `ReqSourceId1` = 0, `ReqSourceCount1` = 0, `ReqCreatureOrGOCount1` = 0, `ReqCreatureOrGOCount1` = 0 WHERE `entry` = 12065;
+UPDATE `quest_template` SET `RequiredSourceItemId1` = 0, `RequiredSourceItemCount1` = 0, `RequiredNpcOrGo1` = 0, `RequiredNpcOrGoCount1` = 0 WHERE `Id` = 12065;
 
 -- Fix Quest Der Fokus am Strand
-UPDATE `quest_template` SET `ReqSourceId1` = 0, `ReqSourceCount1` = 0, `ReqCreatureOrGOCount1` = 0, `ReqCreatureOrGOCount1` = 0 WHERE `entry` = 12084;
+UPDATE `quest_template` SET `RequiredSourceItemId1` = 0, `RequiredSourceItemCount1` = 0, `RequiredNpcOrGo1` = 0, `RequiredNpcOrGoCount1` = 0 WHERE `Id` = 12084;
 
 -- Fix Quest Der Fokus am Strand
-UPDATE `quest_template` SET `ReqSourceId1` = 0, `ReqSourceCount1` = 0, `ReqCreatureOrGOCount1` = 0, `ReqCreatureOrGOCount1` = 0 WHERE `entry` = 12107;
+UPDATE `quest_template` SET `RequiredSourceItemId1` = 0, `RequiredSourceItemCount1` = 0, `RequiredNpcOrGo1` = 0, `RequiredNpcOrGoCount1` = 0 WHERE `Id` = 12107;
 
 -- Fix Quest Die vergessene Geschichte
-UPDATE `quest_template` SET `SrcItemId` = 0, `ReqSourceId4` = 0, `ReqCreatureOrGOCount1` = 0, `ReqCreatureOrGOCount1` = 0 WHERE`entry` = 12291;
+UPDATE `quest_template` SET `SourceItemId` = 0, `RequiredSourceItemId4` = 0, `RequiredNpcOrGo1` = 0, `RequiredNpcOrGoCount1` = 0 WHERE`Id` = 12291;
 
 -- Fix Flug des Verteidigers
 UPDATE `creature_template` SET `faction_A` = 115768, `npcflag` = 14 WHERE `entry` = 27336;
 
 -- Fix Quest Die vergessene Geschichte
-UPDATE `quest_template` SET `SrcItemId` = 0, `ReqSourceId4` = 0, `ReqCreatureOrGOCount1` = 0, `ReqCreatureOrGOCount1` = 0 WHERE `entry` = 12237;
+UPDATE `quest_template` SET `SourceItemId` = 0, `RequiredSourceItemId4` = 0, `RequiredNpcOrGo1` = 0, `RequiredNpcOrGoCount1` = 0 WHERE `Id` = 12237;
 
 -- Fix Quest Spirituelle eingebung
-UPDATE `quest_template` SET `ReqSourceId1` = 0, `ReqSourceCount1` = 0, `ReqSpellCast1` = 47190, `ReqCreatureOrGOCount1` = 0 WHERE `entry` = 12237;
+UPDATE `quest_template` SET `RequiredSourceItemId1` = 0, `RequiredSourceItemCount1` = 0, `RequiredSpellCast1` = 47190, `RequiredNpcOrGoCount1` = 0 WHERE `Id` = 12237;

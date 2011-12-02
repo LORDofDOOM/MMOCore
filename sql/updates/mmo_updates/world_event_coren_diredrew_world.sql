@@ -26,7 +26,7 @@ VALUES
 -- coren direbrew & brewmaiden immunitys
 UPDATE `creature_template` SET `mechanic_immune_mask` = `mechanic_immune_mask`|1|2|8|16|32|64|128|256|512|1024|2048|4096|8192|65536|131072|524288|4194304|8388608|33554432|67108864|536870912 WHERE `entry` IN (23872,26822,26764);
 
-UPDATE `quest_template` SET `SpecialFlags`=9 WHERE `entry`=25483;
+UPDATE `quest_template` SET `SpecialFlags`=9 WHERE `Id`=25483;
 UPDATE `creature_template` SET `npcflag`=3 WHERE `entry`=23872;
 
 -- hacks for fest mounts
