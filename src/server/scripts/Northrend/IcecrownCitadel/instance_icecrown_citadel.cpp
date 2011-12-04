@@ -127,6 +127,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                 ValithriaDreamwalkerGUID = 0;
                 ValithriaLichKingGUID = 0;
                 ValithriaTriggerGUID = 0;
+				ValithriaCacheGUID =0;
                 SindragosaGUID = 0;
                 SpinestalkerGUID = 0;
                 RimefangGUID = 0;
@@ -452,6 +453,12 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case GO_DRINK_ME:
                         PutricideTableGUID = go->GetGUID();
                         break;
+					case GO_VALITHRIA_CACHE_10N:
+					case GO_VALITHRIA_CACHE_25N:
+					case GO_VALITHRIA_CACHE_10H:
+					case GO_VALITHRIA_CACHE_25H:
+						ValithriaCacheGUID = go->GetGUID();
+						break;						
                     case GO_ARTHAS_PLATFORM:
                         // this enables movement at The Frozen Throne, when printed this value is 0.000000f
                         // however, when represented as integer client will accept only this value
@@ -713,6 +720,9 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case DATA_VALITHRIA_DREAMWALKER:
                         if (state == DONE && sPoolMgr->IsSpawnedObject<Quest>(WeeklyQuestData[8].questId[instance->GetSpawnMode() & 1]))
                             instance->SummonCreature(NPC_VALITHRIA_DREAMWALKER_QUEST, ValithriaSpawnPos);
+							  if(ValithriaCacheGUID)
+								DoRespawnGameObject(ValithriaCacheGUID, 7*DAY);
+							}							
                         break;
                     case DATA_SINDRAGOSA:
                         HandleGameObject(FrostwingSigilGUID, state != DONE);
@@ -1259,6 +1269,7 @@ class instance_icecrown_citadel : public InstanceMapScript
             uint64 ValithriaDreamwalkerGUID;
             uint64 ValithriaLichKingGUID;
             uint64 ValithriaTriggerGUID;
+			uint64 ValithriaCacheGUID;			
             uint64 SindragosaGUID;
             uint64 SpinestalkerGUID;
             uint64 RimefangGUID;
