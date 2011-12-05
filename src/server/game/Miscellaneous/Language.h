@@ -1088,7 +1088,9 @@ enum TrinityStrings
     LANG_LOTTERY_ANNOUNCE_JACKPOT_M_PLAYERS = 11007,	
     VIP_CANT_DO                         = 11778,
     VIP_CANT_DO_2                       = 11779,	
-
+	VIP_DONT_HAVE                       = 11780,
+	VIP_COMMANDS                        = 11781,
+	
     // NOT RESERVED IDS                   12000-1999999999
     // `db_script_string` table index     2000000000-2000009999 (MIN_DB_SCRIPT_STRING_ID-MAX_DB_SCRIPT_STRING_ID)
     // For other tables maybe             2000010000-2147483647 (max index)

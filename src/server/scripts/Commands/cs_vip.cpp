@@ -72,7 +72,18 @@ public:
 
 bool static HandleVipAddCommand(ChatHandler* handler, char const* args)
 {
+
+    Player *chr = handler->GetSession()->GetPlayer();
+
+	if (!chr->GetSession()->IsPremium() && !chr->isGameMaster())
+	{
+        handler->SendSysMessage(VIP_DONT_HAVE);
+        handler->SetSentErrorMessage(true);
+		return true;
+	}	
+	
 	if (!*args)
+		handler->SendSysMessage(VIP_COMMANDS);
 		return false;
 
 	///- Get the command line arguments
@@ -144,6 +155,13 @@ static bool HandleVipDebuffCommand(ChatHandler* handler, const char* /*args*/)
         handler->SetSentErrorMessage(true);
         return false;
     }
+	
+	if (!chr->GetSession()->IsPremium() && !chr->isGameMaster())
+	{
+        handler->SendSysMessage(VIP_DONT_HAVE);
+        handler->SetSentErrorMessage(true);
+		return true;
+	}	
     
     handler->GetSession()->GetPlayer()->RemoveAurasDueToSpell(15007);
     handler->GetSession()->GetPlayer()->RemoveAurasDueToSpell(26013);
@@ -162,6 +180,13 @@ static bool HandleVipMapCommand(ChatHandler* handler, const char* /*args*/)
         handler->SetSentErrorMessage(true);
         return false;
     }
+	
+	if (!chr->GetSession()->IsPremium() && !chr->isGameMaster())
+	{
+        handler->SendSysMessage(VIP_DONT_HAVE);
+        handler->SetSentErrorMessage(true);
+		return true;
+	}		
 
     handler->PSendSysMessage(LANG_YOU_SET_EXPLORE_ALL, handler->GetNameLink(chr).c_str());
     for (uint8 i=0; i<PLAYER_EXPLORED_ZONES_SIZE; ++i)
@@ -183,6 +208,13 @@ static bool HandleVipBankCommand(ChatHandler* handler, const char* /*args*/)
         handler->SetSentErrorMessage(true);
         return false;
     }
+	
+	if (!chr->GetSession()->IsPremium() && !chr->isGameMaster())
+	{
+        handler->SendSysMessage(VIP_DONT_HAVE);
+        handler->SetSentErrorMessage(true);
+		return true;
+	}			
 
     handler->GetSession()->SendShowBank(handler->GetSession()->GetPlayer()->GetGUID());
 
@@ -200,6 +232,13 @@ static bool HandleVipRepairCommand(ChatHandler* handler, const char* /*args*/)
         handler->SetSentErrorMessage(true);
         return false;
     }
+	
+	if (!chr->GetSession()->IsPremium() && !chr->isGameMaster())
+	{
+        handler->SendSysMessage(VIP_DONT_HAVE);
+        handler->SetSentErrorMessage(true);
+		return true;
+	}			
     
     // Repair items
     handler->GetSession()->GetPlayer()->DurabilityRepairAll(false, 0, false);
@@ -219,6 +258,13 @@ static bool HandleVipAuctionCommand(ChatHandler* handler, const char* args)
         handler->SetSentErrorMessage(true);
         return false;
     }
+	
+	if (!chr->GetSession()->IsPremium() && !chr->isGameMaster())
+	{
+        handler->SendSysMessage(VIP_DONT_HAVE);
+        handler->SetSentErrorMessage(true);
+		return true;
+	}			
 
     //handler->GetSession()->GetPlayer()->SetAuctionAccessMode(0);
     if (chr->GetTeam() == HORDE)
@@ -242,6 +288,13 @@ static bool HandleVipResetTalentsCommand(ChatHandler* handler, const char* /*arg
         handler->SetSentErrorMessage(true);
         return false;
     }
+	
+	if (!chr->GetSession()->IsPremium() && !chr->isGameMaster())
+	{
+        handler->SendSysMessage(VIP_DONT_HAVE);
+        handler->SetSentErrorMessage(true);
+		return true;
+	}			
 
     // Reset Talents
     handler->GetSession()->GetPlayer()->resetTalents(true);
@@ -254,11 +307,20 @@ static bool HandleVipResetTalentsCommand(ChatHandler* handler, const char* /*arg
 
 static bool HandleVipWhispersCommand(ChatHandler* handler, const char* args)
 {
+    Player *chr = handler->GetSession()->GetPlayer();
+
     if (!*args)
     {
         handler->PSendSysMessage(LANG_COMMAND_WHISPERACCEPTING, handler->GetSession()->GetPlayer()->isAcceptWhispers() ?  handler->GetTrinityString(LANG_ON) : handler->GetTrinityString(LANG_OFF));
         return true;
     }
+	
+	if (!chr->GetSession()->IsPremium() && !chr->isGameMaster())
+	{
+        handler->SendSysMessage(VIP_DONT_HAVE);
+        handler->SetSentErrorMessage(true);
+		return true;
+	}		
 
     std::string argstr = (char*)args;
     // whisper on
@@ -293,6 +355,13 @@ static bool HandleVipTaxiCommand(ChatHandler* handler, const char* /*args*/)
         handler->SetSentErrorMessage(true);
         return false;
     }
+	
+	if (!chr->GetSession()->IsPremium() && !chr->isGameMaster())
+	{
+        handler->SendSysMessage(VIP_DONT_HAVE);
+        handler->SetSentErrorMessage(true);
+		return true;
+	}			
     
     chr->SetTaxiCheater(true);
     handler->PSendSysMessage(LANG_YOU_GIVE_TAXIS, handler->GetNameLink(chr).c_str());
@@ -312,6 +381,13 @@ static bool HandleVipHomeCommand(ChatHandler* handler, const char* /*args*/)
         handler->SetSentErrorMessage(true);
         return false;
     }
+	
+	if (!chr->GetSession()->IsPremium() && !chr->isGameMaster())
+	{
+        handler->SendSysMessage(VIP_DONT_HAVE);
+        handler->SetSentErrorMessage(true);
+		return true;
+	}			
 
     // remove CD and cast spell
     chr->RemoveSpellCooldown(8690,true);
@@ -331,6 +407,13 @@ static bool HandleVipCapitalCommand(ChatHandler* handler, const char* /*args*/)
         handler->SetSentErrorMessage(true);
         return false;
     }
+	
+	if (!chr->GetSession()->IsPremium() && !chr->isGameMaster())
+	{
+        handler->SendSysMessage(VIP_DONT_HAVE);
+        handler->SetSentErrorMessage(true);
+		return true;
+	}			
 
     if (chr->GetTeam() == HORDE)
         chr->CastSpell(chr,3567,true);
