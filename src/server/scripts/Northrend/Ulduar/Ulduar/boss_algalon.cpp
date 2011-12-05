@@ -1406,12 +1406,15 @@ class spell_algalon_cosmic_smash_initial : public SpellScriptLoader
 
             void HandleForceCast(SpellEffIndex effIndex)
             {
-                PreventHitEffect(effIndex);
-                if (!GetHitUnit())
-                    return;
+                PreventHitDefaultEffect(effIndex);
 
                 Unit* caster = GetCaster();
                 Unit* target = GetHitUnit();
+
+                uint32 triggered_spell_id = GetSpellInfo()->Effects[effIndex].TriggerSpell;
+
+                if (caster && target)
+                    target->CastSpell(target, triggered_spell_id, true, NULL, NULL, caster->GetGUID());
             }
 
             void Register()
