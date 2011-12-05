@@ -214,13 +214,13 @@ float RiftAndSpawnsLocations[ENCOUNTER_CHRONO_SPAWNS][5]=
     {NPC_EPOCH, 2451.809326f, 1112.901245f, 149.220459f, 3.363617f}
 };
 
-#define GOSSIP_ITEM_ARTHAS_0 "Estoy listo para comenzar a purgar Stratholme."
-#define GOSSIP_ITEM_ARTHAS_1 "Si, mi Principe. Estamos preparados."
-#define GOSSIP_ITEM_ARTHAS_2 "Solo hacemos lo que es mejor para Loarderon su Alteza."
-#define GOSSIP_ITEM_ARTHAS_3 "Estoy preparado."
-#define GOSSIP_ITEM_ARTHAS_4 "Por Lordaeron!"
-#define GOSSIP_ITEM_ARTHAS_5 "Estoy listo para combatir al Lord del Terror, sire."
-#define GOSSIP_ITEM_ARTHAS_6 "Deprisa, sire. No hay tiempo que perder."
+#define GOSSIP_ITEM_ARTHAS_0 "I'm ready to start Culling of Stratholme."
+#define GOSSIP_ITEM_ARTHAS_1 "Yes, my Prince. We're ready"
+#define GOSSIP_ITEM_ARTHAS_2 "We're only doing what is best for Loarderon your Highness."
+#define GOSSIP_ITEM_ARTHAS_3 "I'm ready."
+#define GOSSIP_ITEM_ARTHAS_4 "For Lordaeron!"
+#define GOSSIP_ITEM_ARTHAS_5 "I'm ready to battle the dreadlord, Sir."
+#define GOSSIP_ITEM_ARTHAS_6 "Hurry up, Sir. There's no time to loose."
 
 class npc_arthas : public CreatureScript
 {
@@ -614,13 +614,16 @@ public:
                     {
                         //After reset
                         case 0:
-                            if (Unit* pJaina = GetClosestCreatureWithEntry(me, NPC_JAINA, 50.0f))
-                                uiJainaGUID = pJaina->GetGUID();
-                            else if (Unit* pJaina = me->SummonCreature(NPC_JAINA, 1895.48f, 1292.66f, 143.706f, 0.023475f, TEMPSUMMON_DEAD_DESPAWN, 180000))
+                        {
+                            Unit* pJaina = GetClosestCreatureWithEntry(me, NPC_JAINA, 50.0f);
+                            if (!pJaina)
+                                pJaina = pJaina = me->SummonCreature(NPC_JAINA, 1895.48f, 1292.66f, 143.706f, 0.023475f, TEMPSUMMON_DEAD_DESPAWN, 180000);
+                            if (pJaina)
                                 uiJainaGUID = pJaina->GetGUID();
                             bStepping = false;
                             JumpToNextStep(0);
                             break;
+                        }
                         //After waypoint 0
                         case 1:
                             me->RemoveUnitMovementFlag(MOVEMENTFLAG_WALKING);
@@ -1319,8 +1322,8 @@ class npc_crate_helper : public CreatureScript
         }
 };
 
-#define GOSSIP_ITEM_CHROMIE_0 "Necesito algo para desvelar las intenciones de la plaga."
-#define GOSSIP_ITEM_CHROMIE_1 "Llevame hasta la entrada de Stratholme."
+#define GOSSIP_ITEM_CHROMIE_0 "I need something to reveal the intentions of the plague."
+#define GOSSIP_ITEM_CHROMIE_1 "Take me to the entrance of Stratholme."
 
 class npc_chromie : public CreatureScript
 {

@@ -541,3 +541,5 @@ INSERT INTO `creature_loot_template` VALUES
 (32273, 47241, 100, 1, 0, 1, 1);
 
 UPDATE `creature_template` SET `lootid` = 32273 WHERE `entry` IN (32273, 32313);
+
+UPDATE `creature_template` SET `unit_flags`=64 WHERE `entry`=32273 AND 32313;
