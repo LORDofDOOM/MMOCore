@@ -720,9 +720,11 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case DATA_VALITHRIA_DREAMWALKER:
                         if (state == DONE && sPoolMgr->IsSpawnedObject<Quest>(WeeklyQuestData[8].questId[instance->GetSpawnMode() & 1]))
                             instance->SummonCreature(NPC_VALITHRIA_DREAMWALKER_QUEST, ValithriaSpawnPos);
-							  if(ValithriaCacheGUID)
-								DoRespawnGameObject(ValithriaCacheGUID, 7*DAY);
-							}							
+						if (state == DONE)
+						{
+						  if(ValithriaCacheGUID)
+							DoRespawnGameObject(ValithriaCacheGUID, 7*DAY);
+						}						
                         break;
                     case DATA_SINDRAGOSA:
                         HandleGameObject(FrostwingSigilGUID, state != DONE);
