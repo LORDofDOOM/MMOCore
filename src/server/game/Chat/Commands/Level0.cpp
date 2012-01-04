@@ -242,7 +242,7 @@ bool ChatHandler::HandleBuffsCommand(const char* /*args*/)
                 
         if (chr->GetMoney() >= 2000000)
                 {
-                                chr->Unmount();
+								chr->Dismount();
                                 chr->RemoveAurasByType(SPELL_AURA_MOUNTED);
                                 chr-> AddAura(48161, chr);              // Power Word: Fortitude        
                                 chr-> AddAura(48073, chr);              // Divine Spirit
