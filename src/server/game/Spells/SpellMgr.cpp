@@ -1,5 +1,5 @@
-    /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+/*
+ * Copyright (C) 2008-2012 TrinityCore <http://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -3251,6 +3251,9 @@ void SpellMgr::LoadDbcDataCorrections()
             case 64904: // Hymn of Hope
                 spellInfo->EffectApplyAuraName[EFFECT_1] = SPELL_AURA_MOD_INCREASE_ENERGY_PERCENT;
                 break;
+            case 19465: // Improved Stings (Rank 2)
+                spellInfo->EffectImplicitTargetA[EFFECT_2] = TARGET_UNIT_CASTER;
+                break;
             case 30421: // Nether Portal - Perseverence
                 spellInfo->EffectBasePoints[2] += 30000;
                 break;
@@ -3356,8 +3359,9 @@ void SpellMgr::LoadDbcDataCorrections()
                 spellInfo->EffectSpellClassMask[0] = flag96(0x00000040, 0x00000000, 0x00000000);
                 break;
             case 63163: // Apply Enchanted Bridle (Argent Tournament)
-                spellInfo->EffectDieSides[0] = 0;
-            break;
+                spellInfo->EffectDieSides[0] = 0; // was 1, that should probably mean seat 0, but instead it's treated as spell 1
+                spellInfo->EffectBasePoints[0] = 52391; // Ride Vehicle (forces seat 0)
+                break;
             case 19970: // Entangling Roots (Rank 6) -- Nature's Grasp Proc
             case 19971: // Entangling Roots (Rank 5) -- Nature's Grasp Proc
             case 19972: // Entangling Roots (Rank 4) -- Nature's Grasp Proc

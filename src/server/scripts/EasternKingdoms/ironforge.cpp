@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2012 TrinityCore <http://www.trinitycore.org/>
  * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -238,7 +238,7 @@ class npc_gnome_citizen : public CreatureScript
                 if (owner->IsMounted() && !me->IsMounted())
                     me->Mount(_mountModel);
                 else if (!owner->IsMounted() && me->IsMounted())
-                    me->Unmount();
+                    me->Dismount();
 
                 me->SetSpeed(MOVE_RUN, owner->GetSpeedRate(MOVE_RUN));
                 me->SetSpeed(MOVE_WALK, owner->GetSpeedRate(MOVE_WALK));

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2012 TrinityCore <http://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -2249,19 +2249,9 @@ void Spell::EffectSendEvent(SpellEffIndex effIndex)
         && effectHandleMode != SPELL_EFFECT_HANDLE_HIT)
         return;
 
-    //! it's possible for spells with this spell effect to either have a target or no target
-    //! in case of a target, we will execute this handler on SPELL_EFFECT_HANDLE_HIT_TARGET
-    //! with all relevant variables, and we will skip SPELL_EFFECT_HANDLE_HIT
-    if (effectHandleMode == SPELL_EFFECT_HANDLE_HIT)
-    {
-        if (GetSpellInfo()->Effects[effIndex].TargetA.GetTarget() != 0 ||
-            GetSpellInfo()->Effects[effIndex].TargetB.GetTarget() != 0)
-            return;
-    }
-
     WorldObject* target = NULL;
 
-    // call events for target if present
+    // call events for object target if present
     if (effectHandleMode == SPELL_EFFECT_HANDLE_HIT_TARGET)
     {
         if (unitTarget)
@@ -2269,9 +2259,15 @@ void Spell::EffectSendEvent(SpellEffIndex effIndex)
         else if (gameObjTarget)
             target = gameObjTarget;
     }
-    // call event with no target or focus target when no targets could be found due to no dbc entry
-    else if (!m_spellInfo->Effects[effIndex].GetProvidedTargetMask())
+    else // if (effectHandleMode == SPELL_EFFECT_HANDLE_HIT)
     {
+        // let's prevent executing effect handler twice in case when spell effect is capable of targeting an object
+        // this check was requested by scripters, but it has some downsides:
+        // now it's impossible to script (using sEventScripts) a cast which misses all targets
+        // or to have an ability to script the moment spell hits dest (in a case when there are object targets present)
+        if (m_spellInfo->Effects[effIndex].GetProvidedTargetMask() & (TARGET_FLAG_UNIT_MASK | TARGET_FLAG_GAMEOBJECT_MASK))
+            return;
+        // some spells have no target entries in dbc and they use focus target
         if (focusObject)
             target = focusObject;
         // TODO: there should be a possibility to pass dest target to event script
@@ -2692,8 +2688,8 @@ void Spell::EffectPersistentAA(SpellEffIndex effIndex)
         // Caster not in world, might be spell triggered from aura removal
         if (!caster->IsInWorld())
             return;
-        DynamicObject* dynObj = new DynamicObject();
-        if (!dynObj->CreateDynamicObject(sObjectMgr->GenerateLowGuid(HIGHGUID_DYNAMICOBJECT), caster, m_spellInfo->Id, *m_targets.GetDst(), radius, false, DYNAMIC_OBJECT_AREA_SPELL))
+        DynamicObject* dynObj = new DynamicObject(false);
+        if (!dynObj->CreateDynamicObject(sObjectMgr->GenerateLowGuid(HIGHGUID_DYNAMICOBJECT), caster, m_spellInfo->Id, *m_targets.GetDst(), radius, DYNAMIC_OBJECT_AREA_SPELL))
         {
             delete dynObj;
             return;
@@ -2935,25 +2931,6 @@ void Spell::EffectOpenLock(SpellEffIndex effIndex)
 
     uint32 lockId = 0;
     uint64 guid = 0;
-
-    // selection by spell family
-    switch (m_spellInfo->SpellFamilyName)
-    {
-        case SPELLFAMILY_GENERIC:
-        {
-            switch (m_spellInfo->Id)
-            {
-                case 38790:
-                {
-                    if (!m_caster || m_caster->GetTypeId() != TYPEID_PLAYER)
-                        return;
-
-                    m_caster->ToPlayer()->KilledMonsterCredit(22112,0);
-                    return;
-                }
-            }
-        }
-    }
 
     // Get lockId
     if (gameObjTarget)
@@ -3567,8 +3544,8 @@ void Spell::EffectAddFarsight(SpellEffIndex effIndex)
     if (!m_caster->IsInWorld())
         return;
 
-    DynamicObject* dynObj = new DynamicObject();
-    if (!dynObj->CreateDynamicObject(sObjectMgr->GenerateLowGuid(HIGHGUID_DYNAMICOBJECT), m_caster, m_spellInfo->Id, *m_targets.GetDst(), radius, true, DYNAMIC_OBJECT_FARSIGHT_FOCUS))
+    DynamicObject* dynObj = new DynamicObject(true);
+    if (!dynObj->CreateDynamicObject(sObjectMgr->GenerateLowGuid(HIGHGUID_DYNAMICOBJECT), m_caster, m_spellInfo->Id, *m_targets.GetDst(), radius, DYNAMIC_OBJECT_FARSIGHT_FOCUS))
     {
         delete dynObj;
         return;

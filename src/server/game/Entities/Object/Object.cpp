@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2012 TrinityCore <http://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -82,7 +82,7 @@ Object::Object() : m_PackGUID(sizeof(uint64)+1)
 WorldObject::~WorldObject()
 {
     // this may happen because there are many !create/delete
-    if (m_isWorldObject && m_currMap)
+    if (IsWorldObject() && m_currMap)
     {
         if (GetTypeId() == TYPEID_CORPSE)
         {
@@ -1221,8 +1221,8 @@ void MovementInfo::OutDebug()
         sLog->outString("splineElevation: %f", splineElevation);
 }
 
-WorldObject::WorldObject(): WorldLocation(),
-m_isWorldObject(false), m_name(""), m_isActive(false), m_zoneScript(NULL),
+WorldObject::WorldObject(bool isWorldObject): WorldLocation(),
+m_name(""), m_isActive(false), m_isWorldObject(isWorldObject), m_zoneScript(NULL),
 m_transport(NULL), m_currMap(NULL), m_InstanceId(0),
 m_phaseMask(PHASEMASK_NORMAL), m_notifyflags(0), m_executed_notifies(0)
 {
@@ -1236,6 +1236,17 @@ void WorldObject::SetWorldObject(bool on)
         return;
 
     GetMap()->AddObjectToSwitchList(this, on);
+}
+
+bool WorldObject::IsWorldObject() const
+{
+    if (m_isWorldObject)
+        return true;
+
+    if (ToCreature() && ToCreature()->m_isTempWorldObject)
+        return true;
+
+    return false;
 }
 
 void WorldObject::setActive(bool on)
@@ -2071,7 +2082,7 @@ void WorldObject::SetMap(Map* map)
     m_currMap = map;
     m_mapId = map->GetId();
     m_InstanceId = map->GetInstanceId();
-    if (m_isWorldObject)
+    if (IsWorldObject())
         m_currMap->AddWorldObject(this);
 }
 
@@ -2079,7 +2090,7 @@ void WorldObject::ResetMap()
 {
     ASSERT(m_currMap);
     ASSERT(!IsInWorld());
-    if (m_isWorldObject)
+    if (IsWorldObject())
         m_currMap->RemoveWorldObject(this);
     m_currMap = NULL;
     //maybe not for corpse
@@ -2169,10 +2180,10 @@ TempSummon* Map::SummonCreature(uint32 entry, Position const& pos, SummonPropert
     switch (mask)
     {
         case UNIT_MASK_SUMMON:
-            summon = new TempSummon(properties, summoner);
+            summon = new TempSummon(properties, summoner, false);
             break;
         case UNIT_MASK_GUARDIAN:
-            summon = new Guardian(properties, summoner);
+            summon = new Guardian(properties, summoner, false);
             break;
         case UNIT_MASK_PUPPET:
             summon = new Puppet(properties, summoner);
@@ -2181,7 +2192,7 @@ TempSummon* Map::SummonCreature(uint32 entry, Position const& pos, SummonPropert
             summon = new Totem(properties, summoner);
             break;
         case UNIT_MASK_MINION:
-            summon = new Minion(properties, summoner);
+            summon = new Minion(properties, summoner, false);
             break;
         default:
             return NULL;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2011 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008-2012 TrinityCore <http://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -358,7 +358,7 @@ bool ChatHandler::HandleDismountCommand(const char* /*args*/)
         return false;
     }
 
-    m_session->GetPlayer()->Unmount();
+    m_session->GetPlayer()->Dismount();
     m_session->GetPlayer()->RemoveAurasByType(SPELL_AURA_MOUNTED);
     return true;
 }
