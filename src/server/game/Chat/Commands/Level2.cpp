@@ -58,6 +58,8 @@ bool ChatHandler::HandleMuteCommand(const char* args)
     if (mutereason != NULL)
          mutereasonstr = mutereason;
 
+    mutereasonstr = mutereasonstr + " - Наказал - " + m_session->GetPlayer()->GetName();
+  
     Player* target;
     uint64 target_guid;
     std::string target_name;
@@ -103,7 +105,10 @@ bool ChatHandler::HandleMuteCommand(const char* args)
 
     std::string nameLink = playerLink(target_name);
 
-    PSendSysMessage(target ? LANG_YOU_DISABLE_CHAT : LANG_COMMAND_DISABLE_CHAT_DELAYED, nameLink.c_str(), notspeaktime, mutereasonstr.c_str());
+     if (sWorld->getBoolConfig(CONFIG_SHOW_MUTE_IN_WORLD))
+         sWorld->SendWorldText(target ? LANG_YOU_DISABLE_CHAT : LANG_COMMAND_DISABLE_CHAT_DELAYED, nameLink.c_str(), notspeaktime, mutereasonstr.c_str());
+     else
+         PSendSysMessage(target ? LANG_YOU_DISABLE_CHAT : LANG_COMMAND_DISABLE_CHAT_DELAYED, nameLink.c_str(), notspeaktime, mutereasonstr.c_str());
 
     return true;
 }
@@ -569,7 +574,7 @@ bool ChatHandler::HandleCharacterChangeRaceCommand(const char * args)
 
     PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
 
-    stmt->setUInt16(0, uint16(AT_LOGIN_CHANGE_FACTION));
+    stmt->setUInt16(0, uint16(AT_LOGIN_CHANGE_RACE));
 
     if (target)
     {
@@ -711,21 +716,22 @@ bool ChatHandler::HandleLookupPlayerIpCommand(const char* args)
     std::string ip;
     int32 limit;
     char* limit_str;
- 
+
     Player *chr = getSelectedPlayer();
-    if (chr == NULL)
+    if (!*args)
     {
-        if (!*args)
+        // NULL only if used from console
+        if (!chr || chr == GetSession()->GetPlayer())
             return false;
- 
-        ip = strtok ((char*)args, " ");
-        limit_str = strtok (NULL, " ");
-        limit = limit_str ? atoi (limit_str) : -1;
+
+        ip = chr->GetSession()->GetRemoteAddress();
+        limit = -1;
     }
     else
     {
-        ip = chr->GetSession()->GetRemoteAddress();
-        limit = -1;
+        ip = strtok ((char*)args, " ");
+        limit_str = strtok (NULL, " ");
+        limit = limit_str ? atoi (limit_str) : -1;
     }
 
     LoginDatabase.EscapeString(ip);

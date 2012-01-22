@@ -912,11 +912,11 @@ bool ChatHandler::ShowHelpForSubCommands(ChatCommand* table, char const* cmd, ch
     std::string list;
     for (uint32 i = 0; table[i].Name != NULL; ++i)
     {
-        // must be available (ignore handler existence for show command with possibe avalable subcomands
+        // must be available (ignore handler existence for show command with possible available subcommands)
         if (!isAvailable(table[i]))
             continue;
 
-        /// for empty subcmd show all available
+        // for empty subcmd show all available
         if (*subcmd && !hasStringAbbr(table[i].Name, subcmd))
             continue;
 
@@ -951,7 +951,7 @@ bool ChatHandler::ShowHelpForCommand(ChatCommand* table, const char* cmd)
     {
         for (uint32 i = 0; table[i].Name != NULL; ++i)
         {
-            // must be available (ignore handler existence for show command with possibe avalable subcomands
+            // must be available (ignore handler existence for show command with possible available subcommands)
             if (!isAvailable(table[i]))
                 continue;
 
@@ -981,7 +981,7 @@ bool ChatHandler::ShowHelpForCommand(ChatCommand* table, const char* cmd)
     {
         for (uint32 i = 0; table[i].Name != NULL; ++i)
         {
-            // must be available (ignore handler existence for show command with possibe avalable subcomands
+            // must be available (ignore handler existence for show command with possible available subcommands)
             if (!isAvailable(table[i]))
                 continue;
 

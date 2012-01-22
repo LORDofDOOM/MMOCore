@@ -3020,6 +3020,10 @@ void SpellMgr::LoadDbcDataCorrections()
                 spellInfo->Targets = 1;
                 spellInfo->StackAmount = 3;
                 spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_TARGET_ENEMY;
+            case 40244: case 40245: // Simon Game Visual
+            case 40246: case 40247: // Simon Game Visual
+            case 42835: // Spout, remove damage effect, only anim is needed
+                spellInfo->Effect[0] = 0;
                 spellInfo->EffectImplicitTargetB[0] = TARGET_UNIT_NEARBY_ENEMY;
                 break;
             case 42835: // Spout
@@ -3127,6 +3131,7 @@ void SpellMgr::LoadDbcDataCorrections()
             case 42611: // Shoot
             case 61588: // Blazing Harpoon
             case 52479: // Gift of the Harvester
+            case 48246: // Ball of Flame
                 spellInfo->MaxAffectedTargets = 1;
                 break;
             case 41376: // Spite
@@ -3415,11 +3420,16 @@ void SpellMgr::LoadDbcDataCorrections()
             case 64172: // Titanic Storm
                 spellInfo->excludeTargetAuraSpell = 65294; // Empowered
                 break;
+            case 63830: // Malady of the Mind
             case 63881: // Malady of the Mind proc
             case 63795: // Psychosis
                 spellInfo->EffectImplicitTargetB[0] = TARGET_UNIT_TARGET_ANY;
                 spellInfo->EffectImplicitTargetB[1] = TARGET_UNIT_TARGET_ANY;
                 spellInfo->EffectImplicitTargetB[2] = TARGET_UNIT_TARGET_ANY;
+                break;
+            case 63802: // Brain Link
+                spellInfo->MaxAffectedTargets = 2;
+                spellInfo->EffectRadiusIndex[0] = 12; // 100 yard
                 break;
             case 63050: // Sanity
                 spellInfo->AttributesEx3 |= SPELL_ATTR3_DEATH_PERSISTENT;
@@ -3599,6 +3609,7 @@ void SpellMgr::LoadDbcDataCorrections()
                 spellInfo->AreaGroupId = 0; // originally, these require area 4522, which is... outside of Icecrown Citadel
                 break;
             case 70602: // Corruption
+            case 48278: // Paralyze
                 spellInfo->AttributesEx3 |= SPELL_ATTR3_STACK_FOR_DIFF_CASTERS;
                 break;
             case 70715: // Column of Frost (visual marker)
@@ -3735,6 +3746,11 @@ void SpellMgr::LoadDbcDataCorrections()
                 spellInfo->EffectRadiusIndex[0] = 52;
                 spellInfo->EffectRadiusIndex[1] = 52;
             break;
+            case 40055: // Introspection
+            case 40165: // Introspection
+            case 40166: // Introspection
+            case 40167: // Introspection
+                spellInfo->Attributes |= SPELL_ATTR0_NEGATIVE_1;
             default:
                 break;
         }

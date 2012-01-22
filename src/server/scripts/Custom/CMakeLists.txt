@@ -15,6 +15,7 @@ set(scripts_STAT_SRCS
   Custom/npc_mount.cpp 
   Custom/argent_tournament.cpp
   Custom/npc_item_summon.cpp      
+  Custom/dalaran_squirrel.cpp
   Custom/resetduel.cpp  
   #Custom/killstreak_pvp_system.cpp  
   Custom/item_custom_stone.cpp  

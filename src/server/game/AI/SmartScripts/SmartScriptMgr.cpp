@@ -282,6 +282,7 @@ bool SmartAIMgr::IsTargetValid(SmartScriptHolder const& e)
         case SMART_TARGET_HOSTILE_RANDOM:
         case SMART_TARGET_HOSTILE_RANDOM_NOT_TOP:
         case SMART_TARGET_ACTION_INVOKER:
+        case SMART_TARGET_INVOKER_PARTY:
         case SMART_TARGET_POSITION:
         case SMART_TARGET_NONE:
         case SMART_TARGET_ACTION_INVOKER_VEHICLE:
@@ -478,6 +479,7 @@ bool SmartAIMgr::IsEventValid(SmartScriptHolder& e)
                         return false;
                     break;
                 }
+            case SMART_EVENT_GO_STATE_CHANGED:
             case SMART_EVENT_TIMED_EVENT_TRIGGERED:
             case SMART_EVENT_INSTANCE_PLAYER_ENTER:
             case SMART_EVENT_TRANSPORT_RELOCATE:
