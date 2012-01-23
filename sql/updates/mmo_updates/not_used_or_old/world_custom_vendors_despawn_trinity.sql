@@ -1,0 +1,2 @@
+DELETE FROM creature WHERE id >= 95001 AND id <= 95026;
+DELETE FROM creature WHERE id >= 500000 AND id <= 500145;

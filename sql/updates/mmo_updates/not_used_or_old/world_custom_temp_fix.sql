@@ -1,0 +1,1 @@
+DELETE FROM `spell_script_names` WHERE `spell_script_names`.`spell_id` = 72221 AND `spell_script_names`.`ScriptName` = 'spell_gen_luck_of_the_draw';
