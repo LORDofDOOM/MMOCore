@@ -3405,9 +3405,6 @@ void SpellMgr::LoadDbcDataCorrections()
             case 63342: // Focused Eyebeam Summon Trigger (Kologarn)
                 spellInfo->MaxAffectedTargets = 1;
                 break;
-            case 63802: // Sara Brain Link
-                spellInfo->MaxAffectedTargets = 2;
-                break;				
             case 64145: // Diminish Power
             case 63882: // Death Ray Warning Visual
             case 63886: // Death Ray Damage Visual
