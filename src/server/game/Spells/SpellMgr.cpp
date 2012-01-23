@@ -3026,9 +3026,6 @@ void SpellMgr::LoadDbcDataCorrections()
                 spellInfo->Effect[0] = 0;
                 spellInfo->EffectImplicitTargetB[0] = TARGET_UNIT_NEARBY_ENEMY;
                 break;
-            case 42835: // Spout
-                spellInfo->Effect[0] = 0; // remove damage effect, only anim is needed
-                break;
             case 30657: // Quake
                 spellInfo->EffectTriggerSpell[0] = 30571;
                 break;
