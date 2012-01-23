@@ -3401,7 +3401,6 @@ void SpellMgr::LoadDbcDataCorrections()
                break;
             case 62488: // Ignis Activate Construct (only visually)
             case 65301: // Sara Psychosis
-            case 63830: // Sara Malady of the Mind
             case 64465: // Yogg Saron Shadow Beacon				
             case 63342: // Focused Eyebeam Summon Trigger (Kologarn)
                 spellInfo->MaxAffectedTargets = 1;
