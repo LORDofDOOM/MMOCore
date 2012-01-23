@@ -58,12 +58,14 @@ enum Spells
     SPELL_LIGHTNING_BLAST_25            = 63491,
 
     // Stormcaller Brundir
-    SPELL_CHAIN_LIGHTNING_N             = 61879,
+    SPELL_CHAIN_LIGHTNING               = 61879,
     SPELL_CHAIN_LIGHTNING_H             = 63479,
     SPELL_OVERLOAD                      = 61869,
     SPELL_OVERLOAD_H                    = 63481,
     SPELL_LIGHTNING_WHIRL               = 61915,
     SPELL_LIGHTNING_WHIRL_H             = 63483,
+    SPELL_LIGHTNING_WHIRL_DMG           = 61916,
+    SPELL_LIGHTNING_WHIRL_DMG_H         = 63482,
     SPELL_LIGHTNING_TENDRILS            = 61887,
     SPELL_LIGHTNING_TENDRILS_H          = 63486,
     SPELL_STORMSHIELD                   = 64187
@@ -131,7 +133,8 @@ enum MovePoints
 
 enum Data
 {
-    DATA_I_CHOOSE_YOU = 1
+    DATA_I_CHOOSE_YOU = 1,
+    DATA_CANT_DO_THAT
 };
 
 #define EMOTE_OVERLOAD "Stormcaller Brundir begins to Overload!"
@@ -804,6 +807,7 @@ class boss_stormcaller_brundir : public CreatureScript
                 _Reset();
                 _phase = 0;
                 _forceLand = false;
+                _couldNotDoThat = true;
                 me->RemoveAllAuras();
                 me->RemoveLootMode(LOOT_MODE_DEFAULT);
                 me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_STUN, false);
@@ -832,10 +836,28 @@ class boss_stormcaller_brundir : public CreatureScript
 
             uint32 GetData(uint32 type)
             {
-                if (type == DATA_I_CHOOSE_YOU)
-                    return (_phase >= 3) ? 1 : 0;
+                switch (type)
+                {
+                    case DATA_I_CHOOSE_YOU:
+                        return (_phase >= 3) ? 1 : 0;
+                    case DATA_CANT_DO_THAT:
+                        return _couldNotDoThat ? 1 : 0;
+                }
 
                 return 0;
+            }
+
+            void SpellHitTarget(Unit* /*target*/, SpellInfo const* spell)
+            {
+                switch (spell->Id)
+                {
+                    case SPELL_CHAIN_LIGHTNING:
+                    case SPELL_CHAIN_LIGHTNING_H:
+                    case SPELL_LIGHTNING_WHIRL_DMG:
+                    case SPELL_LIGHTNING_WHIRL_DMG_H:
+                        _couldNotDoThat = false;
+                        break;
+                }
             }
 
             void DoAction(int32 const action)
@@ -980,11 +1002,12 @@ class boss_stormcaller_brundir : public CreatureScript
                             break;
                         case EVENT_CHAIN_LIGHTNING:
                             if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM))
-                                DoCast(target, RAID_MODE(SPELL_CHAIN_LIGHTNING_N, SPELL_CHAIN_LIGHTNING_H));
+                                DoCast(target, RAID_MODE(SPELL_CHAIN_LIGHTNING, SPELL_CHAIN_LIGHTNING_H));
                             events.ScheduleEvent(EVENT_CHAIN_LIGHTNING, urand(3000, 5000), 1);
                             break;
                         case EVENT_OVERLOAD:
-                            me->MonsterTextEmote(EMOTE_OVERLOAD, 0, true);
+                            if (!me->HasUnitState(UNIT_STAT_STUNNED))
+                                me->MonsterTextEmote(EMOTE_OVERLOAD, 0, true);
                             DoCast(RAID_MODE(SPELL_OVERLOAD, SPELL_OVERLOAD_H));
                             events.ScheduleEvent(EVENT_OVERLOAD, urand(60000, 80000), 1);
                             break;
@@ -1027,6 +1050,7 @@ class boss_stormcaller_brundir : public CreatureScript
         private:
             uint32 _phase;
             bool _forceLand;
+            bool _couldNotDoThat;
         };
 
         CreatureAI* GetAI(Creature* creature) const
@@ -1107,6 +1131,29 @@ class achievement_but_i_am_on_your_side : public AchievementCriteriaScript
         }
 };
 
+class achievement_cant_do_that_while_stunned : public AchievementCriteriaScript
+{
+    public:
+        achievement_cant_do_that_while_stunned() : AchievementCriteriaScript("achievement_cant_do_that_while_stunned")
+        {
+        }
+
+        bool OnCheck(Player* /*player*/, Unit* target)
+        {
+            if (!target)
+                return false;
+
+            if (Creature* boss = target->ToCreature())
+                if (boss->AI()->GetData(DATA_I_CHOOSE_YOU))
+                    if (InstanceScript* instance = boss->GetInstanceScript())
+                        if (Creature* brundir = ObjectAccessor::GetCreature(*boss, instance->GetData64(BOSS_BRUNDIR)))
+                            if (brundir->AI()->GetData(DATA_CANT_DO_THAT))
+                                return true;
+
+            return false;
+        }
+};
+
 void AddSC_boss_assembly_of_iron()
 {
     new boss_steelbreaker();
@@ -1120,4 +1167,5 @@ void AddSC_boss_assembly_of_iron()
     new spell_shield_of_runes();
     new achievement_i_choose_you();
     new achievement_but_i_am_on_your_side();
+    new achievement_cant_do_that_while_stunned();
 }

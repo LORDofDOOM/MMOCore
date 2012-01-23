@@ -651,7 +651,7 @@ class boss_algalon : public CreatureScript
                     {
                     case 0:
                         me->GetMotionMaster()->Clear(false);
-                        me->GetMotionMaster()->MoveIdle(MOTION_SLOT_IDLE);
+                        me->GetMotionMaster()->MoveIdle();
                         instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_BLACK_HOLE_AURA); //hack. Ascend to the heavens should hit players who are in black holes.
                         JumpToNextStep(500);
                         break;
