@@ -39,6 +39,8 @@ void AddSC_npc_customize();
 void AddSC_npc_mount();	
 // Argent Tournament quest scripts
 void AddSC_ArgentTournament();
+//Item Summon NPC
+void AddSC_npc_item_summon();
 //Revenge od Dalaran squidrrel
 void AddSC_dalaran_squirrel();
 //Custom Stone
