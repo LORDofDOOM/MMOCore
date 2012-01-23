@@ -3602,9 +3602,6 @@ void SpellMgr::LoadDbcDataCorrections()
                 spellInfo->AreaGroupId = 0; // originally, these require area 4522, which is... outside of Icecrown Citadel
                 break;
             case 70602: // Corruption
-            case 48278: // Paralyze
-                spellInfo->AttributesEx3 |= SPELL_ATTR3_STACK_FOR_DIFF_CASTERS;
-                break;
             case 70715: // Column of Frost (visual marker)
                 spellInfo->DurationIndex = 32; // 6 seconds (missing)
                 break;
