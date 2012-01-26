@@ -307,7 +307,7 @@ bool TradeData::HasItem(uint64 itemGuid) const
     return false;
 }
 
-TradeSlots const TradeData::GetTradeSlotForItem(uint64 itemGuid)
+TradeSlots TradeData::GetTradeSlotForItem(uint64 itemGuid) const
 {
     for (uint8 i = 0; i < TRADE_SLOT_COUNT; ++i)
         if (m_items[i] == itemGuid)
@@ -8842,7 +8842,7 @@ void Player::SendLoot(uint64 guid, LootType loot_type)
                 }
             }
 
-            go->SetLootState(GO_ACTIVATED);
+            go->SetLootState(GO_ACTIVATED, this);
         }
 
         if (go->getLootState() == GO_ACTIVATED)
