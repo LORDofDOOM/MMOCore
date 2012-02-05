@@ -2945,6 +2945,22 @@ void SpellMgr::LoadSpellCustomAttr()
             case 64443: // Algalon - Big Bang
             case 64584: // Algalon - Big Bang			
             case 63278: // Mark of the Faceless (General Vezax)
+            case 62544: // Thrust (Argent Tournament)
+            case 64588: // Thrust (Argent Tournament)
+            case 66479: // Thrust (Argent Tournament)
+            case 68505: // Thrust (Argent Tournament)
+            case 62626: // Break-Shield (Argent Tournament, Player)
+            case 64590: // Break-Shield (Argent Tournament, Player)
+            case 64342: // Break-Shield (Argent Tournament, NPC)
+            case 64686: // Break-Shield (Argent Tournament, NPC)
+            case 65147: // Break-Shield (Argent Tournament, NPC)
+            case 68504: // Break-Shield (Argent Tournament, NPC)
+            case 62874: // Charge (Argent Tournament, Player)
+            case 68498: // Charge (Argent Tournament, Player)
+            case 64591: // Charge (Argent Tournament, Player)
+            case 63003: // Charge (Argent Tournament, NPC)
+            case 63010: // Charge (Argent Tournament, NPC)
+            case 68321: // Charge (Argent Tournament, NPC)
             case 72255: // Mark of the Fallen Champion (Deathbringer Saurfang)
             case 72444: // Mark of the Fallen Champion (Deathbringer Saurfang)
             case 72445: // Mark of the Fallen Champion (Deathbringer Saurfang)
@@ -3033,6 +3049,7 @@ void SpellMgr::LoadDbcDataCorrections()
                 spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_TARGET_ENEMY;
                 spellInfo->EffectImplicitTargetB[0] = 0;
                 break;
+            case 63665: // Charge (Argent Tournament emote on riders)
             case 31447: // Mark of Kaz'rogal (needs target selection script)
             case 31298: // Sleep (needs target selection script)
             case 51904: // Summon Ghouls On Scarlet Crusade (this should use conditions table, script for this spell needs to be fixed)
@@ -3385,6 +3402,10 @@ void SpellMgr::LoadDbcDataCorrections()
             case 49206: // Summon Gargoyle
                 spellInfo->DurationIndex = 587;
                 break;
+            case 65783: // Ogre Pinata
+                        // because of bug in dbc
+                spellInfo->maxLevel = 1;
+            break;
             // ULDUAR SPELLS
             //
             case 64206: // XT-002 - Consumption

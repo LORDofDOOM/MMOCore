@@ -68,6 +68,7 @@ SmartAI::SmartAI(Creature* c) : CreatureAI(c)
     mFollowCredit = 0;
     mFollowArrivedEntry = 0;
     mFollowCreditType = 0;
+    mInvinceabilityHpLevel = 0;
 }
 
 void SmartAI::UpdateDespawn(const uint32 diff)
@@ -89,7 +90,7 @@ void SmartAI::UpdateDespawn(const uint32 diff)
 void SmartAI::Reset()
 {
     if (!HasEscortState(SMART_ESCORT_ESCORTING))//dont mess up escort movement after combat
-        SetRun(true);
+        SetRun(mRun);
     GetScript()->OnReset();
 }
 
@@ -637,6 +638,8 @@ void SmartAI::SpellHitTarget(Unit* target, const SpellInfo* spellInfo)
 void SmartAI::DamageTaken(Unit* doneBy, uint32& damage)
 {
     GetScript()->ProcessEventsFor(SMART_EVENT_DAMAGED, doneBy, damage);
+    if ((me->GetHealth() - damage) <= mInvinceabilityHpLevel)
+        damage -= mInvinceabilityHpLevel;
 }
 
 void SmartAI::HealReceived(Unit* doneBy, uint32& addhealth)
