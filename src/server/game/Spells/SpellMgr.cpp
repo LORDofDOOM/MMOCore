@@ -2909,20 +2909,6 @@ void SpellMgr::LoadSpellCustomAttr()
            case 56908: //Fire Breath - Sartharion
            case 58956: //Fire Breath - Sartharion
            case 57874: //Twilight Shift Damage - Sartharion
-           case 64590: // Shield Breaker
-           case 62626: // Shield Breaker
-           case 64342: // Shield Breaker
-           case 64686: // Shield Breaker
-           case 68321: // Charge
-           case 63010: // Charge
-           case 63003: // Charge
-           case 62544: // Trust
-           case 64588: // Trust
-           case 66479: // Trust
-           case 68505: // Trust
-               spellInfo->AttributesCu |= SPELL_ATTR0_CU_DIRECT_DAMAGE; // spellInfo->AttributesEx4 |= SPELL_ATTR4_FIXED_DAMAGE;
-               spellInfo->AttributesCu |= SPELL_ATTR0_CU_IGNORE_ARMOR;
-               break;				
             case 18500: // Wing Buffet
             case 33086: // Wild Bite
             case 28375: // Decimate			
