@@ -882,17 +882,14 @@ class boss_sister_svalna : public CreatureScript
                     switch (eventId)
                     {
                         case EVENT_SVALNA_START:
-							me->SetFlying(false);
                             Talk(SAY_SVALNA_EVENT_START);
                             break;
                         case EVENT_SVALNA_RESURRECT:
                             Talk(SAY_SVALNA_RESURRECT_CAPTAINS);
                             me->CastSpell(me, SPELL_REVIVE_CHAMPION, false);
-                            me->setActive(false);
-                            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE | UNIT_FLAG_PASSIVE);
                             break;
                         case EVENT_SVALNA_COMBAT:
-                            me->SetReactState(REACT_AGGRESSIVE);
+                            me->SetReactState(REACT_DEFENSIVE);
                             Talk(SAY_SVALNA_AGGRO);
                             break;
                         case EVENT_IMPALING_SPEAR:

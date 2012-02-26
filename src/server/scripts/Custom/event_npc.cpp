@@ -154,7 +154,7 @@ class event_npc_firelord : public CreatureScript
                 if (!UpdateVictim())
                     return;
 					
-                if (me->HasUnitState(UNIT_STAT_CASTING))
+                if (me->HasUnitState(UNIT_STATE_CASTING))
                     return;
 
                 if (!me->getVictim())
@@ -392,7 +392,7 @@ class event_npc_icelord : public CreatureScript
                 if (!UpdateVictim())
                     return;
 					
-                if (me->HasUnitState(UNIT_STAT_CASTING))
+                if (me->HasUnitState(UNIT_STATE_CASTING))
                     return;
 
                 if (!me->getVictim())
@@ -557,7 +557,7 @@ class event_npc_earthlord : public CreatureScript
                 if (!UpdateVictim())
                     return;
 					
-                if (me->HasUnitState(UNIT_STAT_CASTING))
+                if (me->HasUnitState(UNIT_STATE_CASTING))
                     return;
 
                 if (!me->getVictim())
@@ -741,7 +741,7 @@ class event_npc_darklord : public CreatureScript
                 if (!UpdateVictim())
                     return;
 					
-                if (me->HasUnitState(UNIT_STAT_CASTING))
+                if (me->HasUnitState(UNIT_STATE_CASTING))
                     return;
 
                 if (!me->getVictim())
@@ -949,7 +949,7 @@ class event_mage_ice : public CreatureScript
                 if (!UpdateVictim())
                     return;
 					
-                if (me->HasUnitState(UNIT_STAT_CASTING))
+                if (me->HasUnitState(UNIT_STATE_CASTING))
                     return;
 				
                 //Blizzard Timer
@@ -1045,7 +1045,7 @@ class event_mage_fire : public CreatureScript
                 if (!UpdateVictim())
                     return;
 					
-                if (me->HasUnitState(UNIT_STAT_CASTING))
+                if (me->HasUnitState(UNIT_STATE_CASTING))
                     return;
 				
                 //Chain heal Timer
@@ -1143,7 +1143,7 @@ class event_dk : public CreatureScript
                 if (!UpdateVictim())
                     return;
 					
-                if (me->HasUnitState(UNIT_STAT_CASTING))
+                if (me->HasUnitState(UNIT_STATE_CASTING))
                     return;
 				
                 //Death Coil Timer
@@ -1248,7 +1248,7 @@ class event_warrior : public CreatureScript
                 if (!UpdateVictim())
                     return;
 					
-                if (me->HasUnitState(UNIT_STAT_CASTING))
+                if (me->HasUnitState(UNIT_STATE_CASTING))
                     return;
 				
                 //Shockwave Timer

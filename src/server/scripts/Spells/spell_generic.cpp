@@ -1577,7 +1577,6 @@ class spell_gen_oracle_wolvar_reputation : public SpellScriptLoader
         }
 };
 
-
 enum DamageReductionAura
 {
     SPELL_BLESSING_OF_SANCTUARY         = 20911,
@@ -2750,7 +2749,6 @@ void AddSC_generic_spell_scripts()
     new spell_gen_launch();
     new spell_gen_vehicle_scaling();
     new spell_gen_oracle_wolvar_reputation();
-    new spell_gen_luck_of_the_draw();
     new spell_gen_damage_reduction_aura();
     new spell_gen_luck_of_the_draw();
     new spell_gen_dummy_trigger();
