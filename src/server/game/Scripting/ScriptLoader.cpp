@@ -85,6 +85,7 @@ void AddSC_warrior_spell_scripts();
 void AddSC_quest_spell_scripts();
 void AddSC_item_spell_scripts();
 void AddSC_example_spell_scripts();
+void AddSC_holiday_spell_scripts();
 
 void AddSC_SmartSCripts();
 
@@ -295,7 +296,6 @@ void AddSC_ironforge();
 void AddSC_isle_of_queldanas();
 void AddSC_loch_modan();
 void AddSC_redridge_mountains();
-void AddSC_searing_gorge();
 void AddSC_silvermoon_city();
 void AddSC_silverpine_forest();
 void AddSC_stormwind_city();
@@ -699,6 +699,7 @@ void AddSpellScripts()
     AddSC_quest_spell_scripts();
     AddSC_item_spell_scripts();
     AddSC_example_spell_scripts();
+    AddSC_holiday_spell_scripts();
 }
 
 void AddCommandScripts()
@@ -916,7 +917,6 @@ void AddEasternKingdomsScripts()
     AddSC_isle_of_queldanas();
     AddSC_loch_modan();
     AddSC_redridge_mountains();
-    AddSC_searing_gorge();
     AddSC_silvermoon_city();
     AddSC_silverpine_forest();
     AddSC_stormwind_city();

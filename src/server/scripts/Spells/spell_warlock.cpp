@@ -21,8 +21,8 @@
  * Scriptnames of files in this file should be prefixed with "spell_warl_".
  */
 
-#include "ScriptPCH.h"
-#include "Spell.h"
+#include "ScriptMgr.h"
+#include "SpellScript.h"
 #include "SpellAuraEffects.h"
 
 enum WarlockSpells
@@ -34,14 +34,57 @@ enum WarlockSpells
     WARLOCK_DEMONIC_EMPOWERMENT_IMP         = 54444,
     WARLOCK_IMPROVED_HEALTHSTONE_R1         = 18692,
     WARLOCK_IMPROVED_HEALTHSTONE_R2         = 18693,
-    WARLOCK_FELHUNTER_SHADOWBITE_R1         = 54049,
-    WARLOCK_FELHUNTER_SHADOWBITE_R2         = 54050,
-    WARLOCK_FELHUNTER_SHADOWBITE_R3         = 54051,
-    WARLOCK_FELHUNTER_SHADOWBITE_R4         = 54052,
-    WARLOCK_FELHUNTER_SHADOWBITE_R5         = 54053,
-    WARLOCK_IMPROVED_FELHUNTER_R1           = 54037,
-    WARLOCK_IMPROVED_FELHUNTER_R2           = 54038,
-    WARLOCK_IMPROVED_FELHUNTER_EFFECT       = 54425,
+};
+
+class spell_warl_banish : public SpellScriptLoader
+{
+public:
+    spell_warl_banish() : SpellScriptLoader("spell_warl_banish") { }
+
+    class spell_warl_banish_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_warl_banish_SpellScript);
+
+        bool Load()
+        {
+            _removed = false;
+            return true;
+        }
+
+        void HandleBanish()
+        {
+            if (Unit* target = GetHitUnit())
+            {
+                if (target->GetAuraEffect(SPELL_AURA_SCHOOL_IMMUNITY, SPELLFAMILY_WARLOCK, 0, 0x08000000, 0))
+                {
+                    //No need to remove old aura since its removed due to not stack by current Banish aura
+                    PreventHitDefaultEffect(EFFECT_0);
+                    PreventHitDefaultEffect(EFFECT_1);
+                    PreventHitDefaultEffect(EFFECT_2);
+                    _removed = true;
+                }
+            }
+        }
+
+        void RemoveAura()
+        {
+            if (_removed)
+                PreventHitAura();
+        }
+
+        void Register()
+        {
+            BeforeHit += SpellHitFn(spell_warl_banish_SpellScript::HandleBanish);
+            AfterHit += SpellHitFn(spell_warl_banish_SpellScript::RemoveAura);
+        }
+
+        bool _removed;
+    };
+
+    SpellScript* GetSpellScript() const
+    {
+        return new spell_warl_banish_SpellScript();
+    }
 };
 
 // 47193 Demonic Empowerment
@@ -56,15 +99,7 @@ class spell_warl_demonic_empowerment : public SpellScriptLoader
 
             bool Validate(SpellInfo const* /*spellEntry*/)
             {
-                if (!sSpellMgr->GetSpellInfo(WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS))
-                    return false;
-                if (!sSpellMgr->GetSpellInfo(WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER))
-                    return false;
-                if (!sSpellMgr->GetSpellInfo(WARLOCK_DEMONIC_EMPOWERMENT_FELGUARD))
-                    return false;
-                if (!sSpellMgr->GetSpellInfo(WARLOCK_DEMONIC_EMPOWERMENT_FELHUNTER))
-                    return false;
-                if (!sSpellMgr->GetSpellInfo(WARLOCK_DEMONIC_EMPOWERMENT_IMP))
+                if (!sSpellMgr->GetSpellInfo(WARLOCK_DEMONIC_EMPOWERMENT_SUCCUBUS) || !sSpellMgr->GetSpellInfo(WARLOCK_DEMONIC_EMPOWERMENT_VOIDWALKER) || !sSpellMgr->GetSpellInfo(WARLOCK_DEMONIC_EMPOWERMENT_FELGUARD) || !sSpellMgr->GetSpellInfo(WARLOCK_DEMONIC_EMPOWERMENT_FELHUNTER) || !sSpellMgr->GetSpellInfo(WARLOCK_DEMONIC_EMPOWERMENT_IMP))
                     return false;
                 return true;
             }
@@ -129,9 +164,7 @@ class spell_warl_create_healthstone : public SpellScriptLoader
 
             bool Validate(SpellInfo const* /*spellEntry*/)
             {
-                if (!sSpellMgr->GetSpellInfo(WARLOCK_IMPROVED_HEALTHSTONE_R1))
-                    return false;
-                if (!sSpellMgr->GetSpellInfo(WARLOCK_IMPROVED_HEALTHSTONE_R2))
+                if (!sSpellMgr->GetSpellInfo(WARLOCK_IMPROVED_HEALTHSTONE_R1) || !sSpellMgr->GetSpellInfo(WARLOCK_IMPROVED_HEALTHSTONE_R2))
                     return false;
                 return true;
             }
@@ -224,7 +257,8 @@ public:
 
         void HandleDummy(SpellEffIndex /*effIndex*/)
         {
-            GetCaster()->CastSpell(GetCaster(), GetEffectValue(), true);
+            Unit* caster = GetCaster();
+            caster->CastSpell(caster, GetEffectValue(), true);
         }
 
         void Register()
@@ -250,7 +284,8 @@ class spell_warl_seed_of_corruption : public SpellScriptLoader
 
             void FilterTargets(std::list<Unit*>& unitList)
             {
-                unitList.remove(GetTargetUnit());
+                if (GetTargetUnit())
+                    unitList.remove(GetTargetUnit());
             }
 
             void Register()
@@ -259,191 +294,163 @@ class spell_warl_seed_of_corruption : public SpellScriptLoader
             }
         };
 
-        SpellScript *GetSpellScript() const
+        SpellScript* GetSpellScript() const
         {
             return new spell_warl_seed_of_corruption_SpellScript();
         }
 };
 
-// Shadow Bite
-class spell_warl_shadow_bite : public SpellScriptLoader
+enum Soulshatter
 {
-public:
-    spell_warl_shadow_bite() : SpellScriptLoader("spell_warl_shadow_bite") { }
-
-    class spell_warl_shadow_bite_SpellScript : public SpellScript
-    {
-        PrepareSpellScript(spell_warl_shadow_bite_SpellScript)
-        bool Validate(SpellInfo const * /*spellEntry*/)
-        {
-            if (!sSpellMgr->GetSpellInfo(WARLOCK_FELHUNTER_SHADOWBITE_R1))
-                return false;
-            if (!sSpellMgr->GetSpellInfo(WARLOCK_FELHUNTER_SHADOWBITE_R2))
-                return false;
-            if (!sSpellMgr->GetSpellInfo(WARLOCK_FELHUNTER_SHADOWBITE_R3))
-                return false;
-            if (!sSpellMgr->GetSpellInfo(WARLOCK_FELHUNTER_SHADOWBITE_R4))
-                return false;
-            if (!sSpellMgr->GetSpellInfo(WARLOCK_FELHUNTER_SHADOWBITE_R5))
-                return false;
-            if (!sSpellMgr->GetSpellInfo(WARLOCK_IMPROVED_FELHUNTER_R1))
-                return false;
-            if (!sSpellMgr->GetSpellInfo(WARLOCK_IMPROVED_FELHUNTER_R2))
-                return false;
-            if (!sSpellMgr->GetSpellInfo(WARLOCK_IMPROVED_FELHUNTER_EFFECT))
-                return false;
-            return true;
-        }
-
-        void HandleScriptEffect(SpellEffIndex /*effIndex*/)
-        {
-            //Unit *caster = GetCaster();
-            // Get DoTs on target by owner (15% increase by dot)
-            // need to get this here from SpellEffects.cpp ?
-            // damage *= float(100.f + 15.f * caster->getVictim()->GetDoTsByCaster(caster->GetOwnerGUID())) / 100.f;
-        }
-
-        // For Improved Felhunter
-        void HandleAfterHitEffect()
-        {
-            Unit *caster = GetCaster();
-            if(!caster) { return; };
-
-            // break if our caster is not a pet
-            if(!(caster->GetTypeId() == TYPEID_UNIT && caster->ToCreature()->isPet())) { return; };
-
-            // break if pet has no owner and/or owner is not a player
-            Unit *owner = caster->GetOwner();
-            if(!(owner && (owner->GetTypeId() == TYPEID_PLAYER))) { return; };
-            
-            int32 amount;
-            // rank 1 - 4%
-            if(owner->HasAura(WARLOCK_IMPROVED_FELHUNTER_R1)) { amount = 5; };
-
-            // rank 2 - 8%
-            if(owner->HasAura(WARLOCK_IMPROVED_FELHUNTER_R2)) { amount = 9; };
-            
-            // Finally return the Mana to our Caster
-            if(AuraEffect * aurEff = owner->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_WARLOCK, 214, 0))
-                caster->CastCustomSpell(caster,WARLOCK_IMPROVED_FELHUNTER_EFFECT,&amount,NULL,NULL,true,NULL,aurEff,caster->GetGUID());
-        }
-
-        void Register()
-        {
-//            OnEffectHitTarget += SpellEffectFn(spell_warl_shadow_bite_SpellScript::HandleScriptEffect, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
-            AfterHit += SpellHitFn(spell_warl_shadow_bite_SpellScript::HandleAfterHitEffect);
-        }
-    };
-
-    SpellScript* GetSpellScript() const
-    {
-        return new spell_warl_shadow_bite_SpellScript();
-    }
+    SPELL_SOULSHATTER   = 32835,
 };
 
-class spell_warl_banish : public SpellScriptLoader
+class spell_warl_soulshatter : public SpellScriptLoader
 {
     public:
-        spell_warl_banish() : SpellScriptLoader("spell_warl_banish") { }
+        spell_warl_soulshatter() : SpellScriptLoader("spell_warl_soulshatter") { }
 
-        class spell_warl_banish_SpellScript : public SpellScript
+        class spell_warl_soulshatter_SpellScript : public SpellScript
         {
-            PrepareSpellScript(spell_warl_banish_SpellScript);
+            PrepareSpellScript(spell_warl_soulshatter_SpellScript);
 
-            bool Load()
+            bool Validate(SpellInfo const* /*spell*/)
             {
-                _removed = false;
+                if (!sSpellMgr->GetSpellInfo(SPELL_SOULSHATTER))
+                    return false;
                 return true;
             }
 
-            void HandleBanish()
+            void HandleDummy(SpellEffIndex /*effIndex*/)
             {
+                Unit* caster = GetCaster();
                 if (Unit* target = GetHitUnit())
                 {
-                    if (target->GetAuraEffect(SPELL_AURA_SCHOOL_IMMUNITY, SPELLFAMILY_WARLOCK, 0, 0x08000000, 0))
+                    if (target->CanHaveThreatList() && target->getThreatManager().getThreat(caster) > 0.0f)
                     {
-                        //No need to remove old aura since its removed due to not stack by current Banish aura
-                        PreventHitDefaultEffect(EFFECT_0);
-                        PreventHitDefaultEffect(EFFECT_1);
-                        PreventHitDefaultEffect(EFFECT_2);
-                        _removed = true;
-                    }
+                        sLog->outString("THREATREDUCTION");
+                        caster->CastSpell(target, SPELL_SOULSHATTER, true);
+                    } else
+                        sLog->outString("can have threat? %u . threat number? %f ",target->CanHaveThreatList(),target->getThreatManager().getThreat(caster));
                 }
-            }
-
-            void RemoveAura()
-            {
-                if (_removed)
-                    PreventHitAura();
             }
 
             void Register()
             {
-                BeforeHit += SpellHitFn(spell_warl_banish_SpellScript::HandleBanish);
-                AfterHit += SpellHitFn(spell_warl_banish_SpellScript::RemoveAura);
+                OnEffectHitTarget += SpellEffectFn(spell_warl_soulshatter_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
             }
-
-            bool _removed;
         };
 
         SpellScript* GetSpellScript() const
         {
-            return new spell_warl_banish_SpellScript();
+            return new spell_warl_soulshatter_SpellScript();
         }
 };
 
-class spell_warl_demonic_circle_summon : public SpellScriptLoader
+enum LifeTap
 {
-public:
-    spell_warl_demonic_circle_summon() : SpellScriptLoader("spell_warl_demonic_circle_summon") { }
+    SPELL_LIFE_TAP_RANK_6       = 11689,
+    SPELL_LIFE_TAP_RANK_7       = 27222,
+    SPELL_LIFE_TAP_RANK_8       = 57946,
+    SPELL_LIFE_TAP_ENERGIZE     = 31818,
+    SPELL_LIFE_TAP_ENERGIZE_2   = 32553,
+    ICON_ID_IMPROVED_LIFE_TAP   = 208,
+    ICON_ID_MANA_FEED           = 1982,
+};
 
-    class spell_warl_demonic_circle_summon_SpellScript : public SpellScript
-    {
-        PrepareSpellScript(spell_warl_demonic_circle_summon_SpellScript)
+class spell_warl_life_tap : public SpellScriptLoader
+{
+    public:
+        spell_warl_life_tap() : SpellScriptLoader("spell_warl_life_tap") { }
 
-        SpellCastResult CheckIfInvalidPosition()
+        class spell_warl_life_tap_SpellScript : public SpellScript
         {
-            Unit* caster = GetCaster();
-            switch (caster->GetMapId())
+            PrepareSpellScript(spell_warl_life_tap_SpellScript);
+
+            bool Load()
             {
-                case 617: // Dalaran Sewers
-                    // casting on starting pipes
-                    if (caster->GetPositionZ() > 13.0f)
-                        return SPELL_FAILED_NOT_HERE;
-                    break;
-                case 618: // Ring of Valor
-                    if(caster->GetDistance2d(763.632385f, -306.162384f) < 1.5f || // casting over a small pilar
-                        caster->GetDistance2d(763.611145f, -261.856750f) < 1.5f ||
-                        caster->GetDistance2d(723.644287f, -284.493256f) < 4.0f || // casting over a big pilar
-                        caster->GetDistance2d(802.211609f, -284.493256f) < 4.0f ||
-                        caster->GetPositionZ() < 28.0f) // casting on the elevator
-                        return SPELL_FAILED_NOT_HERE;
-                    break;
+                return GetCaster()->GetTypeId() == TYPEID_PLAYER;
             }
 
-            return SPELL_CAST_OK;
-        }
+            bool Validate(SpellInfo const* /*spell*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_LIFE_TAP_RANK_6) || !sSpellMgr->GetSpellInfo(SPELL_LIFE_TAP_RANK_7)
+                    || !sSpellMgr->GetSpellInfo(SPELL_LIFE_TAP_RANK_8) || !sSpellMgr->GetSpellInfo(SPELL_LIFE_TAP_ENERGIZE)
+                    || !sSpellMgr->GetSpellInfo(SPELL_LIFE_TAP_ENERGIZE_2))
+                    return false;
+                return true;
+            }
 
-        void Register()
+            void HandleDummy(SpellEffIndex /*effIndex*/)
+            {
+                Player* caster = GetCaster()->ToPlayer();
+                if (Unit* target = GetHitUnit())
+                {
+                    SpellInfo const* spellInfo = GetSpellInfo();
+                    float spFactor = 0.0f;
+                    int32 damage = int32(GetEffectValue() + (6.3875 * spellInfo->BaseLevel));
+                    switch (spellInfo->Id)
+                    {
+                        case SPELL_LIFE_TAP_RANK_6: spFactor = 0.2f; break;
+                        case SPELL_LIFE_TAP_RANK_7:
+                        case SPELL_LIFE_TAP_RANK_8: spFactor = 0.5f; break;
+                        default: break;
+                    }
+
+                    int32 mana = int32(damage + (caster->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS+SPELL_SCHOOL_SHADOW) * spFactor));
+
+                    // Shouldn't Appear in Combat Log
+                    target->ModifyHealth(-damage);
+
+                    // Improved Life Tap mod
+                    if (AuraEffect const* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_WARLOCK, ICON_ID_IMPROVED_LIFE_TAP, 0))
+                        AddPctN(mana, aurEff->GetAmount());
+
+                    caster->CastCustomSpell(target, SPELL_LIFE_TAP_ENERGIZE, &mana, NULL, NULL, false);
+
+                    // Mana Feed
+                    int32 manaFeedVal = 0;
+                    if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_ADD_FLAT_MODIFIER, SPELLFAMILY_WARLOCK, ICON_ID_MANA_FEED, 0))
+                        manaFeedVal = aurEff->GetAmount();
+
+                    if (manaFeedVal > 0)
+                    {
+                        ApplyPctN(manaFeedVal, mana);
+                        caster->CastCustomSpell(caster, SPELL_LIFE_TAP_ENERGIZE_2, &manaFeedVal, NULL, NULL, true, NULL);
+                    }
+                }
+            }
+
+            SpellCastResult CheckCast()
+            {
+                if ((int32(GetCaster()->GetHealth()) > int32(GetSpellInfo()->Effects[EFFECT_0].CalcValue() + (6.3875 * GetSpellInfo()->BaseLevel))))
+                {
+                    return SPELL_CAST_OK;
+                }
+                return SPELL_FAILED_FIZZLE;
+            }
+
+            void Register()
+            {
+                OnEffectHitTarget += SpellEffectFn(spell_warl_life_tap_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+                OnCheckCast += SpellCheckCastFn(spell_warl_life_tap_SpellScript::CheckCast);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
         {
-            OnCheckCast += SpellCheckCastFn(spell_warl_demonic_circle_summon_SpellScript::CheckIfInvalidPosition);
+            return new spell_warl_life_tap_SpellScript();
         }
-    };
-
-    SpellScript* GetSpellScript() const
-    {
-        return new spell_warl_demonic_circle_summon_SpellScript();
-    }
 };
 
 void AddSC_warlock_spell_scripts()
 {
+    new spell_warl_banish();
     new spell_warl_demonic_empowerment();
     new spell_warl_create_healthstone();
     new spell_warl_everlasting_affliction();
     new spell_warl_ritual_of_doom_effect();
     new spell_warl_seed_of_corruption();
-    new spell_warl_shadow_bite();
-    new spell_warl_banish();
-    new spell_warl_demonic_circle_summon();
+    new spell_warl_soulshatter();
+    new spell_warl_life_tap();
 }

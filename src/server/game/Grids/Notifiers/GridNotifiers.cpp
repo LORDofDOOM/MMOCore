@@ -113,7 +113,7 @@ inline void CreatureUnitRelocationWorker(Creature* c, Unit* u)
     if (!u->isAlive() || !c->isAlive() || c == u || u->isInFlight())
         return;
 
-    if (c->HasReactState(REACT_AGGRESSIVE) && !c->HasUnitState(UNIT_STAT_SIGHTLESS))
+    if (c->HasReactState(REACT_AGGRESSIVE) && !c->HasUnitState(UNIT_STATE_SIGHTLESS))
         if (c->IsAIEnabled && c->canSeeOrDetect(u, false, true))
             c->AI()->MoveInLineOfSight_Safe(u);
 }
@@ -343,24 +343,17 @@ bool AnyDeadUnitObjectInRangeCheck::operator()(Creature* u)
 
 bool AnyDeadUnitSpellTargetInRangeCheck::operator()(Player* u)
 {
-    return AnyDeadUnitObjectInRangeCheck::operator()(u)
-        && (i_spellInfo->CheckTarget(i_searchObj, u, true) == SPELL_CAST_OK)
-        && i_searchObj->IsTargetMatchingCheck(u, i_check);
+    return AnyDeadUnitObjectInRangeCheck::operator()(u) && i_check(u);
 }
 
 bool AnyDeadUnitSpellTargetInRangeCheck::operator()(Corpse* u)
 {
-    Player* owner = ObjectAccessor::FindPlayer(u->GetOwnerGUID());
-    return owner && AnyDeadUnitObjectInRangeCheck::operator()(u)
-        && (i_spellInfo->CheckTarget(i_searchObj, owner, true) == SPELL_CAST_OK)
-        && i_searchObj->IsTargetMatchingCheck(owner, i_check);
+    return AnyDeadUnitObjectInRangeCheck::operator()(u) && i_check(u);
 }
 
 bool AnyDeadUnitSpellTargetInRangeCheck::operator()(Creature* u)
 {
-    return AnyDeadUnitObjectInRangeCheck::operator()(u)
-        && (i_spellInfo->CheckTarget(i_searchObj, u, true) == SPELL_CAST_OK)
-        && i_searchObj->IsTargetMatchingCheck(u, i_check);
+    return AnyDeadUnitObjectInRangeCheck::operator()(u) && i_check(u);
 }
 
 template void ObjectUpdater::Visit<GameObject>(GameObjectMapType &);

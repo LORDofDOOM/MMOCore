@@ -209,7 +209,7 @@ struct CreatureBaseStats
     static CreatureBaseStats const* GetBaseStats(uint8 level, uint8 unitClass);
 };
 
-typedef UNORDERED_MAP<uint16, CreatureBaseStats> CreatureBaseStatsMap;
+typedef UNORDERED_MAP<uint16, CreatureBaseStats> CreatureBaseStatsContainer;
 
 struct CreatureLocale
 {
@@ -512,7 +512,7 @@ class Creature : public Unit, public GridObject<Creature>, public MapCreature
 
         uint8 getLevelForTarget(WorldObject const* target) const; // overwrite Unit::getLevelForTarget for boss level support
 
-        bool IsInEvadeMode() const { return HasUnitState(UNIT_STAT_EVADE); }
+        bool IsInEvadeMode() const { return HasUnitState(UNIT_STATE_EVADE); }
 
         bool AIM_Initialize(CreatureAI* ai = NULL);
         void Motion_Initialize();
@@ -722,7 +722,6 @@ class Creature : public Unit, public GridObject<Creature>, public MapCreature
 
         static float _GetHealthMod(int32 Rank);
 
-        uint32 m_lootMoney;
         uint64 m_lootRecipient;
         uint32 m_lootRecipientGroup;
 

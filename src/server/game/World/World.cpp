@@ -76,6 +76,8 @@
 #include "SmartAI.h"
 #include "Channel.h"
 #include "AnticheatMgr.h"
+#include "WardenCheckMgr.h"
+#include "Warden.h"
 
 volatile bool World::m_stopEvent = false;
 uint8 World::m_ExitCode = SHUTDOWN_EXIT_CODE;
@@ -1010,6 +1012,8 @@ void World::LoadConfigSettings(bool reload)
     if (m_int_configs[CONFIG_QUEST_HIGH_LEVEL_HIDE_DIFF] > MAX_LEVEL)
         m_int_configs[CONFIG_QUEST_HIGH_LEVEL_HIDE_DIFF] = MAX_LEVEL;
     m_bool_configs[CONFIG_QUEST_IGNORE_RAID] = ConfigMgr::GetBoolDefault("Quests.IgnoreRaid", false);
+    m_bool_configs[CONFIG_QUEST_IGNORE_AUTO_ACCEPT] = ConfigMgr::GetBoolDefault("Quests.IgnoreAutoAccept", false);
+    m_bool_configs[CONFIG_QUEST_IGNORE_AUTO_COMPLETE] = ConfigMgr::GetBoolDefault("Quests.IgnoreAutoComplete", false);
 
     m_int_configs[CONFIG_RANDOM_BG_RESET_HOUR] = ConfigMgr::GetIntDefault("Battleground.Random.ResetHour", 6);
     if (m_int_configs[CONFIG_RANDOM_BG_RESET_HOUR] > 23)
@@ -1211,6 +1215,15 @@ void World::LoadConfigSettings(bool reload)
     m_bool_configs[CONFIG_CHATLOG_ADDON] = ConfigMgr::GetBoolDefault("ChatLogs.Addon", false);
     m_bool_configs[CONFIG_CHATLOG_BGROUND] = ConfigMgr::GetBoolDefault("ChatLogs.Battleground", false);
 
+    // Warden
+    m_bool_configs[CONFIG_WARDEN_ENABLED]              = ConfigMgr::GetBoolDefault("Warden.Enabled", false);
+    m_int_configs[CONFIG_WARDEN_NUM_MEM_CHECKS]        = ConfigMgr::GetIntDefault("Warden.NumMemChecks", 3);
+    m_int_configs[CONFIG_WARDEN_NUM_OTHER_CHECKS]      = ConfigMgr::GetIntDefault("Warden.NumOtherChecks", 7);
+    m_int_configs[CONFIG_WARDEN_CLIENT_BAN_DURATION]   = ConfigMgr::GetIntDefault("Warden.BanDuration", 86400);
+    m_int_configs[CONFIG_WARDEN_CLIENT_CHECK_HOLDOFF]  = ConfigMgr::GetIntDefault("Warden.ClientCheckHoldOff", 30);
+    m_int_configs[CONFIG_WARDEN_CLIENT_FAIL_ACTION]    = ConfigMgr::GetIntDefault("Warden.ClientCheckFailAction", 0);
+    m_int_configs[CONFIG_WARDEN_CLIENT_RESPONSE_DELAY] = ConfigMgr::GetIntDefault("Warden.ClientResponseDelay", 600);
+
     // Dungeon finder
     m_bool_configs[CONFIG_DUNGEON_FINDER_ENABLE] = ConfigMgr::GetBoolDefault("DungeonFinder.Enable", false);
 
@@ -1265,6 +1278,8 @@ void World::LoadConfigSettings(bool reload)
 
     sScriptMgr->OnConfigLoad(reload);
 }
+
+extern void LoadGameObjectModelList();
 
 /// Initialize the World
 void World::SetInitialWorldSettings()
@@ -1343,6 +1358,9 @@ void World::SetInitialWorldSettings()
 
     sLog->outString("Loading spell custom attributes...");
     sSpellMgr->LoadSpellCustomAttr();
+
+    sLog->outString("Loading GameObject models...");
+    LoadGameObjectModelList();
 
     sLog->outString("Loading Script Names...");
     sObjectMgr->LoadScriptNames();
@@ -1646,6 +1664,9 @@ void World::SetInitialWorldSettings()
     sLog->outString("Loading Creature Formations...");
     FormationMgr::LoadCreatureFormations();
 
+    sLog->outString("Loading World States...");              // must be loaded before battleground, outdoor PvP and conditions
+    LoadWorldStates();
+
     sLog->outString("Loading Conditions...");
     sConditionMgr->LoadConditions();
 
@@ -1774,9 +1795,6 @@ void World::SetInitialWorldSettings()
 
     sTicketMgr->Initialize();
 
-    sLog->outString("Loading World States...");              // must be loaded before battleground and outdoor PvP
-    LoadWorldStates();
-
     ///- Initialize Battlegrounds
     sLog->outString("Starting Battleground System");
     sBattlegroundMgr->CreateInitialBattlegrounds();
@@ -1791,6 +1809,10 @@ void World::SetInitialWorldSettings()
 
     sLog->outString("Loading Transport NPCs...");
     sMapMgr->LoadTransportNPCs();
+
+    ///- Initialize Warden
+    sLog->outString("Loading Warden Checks..." );
+    sWardenCheckMgr->LoadWardenChecks();
 
     sLog->outString("Deleting expired bans...");
     LoginDatabase.Execute("DELETE FROM ip_banned WHERE unbandate <= UNIX_TIMESTAMP() AND unbandate<>bandate");

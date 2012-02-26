@@ -27,7 +27,7 @@ enum Yells
     SAY_PHASE2          = -1658005,
     SAY_PHASE3          = -1658006,
 
-    SAY_TYRANNUS_DEATH  = -1659007,
+    SAY_TYRANNUS_DEATH  = -1658007,
 };
 
 enum Spells
@@ -190,7 +190,7 @@ class boss_garfrost : public CreatureScript
 
                 events.Update(diff);
 
-                if (me->HasUnitState(UNIT_STAT_CASTING))
+                if (me->HasUnitState(UNIT_STATE_CASTING))
                     return;
 
                 while (uint32 eventId = events.ExecuteEvent())
