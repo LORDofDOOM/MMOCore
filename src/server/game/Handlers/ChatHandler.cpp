@@ -77,6 +77,12 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
         recv_data.rfinish();
         return;
     }
+		
+    if (_player->IsSpectator())
+    {
+        SendNotification(LANG_SPEC_CAN_NOT_CHAT);
+        return;
+    }	
 
     Player* sender = GetPlayer();
 

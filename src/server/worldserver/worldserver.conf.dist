@@ -1614,6 +1614,15 @@ AllowTwoSide.Trade = 0
 
 TalentsInspecting = 1
 
+#    Arena.Spectators.Enable
+#        Description: Arena spectators system state.
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)
+
+Arena.Spectators.Enable = 0
+
+#
+
 #    Fake.WHO.List
 #        Add fake players to fill in WHO LIST (who is online list, "O" button) if there is less then
 #        49 real players online (need to set online=2 in some characters to make it work)
