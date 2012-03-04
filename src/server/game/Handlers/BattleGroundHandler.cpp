@@ -593,7 +593,7 @@ void WorldSession::HandleAreaSpiritHealerQueryOpcode(WorldPacket & recv_data)
         {
             OutdoorPvPWG *pvpWG = (OutdoorPvPWG*)sOutdoorPvPMgr->GetOutdoorPvPToZoneId(4197);
             if (pvpWG && pvpWG->isWarTime())
-                pvpWG->SendAreaSpiritHealerQueryOpcode(_player, guid);
+                pvpWG->SendAreaSpiritHealerQueryOpcode(_player, pvpWG, guid);
         }
     }
 }

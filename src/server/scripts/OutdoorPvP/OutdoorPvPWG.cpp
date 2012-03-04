@@ -1067,7 +1067,7 @@ bool OutdoorPvPWG::UpdateCreatureInfo(Creature *creature)
         {
             if (isWarTime())
             {
-                /* Uncomment if want to disable ressurect for both factions at the same time at fortress graveyard
+                //Uncomment if want to disable ressurect for both factions at the same time at fortress graveyard
                 if (creature->GetAreaId() == 4575) // Select Fortress Spirit
                 {
                     FortressSpirit = creature;
@@ -1075,7 +1075,7 @@ bool OutdoorPvPWG::UpdateCreatureInfo(Creature *creature)
                             FortressSpirit->UpdateEntry(CRE_SPI_A);
                     if (getDefenderTeam() == TEAM_HORDE) // Fortress Spirit Horde
                         FortressSpirit->UpdateEntry(CRE_SPI_H);
-                }*/
+                }
                 creature->SetVisible(true);
             }
             else
@@ -2000,10 +2000,10 @@ OPvPCapturePointWG *OutdoorPvPWG::GetWorkshopByGOGuid(uint64 lowguid) const
 /*########################################################
  * Copy of Battleground system to make Spirit Guides Work
  *#######################################################*/
-void OutdoorPvPWG::SendAreaSpiritHealerQueryOpcode(Player *pl, const uint64& guid)
+void OutdoorPvPWG::SendAreaSpiritHealerQueryOpcode(Player *pl, OutdoorPvPWG* pvpWG, uint64 guid)
 {
     WorldPacket data(SMSG_AREA_SPIRIT_HEALER_TIME, 12);
-    uint32 time_ = 30000 - GetLastResurrectTime();      // resurrect every 30 seconds
+	uint32 time_ = 30000 - pvpWG->GetLastResurrectTime();      // resurrect every 30 seconds
     if (time_ == uint32(-1))
         time_ = 0;
     data << guid << time_;

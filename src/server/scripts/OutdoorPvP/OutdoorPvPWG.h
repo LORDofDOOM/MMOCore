@@ -252,7 +252,7 @@ class OutdoorPvPWG : public OutdoorPvP
         void forceStopBattle();
         void forceStartBattle();
         // Temporal BG specific till 3.2
-        void SendAreaSpiritHealerQueryOpcode(Player *pl, const uint64& guid);
+        void SendAreaSpiritHealerQueryOpcode(Player *pl, OutdoorPvPWG* pvpWG, uint64 guid);
         void AddPlayerToResurrectQueue(uint64 npc_guid, uint64 player_guid);
         void RemovePlayerFromResurrectQueue(uint64 player_guid);
         void RelocateAllianceDeadPlayers(Creature *cr);
