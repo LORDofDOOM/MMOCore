@@ -3419,7 +3419,7 @@ class spell_rocket_pack : public SpellScriptLoader
         }
 };
 
-void AddSC_boss_gunship_battle_wowrean()
+void AddSC_boss_gunship_battle()
 {
     new npc_muradin_gunship();
     new npc_saurfang_gunship();
