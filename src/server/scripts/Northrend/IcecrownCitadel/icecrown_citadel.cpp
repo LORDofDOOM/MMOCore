@@ -221,6 +221,7 @@ enum EventTypes
     // Sister Svalna
     EVENT_ARNATH_INTRO_2                = 34,
     EVENT_SVALNA_START                  = 35,
+    EVENT_SVALNA_FORCE_START            = 90,	
     EVENT_SVALNA_RESURRECT              = 36,
     EVENT_SVALNA_COMBAT                 = 37,
     EVENT_IMPALING_SPEAR                = 38,
@@ -809,8 +810,9 @@ class boss_sister_svalna : public CreatureScript
                     case ACTION_START_GAUNTLET:
                         me->setActive(true);
                         _isEventInProgress = true;
-                        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC);
+                        //me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC);
                         events.ScheduleEvent(EVENT_SVALNA_START, 25000);
+						//events.ScheduleEvent(EVENT_SVALNA_FORCE_START, 60000);
                         break;
                     case ACTION_RESURRECT_CAPTAINS:
                         events.ScheduleEvent(EVENT_SVALNA_RESURRECT, 7000);
@@ -884,6 +886,8 @@ class boss_sister_svalna : public CreatureScript
                         case EVENT_SVALNA_START:
                             Talk(SAY_SVALNA_EVENT_START);
                             break;
+                        case EVENT_SVALNA_FORCE_START:                       
+                            break;							
                         case EVENT_SVALNA_RESURRECT:
                             Talk(SAY_SVALNA_RESURRECT_CAPTAINS);
                             me->CastSpell(me, SPELL_REVIVE_CHAMPION, false);
