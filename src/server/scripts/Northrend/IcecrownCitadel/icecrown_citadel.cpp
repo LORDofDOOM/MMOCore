@@ -477,7 +477,7 @@ class npc_highlord_tirion_fordring_lh : public CreatureScript
                             Talk(SAY_TIRION_INTRO_3);
                             break;
                         case EVENT_LK_INTRO_1:
-                            me->HandleEmoteCommand(EMOTE_ONESHOT_POINT_NO_SHEATHE);
+                            me->HandleEmoteCommand(EMOTE_ONESHOT_POINT_NOSHEATHE);
                             if (Creature* theLichKing = ObjectAccessor::GetCreature(*me, _theLichKing))
                                 theLichKing->AI()->Talk(SAY_LK_INTRO_1);
                             break;
@@ -1921,7 +1921,7 @@ class spell_svalna_revive_champion : public SpellScriptLoader
                 Position pos;
                 caster->GetPosition(&pos);
                 caster->GetNearPosition(pos, 5.0f, 0.0f);
-                pos.m_positionZ = caster->GetBaseMap()->GetHeight(caster->GetPhaseMask(), pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), true, 20.0f);
+                pos.m_positionZ = caster->GetBaseMap()->GetHeight(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), true, 20.0f);
                 pos.m_positionZ += 0.05f;
                 caster->SetHomePosition(pos);
                 caster->GetMotionMaster()->MovePoint(POINT_LAND, pos);
