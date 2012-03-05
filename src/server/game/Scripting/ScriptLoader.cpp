@@ -528,6 +528,7 @@ void AddSC_boss_marwyn();
 void AddSC_boss_lich_king_hr();
 void AddSC_boss_lord_marrowgar();       // Icecrown Citadel
 void AddSC_boss_lady_deathwhisper();
+void AddSC_boss_gunship_battle_wowrean();
 void AddSC_boss_deathbringer_saurfang();
 void AddSC_boss_festergut();
 void AddSC_boss_rotface();
@@ -1245,6 +1246,7 @@ void AddNorthrendScripts()
     AddSC_boss_lich_king_hr();
     AddSC_boss_lord_marrowgar();        // Icecrown Citadel
     AddSC_boss_lady_deathwhisper();
+    AddSC_boss_gunship_battle_wowrean();
     AddSC_boss_deathbringer_saurfang();
     AddSC_boss_festergut();
     AddSC_boss_rotface();

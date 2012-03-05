@@ -612,7 +612,10 @@ class WorldObject : public Object, public WorldLocation
             GetNearPoint(obj, x, y, z, obj->GetObjectSize(), distance2d, GetAngle(obj));
         }
 
-        float GetObjectSize() const;
+        float GetObjectSize() const
+        {
+            return (m_valuesCount > UNIT_FIELD_COMBATREACH) ? m_floatValues[UNIT_FIELD_COMBATREACH] : DEFAULT_WORLD_OBJECT_SIZE;
+        }
         void UpdateGroundPositionZ(float x, float y, float &z) const;
         void UpdateAllowedPositionZ(float x, float y, float &z) const;
 
@@ -776,22 +779,14 @@ class WorldObject : public Object, public WorldLocation
             Position pos = {x, y, z, ang};
             return SummonCreature(id, pos, spwtype, despwtime, 0);
         }
-        GameObject* SummonGameObject(uint32 entry, const Position &pos, float rotation0, float rotation1, float rotation2, float rotation3, uint32 respawnTime) const;
-        GameObject* SummonGameObject(uint32 entry, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 respawnTime)
-        {
-            if (!x && !y && !z)
-            {
-                GetClosePoint(x, y, z, GetObjectSize());
-                ang = GetOrientation();
-            }
-            Position pos = {x, y, z, ang};
-            return SummonGameObject(entry, pos, rotation0, rotation1, rotation2, rotation3, respawnTime);
-        }
+        GameObject* SummonGameObject(uint32 entry, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 respawnTime);
         Creature*   SummonTrigger(float x, float y, float z, float ang, uint32 dur, CreatureAI* (*GetAI)(Creature*) = NULL);
 
         Creature*   FindNearestCreature(uint32 entry, float range, bool alive = true) const;
         GameObject* FindNearestGameObject(uint32 entry, float range) const;
+
         Player*     FindNearestPlayer(float range, bool alive = true);
+        std::list<Player*>  GetNearestPlayersList(float range, bool alive = true);
 
         void GetGameObjectListWithEntryInGrid(std::list<GameObject*>& lList, uint32 uiEntry, float fMaxSearchRange) const;
         void GetCreatureListWithEntryInGrid(std::list<Creature*>& lList, uint32 uiEntry, float fMaxSearchRange) const;

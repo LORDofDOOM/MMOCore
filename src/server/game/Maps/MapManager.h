@@ -124,11 +124,18 @@ class MapManager
         void LoadTransports();
         void LoadTransportNPCs();
 
+        //Load transport to instance
+        Transport* LoadTransportInMap(Map* instance, uint32 goEntry, uint32 period);
+        void UnLoadTransportFromMap(Transport* t);
+        void LoadTransportForPlayers(Player* player);
+        void UnLoadTransportForPlayers(Player* player);
+
         typedef std::set<Transport*> TransportSet;
         TransportSet m_Transports;
 
         typedef std::map<uint32, TransportSet> TransportMap;
         TransportMap m_TransportsByMap;
+        TransportMap m_TransportsByInstanceIdMap;
 
         bool CanPlayerEnter(uint32 mapid, Player* player, bool loginCheck = false);
         void InitializeVisibilityDistanceInfo();
