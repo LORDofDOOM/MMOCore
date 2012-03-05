@@ -1676,10 +1676,10 @@ bool WorldObject::canSeeOrDetect(WorldObject const* obj, bool ignoreStealth, boo
 
     if (obj->IsAlwaysVisibleFor(this) || CanAlwaysSee(obj))
         return true;
-		
-    if (ToPlayer())
-        if (ToPlayer()->IsSpectator() && GetMap()->IsBattleArena() && ToPlayer()->HasAura(8326)) // Prevent exploits
-            return true;
+
+   if (ToPlayer())
+       if (ToPlayer()->IsSpectator() && GetMap()->IsBattleArena() && ToPlayer()->HasAura(8326)) // Prevent exploits
+           return true;	
 
     bool corpseCheck = false;
     bool corpseVisibility = false;
@@ -2459,19 +2459,11 @@ GameObject* WorldObject::FindNearestGameObject(uint32 entry, float range) const
 
 Player* WorldObject::FindNearestPlayer(float range, bool alive)
 {
-   Player* player = NULL;
-   Trinity::AnyPlayerInObjectRangeCheck checker(this, range, alive);
-   Trinity::PlayerSearcher<Trinity::AnyPlayerInObjectRangeCheck> searcher(this, player, checker);
-   VisitNearbyWorldObject(range, searcher);
-   return player;
-}
-
-std::list<Player*> WorldObject::GetNearestPlayersList(float range, bool alive) {
-   std::list<Player*> players;
-   Trinity::AnyPlayerInObjectRangeCheck checker(this, range, alive);
-   Trinity::PlayerListSearcher<Trinity::AnyPlayerInObjectRangeCheck> searcher(this, players, checker);
-   VisitNearbyWorldObject(range, searcher);
-   return players;
+  Player* player = NULL;
+  Trinity::AnyPlayerInObjectRangeCheck check(this, GetVisibilityRange());
+  Trinity::PlayerSearcher<Trinity::AnyPlayerInObjectRangeCheck> searcher(this, player, check);
+  VisitNearbyWorldObject(range, searcher);
+  return player;
 }
 
 void WorldObject::GetGameObjectListWithEntryInGrid(std::list<GameObject*>& gameobjectList, uint32 entry, float maxSearchRange) const
