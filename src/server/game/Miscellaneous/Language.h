@@ -723,7 +723,6 @@ enum TrinityStrings
     LANG_BG_WG_ENABLE                   = 770,
     LANG_BG_WG_RANK1                    = 771,
     LANG_BG_WG_RANK2                    = 772,
-
     LANG_BG_WG_WORLD_ANNOUNCE_30        = 780,
     LANG_BG_WG_WORLD_ANNOUNCE_10        = 781,
     LANG_BG_WG_WORLD_NO_DEF             = 782,
@@ -835,7 +834,9 @@ enum TrinityStrings
     LANG_MOVEGENS_FOLLOW_CREATURE       = 1140,
     LANG_MOVEGENS_FOLLOW_NULL           = 1141,
     LANG_MOVEGENS_EFFECT                = 1142,
-    // Room for more level 3              1143-1199 not used
+    LANG_MOVEFLAGS_GET                  = 1143,
+    LANG_MOVEFLAGS_SET                  = 1144,
+    // Room for more level 3              1144-1199 not used
 
     // Debug commands
     LANG_CINEMATIC_NOT_EXIST            = 1200,

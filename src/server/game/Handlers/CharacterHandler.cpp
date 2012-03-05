@@ -44,7 +44,6 @@
 #include "Battleground.h"
 #include "AccountMgr.h"
 #include "LFGMgr.h"
-
 #include "OutdoorPvPWG.h"
 #include "OutdoorPvPMgr.h"
 
@@ -930,10 +929,10 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     //sLog->outDebug("Player %s added to Map.", pCurrChar->GetName());
 
     //Send WG timer to player at login 
-	if (sWorld->getBoolConfig(CONFIG_OUTDOORPVP_WINTERGRASP_ENABLED))
-	{
-	    if (OutdoorPvPWG *pvpWG = (OutdoorPvPWG*)sOutdoorPvPMgr->GetOutdoorPvPToZoneId(4197))
-	    {
+    if (sWorld->getBoolConfig(CONFIG_OUTDOORPVP_WINTERGRASP_ENABLED))
+    {
+        if (OutdoorPvPWG *pvpWG = (OutdoorPvPWG*)sOutdoorPvPMgr->GetOutdoorPvPToZoneId(4197))
+        {
             if (pvpWG->isWarTime()) // "Battle in progress"
             {
                 pCurrChar->SendUpdateWorldState(ClockWorldState[1], uint32(time(NULL)));
@@ -943,8 +942,8 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
                 pvpWG->SendInitWorldStatesTo(pCurrChar);
                 pCurrChar->SendUpdateWorldState(ClockWorldState[1], uint32(time(NULL) + pvpWG->GetTimer()));
             }
-	    }
-	}
+        }
+    }
 
     pCurrChar->SendInitialPacketsAfterAddToMap();
 
