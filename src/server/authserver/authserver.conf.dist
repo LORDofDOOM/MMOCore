@@ -201,7 +201,7 @@ RealmsStateUpdateDelay = 20
 #        Default:     0  - (Disabled)
 #                     1+ - (Enabled)
 
-WrongPass.MaxCount = 0
+WrongPass.MaxCount = 10
 
 #
 #    WrongPass.BanTime
