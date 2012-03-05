@@ -65,9 +65,6 @@ Transport* MapManager::LoadTransportInMap(Map* instance, uint32 goEntry, uint32 
     t->SetMap(instance);
     t->AddToWorld();
 
-    // Spameando la nave quieta
-    t->BuildWaitMovePacket(instance);
-
     sLog->outDetail("Creando el transporte <---");
 
     return t;
@@ -116,7 +113,8 @@ void MapManager::LoadTransportForPlayers(Player* player)
 
     for (MapManager::TransportSet::const_iterator i = tset.begin(); i != tset.end(); ++i)
     {
-        (*i)->BuildCreateUpdateBlockForPlayer(&transData, player);
+        (*i)->m_WayPoints.clear();
+	(*i)->BuildCreateUpdateBlockForPlayer(&transData, player);
         sLog->outDetail("Cargando el transporte <---> Aqui hasta el de TransportSet");
     }
 
@@ -350,7 +348,7 @@ bool Transport::Create(uint32 guidlow, uint32 entry, uint32 mapid, float x, floa
     SetUInt32Value(GAMEOBJECT_LEVEL, m_period);
     SetEntry(goinfo->entry);
 
-    SetUInt32Value(GAMEOBJECT_DISPLAYID, goinfo->displayId);
+    SetDisplayId(goinfo->displayId);
 
     SetGoState(GO_STATE_READY);
     SetGoType(GameobjectTypes(goinfo->type));
@@ -624,7 +622,7 @@ void Transport::TeleportTransport(uint32 newMapid, float x, float y, float z)
     ResetMap();
     Map* newMap = sMapMgr->CreateBaseMap(newMapid);
     SetMap(newMap);
-    ASSERT (GetMap());
+    ASSERT(GetMap());
     AddToWorld();
 
     if (oldMap != newMap)
@@ -657,6 +655,7 @@ bool Transport::RemovePassenger(Player* passenger)
 
 void Transport::Update(uint32 p_diff)
 {
+    UpdatePlayerPositions();
     if (!AI())
     {
         if (!AIM_Initialize())
@@ -686,8 +685,8 @@ void Transport::Update(uint32 p_diff)
         {
             Relocate(m_curr->second.x, m_curr->second.y, m_curr->second.z, GetAngle(m_next->second.x, m_next->second.y) + float(M_PI));
             UpdateNPCPositions(); // COME BACK MARKER
-            // Esto obliga al server a actualizar posiciones en el transporte para players
-            UpdatePlayerPositions();
+	    // Esto obliga al server a actualizar posiciones en el transporte para players
+	    UpdatePlayerPositions();
         }
 
         sScriptMgr->OnRelocate(this, m_curr->first, m_curr->second.mapid, m_curr->second.x, m_curr->second.y, m_curr->second.z);
@@ -762,7 +761,6 @@ void Transport::BuildWaitMovePacket(Map const* targetMap)
 
 void Transport::BuildStopMovePacket(Map const* targetMap)
 {
-    RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
     SetGoState(GO_STATE_READY);
     UpdateForMap(targetMap);
 }

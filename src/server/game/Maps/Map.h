@@ -250,6 +250,7 @@ class Map : public GridRefManager<NGridType>
         }
 
         virtual bool AddPlayerToMap(Player*);
+        void SendInitTransportsInInstance(Player* player);
         virtual void RemovePlayerFromMap(Player*, bool);
         template<class T> bool AddToMap(T *);
         template<class T> void RemoveFromMap(T *, bool);

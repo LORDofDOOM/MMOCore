@@ -1605,8 +1605,17 @@ float Map::GetHeight(float x, float y, float z, bool checkVMap /*= true*/, float
         else
             return vmapHeight;                              // we have only vmapHeight (if have)
     }
+    else
+    {
+        if (!checkVMap)
+            return mapHeight;                               // explicitly use map data (if have)
+        else if (mapHeight > INVALID_HEIGHT && (z < mapHeight + 2 || z == MAX_HEIGHT))
+            return mapHeight;                               // explicitly use map data if original z < mapHeight but map found (z+2 > mapHeight)
+        else
+            return VMAP_INVALID_HEIGHT_VALUE;               // we not have any height
+    }
 
-    return mapHeight;                               // explicitly use map data
+    //return mapHeight;                               // explicitly use map data
 }
 
 inline bool IsOutdoorWMO(uint32 mogpFlags, int32 /*adtId*/, int32 /*rootId*/, int32 /*groupId*/, WMOAreaTableEntry const* wmoEntry, AreaTableEntry const* atEntry)
@@ -2221,9 +2230,8 @@ bool InstanceMap::CanEnter(Player* player)
 {
     if (player->GetMapRef().getTarget() == this)
     {
-        sLog->outError("InstanceMap::CanEnter - player %s(%u) already in map %d,%d,%d!", player->GetName(), player->GetGUIDLow(), GetId(), GetInstanceId(), GetSpawnMode());
-        //ASSERT(false);
-        player->RepopAtGraveyard();
+        sLog->outError("InstanceMap::CanEnter - player %s(%u) already in map %d, %d, %d!", player->GetName(), player->GetGUIDLow(), GetId(), GetInstanceId(), GetSpawnMode());
+        ASSERT(false);
         return false;
     }
 
