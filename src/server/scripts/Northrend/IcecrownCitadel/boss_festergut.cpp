@@ -129,6 +129,10 @@ class boss_festergut : public CreatureScript
 
             void JustDied(Unit* /*killer*/)
             {
+                // Remove Gastric Bloat on all players
+                if (instance)
+                    instance->DoRemoveAurasDueToSpellOnPlayers(RAID_MODE(72219, 72551, 72552, 72553));
+
                 _JustDied();
                 Talk(SAY_DEATH);
                 if (Creature* professor = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PROFESSOR_PUTRICIDE)))
