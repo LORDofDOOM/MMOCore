@@ -104,7 +104,7 @@ enum Spells
 
 /* ------------- Algunas spells de Adds -------------- */
     // Kor'kron Battle-mage & Skybreaker Sorcerer
-    SPELL_BELOW_ZERO                  = 69705,
+    SPELL_BELOW_ZERO                  = 71371,
     SPELL_SHADOW_CHANNELING           = 45104,
 
     // Experience spells
