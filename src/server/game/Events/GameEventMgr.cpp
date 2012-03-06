@@ -30,6 +30,8 @@
 #include "UnitAI.h"
 #include "GameObjectAI.h"
 
+#include "TriniChat/IRCClient.h"
+
 bool GameEventMgr::CheckOneGameEvent(uint16 entry) const
 {
     switch (mGameEvent[entry].state)
@@ -1135,6 +1137,14 @@ void GameEventMgr::ApplyNewEvent(uint16 event_id)
             break;
         case 1:                                             // announce events
             sWorld->SendWorldText(LANG_EVENTMESSAGE, mGameEvent[event_id].description.c_str());
+			
+			if((sIRC.BOTMASK & 256) != 0)
+			{
+			   std::string ircchan = "#";
+			   ircchan += sIRC._irc_chan[sIRC.anchn].c_str();
+			   sIRC.Send_IRC_Channel(ircchan, sIRC.MakeMsg("\00304,08\037/!\\\037\017\00304 Game Event \00304,08\037/!\\\037\017 %s", "%s", mGameEvent[event_id].description.c_str()), true);
+			}
+		   
             break;
     }
 

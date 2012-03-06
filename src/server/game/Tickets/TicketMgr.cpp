@@ -25,6 +25,8 @@
 #include "Chat.h"
 #include "World.h"
 
+#include "TriniChat/IRCClient.h"
+
 inline float GetAge(uint64 t) { return float(time(NULL) - t) / DAY; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,6 +99,122 @@ void GmTicket::SaveToDB(SQLTransaction& trans) const
     stmt->setUInt8 (++index, uint8(_escalatedStatus));
     stmt->setBool  (++index, _viewed);
 
+    char dest[20];
+   std::string ticketstatusmsg;
+
+   uint32 countOpen = sTicketMgr->GetOpenTicketCount();
+
+   if (countOpen > 1)
+   {
+       ticketstatusmsg += "PRIVMSG ChanServ TOPIC #wowticket ";
+       ticketstatusmsg += "\x03";
+       ticketstatusmsg += "4 ";
+       sprintf(dest, "%d", countOpen);
+       ticketstatusmsg += dest;
+       ticketstatusmsg += " Tickets sind noch offen!";
+       sIRC.SendIRC(ticketstatusmsg);
+   }
+   else if (countOpen == 1)
+   {
+       ticketstatusmsg += "PRIVMSG ChanServ TOPIC #wowticket ";
+       ticketstatusmsg += "\x03";
+       ticketstatusmsg += "4 ";
+       ticketstatusmsg += "1 Ticket ist noch offen!";
+       sIRC.SendIRC(ticketstatusmsg);
+   }
+   else if (countOpen == 0)
+   {
+       ticketstatusmsg += "PRIVMSG ChanServ TOPIC #wowticket ";
+       ticketstatusmsg += "\x03";
+       ticketstatusmsg += "4";
+       ticketstatusmsg += "Es sind keine Tickets mehr offen!";
+       sIRC.SendIRC(ticketstatusmsg);
+   }
+
+   std::string infomsg;
+
+   if (GUID_LOPART(_closedBy))
+   {
+       infomsg += "PRIVMSG #wowticket ";
+       infomsg += "\x03";
+       infomsg += "4Ticket mit ID ";
+       sprintf(dest, "%d", _id);
+       infomsg += dest;
+       infomsg += " von Player ";
+       infomsg += _playerName;
+       infomsg += " (GUID: ";
+       sprintf(dest, "%d", GUID_LOPART(_playerGuid));
+       infomsg += dest;
+       infomsg += ") wurde von Player-GUID: ";
+       sprintf(dest, "%d", GUID_LOPART(_closedBy));
+       infomsg += dest;
+       infomsg += " geschlossen!";
+       sIRC.SendIRC(infomsg);
+   }
+   else
+   {
+       infomsg += "PRIVMSG #wowticket ";
+       infomsg += "\x03";
+       infomsg += "4Player: ";
+       infomsg += _playerName;
+       infomsg += ", Player GUID: ";
+       sprintf(dest, "%d", GUID_LOPART(_playerGuid));
+       infomsg += dest;
+       infomsg += ", Ticket GUID: ";
+       sprintf(dest, "%d", _id);
+       infomsg += dest;
+       infomsg += "; ";
+       infomsg += "\x03";
+       infomsg += "1Map: ";
+       sprintf(dest, "%d", _mapId);
+       infomsg += dest;
+       infomsg += "; X: ";
+       sprintf(dest, "%f", _posX);
+       infomsg += dest;
+       infomsg += "; Y: ";
+       sprintf(dest, "%f", _posY);
+       infomsg += dest;
+       infomsg += "; Z: ";
+       sprintf(dest, "%f", _posZ);
+       infomsg += dest;
+       infomsg += "; GM GUID: ";
+       sprintf(dest, "%d", GUID_LOPART(_assignedTo));
+       infomsg += dest;
+       infomsg += "; CLOSED: ";
+       sprintf(dest, "%d", GUID_LOPART(_closedBy));
+       infomsg += dest;
+       sIRC.SendIRC(infomsg);
+
+       if (_message.length() > 220)
+       {
+           std::string msgpart1;
+           std::string msg1;
+           msgpart1.insert(0, _message, 0, 220);
+           msg1 += "PRIVMSG #wowticket ";
+           msg1 += msgpart1;
+           std::replace( msg1.begin(), msg1.end(), '\n', ' ');
+           sIRC.SendIRC(msg1);
+
+           std::string msgpart2;
+           std::string msg2;
+           msgpart2.insert(0, _message, 220, _message.length() - 220);
+           msg2 += "PRIVMSG #wowticket ";
+           msg2 += msgpart2;
+           std::replace( msg2.begin(), msg2.end(), '\n', ' ');
+           sIRC.SendIRC(msg2);
+       }
+       else
+       {
+           std::string msgpart1;
+           std::string msg1;
+           msgpart1.insert(0, _message, 0, _message.length());
+           msg1 += "PRIVMSG #wowticket ";
+           msg1 += msgpart1;
+           std::replace( msg1.begin(), msg1.end(), '\n', ' ');
+           sIRC.SendIRC(msg1);
+       }
+   }	
+	
     CharacterDatabase.ExecuteOrAppend(trans, stmt);
 }
 

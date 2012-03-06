@@ -25,6 +25,8 @@
 #include "Log.h"
 #include "Group.h"
 
+#include "TriniChat/IRCClient.h"
+
 /*********************************************************/
 /***            BATTLEGROUND QUEUE SYSTEM              ***/
 /*********************************************************/
@@ -157,7 +159,29 @@ GroupQueueInfo* BattlegroundQueue::AddGroup(Player* leader, Group* grp, Battlegr
     sLog->outDebug(LOG_FILTER_BATTLEGROUND, "Adding Group to BattlegroundQueue bgTypeId : %u, bracket_id : %u, index : %u", BgTypeId, bracketId, index);
 
     uint32 lastOnlineTime = getMSTime();
+	
+    if (isRated)
+   {
+       if (ArenaTeam* Team = sArenaTeamMgr->GetArenaTeamById(arenateamid))
+       {
+           // irc announce anytime
+           std::string arenamsg;
+           char arenatmp[16];
 
+           arenamsg = "PRIVMSG #wowarena Team ";
+           arenamsg += Team->GetName().c_str();
+           arenamsg += " (Rating:";
+           sprintf(arenatmp, "%u", ginfo->ArenaTeamRating);
+           arenamsg += arenatmp;
+           arenamsg += ", Typ:";
+           sprintf(arenatmp, "%u", ginfo->ArenaType);
+           arenamsg += arenatmp;
+           arenamsg += "s) joined arena queue.";
+
+           sIRC.SendIRC(arenamsg);
+       }
+   }
+   
     //announce world (this don't need mutex)
     if (isRated && sWorld->getBoolConfig(CONFIG_ARENA_QUEUE_ANNOUNCER_ENABLE))
     {
@@ -358,6 +382,28 @@ void BattlegroundQueue::RemovePlayer(uint64 guid, bool decreaseInvitedCount)
         if (Team && decreaseInvitedCount)
             sWorld->SendWorldText(LANG_ARENA_QUEUE_ANNOUNCE_WORLD_EXIT, Team->GetName().c_str(), group->ArenaType, group->ArenaType/*, group->ArenaTeamRating*/);
     }
+
+    if (group->ArenaType && group->IsRated && group->Players.empty())
+   {
+       if (ArenaTeam* Team = sArenaTeamMgr->GetArenaTeamById(group->ArenaTeamId))
+       {
+           // irc announce anytime
+           std::string arenamsg;
+           char arenatmp[16];
+
+           arenamsg = "PRIVMSG #wowarena Team ";
+           arenamsg += Team->GetName().c_str();
+           arenamsg += " (Rating:";
+           sprintf(arenatmp, "%u", group->ArenaTeamRating);
+           arenamsg += arenatmp;
+           arenamsg += ", Typ:";
+           sprintf(arenatmp, "%u", group->ArenaType);
+           arenamsg += arenatmp;
+           arenamsg += "s) left arena queue.";
+
+           sIRC.SendIRC(arenamsg);
+       }
+   }	
 	
     // if player leaves queue and he is invited to rated arena match, then he have to lose
     if (group->IsInvitedToBGInstanceGUID && group->IsRated && decreaseInvitedCount)

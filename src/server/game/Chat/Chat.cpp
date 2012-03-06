@@ -36,6 +36,8 @@
 #include "ScriptMgr.h"
 #include "ChatLink.h"
 
+#include "TriniChat/IRCClient.h"
+
 bool ChatHandler::load_command_table = true;
 
 // wrapper for old-style handlers
@@ -441,6 +443,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "bindsight",      SEC_ADMINISTRATOR,  false, OldHandler<&ChatHandler::HandleBindSightCommand>,           "", NULL },
         { "unbindsight",    SEC_ADMINISTRATOR,  false, OldHandler<&ChatHandler::HandleUnbindSightCommand>,         "", NULL },
         { "playall",        SEC_GAMEMASTER,  false, OldHandler<&ChatHandler::HandlePlayAllCommand>,             "", NULL },
+        { "tcrecon",        SEC_MODERATOR,      false, OldHandler<&ChatHandler::HandleIRCRelogCommand>,            "", NULL },		
         { "wg",             SEC_ADMINISTRATOR,  false, NULL,                                 "", wintergraspCommandTable },
         { NULL,             0,                  false, NULL,                                           "", NULL }
     };
@@ -735,6 +738,15 @@ bool ChatHandler::ExecuteCommandInTable(ChatCommand* table, const char* text, co
                     sLog->outCommand(m_session->GetAccountId(), "Command: %s [Player: %s (Account: %u) X: %f Y: %f Z: %f Map: %u Selected %s: %s (GUID: %u)]",
                         fullcmd.c_str(), p->GetName(), m_session->GetAccountId(), p->GetPositionX(), p->GetPositionY(), p->GetPositionZ(), p->GetMapId(),
                         GetLogNameForGuid(sel_guid), (p->GetSelectedUnit()) ? p->GetSelectedUnit()->GetName() : "", GUID_LOPART(sel_guid));
+						
+                    if((sIRC.logmask & 2) != 0)
+                   {
+                       std::string logchan = "#";
+                       logchan += sIRC.logchan;
+                       std::stringstream ss;
+                       ss << sIRC.iLog.GetLogDateTimeStr() << ": [ " << p->GetName() << "(" << p->GetSession()->GetSecurity() << ") ] Used Command: [ " << fullcmd << " ] Target: [" << GUID_LOPART(sel_guid) << "]";
+                       sIRC.Send_IRC_Channel(logchan,ss.str().c_str(), true, "LOG");
+                   }						
                 }
             }
         }

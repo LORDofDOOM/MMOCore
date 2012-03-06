@@ -44,6 +44,8 @@
 #include "OutdoorPvPMgr.h"
 #include "OutdoorPvPWG.h"
 
+#include "TriniChat/IRCClient.h"
+
 //mute player for some times
 bool ChatHandler::HandleMuteCommand(const char* args)
 {
@@ -1298,4 +1300,22 @@ bool ChatHandler::HandleCharacterTitlesCommand(const char* args)
         }
     }
     return true;
+}
+
+bool ChatHandler::HandleIRCpmCommand(const char* args)
+{
+   std::string Msg = args;
+   if (Msg.find(" ") == std::string::npos)
+       return false;
+   std::string To = Msg.substr(0, Msg.find(" "));
+   Msg = Msg.substr(Msg.find(" ") + 1);
+   std::size_t pos;
+   while((pos = To.find("||")) != std::string::npos)
+   {
+       std::size_t find1 = To.find("||", pos);
+       To.replace(pos, find1 - pos + 2, "|");
+   }
+   sIRC.SendIRC("PRIVMSG "+To+" : <WoW>["+m_session->GetPlayerName()+"] : " + Msg);
+   sIRC.Send_WoW_Player(m_session->GetPlayer(), "|cffCC4ACCTo ["+To+"]: "+Msg);
+   return true;
 }

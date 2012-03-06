@@ -41,6 +41,8 @@
 #include "ScriptMgr.h"
 #include "AccountMgr.h"
 
+#include "TriniChat/IRCClient.h"
+
 bool WorldSession::processChatmessageFurtherAfterSecurityChecks(std::string& msg, uint32 lang)
 {
     if (lang != LANG_ADDON)
@@ -442,7 +444,12 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
                     return;
                 }
             }
+			
+            if (msg.empty())
+               break;
 
+           sIRC.Send_WoW_IRC(_player, channel, msg);
+		   
             if (ChannelMgr* cMgr = channelMgr(_player->GetTeam()))
             {
 

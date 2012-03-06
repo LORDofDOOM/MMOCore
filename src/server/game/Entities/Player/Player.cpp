@@ -77,6 +77,8 @@
 #include <cmath>
 #include "AccountMgr.h"
 
+#include "TriniChat/IRCClient.h"
+
 #define ZONE_UPDATE_INTERVAL (1*IN_MILLISECONDS)
 
 #define PLAYER_SKILL_INDEX(x)       (PLAYER_SKILL_INFO_1_1 + ((x)*3))
@@ -2428,6 +2430,16 @@ void Player::AddToWorld()
     for (uint8 i = PLAYER_SLOT_START; i < PLAYER_SLOT_END; ++i)
         if (m_items[i])
             m_items[i]->AddToWorld();
+			
+    //TODO: FIXME
+   if(sIRC.ajoin == 1)
+   {
+       QueryResult result = WorldDatabase.PQuery("SELECT `name` FROM `irc_inchan` WHERE `name` = '%s'", Unit::GetName() );
+       if(!result)
+       {
+           sIRC.AutoJoinChannel(this);
+       }
+   }			
 }
 
 void Player::RemoveFromWorld()
@@ -3077,6 +3089,17 @@ void Player::GiveLevel(uint8 level)
     InitTalentForLevel();
     InitTaxiNodesForLevel();
     InitGlyphsForLevel();
+	
+    if((sIRC.BOTMASK & 64) != 0)
+   {
+       char  temp [5];
+       sprintf(temp, "%u", getLevel());
+       std::string plevel = temp;
+       std::string pname = GetName();
+       std::string ircchan = "#";
+       ircchan += sIRC._irc_chan[sIRC.Status].c_str();
+       sIRC.Send_IRC_Channel(ircchan, "\00311["+pname+"] : Has Reached Level: "+plevel, true);
+   }	
 
     UpdateAllStats();
 

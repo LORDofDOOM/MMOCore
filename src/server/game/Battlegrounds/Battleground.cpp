@@ -36,6 +36,8 @@
 #include "SpellAuraEffects.h"
 #include "Util.h"
 
+#include "TriniChat/IRCClient.h"
+
 namespace Trinity
 {
     class BattlegroundChatBuilder
@@ -1132,7 +1134,28 @@ void Battleground::StartBattleground()
     // and it doesn't matter if we call StartBattleground() more times, because m_Battlegrounds is a map and instance id never changes
     sBattlegroundMgr->AddBattleground(GetInstanceID(), GetTypeID(), this);
     if (m_IsRated)
+    {
+       // irc announce
+       std::string arenamsg;
+       char arenatmp[16];
+
+       arenamsg = "PRIVMSG #wowarena ";
+       arenamsg += "Arena match type: ";
+       sprintf(arenatmp, "%d", m_ArenaType);
+       arenamsg += arenatmp;
+       arenamsg += "for Team1Id: ";
+       sprintf(arenatmp, "%d", m_ArenaTeamIds[BG_TEAM_ALLIANCE]);
+       arenamsg += arenatmp;
+       arenamsg += " - Team2Id: ";
+       sprintf(arenatmp, "%d", m_ArenaTeamIds[BG_TEAM_HORDE]);
+       arenamsg += arenatmp;
+       arenamsg += " started.";
+
+       sIRC.SendIRC(arenamsg);
+
+       // arena log output	
         sLog->outArena("Arena match type: %u for Team1Id: %u - Team2Id: %u started.", m_ArenaType, m_ArenaTeamIds[BG_TEAM_ALLIANCE], m_ArenaTeamIds[BG_TEAM_HORDE]);
+    }		
 }
 
 void Battleground::AddPlayer(Player* player)

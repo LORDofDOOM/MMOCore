@@ -377,6 +377,10 @@ class ChatHandler
         bool HandleWintergraspEnableCommand(const char *args);
         bool HandleWintergraspSwitchTeamCommand(const char *args);
         bool HandleWintergraspTimerCommand(const char *args);
+		
+		// Custom irc commands
+		bool HandleIRCRelogCommand(const char *args);
+		bool HandleIRCpmCommand(const char* args);		
 
         // Stores informations about a deleted character
         struct DeletedInfo
@@ -423,5 +427,7 @@ class CliHandler : public ChatHandler
         void* m_callbackArg;
         Print* m_print;
 };
+
+char const *fmtstring(char const *format, ...);
 
 #endif
