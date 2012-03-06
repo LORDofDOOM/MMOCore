@@ -3346,7 +3346,14 @@ pryds_AllInOneSkillPoints = 5
 ###################################################################################################
 # Automatic account deletion 
 ###################################################################################################
-# Automatic deletion for inactive accounts
+# Accounts.AutoDeleteIntervalEnable
+#
+# Enable Automatic deletion for inactive accounts
+# Default: 0 - Disable
+#          1 - Enable
+
+Accounts.AutoDeleteIntervalEnable = 0
+
 # Value specifies MONTHs of inactivity
 #
 # Default value: 6

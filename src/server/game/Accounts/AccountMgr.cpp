@@ -268,12 +268,14 @@ bool IsConsoleAccount(uint32 gmlevel)
 void DeleteInactiveAccounts()
 {
    // Get information from config
-   int32 autoDeleteIntervalMonths = ConfigMgr::GetIntDefault("Accounts.AutoDeleteIntervalMonths", 4);
+   int32 autoDeleteIntervalEnable = ConfigMgr::GetIntDefault("Accounts.AutoDeleteIntervalEnable", 0);   
+   int32 autoDeleteIntervalMonths = ConfigMgr::GetIntDefault("Accounts.AutoDeleteIntervalMonths", 6);
 
    // Hard lock - value may never be <= 0
    if (autoDeleteIntervalMonths <= 0)
-       autoDeleteIntervalMonths = 24;
+       autoDeleteIntervalMonths = 6;
 
+	if (autoDeleteIntervalEnable == 1) {
    // Query database
    QueryResult result = LoginDatabase.PQuery("SELECT id, username FROM account WHERE (UNIX_TIMESTAMP() - UNIX_TIMESTAMP(last_login)) > (%u * 31 * 24 * 3600)", autoDeleteIntervalMonths);
 
@@ -301,6 +303,10 @@ void DeleteInactiveAccounts()
            DeleteAccount(accountId);
 
        } while (result->NextRow());
+   }
+   }
+   else {
+	sLog->outString("Automatic account deletion is disabled");
    }
 }
 
