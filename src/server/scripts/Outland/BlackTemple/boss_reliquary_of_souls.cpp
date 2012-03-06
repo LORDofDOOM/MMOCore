@@ -180,6 +180,21 @@ public:
             me->RemoveAurasDueToSpell(SPELL_SUBMERGE);
         }
 
+        void MoveInLineOfSight(Unit *who)
+        {
+            if (!who)
+                return;
+
+            if (me->isInCombat())
+                return;
+
+            if (who->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            if (me->Attack(who, true))
+                DoStartNoMovement(who);
+        }
+
         void EnterCombat(Unit* who)
         {
             me->AddThreat(who, 10000.0f);
@@ -203,6 +218,7 @@ public:
             {
                 CAST_AI(npc_enslaved_soul::npc_enslaved_soulAI, Soul->AI())->ReliquaryGUID = me->GetGUID();
                 Soul->AI()->AttackStart(target);
+                DoZoneInCombat(Soul);
             } else EnterEvadeMode();
             return true;
         }
@@ -260,14 +276,14 @@ public:
                 {
                 case 0:
                     me->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_READY2H);  // I R ANNNGRRRY!
-                    DoStartNoMovement(me);
+                    // DoStartNoMovement(me);
                     Timer = 3000;
                     break;
                 case 1:
                     Timer = 2800;
                     me->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_ONESHOT_SUBMERGE);  // Release the cube
                     DoCast(me, SPELL_SUBMERGE);
-                    DoStartNoMovement(me);
+                    // DoStartNoMovement(me);
                     break;
                 case 2:
                     Timer = 5000;
@@ -275,8 +291,9 @@ public:
                     {
                         me->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_SUBMERGED);  // Ribs: open
                         Summon->AI()->AttackStart(SelectTarget(SELECT_TARGET_TOPAGGRO, 0));
+                        DoZoneInCombat(Summon);
                         EssenceGUID = Summon->GetGUID();
-                        DoStartNoMovement(me);
+                        // DoStartNoMovement(me);
                     } else EnterEvadeMode();
                     break;
                 case 3:
@@ -294,7 +311,7 @@ public:
                             MergeThreatList(Essence);
                             Essence->RemoveAllAuras();
                             Essence->DeleteThreatList();
-                            Essence->GetMotionMaster()->MoveFollow(me, 0.0f, 0.0f);
+                            Essence->GetMotionMaster()->MovePoint(0, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ());
                         } else return;
                     }
                     break;
@@ -311,7 +328,7 @@ public:
                         MergeThreatList(Essence);
                         Essence->RemoveAllAuras();
                         Essence->DeleteThreatList();
-                        Essence->GetMotionMaster()->MoveFollow(me, 0, 0);
+                        Essence->GetMotionMaster()->MovePoint(0, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ());
                         return;
                     }
                     break;
@@ -409,6 +426,19 @@ public:
                 me->Yell(SUFF_SAY_RECAP, LANG_UNIVERSAL, 0);
                 DoScriptText(SUFF_SAY_RECAP, me);
             }
+        }
+
+        void MoveInLineOfSight(Unit *who)
+        {
+            if (!who)
+                return;
+
+            // We are moving towards reliquary, do not start new attacks here anymore
+            if (me->GetMotionMaster())
+                if (me->GetMotionMaster()->GetCurrentMovementGeneratorType() == POINT_MOTION_TYPE)
+                    return;
+
+            CreatureAI::MoveInLineOfSight(who);
         }
 
         void EnterCombat(Unit* /*who*/)
@@ -546,6 +576,19 @@ public:
                             me->InterruptSpell(CURRENT_GENERIC_SPELL, false);
         }
 
+        void MoveInLineOfSight(Unit *who)
+        {
+            if (!who)
+                return;
+
+            // We are moving towards reliquary, do not start new attacks here anymore
+            if (me->GetMotionMaster())
+                if (me->GetMotionMaster()->GetCurrentMovementGeneratorType() == POINT_MOTION_TYPE)
+                    return;
+
+            CreatureAI::MoveInLineOfSight(who);
+        }
+
         void EnterCombat(Unit* /*who*/)
         {
             DoScriptText(DESI_SAY_FREED, me);
@@ -630,6 +673,19 @@ public:
             SpiteTargetGUID.clear();
 
             CheckedAggro = false;
+        }
+
+        void MoveInLineOfSight(Unit *who)
+        {
+            if (!who)
+                return;
+
+            // We are moving towards reliquary, do not start new attacks here anymore
+            if (me->GetMotionMaster())
+                if (me->GetMotionMaster()->GetCurrentMovementGeneratorType() == POINT_MOTION_TYPE)
+                    return;
+
+            CreatureAI::MoveInLineOfSight(who);
         }
 
         void EnterCombat(Unit* /*who*/)

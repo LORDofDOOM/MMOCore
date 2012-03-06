@@ -169,7 +169,7 @@ public:
                 if (unit && unit->isAlive() && (unit->GetTypeId() == TYPEID_PLAYER))
                 {
                     TargetGUID[i] = unit->GetGUID();
-                    unit->CastSpell(unit, SPELL_TELEPORT_VISUAL, true);
+                    // unit->CastSpell(unit, SPELL_TELEPORT_VISUAL, true);
                     DoTeleportPlayer(unit, X, Y, Z, unit->GetOrientation());
                 }
             }

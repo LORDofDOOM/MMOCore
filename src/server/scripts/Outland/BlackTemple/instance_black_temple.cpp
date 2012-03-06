@@ -254,10 +254,6 @@ public:
                 }
                 m_auiEncounter[4] = data; break;
             case DATA_RELIQUARYOFSOULSEVENT:
-                if (data == DONE)
-                {
-                    HandleGameObject(TempleDoor, true);
-                }
                 m_auiEncounter[5] = data;         break;
             case DATA_MOTHERSHAHRAZEVENT:
                 if (data == DONE)
@@ -277,6 +273,11 @@ public:
                 }
                 m_auiEncounter[7] = data; break;
             case DATA_ILLIDANSTORMRAGEEVENT:      m_auiEncounter[8] = data;         break;
+            }
+
+            if (m_auiEncounter[5] == DONE && m_auiEncounter[4] == DONE && m_auiEncounter[3] == DONE && m_auiEncounter[2] == DONE)
+            {
+                HandleGameObject(TempleDoor, true);
             }
 
             if (data == DONE)
