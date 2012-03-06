@@ -1260,7 +1260,7 @@ void AddNorthrendScripts()
     AddSC_icecrown_citadel_teleport();
     AddSC_instance_icecrown_citadel();
     AddSC_icecrown_citadel();
-    AddSC_icc_lower_spire_trash()	
+    AddSC_icc_lower_spire_trash();
 
     AddSC_dalaran();
     AddSC_borean_tundra();
