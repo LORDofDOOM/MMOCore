@@ -792,12 +792,12 @@ class npc_muradin_gunship : public CreatureScript
             {
                 if ((!player->GetGroup() || !player->GetGroup()->IsLeader(player->GetGUID())) && !player->isGameMaster())
                 {
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "No soy el lider de la banda...", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "You are not the Raidleader", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
                     player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, pCreature->GetGUID());
                     return true;
                 }
 
-                player->ADD_GOSSIP_ITEM(0, "Estamos todos preparados Muradin. Vamos!", 631, 1001);
+                player->ADD_GOSSIP_ITEM(0, "My companions are all accounted for, Muradin. Let's go", 631, 1001);
                 player->SEND_GOSSIP_MENU(player->GetGossipTextId(pCreature), pCreature->GetGUID());
                 return true;
             }
@@ -811,7 +811,7 @@ class npc_muradin_gunship : public CreatureScript
             player->CLOSE_GOSSIP_MENU();
 
             if (action == GOSSIP_ACTION_INFO_DEF+2)
-                pCreature->MonsterSay("Esperare al lider de la banda.", LANG_UNIVERSAL, player->GetGUID());
+                pCreature->MonsterSay("We are waiting for the Raidleader", LANG_UNIVERSAL, player->GetGUID());
 
             if (action == 1001)
             {
@@ -1213,12 +1213,12 @@ class npc_saurfang_gunship : public CreatureScript
             {
                 if ((!player->GetGroup() || !player->GetGroup()->IsLeader(player->GetGUID())) && !player->isGameMaster())
                 {
-                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Je ne suis pas le chef de raid...", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
+                    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "You are not the Raidleader", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
                     player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, pCreature->GetGUID());
                     return true;
                 }
 
-                player->ADD_GOSSIP_ITEM(0, "Mes compagnons sont tous present, Saurfang. Allons-y !", 631, 1001);
+                player->ADD_GOSSIP_ITEM(0, "My companions are all accounted for, Saurfang. Let's go!", 631, 1001);
                 player->SEND_GOSSIP_MENU(player->GetGossipTextId(pCreature), pCreature->GetGUID());
                 return true;
             }
@@ -1232,7 +1232,7 @@ class npc_saurfang_gunship : public CreatureScript
             player->CLOSE_GOSSIP_MENU();
 
             if (action == GOSSIP_ACTION_INFO_DEF+2)
-                pCreature->MonsterSay("Esperare al lider de la banda.", LANG_UNIVERSAL, player->GetGUID());
+                pCreature->MonsterSay("We are waiting for the Raidleader", LANG_UNIVERSAL, player->GetGUID());
 
             if (action == 1001)
             {
@@ -1953,7 +1953,7 @@ class npc_sergeant : public CreatureScript
                                         me->AI()->AttackStart(target);
                                         events.ScheduleEvent(EVENT_WOUNDING_STRIKE, 5000);
                                         events.ScheduleEvent(EVENT_BLADE_STORM, 3000);
-                                        sLog->outDetail("----> El sergeante HORDA esta atacando a %u <----",target->GetGUID());
+                                        sLog->outDetail("----> The Horde is attacking sergeante %u <----",target->GetGUID());
                                     }
                                 break;
                                 case NPC_GB_SKYBREAKER_SERGANTE:
@@ -1963,7 +1963,7 @@ class npc_sergeant : public CreatureScript
                                         me->AI()->AttackStart(target);
                                         events.ScheduleEvent(EVENT_WOUNDING_STRIKE, 5000);
                                         events.ScheduleEvent(EVENT_BLADE_STORM, 3000);
-                                        sLog->outDetail("----> El sergeante ALI esta atacando a %u <----",target->GetGUID());
+                                        sLog->outDetail("----> The Alliance is attacking sergeante %u <----",target->GetGUID());
                                     }
                                 break;
                             }
@@ -2090,7 +2090,7 @@ class npc_marine_or_reaver : public CreatureScript
                                     {
                                         me->GetMotionMaster()->MoveFollow(target, 0.0f, 0.0f);
                                         me->AI()->AttackStart(target);
-                                        sLog->outDetail("----> El sergeante HORDA esta atacando a %u <----",target->GetGUID());
+                                        sLog->outDetail("----> The Horde is attacking sergeante %u <----",target->GetGUID());
                                     }
                                 break;
                                 case NPC_GB_SKYBREAKER_MARINE:
@@ -2098,7 +2098,7 @@ class npc_marine_or_reaver : public CreatureScript
                                     {
                                         me->GetMotionMaster()->MoveFollow(target, 0.0f, 0.0f);
                                         me->AI()->AttackStart(target);
-                                        sLog->outDetail("----> El sergeante ALI esta atacando a %u <----",target->GetGUID());
+                                        sLog->outDetail("----> The Alliance is attacking sergeante %u <----",target->GetGUID());
                                     }
                                 break;
                             }
@@ -2425,7 +2425,7 @@ class npc_zafod_boombox : public CreatureScript
         {
             // Maybe this isn't blizzlike but I can't find any spell in the DBCs
             if (pPlayer->GetItemCount(49278, false) == 0)
-                pPlayer->ADD_GOSSIP_ITEM(0, "Si, estoy convencido que la seguridad es la prioridad. Entregame una Mochila Cohete.", 631, 1);
+                pPlayer->ADD_GOSSIP_ITEM(0, "Yes, I am convinced that security is the priority. Give me a Backpack Rocket", 631, 1);
             pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetGUID());
             return true;
         }
@@ -2440,7 +2440,7 @@ class npc_zafod_boombox : public CreatureScript
                 uint32 curItemCount = player->GetItemCount(49278, false);
                 if (curItemCount >= 1)
                 {
-                    pCreature->MonsterWhisper("Ya tienes la Mochila Cohete!", player->GetGUIDLow());
+                    pCreature->MonsterWhisper("You get the Rocket Backpack!", player->GetGUIDLow());
                     return false;
                 }
 
@@ -2453,7 +2453,7 @@ class npc_zafod_boombox : public CreatureScript
                 }
                 else
                 {
-                    pCreature->MonsterWhisper("No tienes suficiente espacio para entregarte la Mochila Cohete!", player->GetGUIDLow());
+                    pCreature->MonsterWhisper("You do not have enough room to give you the Rocket Backpack!", player->GetGUIDLow());
                     return false;
                 }
             }
@@ -3184,12 +3184,12 @@ class transport_gunship : public TransportScript
                 case GO_THE_SKYBREAKER_ALLIANCE_ICC:
                     player->RemoveAura(SPELL_ON_ORGRIMS_HAMMERS_DECK);
                     player->AddAura(SPELL_ON_SKYBREAKERS_DECK, player);
-                    sLog->outDetail("Nave ALI aplico el aura SKYBREAKERS_DECK al player %s <---", player->GetName());
+                    sLog->outDetail("The Alliance have applied the aura SKYBREAKERS_DECK to player %s <---", player->GetName());
                     break;
                 case GO_ORGRIM_S_HAMMER_HORDE_ICC:
                     player->RemoveAura(SPELL_ON_SKYBREAKERS_DECK);
                     player->AddAura(SPELL_ON_ORGRIMS_HAMMERS_DECK, player);
-                    sLog->outDetail("Nave HORDA aplico el aura ORGRIMS_HAMMERS_DECK al player %s <---", player->GetName());
+                    sLog->outDetail("The Horde have applied the aura ORGRIMS_HAMMERS_DECK to player %s <---", player->GetName());
                     break;
                 default:
                     break;
