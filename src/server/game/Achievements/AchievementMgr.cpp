@@ -461,6 +461,64 @@ void AchievementMgr::Reset()
     CheckAllAchievementCriteria();
 }
 
+void AchievementMgr::RemoveAchievement(AchievementEntry const* entry)
+{
+   if (entry)
+   {
+       if (entry->ID)
+       {
+           for (CompletedAchievementMap::const_iterator iter = m_completedAchievements.begin(); iter != m_completedAchievements.end();)
+           {
+               if (iter->first == entry->ID)
+               {
+                   WorldPacket data(SMSG_ACHIEVEMENT_DELETED,4);
+                   data << uint32(iter->first);
+                   m_player->SendDirectMessage(&data);
+                   iter = m_completedAchievements.erase(iter);
+               }
+               else
+                   ++iter;
+           }
+
+           AchievementCriteriaEntryList const* cList = sAchievementMgr->GetAchievementCriteriaByAchievement(entry->ID);
+
+           if (cList)
+           {
+               for (AchievementCriteriaEntryList::const_iterator itr = cList->begin(); itr != cList->end(); ++itr)
+               {
+                   AchievementCriteriaEntry const* criteria = *itr;
+
+                   if (criteria)
+                   {
+                       uint32 criteriaID = criteria->ID;
+
+                       if (criteriaID != 0)
+                       {
+                           for (CriteriaProgressMap::const_iterator iter = m_criteriaProgress.begin(); iter != m_criteriaProgress.end();)
+                           {
+                               if (iter->first == criteriaID)
+                               {
+                                   WorldPacket data(SMSG_CRITERIA_DELETED,4);
+                                   data << uint32(iter->first);
+                                   m_player->SendDirectMessage(&data);
+                                   iter = m_criteriaProgress.erase(iter);
+                               }
+                               else
+                                   ++iter;
+                           }
+                       }
+                   }
+               }
+           }
+
+           DeleteFromDB(m_player->GetGUIDLow(), entry->ID);
+
+           // re-fill data
+           CheckAllAchievementCriteria();
+       }
+   }
+}
+
 void AchievementMgr::ResetAchievementCriteria(AchievementCriteriaTypes type, uint32 miscvalue1, uint32 miscvalue2, bool evenIfCriteriaComplete)
 {
     sLog->outDebug(LOG_FILTER_ACHIEVEMENTSYS, "AchievementMgr::ResetAchievementCriteria(%u, %u, %u)", type, miscvalue1, miscvalue2);
@@ -493,11 +551,40 @@ void AchievementMgr::ResetAchievementCriteria(AchievementCriteriaTypes type, uin
     }
 }
 
-void AchievementMgr::DeleteFromDB(uint32 lowguid)
+void AchievementMgr::DeleteFromDB(uint32 lowguid, uint32 achievement)
 {
     SQLTransaction trans = CharacterDatabase.BeginTransaction();
-    trans->PAppend("DELETE FROM character_achievement WHERE guid = %u", lowguid);
-    trans->PAppend("DELETE FROM character_achievement_progress WHERE guid = %u", lowguid);
+
+   if (achievement == 0)
+   {
+       trans->PAppend("DELETE FROM character_achievement WHERE guid = %u", lowguid);
+       trans->PAppend("DELETE FROM character_achievement_progress WHERE guid = %u", lowguid);
+   }
+   else
+   {
+       trans->PAppend("DELETE FROM character_achievement WHERE guid = %u AND achievement = %u",lowguid, achievement);
+
+       AchievementCriteriaEntryList const* cList = sAchievementMgr->GetAchievementCriteriaByAchievement(achievement);
+
+       if (cList)
+       {
+           for (AchievementCriteriaEntryList::const_iterator itr = cList->begin(); itr != cList->end(); ++itr)
+           {
+               AchievementCriteriaEntry const* criteria = *itr;
+
+               if (criteria)
+               {
+                   uint32 criteriaID = criteria->ID;
+
+                   if (criteriaID != 0)
+                   {
+                       trans->PAppend("DELETE FROM character_achievement_progress WHERE guid = %u AND criteria = %u",lowguid, criteriaID);
+                   }
+               }
+           }
+       }
+   }
+
     CharacterDatabase.CommitTransaction(trans);
 }
 

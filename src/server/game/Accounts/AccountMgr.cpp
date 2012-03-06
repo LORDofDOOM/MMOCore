@@ -265,4 +265,43 @@ bool IsConsoleAccount(uint32 gmlevel)
     return gmlevel == SEC_CONSOLE;
 }
 
+void DeleteInactiveAccounts()
+{
+   // Get information from config
+   int32 autoDeleteIntervalMonths = ConfigMgr::GetIntDefault("Accounts.AutoDeleteIntervalMonths", 4);
+
+   // Hard lock - value may never be <= 0
+   if (autoDeleteIntervalMonths <= 0)
+       autoDeleteIntervalMonths = 6;
+
+   // Query database
+   QueryResult result = LoginDatabase.PQuery("SELECT id, username FROM account WHERE (UNIX_TIMESTAMP() - UNIX_TIMESTAMP(last_login)) > (%u * 31 * 24 * 3600)", autoDeleteIntervalMonths);
+
+   if (result)
+   {
+       do
+       {
+           // Initialize variables
+           uint32 accountId = 0;
+           std::string accountName = "";
+
+           // Try to get values from sql query
+           if (Field *fields = result->Fetch())
+           {
+               accountId = fields[0].GetUInt32();
+               accountName = fields[1].GetString();
+           }
+
+           // In error case, continue with next row
+           if (accountId == 0 || accountName == "")
+               continue;
+
+           // Output account deletion and delete
+           sLog->outString("Automatic account deletion: %s (%u)", accountName.c_str(), accountId);
+           DeleteAccount(accountId);
+
+       } while (result->NextRow());
+   }
+}
+
 } // Namespace AccountMgr

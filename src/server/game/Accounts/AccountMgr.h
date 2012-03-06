@@ -22,6 +22,8 @@
 #include "Define.h"
 #include <string>
 
+#include "Configuration/Config.h"
+
 enum AccountOpResult
 {
     AOR_OK,
@@ -57,6 +59,8 @@ namespace AccountMgr
         bool IsGMAccount(uint32 gmlevel);
         bool IsAdminAccount(uint32 gmlevel);
         bool IsConsoleAccount(uint32 gmlevel);
+		
+        void DeleteInactiveAccounts();		
 };
 
 #endif

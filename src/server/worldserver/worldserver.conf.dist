@@ -3342,3 +3342,13 @@ pryds_allinone.EnableGivemeGold = 1
 pryds_AllInOneBuffGoldCost = 20000
 pryds_AllInOneSkillGoldCost = 20000
 pryds_AllInOneSkillPoints = 5
+
+###################################################################################################
+# Automatic account deletion 
+###################################################################################################
+# Automatic deletion for inactive accounts
+# Value specifies MONTHs of inactivity
+#
+# Default value: 6
+
+Accounts.AutoDeleteIntervalMonths = 6
