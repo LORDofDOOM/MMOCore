@@ -4649,11 +4649,28 @@ SpellCastResult Spell::CheckCast(bool strict)
         }
     }
 
-    if (m_spellInfo->AttributesEx7 & SPELL_ATTR7_IS_CHEAT_SPELL && !m_caster->HasFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_ALLOW_CHEAT_SPELLS))
+    // Allow all cheat spells for creatures and gamemasters
+    if (m_spellInfo->AttributesEx7 & SPELL_ATTR7_IS_CHEAT_SPELL)
     {
-        m_customError = SPELL_CUSTOM_ERROR_GM_ONLY;
-        return SPELL_FAILED_CUSTOM_ERROR;
+        if (m_caster)
+        {
+            if (m_caster->GetTypeId() == TYPEID_PLAYER)
+            {
+                if (m_caster->ToPlayer())
+                {
+                    if (m_caster->ToPlayer()->GetSession())
+                    {
+                        if (m_caster->ToPlayer()->GetSession()->GetSecurity() == SEC_PLAYER)
+                        {
+                            m_customError = SPELL_CUSTOM_ERROR_GM_ONLY;
+                            return SPELL_FAILED_CUSTOM_ERROR;
+                        }
+                    }
+                }
+            }
+        }
     }
+
 
     // Check global cooldown
     if (strict && !(_triggeredCastFlags & TRIGGERED_IGNORE_GCD) && HasGlobalCooldown())
