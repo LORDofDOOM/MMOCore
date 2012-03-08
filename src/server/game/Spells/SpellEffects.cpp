@@ -6685,44 +6685,6 @@ void Spell::SummonGuardian(uint32 i, uint32 entry, SummonPropertiesEntry const* 
     }
 }
 
-void Spell::GetSummonPosition(uint32 i, Position &pos, float radius, uint32 count)
-{
-    pos.SetOrientation(m_caster->GetOrientation());
-
-    if (m_targets.HasDst())
-    {
-        // Summon 1 unit in dest location
-        if (count == 0)
-            pos.Relocate(*m_targets.GetDst());
-        // Summon in random point all other units if location present
-        else
-        {
-            //This is a workaround. Do not have time to write much about it
-            switch (m_spellInfo->Effects[i].TargetA.GetTarget())
-            {
-                case TARGET_DEST_CASTER_SUMMON:
-                case TARGET_DEST_CASTER_RANDOM:
-                    m_caster->GetNearPosition(pos, radius * (float)rand_norm(), (float)rand_norm()*static_cast<float>(2*M_PI));
-                    break;
-                case TARGET_DEST_DEST_RANDOM:
-                case TARGET_DEST_TARGET_RANDOM:
-                    m_caster->GetRandomPoint(*m_targets.GetDst(), radius, pos);
-                    break;
-                default:
-                    pos.Relocate(*m_targets.GetDst());
-                    break;
-            }
-        }
-    }
-    // Summon if dest location not present near caster
-    else
-    {
-        float x, y, z;
-        m_caster->GetClosePoint(x, y, z, 3.0f);
-        pos.Relocate(x, y, z);
-    }
-}
-
 void Spell::EffectRenamePet(SpellEffIndex /*effIndex*/)
 {
     if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
