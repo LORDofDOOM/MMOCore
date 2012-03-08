@@ -4,10 +4,10 @@ SET FOREIGN_KEY_CHECKS=0;
 -- ----------------------------
 DROP TABLE IF EXISTS `irc_commands`;
 CREATE TABLE `irc_commands` (
-  `Command` varchar(10) NOT NULL default '',
-  `Description` varchar(350) NOT NULL default '',
+  `command` varchar(10) NOT NULL default '',
+  `description` varchar(350) NOT NULL default '',
   `gmlevel` tinyint(3) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`Command`)
+  PRIMARY KEY  (`command`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='IRC Module System';
 
 -- ----------------------------

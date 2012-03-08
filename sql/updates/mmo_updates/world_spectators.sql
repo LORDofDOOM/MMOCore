@@ -7,5 +7,5 @@ INSERT INTO `trinity_string` (`entry`, `content_default`) VALUES
 ('11614', 'Arena Spectators System ist deaktiviert.'),
 ('11615', 'Du kannst das Chat nicht verwenden wenn du im speactate Modus bist.');
 
-DELETE FROM `command ` WHERE `name` = 'spectate player';
+DELETE FROM `command` WHERE `name` = 'spectate player';
 INSERT INTO `command` VALUES ('spectate player', '0', 'Syntax: .spectate player $player\r\n\r\nLässt dich das Arena Match von $player beobachten');
