@@ -1,0 +1,2 @@
+UPDATE `custom_npc_tele_category` SET `flag`=0,`data0`=0 WHERE `id`=8; -- Halle der Händler für alle Spieler
+UPDATE `custom_npc_tele_destination` SET `pos_X`=16222.1,`pos_Y`=16252.1,`pos_Z`=12.5872,`map`=1,`cost`=0 WHERE `id`=94; -- Halle der Händler zu GM Insel
