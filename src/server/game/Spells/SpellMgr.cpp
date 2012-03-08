@@ -3075,6 +3075,13 @@ void SpellMgr::LoadDbcDataCorrections()
             case 59372: // Energize Cores
                 spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_SRC_AREA_ENEMY;
                 break;
+            case 50988: // Glare of the Tribunal
+            case 59870: // Glare of the Tribunal
+                spellInfo->EffectImplicitTargetB[0] = TARGET_UNIT_TARGET_ENEMY;
+                break;
+            case 25742: // Seal of Righteousness
+                spellInfo->SpellFamilyFlags[0] |= 0x400;
+                break;
             case 8494: // Mana Shield (rank 2)
                 // because of bug in dbc
                 spellInfo->procChance = 0;
@@ -3617,6 +3624,9 @@ void SpellMgr::LoadDbcDataCorrections()
                 spellInfo->AreaGroupId = 0; // originally, these require area 4522, which is... outside of Icecrown Citadel
                 break;
             case 70602: // Corruption
+            case 48278: // Paralyze
+                spellInfo->AttributesEx3 |= SPELL_ATTR3_STACK_FOR_DIFF_CASTERS;
+                break;	
             case 70715: // Column of Frost (visual marker)
                 spellInfo->DurationIndex = 32; // 6 seconds (missing)
                 break;

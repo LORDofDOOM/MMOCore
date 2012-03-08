@@ -796,6 +796,16 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
     switch (m_spellInfo->SpellFamilyName)
     {
         case SPELLFAMILY_PALADIN:
+            // Divine Storm
+            if (m_spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_PALADIN_DIVINESTORM && effIndex == 1)
+            {
+                int32 dmg = CalculatePctN(m_damage, damage);
+                if (!unitTarget)
+                    unitTarget = m_caster;
+                m_caster->CastCustomSpell(unitTarget, 54171, &dmg, 0, 0, true);
+                return;
+            }
+			
             switch (m_spellInfo->Id)
             {
                 case 31789:                                 // Righteous Defense (step 1)
@@ -988,11 +998,13 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
                 return;
             }
             // Righteous Defense
+            /*
+            This one does not seem to work, moved effects to spellscripts
             case 31980:
             {
                 m_caster->CastSpell(unitTarget, 31790, true);
                 return;
-            }
+            }*/
             // Cloak of Shadows
             case 35729:
             {
@@ -4312,7 +4324,10 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                         return;
 
                     // Remove Taunt cooldown
-                    unitTarget->ToPlayer()->RemoveSpellCooldown(355, true);
+                    if (m_originalCaster)
+                        if (m_originalCaster->GetTypeId() == TYPEID_PLAYER)
+                            if (m_originalCaster->ToPlayer()->IsInSameRaidWith(unitTarget->ToPlayer()))
+                                m_originalCaster->ToPlayer()->RemoveSpellCooldown(355, true);
 
                     return;
                 }
@@ -6667,6 +6682,44 @@ void Spell::SummonGuardian(uint32 i, uint32 entry, SummonPropertiesEntry const* 
         summon->AI()->EnterEvadeMode();
 
         ExecuteLogEffectSummonObject(i, summon);
+    }
+}
+
+void Spell::GetSummonPosition(uint32 i, Position &pos, float radius, uint32 count)
+{
+    pos.SetOrientation(m_caster->GetOrientation());
+
+    if (m_targets.HasDst())
+    {
+        // Summon 1 unit in dest location
+        if (count == 0)
+            pos.Relocate(*m_targets.GetDst());
+        // Summon in random point all other units if location present
+        else
+        {
+            //This is a workaround. Do not have time to write much about it
+            switch (m_spellInfo->Effects[i].TargetA.GetTarget())
+            {
+                case TARGET_DEST_CASTER_SUMMON:
+                case TARGET_DEST_CASTER_RANDOM:
+                    m_caster->GetNearPosition(pos, radius * (float)rand_norm(), (float)rand_norm()*static_cast<float>(2*M_PI));
+                    break;
+                case TARGET_DEST_DEST_RANDOM:
+                case TARGET_DEST_TARGET_RANDOM:
+                    m_caster->GetRandomPoint(*m_targets.GetDst(), radius, pos);
+                    break;
+                default:
+                    pos.Relocate(*m_targets.GetDst());
+                    break;
+            }
+        }
+    }
+    // Summon if dest location not present near caster
+    else
+    {
+        float x, y, z;
+        m_caster->GetClosePoint(x, y, z, 3.0f);
+        pos.Relocate(x, y, z);
     }
 }
 
