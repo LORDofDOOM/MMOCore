@@ -130,6 +130,7 @@ enum Events
     EVENT_SHOCK_VORTEX          = 10,
     EVENT_BOMB_DESPAWN          = 11,
     EVENT_CONTINUE_FALLING      = 12,
+    EVENT_CHECK_BOMB_TIMER      = 13
 };
 
 enum Actions
@@ -139,6 +140,7 @@ enum Actions
     ACTION_REMOVE_INVOCATION    = 3,
     ACTION_KINETIC_BOMB_JUMP    = 4,
     ACTION_FLAME_BALL_CHASE     = 5,
+    ACTION_EVADE_OTHER          = 6
 };
 
 enum Points
@@ -211,19 +213,19 @@ class boss_blood_council_controller : public CreatureScript
                 if (Creature* keleseth = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_KELESETH_GUID)))
                 {
                     instance->SendEncounterUnit(ENCOUNTER_FRAME_ADD, keleseth);
-                    DoZoneInCombat(keleseth);
+                    DoZoneInCombat(keleseth, 100.0f);
                 }
 
                 if (Creature* taldaram = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_TALDARAM_GUID)))
                 {
                     instance->SendEncounterUnit(ENCOUNTER_FRAME_ADD, taldaram);
-                    DoZoneInCombat(taldaram);
+                    DoZoneInCombat(taldaram, 100.0f);
                 }
 
                 if (Creature* valanar = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_VALANAR_GUID)))
                 {
                     instance->SendEncounterUnit(ENCOUNTER_FRAME_ADD, valanar);
-                    DoZoneInCombat(valanar);
+                    DoZoneInCombat(valanar, 100.0f);
                 }
 
                 events.ScheduleEvent(EVENT_INVOCATION_OF_BLOOD, 46500);
@@ -278,6 +280,9 @@ class boss_blood_council_controller : public CreatureScript
                         killer->Kill(prince);
                     }
                 }
+
+                if (instance)
+                    instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_SHADOW_RESONANCE_RESIST);
             }
 
             void UpdateAI(uint32 const diff)
@@ -390,13 +395,19 @@ class boss_prince_keleseth_icc : public CreatureScript
                 me->SetReactState(REACT_DEFENSIVE);
             }
 
+            void AttackStart(Unit* who)
+            {
+                // Enable ranged movement instead
+                AttackStartCaster(who, 30.0f);
+            }
+
             void EnterCombat(Unit* /*who*/)
             {
                 if (Creature* controller = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_BLOOD_PRINCES_CONTROL)))
                     DoZoneInCombat(controller);
 
                 events.ScheduleEvent(EVENT_BERSERK, 600000);
-                events.ScheduleEvent(EVENT_SHADOW_RESONANCE, urand(10000, 15000));
+                events.ScheduleEvent(EVENT_SHADOW_RESONANCE, 1000);
                 events.ScheduleEvent(EVENT_SHADOW_LANCE, 2000);
 
                 if (IsHeroic())
@@ -506,6 +517,9 @@ class boss_prince_keleseth_icc : public CreatureScript
                         me->RemoveAurasDueToSpell(SPELL_INVOCATION_OF_BLOOD_KELESETH);
                         _isEmpowered = false;
                         break;
+                    case ACTION_EVADE_OTHER:
+                        ScriptedAI::EnterEvadeMode();
+                        break;
                     default:
                         break;
                 }
@@ -516,16 +530,24 @@ class boss_prince_keleseth_icc : public CreatureScript
                 if (!CheckBoundary(me))
                 {
                     EnterEvadeMode();
-                    if (Creature* taldaram = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_TALDARAM_GUID)))
-                        taldaram->AI()->EnterEvadeMode();
-
-                    if (Creature* valanar = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_VALANAR_GUID)))
-                        valanar->AI()->EnterEvadeMode();
-
                     return false;
                 }
 
                 return true;
+            }
+
+            void EnterEvadeMode()
+            {
+                if (instance)
+                {
+                    if (Creature* taldaram = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_TALDARAM_GUID)))
+                        taldaram->AI()->DoAction(ACTION_EVADE_OTHER);
+
+                    if (Creature* valanar = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_VALANAR_GUID)))
+                        valanar->AI()->DoAction(ACTION_EVADE_OTHER);
+                }
+
+                ScriptedAI::EnterEvadeMode();
             }
 
             void UpdateAI(uint32 const diff)
@@ -549,9 +571,13 @@ class boss_prince_keleseth_icc : public CreatureScript
                         case EVENT_SHADOW_RESONANCE:
                             Talk(SAY_KELESETH_SPECIAL);
                             DoCast(me, SPELL_SHADOW_RESONANCE);
-                            events.ScheduleEvent(EVENT_SHADOW_RESONANCE, urand(10000, 15000));
+                            events.ScheduleEvent(EVENT_SHADOW_RESONANCE, urand(10000, 12000));
                             break;
                         case EVENT_SHADOW_LANCE:
+                            if (me->getVictim())
+                                if (!me->IsWithinLOS(me->getVictim()->GetPositionX(), me->getVictim()->GetPositionY(), me->getVictim()->GetPositionZ()) && me->GetDistance(me->getVictim()) < 150.0f)
+                                    DoTeleportTo(me->getVictim()->GetPositionX(), me->getVictim()->GetPositionY(), me->getVictim()->GetPositionZ());
+
                             if (_isEmpowered)
                                 DoCastVictim(SPELL_EMPOWERED_SHADOW_LANCE);
                             else
@@ -724,6 +750,9 @@ class boss_prince_taldaram_icc : public CreatureScript
                         me->RemoveAurasDueToSpell(SPELL_INVOCATION_OF_BLOOD_TALDARAM);
                         _isEmpowered = false;
                         break;
+                    case ACTION_EVADE_OTHER:
+                        ScriptedAI::EnterEvadeMode();
+                        break;
                     default:
                         break;
                 }
@@ -734,16 +763,24 @@ class boss_prince_taldaram_icc : public CreatureScript
                 if (!CheckBoundary(me))
                 {
                     EnterEvadeMode();
-                    if (Creature* keleseth = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_KELESETH_GUID)))
-                        keleseth->AI()->EnterEvadeMode();
-
-                    if (Creature* valanar = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_VALANAR_GUID)))
-                        valanar->AI()->EnterEvadeMode();
-
                     return false;
                 }
 
                 return true;
+            }
+
+            void EnterEvadeMode()
+            {
+                if (instance)
+                {
+                    if (Creature* keleseth = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_KELESETH_GUID)))
+                        keleseth->AI()->DoAction(ACTION_EVADE_OTHER);
+
+                    if (Creature* valanar = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_VALANAR_GUID)))
+                        valanar->AI()->DoAction(ACTION_EVADE_OTHER);
+                }
+
+                ScriptedAI::EnterEvadeMode();
             }
 
             void UpdateAI(uint32 const diff)
@@ -961,6 +998,9 @@ class boss_prince_valanar_icc : public CreatureScript
                         me->RemoveAurasDueToSpell(SPELL_INVOCATION_OF_BLOOD_VALANAR);
                         _isEmpowered = false;
                         break;
+                    case ACTION_EVADE_OTHER:
+                        ScriptedAI::EnterEvadeMode();
+                        break;
                     default:
                         break;
                 }
@@ -971,16 +1011,24 @@ class boss_prince_valanar_icc : public CreatureScript
                 if (!CheckBoundary(me))
                 {
                     EnterEvadeMode();
-                    if (Creature* keleseth = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_KELESETH_GUID)))
-                        keleseth->AI()->EnterEvadeMode();
-
-                    if (Creature* taldaram = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_TALDARAM_GUID)))
-                        taldaram->AI()->EnterEvadeMode();
-
                     return false;
                 }
 
                 return true;
+            }
+
+            void EnterEvadeMode()
+            {
+                if (instance)
+                {
+                    if (Creature* keleseth = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_KELESETH_GUID)))
+                        keleseth->AI()->DoAction(ACTION_EVADE_OTHER);
+
+                    if (Creature* taldaram = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_PRINCE_TALDARAM_GUID)))
+                        taldaram->AI()->DoAction(ACTION_EVADE_OTHER);
+                }
+
+                ScriptedAI::EnterEvadeMode();
             }
 
             void UpdateAI(uint32 const diff)
@@ -1007,7 +1055,7 @@ class boss_prince_valanar_icc : public CreatureScript
                                 DoCast(target, SPELL_KINETIC_BOMB_TARGET);
                                 Talk(SAY_VALANAR_SPECIAL);
                             }
-                            events.ScheduleEvent(EVENT_KINETIC_BOMB, urand(18000, 24000));
+                            events.ScheduleEvent(EVENT_KINETIC_BOMB, RAID_MODE(30000, 20000, 30000, 20000));
                             break;
                         case EVENT_SHOCK_VORTEX:
                             if (_isEmpowered)
@@ -1058,7 +1106,7 @@ class npc_blood_queen_lana_thel : public CreatureScript
             void Reset()
             {
                 _events.Reset();
-                me->SetLevitate(true);
+                me->AddUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
                 if (_instance->GetBossState(DATA_BLOOD_PRINCE_COUNCIL) == DONE)
                 {
                     me->SetVisible(false);
@@ -1232,6 +1280,7 @@ class npc_kinetic_bomb : public CreatureScript
             void Reset()
             {
                 _events.Reset();
+                _events.ScheduleEvent(EVENT_CHECK_BOMB_TIMER, 500);
                 me->SetDisplayId(DISPLAY_KINETIC_BOMB);
                 me->CastSpell(me, SPELL_UNSTABLE, true);
                 me->CastSpell(me, SPELL_KINETIC_BOMB_VISUAL, true);
@@ -1239,12 +1288,18 @@ class npc_kinetic_bomb : public CreatureScript
                 me->SetSpeed(MOVE_FLIGHT, IsHeroic() ? 0.3f : 0.15f, true);
                 me->GetPosition(_x, _y, _groundZ);
                 _groundZ = me->GetMap()->GetHeight(me->GetPhaseMask(), _x, _y, _groundZ, true, 500.0f);
+                _isExploding = false;
             }
 
             void DoAction(int32 const action)
             {
                 if (action == SPELL_KINETIC_BOMB_EXPLOSION)
+                {
+                    _isExploding = true;
+                    me->CastSpell(me, SPELL_KINETIC_BOMB_EXPLOSION, true);
+                    me->RemoveAurasDueToSpell(SPELL_KINETIC_BOMB_VISUAL);
                     _events.ScheduleEvent(EVENT_BOMB_DESPAWN, 1000);
+                }
                 else if (action == ACTION_KINETIC_BOMB_JUMP)
                 {
                     me->GetMotionMaster()->Clear();
@@ -1262,12 +1317,29 @@ class npc_kinetic_bomb : public CreatureScript
                     switch (eventId)
                     {
                         case EVENT_BOMB_DESPAWN:
-                            me->SetVisible(false);
+                            me->DespawnOrUnsummon();
                             break;
                         case EVENT_CONTINUE_FALLING:
                             me->GetMotionMaster()->Clear();
                             me->GetMotionMaster()->MovePoint(POINT_KINETIC_BOMB_IMPACT, _x, _y, _groundZ);
                             break;
+                        case EVENT_CHECK_BOMB_TIMER:
+                        {
+                            // Bomb exploding triggered, no need for further checking here anymore
+                            if (_isExploding)
+                                break;
+
+                            // Despawn after 1 minute
+                            if (!me->HasAura(SPELL_UNSTABLE))
+                                me->DespawnOrUnsummon();
+
+                            // Explode if z coordinate is below a specific value - z coordinate is depending on the x position of the spawn, room has two levels
+                            if (me->GetPositionZ() < (me->GetPositionX() < 4660.0f ? 361.4f : 364.3f))
+                                DoAction(SPELL_KINETIC_BOMB_EXPLOSION);
+
+                            _events.ScheduleEvent(EVENT_CHECK_BOMB_TIMER, 500);
+                            break;
+                        }
                         default:
                             break;
                     }
@@ -1279,6 +1351,7 @@ class npc_kinetic_bomb : public CreatureScript
             float _x;
             float _y;
             float _groundZ;
+            bool _isExploding;
         };
 
         CreatureAI* GetAI(Creature* creature) const
@@ -1294,89 +1367,65 @@ class npc_dark_nucleus : public CreatureScript
 
         struct npc_dark_nucleusAI : public ScriptedAI
         {
-            npc_dark_nucleusAI(Creature* creature) : ScriptedAI(creature)
-            {
-                _lockedTarget = false;
-                _targetAuraCheck = 0;
-            }
+            npc_dark_nucleusAI(Creature* creature) : ScriptedAI(creature) {}
 
             void Reset()
             {
-                me->SetReactState(REACT_PASSIVE);
+                _targetAuraCheck = 1000;
+                _oldVictimGuid = 0;
+
+                me->SetReactState(REACT_DEFENSIVE);
                 me->CastSpell(me, SPELL_SHADOW_RESONANCE_AURA, true);
             }
 
-            void EnterCombat(Unit* who)
+            void JustDied(Unit *who)
             {
-                _targetAuraCheck = 1000;
-                if (me->GetDistance(who) >= 15.0f)
-                {
-                    DoStartMovement(who);
-                    return;
-                }
-
-                DoCast(who, SPELL_SHADOW_RESONANCE_RESIST);
-                me->ClearUnitState(UNIT_STATE_CASTING);
-            }
-
-            void MoveInLineOfSight(Unit* who)
-            {
-                if (me->GetDistance(who) >= 15.0f)
-                    return;
-
-                ScriptedAI::MoveInLineOfSight(who);
-            }
-
-            void DamageTaken(Unit* attacker, uint32& /*damage*/)
-            {
-                if (attacker == me)
-                    return;
-
-                if (!_lockedTarget)
-                    if (me->getVictim() == attacker)
-                        _lockedTarget = true;
+                me->DespawnOrUnsummon();
             }
 
             void UpdateAI(const uint32 diff)
             {
-                if (!me->isInCombat())
+                if (!UpdateVictim())
                     return;
 
                 if (_targetAuraCheck <= diff)
                 {
                     _targetAuraCheck = 1000;
+
                     if (Unit* victim = me->getVictim())
-                        if (me->GetDistance(victim) < 15.0f &&
-                            !victim->HasAura(SPELL_SHADOW_RESONANCE_RESIST, me->GetGUID()))
+                    {
+                        if (me->GetDistance(victim) < 15.0f && !victim->HasAura(SPELL_SHADOW_RESONANCE_RESIST, me->GetGUID()))
                         {
                             DoCast(victim, SPELL_SHADOW_RESONANCE_RESIST);
                             me->ClearUnitState(UNIT_STATE_CASTING);
+
+                            if (!_oldVictimGuid)
+                                _oldVictimGuid = victim->GetGUID();
                         }
+
+                        if (_oldVictimGuid)
+                        {
+                            // Kick off old aura application on old victim, if victim was changed
+                            if (_oldVictimGuid != victim->GetGUID())
+                            {
+                                if (Unit* oldVictim = ObjectAccessor::GetUnit(*me, _oldVictimGuid))
+                                {
+                                    if (oldVictim->HasAura(SPELL_SHADOW_RESONANCE_RESIST, me->GetGUID()))
+                                        oldVictim->RemoveAurasDueToSpell(SPELL_SHADOW_RESONANCE_RESIST, me->GetGUID());
+                                }
+
+                                _oldVictimGuid = victim->GetGUID();
+                            }
+                        }
+                    }
                 }
                 else
                     _targetAuraCheck -= diff;
-
-                if (!_lockedTarget)
-                {
-                    if (Unit* victim = me->SelectVictim())
-                    {
-                        if (me->getVictim() && me->getVictim() != victim)
-                        {
-                            me->getVictim()->RemoveAurasDueToSpell(SPELL_SHADOW_RESONANCE_RESIST, me->GetGUID());
-                            _lockedTarget = true;
-                        }
-
-                        _lockedTarget = true;
-                        AttackStart(victim);
-                        DoCast(victim, SPELL_SHADOW_RESONANCE_RESIST);
-                        me->ClearUnitState(UNIT_STATE_CASTING);
-                    }
-                }
             }
 
         private:
             uint32 _targetAuraCheck;
-            bool _lockedTarget;
+            uint64 _oldVictimGuid;
         };
 
         CreatureAI* GetAI(Creature* creature) const
@@ -1545,10 +1594,13 @@ class spell_valanar_kinetic_bomb : public SpellScriptLoader
 
                 if (Creature* bomb = target->FindNearestCreature(NPC_KINETIC_BOMB, 1.0f, true))
                 {
-                    bomb->CastSpell(bomb, SPELL_KINETIC_BOMB_EXPLOSION, true);
-                    bomb->RemoveAurasDueToSpell(SPELL_KINETIC_BOMB_VISUAL);
-                    target->RemoveAura(GetAura());
                     bomb->AI()->DoAction(SPELL_KINETIC_BOMB_EXPLOSION);
+                    target->RemoveAura(GetAura());
+
+                    // Despawn no longer needed helper npc
+                    if (target->isSummon())
+                        if (target->ToTempSummon())
+                            target->ToTempSummon()->DespawnOrUnsummon();
                 }
             }
 
