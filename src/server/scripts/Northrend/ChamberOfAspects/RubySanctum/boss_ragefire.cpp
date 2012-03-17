@@ -119,11 +119,11 @@ public:
             if (command)
             {
                 me->HandleEmoteCommand(EMOTE_ONESHOT_FLY_SIT_GROUND_UP);
-                me->SetFlying(true);
+                me->SetCanFly(true);
             }
             else
             {
-                me->SetFlying(false);
+                me->SetCanFly(false);
             }
         }
 
@@ -135,14 +135,14 @@ public:
             MovementStarted = true;
         }
 
-        void KilledUnit(Unit* pVictim)
+        void KilledUnit(Unit* victim)
         {
             switch (urand(0,1)) {
                 case 0:
-                       DoScriptText(-1666401,me,pVictim);
+                       DoScriptText(-1666401,me,victim);
                        break;
                 case 1:
-                       DoScriptText(-1666402,me,pVictim);
+                       DoScriptText(-1666402,me,victim);
                        break;
                 }
         }

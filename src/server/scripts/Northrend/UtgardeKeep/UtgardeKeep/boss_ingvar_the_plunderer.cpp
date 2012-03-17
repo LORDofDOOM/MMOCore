@@ -309,9 +309,9 @@ public:
 
     struct mob_annhylde_the_callerAI : public ScriptedAI
     {
-        mob_annhylde_the_callerAI(Creature* c) : ScriptedAI(c)
+        mob_annhylde_the_callerAI(Creature* creature) : ScriptedAI(creature)
         {
-            instance = c->GetInstanceScript();
+            instance = creature->GetInstanceScript();
         }
 
         float x, y, z;
@@ -321,6 +321,7 @@ public:
 
         void Reset()
         {
+            //! HACK: Creature's can't have MOVEMENTFLAG_FLYING
             me->AddUnitMovementFlag(MOVEMENTFLAG_FLYING | MOVEMENTFLAG_HOVER);
             me->SetSpeed(MOVE_SWIM, 1.0f);
             me->SetSpeed(MOVE_RUN, 1.0f);
@@ -423,7 +424,7 @@ public:
 
     struct mob_ingvar_throw_dummyAI : public ScriptedAI
     {
-        mob_ingvar_throw_dummyAI(Creature* c) : ScriptedAI(c)
+        mob_ingvar_throw_dummyAI(Creature* creature) : ScriptedAI(creature)
         {
         }
 
