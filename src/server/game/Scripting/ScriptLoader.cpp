@@ -110,7 +110,7 @@ void AddSC_titles_commandscript();
 void AddSC_wp_commandscript();
 void AddSC_vip_commandscript();
 void AddSC_gps_commandscript();
-void AddSC_Reset();
+//void AddSC_Reset();
 void AddSC_spectate_commandscript();
 
 #ifdef SCRIPTS
@@ -726,7 +726,7 @@ void AddCommandScripts()
     AddSC_wp_commandscript();
     AddSC_vip_commandscript();
     AddSC_gps_commandscript();
-	AddSC_Reset();
+	//AddSC_Reset();
     AddSC_spectate_commandscript();	
 }
 
