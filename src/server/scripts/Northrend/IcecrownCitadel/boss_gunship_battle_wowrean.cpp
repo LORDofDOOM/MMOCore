@@ -1110,8 +1110,8 @@ class npc_muradin_gunship : public CreatureScript
                             }
                             break;
                         case EVENT_OUTRO_ALLIANCE_1:
-                            _instance->DoCompleteAchievement(RAID_MODE(IM_ON_A_BOAT_10,IM_ON_A_BOAT_25,IM_ON_A_BOAT_10,IM_ON_A_BOAT_25));
-                            _instance->DoCastSpellOnPlayers(SPELL_ACHIEVEMENT_CHECK);
+                            //_instance->DoCompleteAchievement(RAID_MODE(IM_ON_A_BOAT_10,IM_ON_A_BOAT_25,IM_ON_A_BOAT_10,IM_ON_A_BOAT_25));
+                            //_instance->DoCastSpellOnPlayers(SPELL_ACHIEVEMENT_CHECK);
                             StartFlyShip(skybreaker);
                             StopFlyShip(CheckUnfriendlyShip(me,_instance,DATA_GB_HIGH_OVERLORD_SAURFANG));
                             break;
@@ -1508,8 +1508,8 @@ class npc_saurfang_gunship : public CreatureScript
                             }
                             break;
                         case EVENT_OUTRO_HORDE_1:
-                            _instance->DoCompleteAchievement(RAID_MODE(IM_ON_A_BOAT_10,IM_ON_A_BOAT_25,IM_ON_A_BOAT_10,IM_ON_A_BOAT_25));
-                            _instance->DoCastSpellOnPlayers(SPELL_ACHIEVEMENT_CHECK);
+                            //_instance->DoCompleteAchievement(RAID_MODE(IM_ON_A_BOAT_10,IM_ON_A_BOAT_25,IM_ON_A_BOAT_10,IM_ON_A_BOAT_25));
+                            //_instance->DoCastSpellOnPlayers(SPELL_ACHIEVEMENT_CHECK);
                             StartFlyShip(orgrimmar);
                             StopFlyShip(CheckUnfriendlyShip(me,_instance,DATA_GB_MURADIN_BRONZEBEARD));
                             break;
@@ -3078,8 +3078,8 @@ class npc_icc_spire_frostwyrm: public CreatureScript
                     else
                         Talk(SAY_FROSTWYRM_LAND_A_1);
                     landed = true;
-                    me->SetFlying(false);
-                    me->RemoveUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
+                    me->SetCanFly(false);
+                    me->SetDisableGravity(false);
                     me->SetInCombatWith(who);
                     me->AddThreat(who, 1.0f);
                     me->GetMotionMaster()->MoveChase(who);

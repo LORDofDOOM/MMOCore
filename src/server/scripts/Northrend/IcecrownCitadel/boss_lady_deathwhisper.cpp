@@ -176,13 +176,6 @@ enum DeprogrammingData
     POINT_DESPAWN           = 384721,
 };
 
-enum Achievements
-{
-    ACHIEVEMENT_FULL_HOUSE_10 = 4535,
-    ACHIEVEMENT_FULL_HOUSE_25 = 4611
-};
-
-#define ACHIEVEMENT_FULL_HOUSE RAID_MODE<uint32>(ACHIEVEMENT_FULL_HOUSE_10, ACHIEVEMENT_FULL_HOUSE_25, ACHIEVEMENT_FULL_HOUSE_10, ACHIEVEMENT_FULL_HOUSE_25)
 #define NPC_DARNAVAN        RAID_MODE<uint32>(NPC_DARNAVAN_10, NPC_DARNAVAN_25, NPC_DARNAVAN_10, NPC_DARNAVAN_25)
 #define NPC_DARNAVAN_CREDIT RAID_MODE<uint32>(NPC_DARNAVAN_CREDIT_10, NPC_DARNAVAN_CREDIT_25, NPC_DARNAVAN_CREDIT_10, NPC_DARNAVAN_CREDIT_25)
 #define QUEST_DEPROGRAMMING RAID_MODE<uint32>(QUEST_DEPROGRAMMING_10, QUEST_DEPROGRAMMING_25, QUEST_DEPROGRAMMING_10, QUEST_DEPROGRAMMING_25)
@@ -313,7 +306,7 @@ class boss_lady_deathwhisper : public CreatureScript
                             livingAddEntries.insert(unit->GetEntry());
 
                 if (livingAddEntries.size() >= 5)
-                    instance->DoCompleteAchievement(ACHIEVEMENT_FULL_HOUSE);
+                    instance->DoUpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, SPELL_FULL_HOUSE, 0, me);
 
                 if (Creature* darnavan = ObjectAccessor::GetCreature(*me, _darnavanGUID))
                 {
@@ -468,7 +461,7 @@ class boss_lady_deathwhisper : public CreatureScript
                             break;
                         case EVENT_P1_EMPOWER_CULTIST:
                             EmpowerCultist();
-                            events.ScheduleEvent(EVENT_P1_EMPOWER_CULTIST, urand(18000, 25000), 0, PHASE_ONE);
+                            events.ScheduleEvent(EVENT_P1_EMPOWER_CULTIST, urand(18000, 25000));
                             break;
                         case EVENT_P2_FROSTBOLT:
                             DoCastVictim(SPELL_FROSTBOLT);
