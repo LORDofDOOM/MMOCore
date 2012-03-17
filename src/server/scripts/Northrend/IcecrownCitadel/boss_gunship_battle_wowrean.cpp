@@ -3052,9 +3052,9 @@ class npc_icc_spire_frostwyrm: public CreatureScript
             {
                 landed = false;
                 events.Reset();
-                me->SetFlying(true);
+                me->SetCanFly(true);
                 me->SetReactState(REACT_AGGRESSIVE);
-                me->AddUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
+                me->SetDisableGravity(true);
                 events.ScheduleEvent(EVENT_FROST_BREATH, 20000);
                 events.ScheduleEvent(EVENT_BLIZZARD, 25000);
                 events.ScheduleEvent(EVENT_CLEAVE, 10000);
