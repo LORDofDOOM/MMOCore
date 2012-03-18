@@ -186,7 +186,7 @@ public:
                     if (owner->GetTypeId() == TYPEID_PLAYER)
                     {
                         owner->CastSpell(owner, 46231, true);
-                        CAST_CRE(who)->DespawnOrUnsummon();
+                        CAST_CRE(who)->ForcedDespawn();
                     }
                 }
             }
@@ -290,59 +290,6 @@ public:
 };
 
 /*######
-## vehicle_wyrmrest_skytalon
-######*/
-
-class vehicle_wyrmrest_skytalon : public CreatureScript
-{
-public:
-    vehicle_wyrmrest_skytalon() : CreatureScript("vehicle_wyrmrest_skytalon") { }
-
-    struct vehicle_wyrmrest_skytalonAI : public VehicleAI
-    {
-        vehicle_wyrmrest_skytalonAI(Creature *c) : VehicleAI(c) { }
-
-        uint32 check_Timer;
-        bool isInUse;
-
-        void Reset()
-        {
-            check_Timer = 6000;
-        }
-
-        void OnCharmed(bool apply)
-        {
-            isInUse = apply;
-
-            if(!apply)
-                check_Timer = 30000;
-        }
-
-        void UpdateAI(const uint32 diff)
-        {
-            if(!me->IsVehicle())
-                return;
-
-            if(!isInUse)
-            {
-                if(check_Timer < diff)
-                {
-                    me->DealDamage(me,me->GetHealth());
-                    check_Timer = 6000;
-                }else check_Timer -= diff;
-            }
-        }
-
-    };
-
-    CreatureAI* GetAI(Creature *_Creature) const
-    {
-        return new  vehicle_wyrmrest_skytalonAI(_Creature);
-    }
-
-};
-
-/*######
 ## npc_iruk
 ######*/
 
@@ -362,7 +309,6 @@ public:
 
     bool OnGossipHello(Player* player, Creature* creature)
     {
-
         if (player->GetQuestStatus(QUEST_SPIRITS_WATCH_OVER_US) == QUEST_STATUS_INCOMPLETE)
             player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_I, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
 
@@ -456,9 +402,9 @@ public:
         {
             me->SetReactState(REACT_PASSIVE);
 
-            if (GameObject* pGO = me->FindNearestGameObject(GO_SCOURGE_CAGE, 5.0f))
-                if (pGO->GetGoState() == GO_STATE_ACTIVE)
-                    pGO->SetGoState(GO_STATE_READY);
+            if (GameObject* go = me->FindNearestGameObject(GO_SCOURGE_CAGE, 5.0f))
+                if (go->GetGoState() == GO_STATE_ACTIVE)
+                    go->SetGoState(GO_STATE_READY);
         }
 
     };
@@ -641,6 +587,7 @@ public:
             Phase = 1;
             go_caribouGUID = 0;
         }
+
         void EnterCombat(Unit* /*who*/) {}
         void MoveInLineOfSight(Unit* /*who*/) {}
 
@@ -670,7 +617,6 @@ public:
                         uiPhaseTimer = 2000;
                         Phase = 2;
                         break;
-
                     case 2:
                         if (GameObject* go_fur = me->FindNearestGameObject(GO_HIGH_QUALITY_FUR, 11.0f))
                             me->GetMotionMaster()->MovePoint(0, go_fur->GetPositionX(), go_fur->GetPositionY(), go_fur->GetPositionZ());
@@ -698,7 +644,6 @@ public:
                         uiPhaseTimer = 500;
                         Phase = 7;
                         break;
-
                     case 7:
                     {
                         GameObject* go_caribou = NULL;
@@ -715,7 +660,7 @@ public:
                         Phase = 8;
                         uiPhaseTimer = 1000;
                     }
-                        break;
+                    break;
                     case 8:
                         DoCast(me, SPELL_TRAPPED, true);
                         Phase = 0;
@@ -902,7 +847,7 @@ public:
 
     struct npc_nexus_drake_hatchlingAI : public FollowerAI //The spell who makes the npc follow the player is missing, also we can use FollowerAI!
     {
-        npc_nexus_drake_hatchlingAI(Creature* c) : FollowerAI(c) {}
+        npc_nexus_drake_hatchlingAI(Creature* creature) : FollowerAI(creature) {}
 
         uint64 HarpoonerGUID;
         bool WithRedDragonBlood;
@@ -1070,7 +1015,6 @@ public:
         void WaypointReached(uint32 uiPointId)
         {
             Player* player = GetPlayerForEscort();
-
             if (!player)
                 return;
 
@@ -1433,7 +1377,7 @@ public:
             bCheck              = false;
             uiShadowBoltTimer   = urand(5000, 12000);
             uiDeflectionTimer   = urand(20000, 25000);
-            uiSoulBlastTimer    = urand(12000, 18000);
+            uiSoulBlastTimer    = urand (12000, 18000);
         }
         void MovementInform(uint32 uiType, uint32 /*uiId*/)
         {
@@ -1459,7 +1403,7 @@ public:
             if (!UpdateVictim())
                 return;
 
-            if (me->GetAreaId() == 4128)
+            if (me->GetAreaId() == 4125)
             {
                 if (uiShadowBoltTimer <= uiDiff)
                 {
@@ -2018,8 +1962,7 @@ public:
             switch (i)
             {
                 case 29:
-                    if (player)
-                        player->GroupEventHappens(QUEST_GET_ME_OUTA_HERE, me);
+                    player->GroupEventHappens(QUEST_GET_ME_OUTA_HERE, me);
                     break;
             }
         }
@@ -2089,7 +2032,7 @@ public:
             uiTimer = 1500;
             bStarted = false;
 
-            GameObject* pTrap;
+            GameObject* pTrap = NULL;
             for (uint8 i = 0; i < MammothTrapsNum; ++i)
             {
                 pTrap = me->FindNearestGameObject(MammothTraps[i], 11.0f);
@@ -2124,11 +2067,12 @@ public:
 
         void MovementInform(uint32 uiType, uint32 /*uiId*/)
         {
-
             if (uiType != POINT_MOTION_TYPE)
                 return;
+
             me->DisappearAndDie();
-            GameObject* pTrap;
+
+            GameObject* pTrap = NULL;
             for (uint8 i = 0; i < MammothTrapsNum; ++i)
             {
                 pTrap = me->FindNearestGameObject(MammothTraps[i], 11.0f);
@@ -2203,13 +2147,15 @@ public:
 
     struct npc_seaforium_depth_chargeAI : public ScriptedAI
     {
-        npc_seaforium_depth_chargeAI(Creature* creature) : ScriptedAI(creature) {}
+        npc_seaforium_depth_chargeAI(Creature* creature) : ScriptedAI(creature) { }
 
         uint32 uiExplosionTimer;
+
         void Reset()
         {
             uiExplosionTimer = urand(5000, 10000);
         }
+
         void UpdateAI(const uint32 diff)
         {
             if (uiExplosionTimer < diff)
@@ -2282,7 +2228,6 @@ public:
             if (!UpdateVictim())
                 return;
         }
-
     };
 
     CreatureAI* GetAI(Creature* creature) const
@@ -2612,89 +2557,33 @@ public:
 
 };
 
-/*######
-## Fizzcrank Recon Pilot - quest fix 11795 and 11887
-######*/
-
-#define GOSSIP_ITEM_PILOT_1  "Search the body for the pilot's insignia."
-#define GOSSIP_ITEM_PILOT_2  "Search the body for the pilot's emergency toolkit."
-
-enum eReconPilot
-{
-    QUEST_EMERGENCY_PROTOCOL_C            = 11795,
-    QUEST_EMERGENCY_SUPPLIES              = 11887,
-    SPELL_SUMMON_INSIGNIA                 = 46166,
-    SPELL_GIVE_EMERGENCY_KIT              = 46362,
-    GOSSIP_TEXT_PILOT                     = 12489
-};
-
-class npc_recon_pilot : public CreatureScript
-{
-public:
-    npc_recon_pilot() : CreatureScript("npc_recon_pilot") { }
-
-    bool OnGossipHello(Player* pPlayer, Creature* pCreature)
-    {
-        if (pPlayer->GetQuestStatus(QUEST_EMERGENCY_PROTOCOL_C) == QUEST_STATUS_INCOMPLETE)
-            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_PILOT_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
-
-        if (pPlayer->GetQuestStatus(QUEST_EMERGENCY_SUPPLIES) == QUEST_STATUS_INCOMPLETE)
-            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_PILOT_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
-
-        pPlayer->PlayerTalkClass->SendGossipMenu(GOSSIP_TEXT_PILOT, pCreature->GetGUID());
-        return true;
-    }
-
-    bool OnGossipSelect(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
-    {
-        pPlayer->PlayerTalkClass->ClearMenus();
-
-        switch (uiAction)
-        {
-            case GOSSIP_ACTION_INFO_DEF+1:
-                pCreature->CastSpell(pPlayer, SPELL_SUMMON_INSIGNIA, true);
-                break;
-            case GOSSIP_ACTION_INFO_DEF+2:
-                pCreature->CastSpell(pPlayer, SPELL_GIVE_EMERGENCY_KIT, true);
-                break;
-        }
-
-        pPlayer->CLOSE_GOSSIP_MENU();
-        pCreature->DespawnOrUnsummon();
-
-        return true;
-    }
-};
-
 void AddSC_borean_tundra()
 {
-    new npc_sinkhole_kill_credit;
-    new npc_khunok_the_behemoth;
-    new npc_keristrasza;
-    new npc_corastrasza;
-    new vehicle_wyrmrest_skytalon;
-    new npc_iruk;
-    new mob_nerubar_victim;
-    new npc_scourge_prisoner;
-    new npc_jenny;
-    new npc_fezzix_geartwist;
-    new npc_nesingwary_trapper;
-    new npc_lurgglbr;
-    new npc_nexus_drake_hatchling;
-    new npc_thassarian;
-    new npc_image_lich_king;
-    new npc_counselor_talbot;
-    new npc_leryssa;
-    new npc_general_arlos;
-    new npc_beryl_sorcerer;
-    new npc_imprisoned_beryl_sorcerer;
-    new npc_mootoo_the_younger;
-    new npc_bonker_togglevolt;
-    new npc_trapped_mammoth_calf;
-    new npc_magmoth_crusher;
-    new npc_seaforium_depth_charge;
-    new npc_valiance_keep_cannoneer;
-    new npc_warmage_coldarra;
-    new npc_hidden_cultist;
-    new npc_recon_pilot;
+    new npc_sinkhole_kill_credit();
+    new npc_khunok_the_behemoth();
+    new npc_keristrasza();
+    new npc_corastrasza();
+    new npc_iruk();
+    new mob_nerubar_victim();
+    new npc_scourge_prisoner();
+    new npc_jenny();
+    new npc_fezzix_geartwist();
+    new npc_nesingwary_trapper();
+    new npc_lurgglbr();
+    new npc_nexus_drake_hatchling();
+    new npc_thassarian();
+    new npc_image_lich_king();
+    new npc_counselor_talbot();
+    new npc_leryssa();
+    new npc_general_arlos();
+    new npc_beryl_sorcerer();
+    new npc_imprisoned_beryl_sorcerer();
+    new npc_mootoo_the_younger();
+    new npc_bonker_togglevolt();
+    new npc_trapped_mammoth_calf();
+    new npc_magmoth_crusher();
+    new npc_seaforium_depth_charge();
+    new npc_valiance_keep_cannoneer();
+    new npc_warmage_coldarra();
+    new npc_hidden_cultist();
 }

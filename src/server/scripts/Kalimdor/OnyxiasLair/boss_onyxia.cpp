@@ -114,11 +114,11 @@ public:
     {
         boss_onyxiaAI(Creature* creature) : ScriptedAI(creature), Summons(me)
         {
-            m_instance = creature->GetInstanceScript();
+            instance = creature->GetInstanceScript();
             Reset();
         }
 
-        InstanceScript* m_instance;
+        InstanceScript* instance;
         SummonList Summons;
 
         uint32 m_uiPhase;
@@ -169,11 +169,11 @@ public:
             m_uiSummonWhelpCount = 0;
             m_bIsMoving = false;
 
-            if (m_instance)
+            if (instance)
             {
-                m_instance->SetData(DATA_ONYXIA, NOT_STARTED);
-                m_instance->SetData(DATA_ONYXIA_PHASE, m_uiPhase);
-                m_instance->DoStopTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT,  ACHIEV_TIMED_START_EVENT);
+                instance->SetData(DATA_ONYXIA, NOT_STARTED);
+                instance->SetData(DATA_ONYXIA_PHASE, m_uiPhase);
+                instance->DoStopTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT,  ACHIEV_TIMED_START_EVENT);
             }
         }
 
@@ -182,18 +182,17 @@ public:
             DoScriptText(SAY_AGGRO, me);
             me->SetInCombatWithZone();
 
-            me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
-            if (m_instance)
+            if (instance)
             {
-                m_instance->SetData(DATA_ONYXIA, IN_PROGRESS);
-                m_instance->DoStartTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT,  ACHIEV_TIMED_START_EVENT);
+                instance->SetData(DATA_ONYXIA, IN_PROGRESS);
+                instance->DoStartTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT,  ACHIEV_TIMED_START_EVENT);
             }
         }
 
         void JustDied(Unit* /*killer*/)
         {
-            if (m_instance)
-                m_instance->SetData(DATA_ONYXIA, DONE);
+            if (instance)
+                instance->SetData(DATA_ONYXIA, DONE);
 
             Summons.DespawnAll();
         }
@@ -266,8 +265,8 @@ public:
                         me->GetMotionMaster()->MovePoint(11, Phase2Location.GetPositionX(), Phase2Location.GetPositionY(), Phase2Location.GetPositionZ()+25);
                         me->SetSpeed(MOVE_FLIGHT, 1.0f);
                         DoScriptText(SAY_PHASE_2_TRANS, me);
-                        if (m_instance)
-                            m_instance->SetData(DATA_ONYXIA_PHASE, m_uiPhase);
+                        if (instance)
+                            instance->SetData(DATA_ONYXIA_PHASE, m_uiPhase);
                         m_uiWhelpTimer = 5000;
                         m_uiLairGuardTimer = 15000;
                         break;
@@ -302,9 +301,9 @@ public:
                 (pSpell->Id >= 22267 && pSpell->Id <= 22268)) &&
                 (target->GetTypeId() == TYPEID_PLAYER))
             {
-                if (m_instance)
+                if (instance)
                 {
-                    m_instance->SetData(DATA_SHE_DEEP_BREATH_MORE, FAIL);
+                    instance->SetData(DATA_SHE_DEEP_BREATH_MORE, FAIL);
                 }
             }
         }
@@ -349,8 +348,6 @@ public:
                     {
                         SetCombatMovement(false);
                         m_uiPhase = PHASE_BREATH;
-                        me->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, true);
-                        me->ApplySpellImmune(0, IMMUNITY_EFFECT,SPELL_EFFECT_ATTACK_ME, true);
                         me->GetMotionMaster()->MovePoint(10, Phase2Location);
                         return;
                     }
@@ -365,8 +362,8 @@ public:
                         Trinity::GameObjectInRangeCheck check(me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), 15);
                         Trinity::GameObjectLastSearcher<Trinity::GameObjectInRangeCheck> searcher(me, pFloor, check);
                         me->VisitNearbyGridObject(30, searcher);
-                        if (m_instance && pFloor)
-                            m_instance->SetData64(DATA_FLOOR_ERUPTION_GUID, pFloor->GetGUID());
+                        if (instance && pFloor)
+                            instance->SetData64(DATA_FLOOR_ERUPTION_GUID, pFloor->GetGUID());
                         m_uiBellowingRoarTimer = 30000;
                     }
                     else
@@ -412,16 +409,14 @@ public:
                 if (HealthBelowPct(40))
                 {
                     m_uiPhase = PHASE_END;
-                    if (m_instance)
-                        m_instance->SetData(DATA_ONYXIA_PHASE, m_uiPhase);
+                    if (instance)
+                        instance->SetData(DATA_ONYXIA_PHASE, m_uiPhase);
                     DoScriptText(SAY_PHASE_3_TRANS, me);
 
                     SetCombatMovement(true);
                     me->SetCanFly(false);
                     m_bIsMoving = false;
-                    me->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, false);
-                    me->ApplySpellImmune(0, IMMUNITY_EFFECT,SPELL_EFFECT_ATTACK_ME, false);
-                    me->GetMotionMaster()->MovePoint(9,me->GetHomePosition());
+                    me->GetMotionMaster()->MovePoint(9, me->GetHomePosition());
                     return;
                 }
 

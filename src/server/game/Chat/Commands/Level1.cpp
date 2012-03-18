@@ -44,7 +44,6 @@
 
 bool ChatHandler::HandleNameAnnounceCommand(const char* args)
 {
-    WorldPacket data;
     if (!*args)
         return false;
 
@@ -58,7 +57,6 @@ bool ChatHandler::HandleNameAnnounceCommand(const char* args)
 
 bool ChatHandler::HandleGMNameAnnounceCommand(const char* args)
 {
-    WorldPacket data;
     if (!*args)
         return false;
 
@@ -438,13 +436,10 @@ bool ChatHandler::HandleTaxiCheatCommand(const char* args)
     std::string argstr = (char*)args;
 
     Player* chr = getSelectedPlayer();
-    if (!chr)
-    {
-        chr=m_session->GetPlayer();
-    }
 
-    // check online security
-    else if (HasLowerSecurity(chr, 0))
+    if (!chr)
+        chr = m_session->GetPlayer();
+    else if (HasLowerSecurity(chr, 0)) // check online security
         return false;
 
     if (argstr == "on")
@@ -490,12 +485,12 @@ bool ChatHandler::HandleLookupAreaCommand(const char* args)
     wstrToLower (wnamepart);
 
     // Search in AreaTable.dbc
-    for (uint32 areaflag = 0; areaflag < sAreaStore.GetNumRows (); ++areaflag)
+    for (uint32 areaflag = 0; areaflag < sAreaStore.GetNumRows(); ++areaflag)
     {
-        AreaTableEntry const* areaEntry = sAreaStore.LookupEntry (areaflag);
+        AreaTableEntry const* areaEntry = sAreaStore.LookupEntry(areaflag);
         if (areaEntry)
         {
-            int loc = GetSessionDbcLocale ();
+            int loc = GetSessionDbcLocale();
             std::string name = areaEntry->area_name[loc];
             if (name.empty())
                 continue;
@@ -505,7 +500,7 @@ bool ChatHandler::HandleLookupAreaCommand(const char* args)
                 loc = 0;
                 for (; loc < TOTAL_LOCALES; ++loc)
                 {
-                    if (loc == GetSessionDbcLocale ())
+                    if (loc == GetSessionDbcLocale())
                         continue;
 
                     name = areaEntry->area_name[loc];
