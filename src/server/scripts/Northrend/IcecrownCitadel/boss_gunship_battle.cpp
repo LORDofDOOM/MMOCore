@@ -109,7 +109,9 @@ enum Spells
 
 
     // Kor'kron Battle-mage & Skybreaker Sorcerer
-    SPELL_BELOW_ZERO                  = 69705,
+    //SPELL_BELOW_ZERO                  = 69705,
+	//Hacky Workaround
+    SPELL_BELOW_ZERO                  = 71371,	
     SPELL_SHADOW_CHANNELING           = 45104,
 
     // Experience spells
@@ -2151,7 +2153,7 @@ class npc_saurfang_gunship : public CreatureScript
                 // Cambios en el reactstate y flags, gracias Ws
                 me->SetReactState(REACT_AGGRESSIVE);
                 me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
-                me->setFaction(1802);
+                me->setFaction(1801);
                 // Aqui se le asigna los items para que no se pierdan en combate visualmente, gracias Ws
                 SetEquipmentSlots(false, 49775, 49774, EQUIP_NO_CHANGE);
                 events.Reset();
