@@ -105,6 +105,19 @@ class instance_icecrown_citadel : public InstanceMapScript
                 TeamInInstance = 0;
                 HeroicAttempts = MaxHeroicAttempts;
                 LadyDeathwisperElevatorGUID = 0;
+				
+                // Gunship Battle
+                FirstSquadState = 0;
+                SecondSquadState = 0;
+                //SpireSquadState = 0;
+                SkybreakerBossGUID = 0;
+                OrgrimmarBossGUID = 0;
+                DeathbringerSaurfangGbGUID = 0;
+                MuradinBronzebeardGbGUID = 0;
+                DeathbringerSaurfangNotVisualGUID = 0;
+                MuradinBronzebeardNotVisualGUID = 0;
+                GbBattleMageGUID = 0;
+				
                 DeathbringerSaurfangGUID = 0;
                 DeathbringerSaurfangDoorGUID = 0;
                 DeathbringerSaurfangEventGUID = 0;
@@ -150,18 +163,6 @@ class instance_icecrown_citadel : public InstanceMapScript
                 ColdflameJetsState = NOT_STARTED;
                 BloodQuickeningState = NOT_STARTED;
                 BloodQuickeningMinutes = 0;
-// ******* OJO ******* Aqui hay que ver que se hace con estos
-                // Gunship: Holders para el script
-                FirstSquadState = 0;
-                SecondSquadState = 0;
-                SpireSquadState = 0;
-                SkybreakerBossGUID = 0;
-                OrgrimmarBossGUID = 0;
-                DeathbringerSaurfangGbGUID = 0;
-                MuradinBronzebeardGbGUID = 0;
-                DeathbringerSaurfangNotVisualGUID = 0;
-                MuradinBronzebeardNotVisualGUID = 0;
-                GbBattleMageGUID = 0;
                 isPrepared = false;
             }
 
@@ -178,9 +179,12 @@ class instance_icecrown_citadel : public InstanceMapScript
             {
                 if (!TeamInInstance)
                     TeamInInstance = player->GetTeam();
-/* ---------------- Esta linea es la peor de todas -------------- */
-                // Gunship: Precargar el spawn
-                PrepareGunshipEvent(player); // <-- ojala halle una manera para esto
+				//Delete "Essence of the Blood Queen" and "Frenzied Bloodthirst"
+                player->RemoveAurasDueToSpell(70867);
+                player->RemoveAurasDueToSpell(70877);
+                //Gunship Battle
+                if (GetBossState(DATA_GUNSHIP_EVENT) != DONE)
+                    PrepareGunshipEvent();
             }
 
             void OnCreatureCreate(Creature* creature)
@@ -195,6 +199,30 @@ class instance_icecrown_citadel : public InstanceMapScript
 
                 switch (creature->GetEntry())
                 {
+                    //Gunship Battle
+                    case NPC_GB_SKYBREAKER:
+                        SkybreakerBossGUID = creature->GetGUID();
+                        break;
+                    case NPC_GB_ORGRIMS_HAMMER:
+                        OrgrimmarBossGUID = creature->GetGUID();
+                        break;
+                    case NPC_GB_HIGH_OVERLORD_SAURFANG:
+                        DeathbringerSaurfangGbGUID = creature->GetGUID();
+                        break;
+                    case NPC_GB_MURADIN_BRONZEBEARD:
+                        MuradinBronzebeardGbGUID = creature->GetGUID();
+                        break;
+                    case NPC_GB_HIGH_OVERLORD_SAURFANG_NOT_VISUAL:
+                        DeathbringerSaurfangNotVisualGUID = creature->GetGUID();
+                        break;
+                    case NPC_GB_MURADIN_BRONZEBEARD_NOT_VISUAL:
+                        MuradinBronzebeardNotVisualGUID = creature->GetGUID();
+                        break;
+                    case NPC_GB_SKYBREAKER_SORCERERS:
+                    case NPC_GB_KORKRON_BATTLE_MAGE:
+                        GbBattleMageGUID = creature->GetGUID();
+                        break;		
+						
                     case NPC_KOR_KRON_GENERAL:
                         if (TeamInInstance == ALLIANCE)
                             creature->UpdateEntry(NPC_ALLIANCE_COMMANDER, ALLIANCE);
@@ -297,13 +325,13 @@ class instance_icecrown_citadel : public InstanceMapScript
                         break;
                     case NPC_SPINESTALKER:
                         SpinestalkerGUID = creature->GetGUID();
-                        if (!creature->isDead())
-                            ++FrostwyrmCount;
+                        //if (!creature->isDead())
+                            //++FrostwyrmCount;
                         break;
                     case NPC_RIMEFANG:
                         RimefangGUID = creature->GetGUID();
-                        if (!creature->isDead())
-                            ++FrostwyrmCount;
+                        //if (!creature->isDead())
+                            //++FrostwyrmCount;
                         break;
                     case NPC_THE_LICH_KING:
                         TheLichKingGUID = creature->GetGUID();
@@ -314,29 +342,6 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case NPC_TERENAS_MENETHIL_FROSTMOURNE:
                     case NPC_TERENAS_MENETHIL_FROSTMOURNE_H:
                         TerenasMenethilGUID = creature->GetGUID();
-                        break;
-                    //Gunship: Asignaciones
-                    case NPC_GB_SKYBREAKER:
-                        SkybreakerBossGUID = creature->GetGUID();
-                        break;
-                    case NPC_GB_ORGRIMS_HAMMER:
-                        OrgrimmarBossGUID = creature->GetGUID();
-                        break;
-                    case NPC_GB_HIGH_OVERLORD_SAURFANG:
-                        DeathbringerSaurfangGbGUID = creature->GetGUID();
-                        break;
-                    case NPC_GB_MURADIN_BRONZEBEARD:
-                        MuradinBronzebeardGbGUID = creature->GetGUID();
-                        break;
-                    case NPC_GB_HIGH_OVERLORD_SAURFANG_NOT_VISUAL:
-                        DeathbringerSaurfangNotVisualGUID = creature->GetGUID();
-                        break;
-                    case NPC_GB_MURADIN_BRONZEBEARD_NOT_VISUAL:
-                        MuradinBronzebeardNotVisualGUID = creature->GetGUID();
-                        break;
-                    case NPC_GB_SKYBREAKER_SORCERERS:
-                    case NPC_GB_KORKRON_BATTLE_MAGE:
-                        GbBattleMageGUID = creature->GetGUID();
                         break;
                     default:
                         break;
@@ -396,7 +401,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                         break;
                 }
             }
-// DENTRO DE ESTA CREATE FALTAN GOS PARA GUNSHIP, DEPENDIENDO LO Q SE QUIERA HACER
+
             void OnGameObjectCreate(GameObject* go)
             {
                 switch (go->GetEntry())
@@ -607,6 +612,22 @@ class instance_icecrown_citadel : public InstanceMapScript
             {
                 switch (type)
                 {
+                    //Gunship battle
+                    case DATA_SKYBREAKER_BOSS:
+                        return SkybreakerBossGUID;
+                    case DATA_ORGRIMMAR_HAMMER_BOSS:
+                        return OrgrimmarBossGUID;
+                    case DATA_GB_HIGH_OVERLORD_SAURFANG:
+                        return DeathbringerSaurfangGbGUID;
+                    case DATA_GB_MURADIN_BRONZEBEARD:
+                        return MuradinBronzebeardGbGUID;
+                    case DATA_HIGH_OVERLORD_SAURFANG_NOT_VISUAL:
+                        return DeathbringerSaurfangNotVisualGUID;
+                    case DATA_MURADIN_BRONZEBEARD_NOT_VISUAL:
+                        return MuradinBronzebeardNotVisualGUID;
+                    case DATA_GB_BATTLE_MAGE:
+                        return GbBattleMageGUID;
+				
                     case DATA_DEATHBRINGER_SAURFANG:
                         return DeathbringerSaurfangGUID;
                     case DATA_SAURFANG_EVENT_NPC:
@@ -662,22 +683,6 @@ class instance_icecrown_citadel : public InstanceMapScript
                         return ArthasPlatformGUID;
                     case DATA_TERENAS_MENETHIL:
                         return TerenasMenethilGUID;
-// * OJO * Aqui faltan DATAS, como el de los frostwyrm el de firstsquad que no hay
-                    //Gunship: Para unir todo
-                    case DATA_SKYBREAKER_BOSS:
-                        return SkybreakerBossGUID;
-                    case DATA_ORGRIMMAR_HAMMER_BOSS:
-                        return OrgrimmarBossGUID;
-                    case DATA_GB_HIGH_OVERLORD_SAURFANG:
-                        return DeathbringerSaurfangGbGUID;
-                    case DATA_GB_MURADIN_BRONZEBEARD:
-                        return MuradinBronzebeardGbGUID;
-                    case DATA_HIGH_OVERLORD_SAURFANG_NOT_VISUAL:
-                        return DeathbringerSaurfangNotVisualGUID;
-                    case DATA_MURADIN_BRONZEBEARD_NOT_VISUAL:
-                        return MuradinBronzebeardNotVisualGUID;
-                    case DATA_GB_BATTLE_MAGE:
-                        return GbBattleMageGUID;
                     default:
                         break;
                 }
@@ -703,9 +708,10 @@ class instance_icecrown_citadel : public InstanceMapScript
                             }
                         }
                         break;
-// ******* OJO ********* AQUI FALTA EL CASE DE GUNSHIP 
-// a saber que se hace luego que se acaba, si se spamea algo, se les da un logro
-// les aparecemos algun npc o alguna cosa estilo wowrean.
+                    case DATA_GUNSHIP_EVENT:
+                        if (state != DONE)
+                            PrepareGunshipEvent();
+                        break;
                     case DATA_DEATHBRINGER_SAURFANG:
                         switch (state)
                         {
@@ -1309,22 +1315,16 @@ class instance_icecrown_citadel : public InstanceMapScript
                         break;
                 }
             }
-/* -------------------------- ARREGLAR ESTO DIOS ----------------------- */
-            // Gunship: esto es una mierda, hay que hacerlo de otra forma
-            void PrepareGunshipEvent(Player* player)
-            {
-                Transport* th;
-                Transport* t;
 
-                if (GetBossState(DATA_GUNSHIP_EVENT) == DONE)
+			// Gunship Battle
+            void PrepareGunshipEvent()
+            {
+                if (isPrepared || GetBossState(DATA_GUNSHIP_EVENT) == DONE)
                     return;
 
-                if(!isPrepared)
-                {
-                sLog->outDetail("isPrepared = false ----");
                 if(TeamInInstance == ALLIANCE)
                 {
-                    if(th = sMapMgr->LoadTransportInMap(instance, GO_ORGRIM_S_HAMMER_ALLIANCE_ICC, 108000))
+                    if(Transport* th = sMapMgr->LoadTransportInMap(instance, GO_ORGRIM_S_HAMMER_ALLIANCE_ICC, 108000))
                     {
                         th->AddNPCPassengerInInstance(NPC_GB_ORGRIMS_HAMMER, 1.845810f, 1.268872f, 34.526218f, 1.5890f);
                         th->AddNPCPassengerInInstance(NPC_GB_HIGH_OVERLORD_SAURFANG, 37.18615f, 0.00016f, 36.78849f, 3.13683f);
@@ -1369,7 +1369,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                         }
                     }
 
-                    if(t = sMapMgr->LoadTransportInMap(instance, GO_THE_SKYBREAKER_ALLIANCE_ICC, 108000))
+                    if(Transport* t = sMapMgr->LoadTransportInMap(instance, GO_THE_SKYBREAKER_ALLIANCE_ICC, 108000))
                     {
                         t->AddNPCPassengerInInstance(NPC_GB_SKYBREAKER, -17.156807f, -1.633260f, 20.81273f, 4.52672f);
                         t->AddNPCPassengerInInstance(NPC_GB_MURADIN_BRONZEBEARD, 13.51547f, -0.160213f, 20.87252f, 3.10672f);
@@ -1416,10 +1416,10 @@ class instance_icecrown_citadel : public InstanceMapScript
                     }
                 }
 
-                if(TeamInInstance == HORDE)
-                {
-                    if(t = sMapMgr->LoadTransportInMap(instance, GO_THE_SKYBREAKER_HORDE_ICC, 77800))
-                    {
+               if(TeamInInstance == HORDE)
+               {
+                 if(Transport* t = sMapMgr->LoadTransportInMap(instance, GO_THE_SKYBREAKER_HORDE_ICC, 77800))
+				 {
                         t->AddNPCPassengerInInstance(NPC_GB_SKYBREAKER, -17.156807f, -1.633260f, 20.81273f, 4.52672f);
                         t->AddNPCPassengerInInstance(NPC_GB_MURADIN_BRONZEBEARD, 13.51547f, -0.160213f, 20.87252f, 3.10672f);
                         t->AddNPCPassengerInInstance(NPC_GB_HIHG_CAPTAIN_JUSTIN_BARTLETT, 42.78902f, -0.010491f, 25.24052f, 3.00672f);
@@ -1447,16 +1447,16 @@ class instance_icecrown_citadel : public InstanceMapScript
                         t->AddNPCPassengerInInstance(NPC_GB_GUNSHIP_HULL, 4.780305f, -29.05227f, 35.09634f, 1.6f);
 
                         if(instance->ToInstanceMap()->GetMaxPlayers() == 10)
-                        {
+                      {
                             t->AddNPCPassengerInInstance(NPC_GB_SKYBREAKER_RIFLEMAN, -5.15231f, -22.9462f, 21.659f, 4.72416f);
                             t->AddNPCPassengerInInstance(NPC_GB_SKYBREAKER_RIFLEMAN, -14.9806f, -22.9462f, 21.659f, 4.72416f);
                             t->AddNPCPassengerInInstance(NPC_GB_SKYBREAKER_RIFLEMAN, -21.7406f, -22.9462f, 21.659f, 4.72416f);
                             t->AddNPCPassengerInInstance(NPC_GB_SKYBREAKER_RIFLEMAN, -28.0876f, -22.9462f, 21.659f, 4.72416f);
                             t->AddNPCPassengerInInstance(NPC_GB_SKYBREAKER_MORTAR_SOLDIER, -8.61003f, 15.483f, 20.4158f, 4.69854f);
                             t->AddNPCPassengerInInstance(NPC_GB_SKYBREAKER_MORTAR_SOLDIER, -27.9583f, 14.8875f, 20.4428f, 4.77865f);
-                        }
+                      }
                         else
-                        {
+                      {
                             t->AddNPCPassengerInInstance(NPC_GB_SKYBREAKER_RIFLEMAN, 0.15231f, -22.9462f, 21.659f, 4.72416f);
                             t->AddNPCPassengerInInstance(NPC_GB_SKYBREAKER_RIFLEMAN, -5.15231f, -22.9462f, 21.659f, 4.72416f);
                             t->AddNPCPassengerInInstance(NPC_GB_SKYBREAKER_RIFLEMAN, -14.9806f, -22.9462f, 21.659f, 4.72416f);
@@ -1467,11 +1467,11 @@ class instance_icecrown_citadel : public InstanceMapScript
                             t->AddNPCPassengerInInstance(NPC_GB_SKYBREAKER_MORTAR_SOLDIER, -27.9583f, 14.8875f, 20.4428f, 4.77865f);
                             t->AddNPCPassengerInInstance(NPC_GB_SKYBREAKER_MORTAR_SOLDIER, -15.61003f, 15.483f, 20.4158f, 4.69854f);
                             t->AddNPCPassengerInInstance(NPC_GB_SKYBREAKER_MORTAR_SOLDIER, -20.9583f, 14.8875f, 20.4428f, 4.77865f);
-                        }
-                    }
-                
-                    if(th = sMapMgr->LoadTransportInMap(instance,GO_ORGRIM_S_HAMMER_HORDE_ICC, 77800))
-                    {
+                      }
+                 }
+                 
+                  if(Transport* th = sMapMgr->LoadTransportInMap(instance,GO_ORGRIM_S_HAMMER_HORDE_ICC, 77800))
+                  {
                         th->AddNPCPassengerInInstance(NPC_GB_ORGRIMS_HAMMER, 1.845810f, 1.268872f, 34.526218f, 1.5890f);
                         th->AddNPCPassengerInInstance(NPC_GB_HIGH_OVERLORD_SAURFANG, 37.18615f, 0.00016f, 36.78849f, 3.13683f);
                         th->AddNPCPassengerInInstance(NPC_GB_MURADIN_BRONZEBEARD_NOT_VISUAL, -7.09684f, 30.582f, 34.5013f, 1.53591f);
@@ -1502,20 +1502,26 @@ class instance_icecrown_citadel : public InstanceMapScript
                             th->AddNPCPassengerInInstance(NPC_GB_HORDE_CANON, -7.09684f, 30.582f, 34.5013f, 1.53591f);
                             th->AddNPCPassengerInInstance(NPC_GB_HORDE_CANON, -21.7509f, 29.4207f, 34.2588f, 1.53591f);
                         }
-                    }
+                  }
                 }
                 isPrepared = true;
-                }
-                else
-                {
-                    sLog->outDetail("isPrepared =true ----");
-                    sMapMgr->LoadTransportForPlayers(player);
-                }
             }
 
         protected:
             EventMap Events;
             uint64 LadyDeathwisperElevatorGUID;
+
+            // Gunship Battle
+            uint32 FirstSquadState;
+            uint32 SecondSquadState;
+            uint64 SkybreakerBossGUID;
+            uint64 OrgrimmarBossGUID;
+            uint64 DeathbringerSaurfangGbGUID;
+            uint64 MuradinBronzebeardGbGUID;
+            uint64 DeathbringerSaurfangNotVisualGUID;
+            uint64 MuradinBronzebeardNotVisualGUID;
+            uint64 GbBattleMageGUID;
+
             uint64 DeathbringerSaurfangGUID;
             uint64 DeathbringerSaurfangDoorGUID;
             uint64 DeathbringerSaurfangEventGUID;   // Muradin Bronzebeard or High Overlord Saurfang
@@ -1566,24 +1572,6 @@ class instance_icecrown_citadel : public InstanceMapScript
             bool IsOozeDanceEligible;
             bool IsNauseaEligible;
             bool IsOrbWhispererEligible;
-/* ----------------------------------------- AQUI OJO CON ESTAS VARIABLES PARA USAR LUEGO ----------------------- */
-            // Gunship: Variables
-            // Aqui hay que unir los estados del first squad y estas cosas con ls eventos reales
-            uint32 FirstSquadState;
-            uint32 SecondSquadState;
-            uint32 SpireSquadState;
-            uint64 SkybreakerBossGUID;
-            uint64 OrgrimmarBossGUID;
-            uint64 DeathbringerSaurfangGbGUID;
-            uint64 MuradinBronzebeardGbGUID;
-            uint64 DeathbringerSaurfangNotVisualGUID;
-            uint64 MuradinBronzebeardNotVisualGUID;
-            uint64 GbBattleMageGUID;
-            uint64 GunShipControllerGUID;
-            uint64 GBMuradinGUID;
-            uint64 GBSaurfangGUID;
-            uint64 GBSkybreakerGUID;
-            uint64 GBOgrimsHammerGUID;
             bool isPrepared;
         };
 

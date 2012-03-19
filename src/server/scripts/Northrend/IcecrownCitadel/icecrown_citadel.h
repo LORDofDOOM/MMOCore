@@ -111,12 +111,11 @@ enum DataTypes
     DATA_ARTHAS_PLATFORM            = 38,
     DATA_TERENAS_MENETHIL           = 39,
 
-    // Gunship: Datos para logros
+    // Gunship Battle Achievement
     DATA_BEEN_WAITING_ACHIEVEMENT   = 49,
     DATA_NECK_DEEP_ACHIEVEMENT      = 50,
 
-    // Gunship: Datos para la pelea
-    // La numeracion es muy arriba por seguridad
+    // Gunship Battle
     DATA_FIRST_SQUAD_STATE                  = 100,
     DATA_SECOND_SQUAD_STATE                 = 101,
     DATA_SPIRE_FROSTWYRM_STATE              = 102,
@@ -127,9 +126,9 @@ enum DataTypes
     DATA_SKYBREAKER_BOSS                    = 107,
     DATA_ORGRIMMAR_HAMMER_BOSS              = 108,
     DATA_MURADIN_BRONZEBEARD_NOT_VISUAL     = 109,
-    DATA_MURADIN_BRONZEBEARD                = 110,
-    DATA_GUNSHIP_BATTLE                     = 111,
-    GUID_PLAYER_LOCATION                    = 112,
+    DATA_MURADIN_BRONZEBEARD                = 66,
+    DATA_GUNSHIP_BATTLE                     = 67,
+    GUID_PLAYER_LOCATION                    = 69,
 };
 
 enum CreaturesIds
@@ -183,6 +182,38 @@ enum CreaturesIds
     NPC_REANIMATED_ADHERENT                     = 38010,
     NPC_VENGEFUL_SHADE                          = 38222,
 
+    // Gunship Battle
+    NPC_GB_SKYBREAKER                           = 37540,
+    NPC_GB_ORGRIMS_HAMMER                       = 37215,
+    NPC_GB_HIGH_OVERLORD_SAURFANG               = 36939,
+    NPC_GB_MURADIN_BRONZEBEARD                  = 36948,
+    NPC_GB_HIHG_CAPTAIN_JUSTIN_BARTLETT         = 37182,
+    NPC_GB_HIGH_OVERLORD_SAURFANG_NOT_VISUAL    = 50004,
+    NPC_GB_MURADIN_BRONZEBEARD_NOT_VISUAL       = 50006,
+    NPC_GB_SKYBREAKER_SORCERER                  = 37026,
+    NPC_GB_SKYBREAKER_SORCERERS                 = 37116,
+    NPC_GB_KORKRON_REAVER                       = 37920,
+    NPC_GB_KORKRON_REAVERS                      = 36957,
+    NPC_GB_KORKRON_SERGANTE                     = 36960,
+    NPC_GB_SKYBREAKER_SERGANTE                  = 36961,
+    NPC_GB_KORKRON_BATTLE_MAGE                  = 37117,
+    NPC_GB_SKYBREAKER_MARINE                    = 36950,
+    NPC_GB_KORKRON_ROCKETEER                    = 36982,
+    NPC_GB_SKYBREAKER_MORTAR_SOLDIER            = 36978,
+    NPC_GB_KORKRON_AXETHROWER                   = 36968,
+    NPC_GB_SKYBREAKER_RIFLEMAN                  = 36969,
+    NPC_GB_SKYBREAKER_DECKHAND                  = 36970,
+    NPC_GB_ZAFOD_BOOMBOX                        = 37184,
+    NPC_GB_ALLIANCE_CANON                       = 36838,
+    NPC_GB_HORDE_CANON                          = 36839,
+    NPC_GB_INVISIBLE_STALKER                    = 32780,
+    NPC_GB_PORTAL                               = 37227,
+    NPC_GB_GUNSHIP_HULL                         = 37547,
+    // Gunship Battle Trash
+    NPC_KORKRON_INVOKER                         = 37033,
+    NPC_SPIRE_FROSTWYRM	                        = 37230,
+    NPC_SKYBREAKER_SORCERER                     = 37026,	
+	
     // Deathbringer Saurfang
     NPC_DEATHBRINGER_SAURFANG                   = 37813,
     NPC_BLOOD_BEAST                             = 38508,
@@ -295,38 +326,6 @@ enum CreaturesIds
     NPC_WORLD_TRIGGER_INFINITE_AOI              = 36171,
     NPC_SPIRIT_BOMB                             = 39189,
     NPC_FROSTMOURNE_TRIGGER                     = 38584,
-
-    // Gunship: Ids de los npcs
-    NPC_GB_SKYBREAKER                           = 37540,
-    NPC_GB_ORGRIMS_HAMMER                       = 37215,
-    NPC_GB_HIGH_OVERLORD_SAURFANG               = 36939,
-    NPC_GB_MURADIN_BRONZEBEARD                  = 36948,
-    NPC_GB_HIHG_CAPTAIN_JUSTIN_BARTLETT         = 37182,
-    NPC_GB_HIGH_OVERLORD_SAURFANG_NOT_VISUAL    = 50004,
-    NPC_GB_MURADIN_BRONZEBEARD_NOT_VISUAL       = 50006,
-    NPC_GB_SKYBREAKER_SORCERER                  = 37026,
-    NPC_GB_SKYBREAKER_SORCERERS                 = 37116,
-    NPC_GB_KORKRON_REAVER                       = 37920,
-    NPC_GB_KORKRON_REAVERS                      = 36957,
-    NPC_GB_KORKRON_SERGANTE                     = 36960,
-    NPC_GB_SKYBREAKER_SERGANTE                  = 36961,
-    NPC_GB_KORKRON_BATTLE_MAGE                  = 37117,
-    NPC_GB_SKYBREAKER_MARINE                    = 36950,
-    NPC_GB_KORKRON_ROCKETEER                    = 36982,
-    NPC_GB_SKYBREAKER_MORTAR_SOLDIER            = 36978,
-    NPC_GB_KORKRON_AXETHROWER                   = 36968,
-    NPC_GB_SKYBREAKER_RIFLEMAN                  = 36969,
-    NPC_GB_SKYBREAKER_DECKHAND                  = 36970,
-    NPC_GB_ZAFOD_BOOMBOX                        = 37184,
-    NPC_GB_ALLIANCE_CANON                       = 36838,
-    NPC_GB_HORDE_CANON                          = 36839,
-    NPC_GB_INVISIBLE_STALKER                    = 32780,
-    NPC_GB_PORTAL                               = 37227,
-    NPC_GB_GUNSHIP_HULL                         = 37547,
-    // Gunship: Ids faltantes del trash
-    NPC_KORKRON_INVOKER                         = 37033,
-    NPC_SPIRE_FROSTWYRM	                        = 37230,
-    NPC_SKYBREAKER_SORCERER                     = 37026,
 };
 
 enum GameObjectsIds
@@ -345,6 +344,20 @@ enum GameObjectsIds
     // Lady Deathwhisper
     GO_ORATORY_OF_THE_DAMNED_ENTRANCE       = 201563,
     GO_LADY_DEATHWHISPER_ELEVATOR           = 202220,
+	
+    //Gunship Battle
+    GO_ORGRIM_S_HAMMER_HORDE_ICC            = 201812,
+    GO_ORGRIM_S_HAMMER_ALLIANCE_ICC         = 201581,
+    GO_THE_SKYBREAKER_HORDE_ICC             = 201811,
+    GO_THE_SKYBREAKER_ALLIANCE_ICC          = 201580,
+    GO_CAPITAN_CHEST_A_10N                  = 201872,
+    GO_CAPITAN_CHEST_A_25N                  = 201873,
+    GO_CAPITAN_CHEST_A_10H                  = 201874,
+    GO_CAPITAN_CHEST_A_25H                  = 201875,
+    GO_CAPITAN_CHEST_H_10N                  = 202177,
+    GO_CAPITAN_CHEST_H_25N                  = 202178,
+    GO_CAPITAN_CHEST_H_10H                  = 202179,
+    GO_CAPITAN_CHEST_H_25H                  = 202180,	
 
     // Deathbringer Saurfang
     GO_SAURFANG_S_DOOR                      = 201825,
@@ -409,21 +422,6 @@ enum GameObjectsIds
     GO_FROZEN_LAVAMAN                       = 202436,
     GO_LAVAMAN_PILLARS_CHAINED              = 202437,
     GO_LAVAMAN_PILLARS_UNCHAINED            = 202438,
-
-// ATENTO CON ESTOS GOS, A VER QUE SE HACE EN EL .CPP
-    //Gunship: Ids de los Gameobjects
-    GO_ORGRIM_S_HAMMER_HORDE_ICC            = 201812,
-    GO_ORGRIM_S_HAMMER_ALLIANCE_ICC         = 201581,
-    GO_THE_SKYBREAKER_HORDE_ICC             = 201811,
-    GO_THE_SKYBREAKER_ALLIANCE_ICC          = 201580,
-    GO_CAPITAN_CHEST_A_10N                  = 201872,
-    GO_CAPITAN_CHEST_A_25N                  = 201873,
-    GO_CAPITAN_CHEST_A_10H                  = 201874,
-    GO_CAPITAN_CHEST_A_25H                  = 201875,
-    GO_CAPITAN_CHEST_H_10N                  = 202177,
-    GO_CAPITAN_CHEST_H_25N                  = 202178,
-    GO_CAPITAN_CHEST_H_10H                  = 202179,
-    GO_CAPITAN_CHEST_H_25H                  = 202180,
 };
 
 enum AchievementCriteriaIds
