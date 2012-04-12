@@ -291,8 +291,8 @@ bool ChatHandler::HandleGHCommand(const char* args)
         }
 
         QueryResult result;
-            result = CharacterDatabase.PQuery("SELECT `x`, `y`, `z`, `map` FROM `guildhouses` WHERE `guildId` = %u", chr->GetGuildId());
-        if(result == NULL)
+        result = CharacterDatabase.PQuery("SELECT `x`, `y`, `z`, `map` FROM `guildhouses` WHERE `guildId` = %u", chr->GetGuildId());
+        if(!result)
         {
                 //pokud guilda nema guildhouse zapsany v tabulce guildhouses
                 SendSysMessage("GH Port");
