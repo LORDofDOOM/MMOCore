@@ -39,7 +39,10 @@ GmTicket::GmTicket(Player* player, WorldPacket& recv_data) : _createTime(time(NU
     _playerName = player->GetName();
     _playerGuid = player->GetGUID();
 
-    recv_data >> _mapId;
+    uint32 mapId;
+    recv_data >> mapId; // Map is sent as UInt32!
+    _mapId = mapId;
+
     recv_data >> _posX;
     recv_data >> _posY;
     recv_data >> _posZ;
@@ -67,6 +70,8 @@ GmTicket::~GmTicket() { }
 
 bool GmTicket::LoadFromDB(Field* fields)
 {
+    //     0       1     2      3          4        5      6     7     8           9            10         11         12        13        14        15
+    // ticketId, guid, name, message, createTime, mapId, posX, posY, posZ, lastModifiedTime, closedBy, assignedTo, comment, completed, escalated, viewed
     uint8 index = 0;
     _id                 = fields[  index].GetUInt32();
     _playerGuid         = MAKE_NEW_GUID(fields[++index].GetUInt32(), 0, HIGHGUID_PLAYER);
@@ -89,6 +94,8 @@ bool GmTicket::LoadFromDB(Field* fields)
 
 void GmTicket::SaveToDB(SQLTransaction& trans) const
 {
+    //     0       1     2      3          4        5      6     7     8           9            10         11         12        13        14        15
+    // ticketId, guid, name, message, createTime, mapId, posX, posY, posZ, lastModifiedTime, closedBy, assignedTo, comment, completed, escalated, viewed
     uint8 index = 0;
     PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_GM_TICKET);
     stmt->setUInt32(  index, _id);

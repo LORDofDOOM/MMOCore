@@ -427,7 +427,7 @@ bool ChatHandler::HandleListItemCommand(const char *args)
     result = CharacterDatabase.Query(stmt);
 
     if (result)
-        inv_count = (*result)[0].GetUInt32();
+        inv_count = (*result)[0].GetUInt64();
 
     stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_INVENTORY_ITEM_BY_ENTRY);
     stmt->setUInt32(0, item_id);
@@ -441,7 +441,7 @@ bool ChatHandler::HandleListItemCommand(const char *args)
             Field* fields = result->Fetch();
             uint32 item_guid = fields[0].GetUInt32();
             uint32 item_bag = fields[1].GetUInt32();
-            uint32 item_slot = fields[2].GetUInt32();
+            uint8 item_slot = fields[2].GetUInt8();
             uint32 owner_guid = fields[3].GetUInt32();
             uint32 owner_acc = fields[4].GetUInt32();
             std::string owner_name = fields[5].GetString();
@@ -476,7 +476,7 @@ bool ChatHandler::HandleListItemCommand(const char *args)
     result = CharacterDatabase.Query(stmt);
 
     if (result)
-        mail_count = (*result)[0].GetUInt32();
+        mail_count = (*result)[0].GetUInt64();
 
     if (count > 0)
     {
@@ -523,7 +523,7 @@ bool ChatHandler::HandleListItemCommand(const char *args)
     result = CharacterDatabase.Query(stmt);
 
     if (result)
-        auc_count = (*result)[0].GetUInt32();
+        auc_count = (*result)[0].GetUInt64();
 
     if (count > 0)
     {
@@ -560,7 +560,7 @@ bool ChatHandler::HandleListItemCommand(const char *args)
     result = CharacterDatabase.Query(stmt);
 
     if (result)
-        guild_count = (*result)[0].GetUInt32();
+        guild_count = (*result)[0].GetUInt64();
 
     stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_GUILD_BANK_ITEM_BY_ENTRY);
     stmt->setUInt32(0, item_id);
@@ -638,7 +638,7 @@ bool ChatHandler::HandleListObjectCommand(const char *args)
     uint32 obj_count = 0;
     result = WorldDatabase.PQuery("SELECT COUNT(guid) FROM gameobject WHERE id='%u'", go_id);
     if (result)
-        obj_count = (*result)[0].GetUInt32();
+        obj_count = (*result)[0].GetUInt64();
 
     if (m_session)
     {
@@ -710,7 +710,7 @@ bool ChatHandler::HandleListCreatureCommand(const char *args)
     uint32 cr_count = 0;
     result = WorldDatabase.PQuery("SELECT COUNT(guid) FROM creature WHERE id='%u'", cr_id);
     if (result)
-        cr_count = (*result)[0].GetUInt32();
+        cr_count = (*result)[0].GetUInt64();
 
     if (m_session)
     {
@@ -3356,7 +3356,7 @@ bool ChatHandler::HandleBanListCharacterCommand(const char *args)
 
 bool ChatHandler::HandleBanListAccountCommand(const char *args)
 {
-    PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_DEL_OLD_BANS);
+    PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_DEL_EXPIRED_IP_BANS);
     LoginDatabase.Execute(stmt);
 
     char* cFilter = strtok((char*)args, " ");
@@ -3484,7 +3484,7 @@ bool ChatHandler::HandleBanListHelper(PreparedQueryResult result)
 
 bool ChatHandler::HandleBanListIPCommand(const char *args)
 {
-    PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_DEL_OLD_IP_BANS);
+    PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_DEL_EXPIRED_IP_BANS);
     LoginDatabase.Execute(stmt);
 
     char* cFilter = strtok((char*)args, " ");
@@ -4667,40 +4667,38 @@ bool ChatHandler::HandleUnFreezeCommand(const char *args)
 {
     std::string name;
     Player* player;
-    char *TargetName = strtok((char*)args, " "); //get entered name
-    if (!TargetName) //if no name entered use target
-    {
-        player = getSelectedPlayer();
-        if (player) //prevent crash with creature as target
-            name = player->GetName();
-    }
+    char* targetName = strtok((char*)args, " "); // Get entered name
 
-    else // if name entered
+    if (targetName)
     {
-        name = TargetName;
+        name = targetName;
         normalizePlayerName(name);
         player = sObjectAccessor->FindPlayerByName(name.c_str());
     }
+    else // If no name was entered - use target
+    {
+        player = getSelectedPlayer();
+        if (player)
+            name = player->GetName();
+    }
 
-    //effect
     if (player)
     {
         PSendSysMessage(LANG_COMMAND_UNFREEZE, name.c_str());
 
-        //Reset player faction + allow combat + allow duels
+        // Reset player faction + allow combat + allow duels
         player->setFactionForRace(player->getRace());
         player->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
 
-        //allow movement and spells
+        // Remove Freeze spell (allowing movement and spells)
         player->RemoveAurasDueToSpell(9454);
 
-        //save player
+        // Save player
         player->SaveToDB();
     }
-
-    if (!player)
+    else
     {
-        if (TargetName)
+        if (targetName)
         {
             // Check for offline players
             PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_GUID_BY_NAME);
@@ -4712,12 +4710,13 @@ bool ChatHandler::HandleUnFreezeCommand(const char *args)
                 SendSysMessage(LANG_COMMAND_FREEZE_WRONG);
                 return true;
             }
-            //if player found: delete his freeze aura
-            Field* fields=result->Fetch();
-            uint64 pguid = fields[0].GetUInt64();
+
+            // If player found: delete his freeze aura
+            Field* fields = result->Fetch();
+            uint32 lowGuid = fields[0].GetUInt32();
 
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_AURA_FROZEN);
-            stmt->setUInt32(0, pguid);
+            stmt->setUInt32(0, lowGuid);
             CharacterDatabase.Execute(stmt);
 
             PSendSysMessage(LANG_COMMAND_UNFREEZE, name.c_str());

@@ -247,7 +247,7 @@ public:
                     CAST_PLR(Killed)->FailQuest(QUEST_SECOND_TRIAL);
         }
 
-        void JustDied(Unit* Killer);
+        void JustDied(Unit* killer);
     };
 };
 
@@ -490,14 +490,14 @@ public:
         {
             if (PlayerGUID)
                 if (Player* player = Unit::GetPlayer(*me, PlayerGUID))
-                    CAST_PLR(player)->FailQuest(QUEST_UNEXPECTED_RESULT);
+                    player->FailQuest(QUEST_UNEXPECTED_RESULT);
         }
 
         void UpdateAI(const uint32 /*diff*/)
         {
             if (KillCount >= 3 && PlayerGUID)
                 if (Player* player = Unit::GetPlayer(*me, PlayerGUID))
-                    CAST_PLR(player)->CompleteQuest(QUEST_UNEXPECTED_RESULT);
+                    player->CompleteQuest(QUEST_UNEXPECTED_RESULT);
 
             if (Summon)
             {
