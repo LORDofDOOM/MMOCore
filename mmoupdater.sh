@@ -72,12 +72,16 @@ URL_GIT_DATABASE=https://github.com/LORDofDOOM/MMODatabase.git
 # CORE_FOLDER: Folder where to find the core sources (relative to $MAIN_PATH)
 # RECOMPILE_OUTBUT_FOLDER: Where should the executable files be after successfully build (relative to $MAIN_PATH)
 # CORE_BUILD_FOLDER: Where should the core be build (abolute path)
+# COPY_WORDSERVER_BIN: Copy the new worldserver and authserver after compile to target path
+# COPY_WORDSERVER_TO_FOLDER: Copy worldserver and authserver to this folder - old feiles wil bee deleted (abolute path)
 
 MAIN_PATH=/home/MMO
 BACKUP_PATH=MMOBackup
 DATABASE_FOLDER=MMODatabase
 CORE_FOLDER=MMOCore
 CORE_BUILD_FOLDER=/home/MMO/MMOCoreMake
+COPY_WORDSERVER_BIN=1
+COPY_WORDSERVER_TO_FOLDER=/home/trinity
 RECOMPILE_OUTBUT_FOLDER=MMOCoreBuild
 
 #########################################################################################################
@@ -179,6 +183,12 @@ if [ "$COMPILE" = "1" ]; then
 #				Core Part																				#
 #-------------------------------------------------------------------------------------------------------#
 
+if [ -d $MAIN_PATH ]; then
+	cecho "$MAIN_PATH exist - Starting" $green
+else 
+	cecho "$MAIN_PATH dont exist - Creating" $red
+	mkdir $MAIN_PATH
+fi 
 if [ "$REMOVE_CORE_BEFORE_UPDATE" = "1" ]; then
 	cecho "Remove Core" $green
 	rm -rf $MAIN_PATH/$CORE_FOLDER
@@ -238,6 +248,19 @@ if [ "$COMPILE_CORE" = "1" ]; then
 fi
 echo ""
 
+#-------------------------------------------------------------------------------------------------------#
+#				Copy bin files to correct folder														#
+#-------------------------------------------------------------------------------------------------------#
+if [ "$COPY_WORDSERVER_BIN" = "1" ]; then
+cecho "Delete old binaries"	$green
+rm -rf $COPY_WORDSERVER_TO_FOLDER/worldserver
+rm -rf $COPY_WORDSERVER_TO_FOLDER/authserver
+
+cecho "Copy binaries to target"	$green
+cp $CORE_BUILD_FOLDER/bin/worldserver $COPY_WORDSERVER_TO_FOLDER/worldserver
+cp $CORE_BUILD_FOLDER/bin/authserver $COPY_WORDSERVER_TO_FOLDER/authserver
+fi
+echo ""
 # End compile part
 fi
 
