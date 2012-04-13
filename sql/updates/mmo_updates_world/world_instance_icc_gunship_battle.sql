@@ -138,11 +138,10 @@ UPDATE `creature_template` SET `speed_walk`=0 ,`speed_run`=0 WHERE `entry` IN (3
 
 -- Mas condiciones
 -- Add spell conditions for 69705 (Below Zero)
-SET @SPELL := 69705;
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry`=@SPELL;
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry`=69705;
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`ErrorTextId`,`ScriptName`,`Comment`) VALUES
-(13,0,@SPELL,0,18,1,36838,0,0,'','Gunship Battle - Spell 69705 (Below Zero) target creature 36838'),
-(13,0,@SPELL,0,18,1,36839,0,0,'','Gunship Battle - Spell 69705 (Below Zero) target creature 36839');
+(13,0,69705,0,18,1,36838,0,0,'','Gunship - Spell 69705 (Below Zero) target creature NPC_GUNSHIP_CANNON_ALLIANCE'),
+(13,0,69705,0,18,1,36839,0,0,'','Gunship - Spell 69705 (Below Zero) target creature NPC_GUNSHIP_CANNON_HORDE');
 
 -- AQUI HAY QUE AÑADIR LOS EFECTOS DE EXPLOSION ***** OJO ******
 DELETE FROM `spell_linked_spell` WHERE `spell_trigger` = 71193 AND `spell_effect` = -71188;
@@ -329,3 +328,110 @@ UPDATE item_template SET ScriptName = 'item_icc_rocket_pack' WHERE entry = 49278
 -- Zafod Boombox (37184) giver of jetpack
 UPDATE `creature_template` SET `npcflag`=1 WHERE `entry`=37184;
 
+
+-- ###############
+-- Modify original
+-- ###############
+
+
+-- Cannons
+UPDATE `creature_template` SET `AIName`='', `ScriptName`='', `speed_walk`=0, `speed_run`=0, `IconName`='Gunner' WHERE `entry` IN (36838,36839);
+UPDATE `creature_template` SET `VehicleId`=554, `spell1`=69399, `spell2`=70174 WHERE `entry`=36838;
+UPDATE `creature_template` SET `VehicleId`=555, `spell1`=70172, `spell2`=69401 WHERE `entry`=36839;
+
+-- Not sniffed, just any working spell here
+DELETE FROM npc_spellclick_spells WHERE npc_entry IN (36838,36839);
+INSERT INTO npc_spellclick_spells VALUES
+(36838,65403,0,0,0,1,0,0,0),
+(36839,65403,0,0,0,1,0,0,0);
+
+-- Auras on Battle Standards summoned by mages on the Ramparts when they are rescued (first squad only)
+DELETE FROM `creature_template_addon` WHERE `entry` IN (37044, 37041);
+INSERT INTO `creature_template_addon` (`entry`, `path_id`, `mount`, `bytes1`, `bytes2`, `emote`, `auras`) VALUES
+(37044,0,0,0,0,0,'69809'), -- Kor'kron Battle Standard
+(37041,0,0,0,0,0,'69808'); -- Skybreaker Battle Standard
+
+-- Heat Drain aura on cannons
+DELETE FROM `creature_template_addon` WHERE `entry` IN (36838,36839);
+INSERT INTO `creature_template_addon` VALUES
+(36838,0,0,0,1,0,'69470'),
+(36839,0,0,0,1,0,'69470');
+
+-- Rocket Pack Useable aura on Zafod Boombox
+DELETE FROM `creature_template_addon` WHERE `entry` IN (37184);
+INSERT INTO `creature_template_addon` VALUES
+(37184,0,0,0,0,0,'70348'); /* FIXME */
+
+/*
+ SmartAI
+ - NPC_SKYBREAKER_MARINE // NPC_KORKRON_REAVER
+ - NPC_SKYBREAKER_SERGEANT // NPC_KORKRON_SERGEANT
+*/
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (36950,36957,36961,36960);
+
+UPDATE `creature_template` SET `AIName`='SmartAI', `ScriptName`='' WHERE `entry` IN (36950,36957,36961,36960);
+UPDATE `creature_template` SET `AIName`='', `ScriptName`='npc_zafod_boombox' WHERE `entry` IN (37184);
+UPDATE `creature_template` SET `AIName`='', `ScriptName`='npc_muradin_varok' WHERE `entry` IN (36948,36939);
+UPDATE `creature_template` SET `AIName`='', `ScriptName`='boss_gunship' WHERE `entry` IN (37540,37215);
+UPDATE `creature_template` SET `AIName`='', `ScriptName`='npc_rifleman_axethrower' WHERE `entry` IN (36968,36969);
+UPDATE `creature_template` SET `AIName`='', `ScriptName`='npc_mortar_soldier_or_rocketeer' WHERE `entry` IN (36978,36982);
+UPDATE `creature_template` SET `AIName`='', `ScriptName`='npc_sorcerer_or_battle_mage' WHERE `entry` IN (37026,37117);
+
+-- Range target searcher dummy spells
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (70418,70419);
+INSERT INTO `spell_script_names` VALUES
+(70418,'spell_gunship_range_targeting'),
+(70419,'spell_gunship_range_targeting');
+
+-- Rocket Artillery searcher dummy spells
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (69678,70609);
+INSERT INTO `spell_script_names` VALUES
+(69678,'spell_gunship_rocket_artillery'),
+(70609,'spell_gunship_rocket_artillery');
+
+-- Rocket Pack Useable Too Far Away Whisper script
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (70348);
+INSERT INTO `spell_script_names` VALUES
+(70348,'spell_gunship_rocket_pack_useable');
+
+-- Cannon Blast overheating
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (69399,70172);
+INSERT INTO `spell_script_names` VALUES
+(69399,'spell_gunship_cannon_blast'),
+(70172,'spell_gunship_cannon_blast');
+
+-- Incinerating Blast extra heat to damage
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (69401,70174);
+INSERT INTO `spell_script_names` VALUES
+(69401,'spell_gunship_incinerating_blast'),
+(70174,'spell_gunship_incinerating_blast');
+
+-- Rocket Pack splash and slow on jump end & aura remove
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (68645);
+INSERT INTO `spell_script_names` VALUES
+(68645,'spell_gunship_rocket_pack');
+
+-- Rocket Pack useable area aura
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (70348);
+INSERT INTO `spell_script_names` VALUES
+(70348,'spell_gunship_rocket_pack_useable');
+
+-- Item ITEM_GOBLIN_ROCKET_PACK script
+UPDATE `item_template` SET `ScriptName`='item_rocket_pack' WHERE `entry`=49278;
+
+-- Battle Fury parry miss evade ignore procEx, icd 2 secs
+DELETE FROM `spell_proc_event` WHERE `entry` IN (69637);
+INSERT INTO `spell_proc_event` (`entry`,`procEx`,`Cooldown`) VALUES
+(69637,0x10000,2);
+
+-- Below Zero targeting
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry`=69705;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`ErrorTextId`,`ScriptName`,`Comment`) VALUES
+(13,0,69705,0,18,1,36838,0,0,'','Gunship - Spell 69705 (Below Zero) target creature NPC_GUNSHIP_CANNON_ALLIANCE'),
+(13,0,69705,0,18,1,36839,0,0,'','Gunship - Spell 69705 (Below Zero) target creature NPC_GUNSHIP_CANNON_HORDE');
+
+-- Burning Pitch targeting
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=13 AND `SourceEntry` IN (70374,70383);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`ErrorTextId`,`ScriptName`,`Comment`) VALUES
+(13,0,70374,0,18,1,37540,0,0,'','Gunship - Spell 70374 (Burning Pitch) target creature NPC_THE_SKYBREAKER'),
+(13,0,70383,0,18,1,37215,0,0,'','Gunship - Spell 70383 (Burning Pitch) target creature NPC_ORGRIMS_HAMMER');
