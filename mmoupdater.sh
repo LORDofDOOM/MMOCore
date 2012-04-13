@@ -224,7 +224,6 @@ if [ "$COMPILE_CORE" = "1" ]; then
 	cecho "Compile MMOCore" $green
 	cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER	
 
-
 	if [ "$RECOMPILE_CORE" = "1" ]; then
 		rm -rf $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER/*
 		
@@ -234,14 +233,16 @@ if [ "$COMPILE_CORE" = "1" ]; then
 			mkdir $CORE_BUILD_FOLDER
 			cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER
 		fi 	
-		
-		if [ "$COMPILE_IN_DEBUG_MODE" = "1" ]; then
-			cmake ../$CORE_FOLDER -DPREFIX=$CORE_BUILD_FOLDER -DWITH_COREDEBUG=1
-		else 
-			cmake ../$CORE_FOLDER -DPREFIX=$CORE_BUILD_FOLDER
-		fi 	
 	fi 
 
+	if [ "$COMPILE_IN_DEBUG_MODE" = "1" ]; then
+		cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER
+		cmake ../$CORE_FOLDER -DPREFIX=$CORE_BUILD_FOLDER -DWITH_COREDEBUG=1
+	else 
+		cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER
+		cmake ../$CORE_FOLDER -DPREFIX=$CORE_BUILD_FOLDER
+	fi 		
+	
 	make -j8
 	make install
 
