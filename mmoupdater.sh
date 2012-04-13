@@ -456,8 +456,8 @@ done
 #-------------------------------------------------------------------------------------------------------#
 #				Import Testserver only SQLs																#
 #-------------------------------------------------------------------------------------------------------#
-cecho "Import TESTSERVER SQLs" $red
 if [ "$INCLUDE_TESTSERVER_SQL" = "1" ]; then
+cecho "Import TESTSERVER SQLs" $red
 	for file in $MAIN_PATH/$CORE_FOLDER/sql/updates/mmo_updates_world/TESTSERVER_ONLY/*.sql ; do
 		cecho Import "$file" $green
 		mysql -h localhost -u $USERNAME -p$PASSWORD $TRINITY_WORLD_REALM <"$file"
