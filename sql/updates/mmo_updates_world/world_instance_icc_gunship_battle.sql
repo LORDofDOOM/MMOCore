@@ -341,9 +341,10 @@ UPDATE `creature_template` SET `VehicleId`=555, `spell1`=70172, `spell2`=69401 W
 
 -- Not sniffed, just any working spell here
 DELETE FROM npc_spellclick_spells WHERE npc_entry IN (36838,36839);
-INSERT INTO npc_spellclick_spells VALUES
-(36838,65403,0,0,0,1,0,0,0),
-(36839,65403,0,0,0,1,0,0,0);
+REPLACE INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `user_type`) VALUES
+('36838', '65403', '1', '0'),
+('36839', '65403', '1', '0');
+
 
 -- Auras on Battle Standards summoned by mages on the Ramparts when they are rescued (first squad only)
 DELETE FROM `creature_template_addon` WHERE `entry` IN (37044, 37041);

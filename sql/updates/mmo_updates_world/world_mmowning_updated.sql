@@ -67,8 +67,8 @@ REPLACE INTO `achievement_criteria_data` (`criteria_id`, `type`, `value1`, `valu
 UPDATE `creature_template` SET `faction_A` = 35, `faction_H` = 35, `npcflag` = 1, `ScriptName` = "npc_announcer_toc5" WHERE `entry` = 35005;
 
 -- Fix Boss Fix ewiger Verderber
-DELETE FROM `creature_template` WHERE `entry` = 32273;
-INSERT INTO `creature_template` VALUES ('32273', '32313', '0', '0', '0', '0', '19326', '0', '0', '0', 'Infinite Corruptor', '', '', '0', '82', '82', '2', '1720', '1720', '0', '1', '1.14286', '1', '1', '488', '642', '0', '782', '7.5', '2000', '0', '1', '320', '8', '0', '0', '0', '0', '0', '363', '521', '121', '2', '72', '32273', '0', '70210', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '', '0', '3', '25', '1', '1', '0', '0', '0', '0', '0', '0', '0', '144', '1', '1838', '0', '1', 'boss_infinite_corruptor', '12340');
+-- DELETE FROM `creature_template` WHERE `entry` = 32273;
+-- INSERT INTO `creature_template` VALUES ('32273', '32313', '0', '0', '0', '0', '19326', '0', '0', '0', 'Infinite Corruptor', '', '', '0', '82', '82', '2', '1720', '1720', '0', '1', '1.14286', '1', '1', '488', '642', '0', '782', '7.5', '2000', '0', '1', '320', '8', '0', '0', '0', '0', '0', '363', '521', '121', '2', '72', '32273', '0', '70210', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '', '0', '3', '25', '1', '1', '0', '0', '0', '0', '0', '0', '0', '144', '1', '1838', '0', '1', 'boss_infinite_corruptor', '12340');
 
 -- Fix Priest Quest Nachtelfen level 10
 UPDATE `quest_template` SET `RequiredNpcOrGo1` = 0, `RequiredNpcOrGoCount1` = 0 WHERE `Id` = 5621;
