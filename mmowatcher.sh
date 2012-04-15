@@ -176,7 +176,7 @@ if [ "$DEBUG_MODE" = "1" ]; then
 		cecho "$DEBUG_CRASHLOG_FOLDER dont exist - Creating" $red
 		mkdir $DEBUG_CRASHLOG_FOLDER
 	fi 
-	cd $WORLDSERVER_FOLDER
+	#cd $WORLDSERVER_FOLDER
 	TODAY=$(date +%Y%m%d-%H:%M)
 	echo "Copy next line & execute in different screen to see console output. You've to input in this one."
 	echo "tail -f $DEBUG_CRASHLOG_FOLDER/core.log"
@@ -196,7 +196,7 @@ if [ "$DEBUG_MODE" = "1" ]; then
 	done
 	echo "end"
 else
-	cd $WORLDSERVER_FOLDER
+	#cd $WORLDSERVER_FOLDER
 	until ./$LAUNCHER_WORLDSERVER_BIN -c $LAUNCHER_WORLDSERVER_CONF 2>&1;
 	do date && echo "WorldServer server died with exit code $?. Restarting...";
 	sleep 1;
