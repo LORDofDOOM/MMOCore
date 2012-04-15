@@ -28,113 +28,94 @@
 # Start config part
 #########################################################################################################
 
-#########################################################################################################
-# Main Settings
-#
-# USERNAME: The MySQL User for the Database Import
-# PASSWORD: The MySQL Password for the Database Import
-# TRINITY_WORLD_REALM: Your Trinity World DB Name
-# TRINITY_CHARACTERS_REALM: Your Trinity Char DB Name
-# TRINITY_WORLD_TEMP: A Temp Folder Name (needed for backup of GOBs, NPC that are spawned from GMs)
+#-------------------------------------------------------------------------------------------------------#
+#				INI Parser																				#
+#-------------------------------------------------------------------------------------------------------#
 
-USERNAME=your_mysql_username
-PASSWORD=your_mysql_password
-TRINITY_WORLD_REALM=your_trinity_world_db
-TRINITY_CHARACTERS_REALM=your_trinity_char_db
-TRINITY_WORLD_TEMP=your_trinity_temp_db
+# prefix for all global variables
+INI_PREFIX=bash_inifile_
 
-#########################################################################################################
-# Fast Settings
-#
-# COMPILE: Compile Core
-# DATABASE: Import Database
-# INCLUDE_TESTSERVER_SQL: Include SQL from TESTSERVER_ONLY folder in MMOCore (for Fun/Testserver)
+function ini_load {
+    # param1 inifile
+    local tmpfile=`(mktemp "${TMPDIR-/tmp}/bash_inifileXXXXXXXX") 2>/dev/null || echo ${TMPDIR-/tmp}/bash_inifile$$`
+    awk -v INI_PREFIX=${INI_PREFIX} -f - "$1" >$tmpfile <<EOF
 
-COMPILE=1
-DATABASE=1
-INCLUDE_TESTSERVER_SQL=0
+# default global section
+BEGIN {
+  FS="[[:space:]]*=[[:space:]]*"
+  section="globals";
+}
 
-#########################################################################################################
-# GIT Settings
-#
-# URL_GIT_CORE: Where you download your TrinityCore
-# URL_GIT_DATABASE: Where you download your Database
+{
+ # kill comments 
+ sub(/;.*/, "");
+}
 
-URL_GIT_CORE=https://github.com/LORDofDOOM/MMOCore.git 
-URL_GIT_DATABASE=https://github.com/LORDofDOOM/MMODatabase.git 
+/^\[[^\]]+\]$/ {
+ section=substr(\$0, 2, length(\$0) -2);
+ # map section to valid shell variables
+ gsub(/[^[[:alnum:]]/, "_", section)
+ printf "%s%s_keys=()\n", INI_PREFIX, section, INI_PREFIX, section
+ printf "%s%s_values=()\n", INI_PREFIX, section, INI_PREFIX, section
+}
 
-#########################################################################################################
-# Folder Setting
-#
-# MAIN_PATH:  The Path where to download GIT Files, store backups, build source... (abolute path)
-# BACKUP_PATH:  Folder to store your backups (relative to $MAIN_PATH)
-# DATABASE_FOLDER:  Folder where to find the database SQLs (relative to $MAIN_PATH)
-# CORE_FOLDER: Folder where to find the core sources (relative to $MAIN_PATH)
-# RECOMPILE_OUTBUT_FOLDER: Where should the executable files be after successfully build (relative to $MAIN_PATH)
-# CORE_BUILD_FOLDER: Where should the core be build (abolute path)
-# COPY_WORDSERVER_BIN: Copy the new worldserver and authserver after compile to target path
-# COPY_WORDSERVER_TO_FOLDER: Copy worldserver and authserver to this folder - old feiles wil bee deleted (abolute path)
+\$1 ~ /^[[:alnum:]\._]+\$/ {
+ # remove trail/head single/double quotes
+ gsub(/(^[\"\']|[\'\"]\$)/, "", \$2);
+ # escape inside single quotes 
+ gsub(/\47/, "'\"'\"'", \$2);
+ printf "%s%s_keys=(\"\${%s%s_keys[@]}\" '%s')\n", INI_PREFIX, section, INI_PREFIX, section, \$1
+ printf "%s%s_values=(\"\${%s%s_values[@]}\" '%s')\n", INI_PREFIX, section, INI_PREFIX, section, \$2
+}
+EOF
 
-MAIN_PATH=/home/MMO
-BACKUP_PATH=MMOBackup
-DATABASE_FOLDER=MMODatabase
-CORE_FOLDER=MMOCore
-CORE_BUILD_FOLDER=/home/MMO/MMOCoreMake
-COPY_WORDSERVER_BIN=1
-COPY_WORDSERVER_TO_FOLDER=/home/trinity
-RECOMPILE_OUTBUT_FOLDER=MMOCoreBuild
+while read line ; do
+    eval $line
+done  <${tmpfile}
 
-#########################################################################################################
-# Compile Settings
-#
-# DOWNLOAD_CORE_FROM_GIT: Download core files from GIT (Pull updates or clone if REMOVE_CORE_BEFORE_UPDATE=1)
-# COMPILE_CORE: Should the core be compiled ?
-# COMPILE_IN_DEBUG_MODE: Use debug mode in compile
-# RECOMPILE_CORE: Completly recompile the core (overrite any of your changes)
-# REMOVE_CORE_BEFORE_UPDATE: Remove old core files from GIT (Drop folder $MAIN_PATH/MMOCore)
+rm ${tmpfile}
 
-DOWNLOAD_CORE_FROM_GIT=1
-COMPILE_CORE=1
-COMPILE_IN_DEBUG_MODE=0
-RECOMPILE_CORE=0
-REMOVE_CORE_BEFORE_UPDATE=0
+}
 
-#########################################################################################################
-# Database Settings
-#
-# DOWNLOAD_DATABASE_FROM_GIT: Download Database files from GIT (Pull updates or clone if REMOVE_DATABASE_BEFORE_UPDATE=1)
-# ADDITIONAL_SQLS: Import Additional SQLs (relative to $CORE_FOLDER) - You can add foldersif needed
-# INSTALL_GTDB: Install GTDB (German Database)
-# REMOVE_DATABASE_BEFORE_UPDATE: Remove old database files from GIT (Drop folder $MAIN_PATH/MMODatabase -> Force redownloading)
-# BACKUP_CURRENT_WORLD_DATABASE: Backuop your current WorldDB
-# BACKUP_CURRENT_CHAR_DATABASE: Backuop your current CharDB
-# WORLD_DATABASE_CUSTOMS_TEMP_TABLE: Backup and restore customs (gameobjects, creatures -> This will only work after the SECOND time you use this script!)
-# DROP_OLD_WORLD_DATABASE_CUSTOMS: Remove old backups of WORLD_DATABASE_CUSTOMS_TEMP_TABLE
-# DROP_OLD_WORLD_DATABASE_BACKUP: Remove old backups of WorldDB
-# DROP_OLD_CHAR_DATABASE_BACKUP: Remove old backups of CharDB
-# OPTIMIZE_DB: Repair and optimize Database (makes Trinity faster)
+function ini_get_value {
+    # param1 section
+    # param2 key
+    
+    # map section to valid bash variable like in awk parsing
+    local section=${1//[![:alnum:]]/_}
+    local keyarray=${INI_PREFIX}${section}_keys[@]
+    local valuearray=${INI_PREFIX}${section}_values[@]
+    local keys=("${!keyarray}")
+    local values=("${!valuearray}")
+    for (( i=0; i<${#keys[@]}; i++ )); do
+	if [[ "${keys[$i]}" = "$2" ]]; then
+	    echo "${values[$i]}"
+	    return 0
+	fi
+    done
+    return 1
+}
 
-DOWNLOAD_DATABASE_FROM_GIT=1
-ADDITIONAL_SQLS=(
-"sql/updates/world_ytdb" 
-"sql/updates/mmo_updates_world" 
-"sql/updates/mmo_updates_world/optional" 
-"sql/updates/fc_updates_world"
-);
+function ini_get_sections {
+    eval local prefix_arrays=\${!$INI_PREFIX\*}
+    for varname in $prefix_arrays; do
+	# grep for key arrays
+	local arrayname=${varname#${INI_PREFIX}}
+	# strip trailing keys suffix
+	if [[ ${arrayname%*_keys} != ${arrayname} ]]; then
+	    echo ${arrayname%*_keys}
+	fi
+    done
+}
 
-INSTALL_GTDB=1
-REMOVE_DATABASE_BEFORE_UPDATE=0
-BACKUP_CURRENT_WORLD_DATABASE=1
-BACKUP_CURRENT_CHAR_DATABASE=1
-WORLD_DATABASE_CUSTOMS_TEMP_TABLE=1
-DROP_OLD_WORLD_DATABASE_CUSTOMS=1
-DROP_OLD_WORLD_DATABASE_BACKUP=1
-DROP_OLD_CHAR_DATABASE_BACKUP=1
-OPTIMIZE_DB=1
-
-#########################################################################################################
-# End config part - No need for edit below this point
-#########################################################################################################
+function ini_get_keys {
+    #param1 section
+    # map section to valid bash variable like in awk parsing
+    local section=${1//[![:alnum:]]/_}
+    local keyarray=${INI_PREFIX}${section}_keys[@]
+    local keys=("${!keyarray}")
+    echo ${keys[@]}
+}
 
 #-------------------------------------------------------------------------------------------------------#
 #				Color Codes 																			#
@@ -177,6 +158,89 @@ color=${2:-$white}           	# default color is white
 	return
 } 
 
+#-------------------------------------------------------------------------------------------------------#
+#				Script variables																		#
+#-------------------------------------------------------------------------------------------------------#
+
+WORKING_DIR=$PWD
+
+if [ "$1" != "" ]; then
+	if [ ! -f $1 ];
+	then
+		echo "$1 not found - Exit"
+		exit
+	fi
+  ini_load $1
+else
+	if [ ! -f mmoconfig.ini ];
+	then
+		echo "mmoconfig.ini not found - Exit"
+		exit
+	fi
+  ini_load mmoconfig.ini
+fi
+
+#INI LAUNCHER
+LAUNCHER_SCREENNAME=`ini_get_value LAUNCHER screenname`
+LAUNCHER_USERNAME=`ini_get_value LAUNCHER username`
+LAUNCHER_START_IN_DEBUG_MODE=`ini_get_value LAUNCHER start_in_debug_mode`
+LAUNCHER_WORLDSERVER_BIN=`ini_get_value LAUNCHER worldserver_bin`
+LAUNCHER_WORLDSERVER_CONF=`ini_get_value LAUNCHER worldserver_conf`
+WORLDSERVER_FOLDER=`ini_get_value LAUNCHER WORLDSERVER_FOLDER`
+
+#INI DEBUG
+DEBUG_MODE=`ini_get_value DEBUG start_in_debug_mode`
+DEBUG_CRASHLOG_FOLDER=`ini_get_value DEBUG crashlog_folder`
+
+#INI MAIN
+USERNAME=`ini_get_value MAIN USERNAME`
+PASSWORD=`ini_get_value MAIN PASSWORD`
+TRINITY_WORLD_REALM=`ini_get_value MAIN TRINITY_WORLD_REALM`
+TRINITY_CHARACTERS_REALM=`ini_get_value MAIN TRINITY_CHARACTERS_REALM`
+TRINITY_WORLD_TEMP=`ini_get_value MAIN TRINITY_WORLD_TEMP`
+
+COMPILE=`ini_get_value MAIN COMPILE`
+KILL_RUNNING_WORLDSERVER=`ini_get_value MAIN PASSWORD`
+RESTART_SERVER_AFTER_COMPILE=`ini_get_value MAIN RESTART_SERVER_AFTER_COMPILE`
+DATABASE=`ini_get_value MAIN DATABASE`
+INCLUDE_TESTSERVER_SQL=`ini_get_value MAIN INCLUDE_TESTSERVER_SQL`
+
+URL_GIT_CORE=`ini_get_value MAIN URL_GIT_CORE`
+URL_GIT_DATABASE=`ini_get_value MAIN URL_GIT_DATABASE`
+
+MAIN_PATH=`ini_get_value MAIN MAIN_PATH`
+BACKUP_PATH=`ini_get_value MAIN BACKUP_PATH`
+DATABASE_FOLDER=`ini_get_value MAIN DATABASE_FOLDER`
+CORE_FOLDER=`ini_get_value MAIN CORE_FOLDER`
+RECOMPILE_OUTBUT_FOLDER=`ini_get_value MAIN RECOMPILE_OUTBUT_FOLDER`
+CORE_BUILD_FOLDER=`ini_get_value MAIN CORE_BUILD_FOLDER`
+COPY_WORDSERVER_BIN=`ini_get_value MAIN COPY_WORDSERVER_BIN`
+
+DOWNLOAD_CORE_FROM_GIT=`ini_get_value MAIN DOWNLOAD_CORE_FROM_GIT`
+RECOMPILE_CORE=`ini_get_value MAIN RECOMPILE_CORE`
+REMOVE_CORE_BEFORE_UPDATE=`ini_get_value MAIN REMOVE_CORE_BEFORE_UPDATE`
+
+DOWNLOAD_DATABASE_FROM_GIT=`ini_get_value MAIN DOWNLOAD_DATABASE_FROM_GIT`
+ADDITIONAL_SQLS_INI=`ini_get_value MAIN ADDITIONAL_SQLS`
+ADDITIONAL_SQLS=($ADDITIONAL_SQLS_INI);
+INSTALL_GTDB=`ini_get_value MAIN INSTALL_GTDB`
+REMOVE_DATABASE_BEFORE_UPDATE=`ini_get_value MAIN REMOVE_DATABASE_BEFORE_UPDATE`
+BACKUP_CURRENT_WORLD_DATABASE=`ini_get_value MAIN BACKUP_CURRENT_WORLD_DATABASE`
+BACKUP_CURRENT_CHAR_DATABASE=`ini_get_value MAIN BACKUP_CURRENT_CHAR_DATABASE`
+WORLD_DATABASE_CUSTOMS_TEMP_TABLE=`ini_get_value MAIN WORLD_DATABASE_CUSTOMS_TEMP_TABLE`
+DROP_OLD_WORLD_DATABASE_CUSTOMS=`ini_get_value MAIN DROP_OLD_WORLD_DATABASE_CUSTOMS`
+DROP_OLD_WORLD_DATABASE_BACKUP=`ini_get_value MAIN DROP_OLD_WORLD_DATABASE_BACKUP`
+DROP_OLD_CHAR_DATABASE_BACKUP=`ini_get_value MAIN DROP_OLD_CHAR_DATABASE_BACKUP`
+OPTIMIZE_DB=`ini_get_value MAIN OPTIMIZE_DB`
+
+#-------------------------------------------------------------------------------------------------------#
+#				Script start																			#
+#-------------------------------------------------------------------------------------------------------#
+
+if [ "$KILL_RUNNING_WORLDSERVER" = "1" ]; then
+sudo -u $LAUNCHER_USERNAME kill `sudo -u $LAUNCHER_USERNAME screen -ls |grep $LAUNCHER_SCREENNAME |awk -F . '{print $1}'|awk '{print $1}'`
+fi
+
 # Start compile part
 if [ "$COMPILE" = "1" ]; then
 #-------------------------------------------------------------------------------------------------------#
@@ -213,40 +277,38 @@ echo ""
 #				Core Compile Part																		#
 #-------------------------------------------------------------------------------------------------------#
 
-if [ "$COMPILE_CORE" = "1" ]; then
-	 if [ -d $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER ]; then
+if [ -d $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER ]; then
+	cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER
+else 
+	mkdir $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER
+	cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER
+fi 
+
+cecho "Compile MMOCore" $green
+cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER	
+
+if [ "$RECOMPILE_CORE" = "1" ]; then
+	rm -rf $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER/*
+	
+	if [ -d $CORE_BUILD_FOLDER ]; then
 		cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER
 	else 
-		mkdir $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER
+		mkdir $CORE_BUILD_FOLDER
 		cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER
-	fi 
-	
-	cecho "Compile MMOCore" $green
-	cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER	
+	fi 	
+fi 
 
-	if [ "$RECOMPILE_CORE" = "1" ]; then
-		rm -rf $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER/*
-		
-		if [ -d $CORE_BUILD_FOLDER ]; then
-			cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER
-		else 
-			mkdir $CORE_BUILD_FOLDER
-			cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER
-		fi 	
-	fi 
+if [ "$DEBUG_MODE" = "1" ]; then
+	cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER
+	cmake ../$CORE_FOLDER -DPREFIX=$CORE_BUILD_FOLDER -DWITH_COREDEBUG=1
+else 
+	cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER
+	cmake ../$CORE_FOLDER -DPREFIX=$CORE_BUILD_FOLDER
+fi 		
 
-	if [ "$COMPILE_IN_DEBUG_MODE" = "1" ]; then
-		cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER
-		cmake ../$CORE_FOLDER -DPREFIX=$CORE_BUILD_FOLDER -DWITH_COREDEBUG=1
-	else 
-		cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER
-		cmake ../$CORE_FOLDER -DPREFIX=$CORE_BUILD_FOLDER
-	fi 		
-	
-	make -j8
-	make install
+make -j8
+make install
 
-fi
 echo ""
 
 #-------------------------------------------------------------------------------------------------------#
@@ -254,12 +316,12 @@ echo ""
 #-------------------------------------------------------------------------------------------------------#
 if [ "$COPY_WORDSERVER_BIN" = "1" ]; then
 cecho "Delete old binaries"	$green
-rm -rf $COPY_WORDSERVER_TO_FOLDER/worldserver
-rm -rf $COPY_WORDSERVER_TO_FOLDER/authserver
+rm -rf $WORLDSERVER_FOLDER/worldserver
+rm -rf $WORLDSERVER_FOLDER/authserver
 
 cecho "Copy binaries to target"	$green
-cp $CORE_BUILD_FOLDER/bin/worldserver $COPY_WORDSERVER_TO_FOLDER/worldserver
-cp $CORE_BUILD_FOLDER/bin/authserver $COPY_WORDSERVER_TO_FOLDER/authserver
+cp $CORE_BUILD_FOLDER/bin/worldserver $WORLDSERVER_FOLDER/worldserver
+cp $CORE_BUILD_FOLDER/bin/authserver $WORLDSERVER_FOLDER/authserver
 fi
 echo ""
 # End compile part
@@ -487,4 +549,14 @@ mysqlcheck -h localhost -u $USERNAME -p$PASSWORD $TRINITY_CHARACTERS_REALM --che
 fi
 
 # End SQL Part
+fi
+
+#-------------------------------------------------------------------------------------------------------#
+#				RESTART_SERVER_AFTER_COMPILE															#
+#-------------------------------------------------------------------------------------------------------#
+cecho "Restarting Core"	$green
+if [ "$RESTART_SERVER_AFTER_COMPILE" = "1" ]; then
+	cd $WORKING_DIR
+	exec ./mmorestarter.sh
+	exit 0
 fi
