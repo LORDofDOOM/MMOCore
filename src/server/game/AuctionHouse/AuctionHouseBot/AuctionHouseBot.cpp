@@ -714,7 +714,7 @@ void AuctionHouseBot::Update()
     if ((!AHBSeller) && (!AHBBuyer))
         return;
 
-    WorldSession _session(AHBplayerAccount, NULL, SEC_PLAYER, true, 0, LOCALE_enUS, 0, 0);
+    WorldSession _session(AHBplayerAccount, NULL, SEC_PLAYER, true, 0, 0, LOCALE_enUS, 0, 0);	
     Player _AHBplayer(&_session);
     _AHBplayer.Initialize(AHBplayerGUID);
     sObjectAccessor->AddObject(&_AHBplayer);
@@ -1363,20 +1363,21 @@ void AuctionHouseBot::Initialize()
         }
 
         sLog->outString("AuctionHouseBot:");
-        sLog->outString("loaded %u grey trade goods", greyTradeGoodsBin.size());
-        sLog->outString("loaded %u white trade goods", whiteTradeGoodsBin.size());
-        sLog->outString("loaded %u green trade goods", greenTradeGoodsBin.size());
-        sLog->outString("loaded %u blue trade goods", blueTradeGoodsBin.size());
-        sLog->outString("loaded %u purple trade goods", purpleTradeGoodsBin.size());
-        sLog->outString("loaded %u orange trade goods", orangeTradeGoodsBin.size());
-        sLog->outString("loaded %u yellow trade goods", yellowTradeGoodsBin.size());
-        sLog->outString("loaded %u grey items", greyItemsBin.size());
-        sLog->outString("loaded %u white items", whiteItemsBin.size());
-        sLog->outString("loaded %u green items", greenItemsBin.size());
-        sLog->outString("loaded %u blue items", blueItemsBin.size());
-        sLog->outString("loaded %u purple items", purpleItemsBin.size());
-        sLog->outString("loaded %u orange items", orangeItemsBin.size());
-        sLog->outString("loaded %u yellow items", yellowItemsBin.size());
+        sLog->outString("loaded %u grey trade goods", uint32(greyTradeGoodsBin.size()));
+        sLog->outString("loaded %u white trade goods", uint32(whiteTradeGoodsBin.size()));
+        sLog->outString("loaded %u green trade goods", uint32(greenTradeGoodsBin.size()));
+        sLog->outString("loaded %u blue trade goods", uint32(blueTradeGoodsBin.size()));
+        sLog->outString("loaded %u purple trade goods", uint32(purpleTradeGoodsBin.size()));
+        sLog->outString("loaded %u orange trade goods", uint32(orangeTradeGoodsBin.size()));
+        sLog->outString("loaded %u yellow trade goods", uint32(yellowTradeGoodsBin.size()));
+        sLog->outString("loaded %u grey items", uint32(greyItemsBin.size()));
+        sLog->outString("loaded %u white items", uint32(whiteItemsBin.size()));
+        sLog->outString("loaded %u green items", uint32(greenItemsBin.size()));
+        sLog->outString("loaded %u blue items", uint32(blueItemsBin.size()));
+        sLog->outString("loaded %u purple items", uint32(purpleItemsBin.size()));
+        sLog->outString("loaded %u orange items", uint32(orangeItemsBin.size()));
+        sLog->outString("loaded %u yellow items", uint32(yellowItemsBin.size()));
+
     }
     sLog->outString("AuctionHouseBot and AuctionHouseBuyer have been loaded.");
 }
