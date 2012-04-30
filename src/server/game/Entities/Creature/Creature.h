@@ -507,7 +507,7 @@ class Creature : public Unit, public GridObject<Creature>, public MapCreature
             if (isPet())
                 return false;
 
-            return GetCreatureTemplate()->rank == CREATURE_ELITE_WORLDBOSS;
+            return GetCreatureTemplate()->type_flags & CREATURE_TYPEFLAGS_BOSS;
         }
 
         bool IsDungeonBoss() const;
@@ -635,7 +635,6 @@ class Creature : public Unit, public GridObject<Creature>, public MapCreature
 
         void RemoveCorpse(bool setSpawnTime = true);
 
-        void ForcedDespawn(uint32 timeMSToDespawn = 0);
         void DespawnOrUnsummon(uint32 msTimeToDespawn = 0);
 
         time_t const& GetRespawnTime() const { return m_respawnTime; }
@@ -764,6 +763,8 @@ class Creature : public Unit, public GridObject<Creature>, public MapCreature
         bool IsInvisibleDueToDespawn() const;
         bool CanAlwaysSee(WorldObject const* obj) const;
     private:
+        void ForcedDespawn(uint32 timeMSToDespawn = 0);
+
         //WaypointMovementGenerator vars
         uint32 m_waypointID;
         uint32 m_path_id;
