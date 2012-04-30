@@ -3523,10 +3523,6 @@ void SpellMgr::LoadDbcDataCorrections()
             case 62293: // Cosmic Smash (Algalon the Observer)
                 spellInfo->EffectImplicitTargetB[0] = TARGET_DEST_CASTER;
                 break;
-            case 62311: // Cosmic Smash (Algalon the Observer)
-            case 64596: // Cosmic Smash (Algalon the Observer)
-                spellInfo->rangeIndex = 6;  // 100yd
-                break;
             // ENDOF ULDUAR SPELLS
             //
             // TRIAL OF THE CRUSADER SPELLS
