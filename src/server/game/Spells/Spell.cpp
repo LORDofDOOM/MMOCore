@@ -3435,6 +3435,20 @@ void Spell::_handle_immediate_phase()
     // process items
     for (std::list<ItemTargetInfo>::iterator ihit= m_UniqueItemInfo.begin(); ihit != m_UniqueItemInfo.end(); ++ihit)
         DoAllEffectOnTarget(&(*ihit));
+        
+    if (!m_originalCaster)
+        return;
+    // Handle procs on cast
+    // TODO: finish new proc system:P
+    if (m_UniqueTargetInfo.empty() && m_targets.HasDst())
+    {
+        uint32 procAttacker = m_procAttacker;
+        if (!procAttacker)
+            procAttacker |= PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_POS;
+            
+        // Proc the spells that have DEST target
+        m_originalCaster->ProcDamageAndSpell(NULL, procAttacker, 0, m_procEx | PROC_EX_NORMAL_HIT, 0, BASE_ATTACK, m_spellInfo, m_triggeredByAuraSpell);
+    }
 }
 
 void Spell::_handle_finish_phase()
@@ -5367,8 +5381,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (m_caster->GetTypeId() == TYPEID_PLAYER && m_spellInfo->Id == 781 && !m_caster->isInCombat())
                     return SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
 
-                Unit* target = m_targets.GetUnitTarget();
-                if (m_caster == target && m_caster->HasUnitState(UNIT_STATE_ROOT))
+                if (m_caster->HasUnitState(UNIT_STATE_ROOT))
                 {
                     if (m_caster->GetTypeId() == TYPEID_PLAYER)
                         return SPELL_FAILED_ROOTED;

@@ -137,8 +137,9 @@ class spell_hun_chimera_shot : public SpellScriptLoader
                             {
                                 int32 TickCount = aurEff->GetTotalTicks();
                                 spellId = HUNTER_SPELL_CHIMERA_SHOT_SERPENT;
-                                basePoint = caster->SpellDamageBonus(unitTarget, aura->GetSpellInfo(), aurEff->GetAmount(), DOT, aura->GetStackAmount());
+                                basePoint = caster->SpellDamageBonusDone(unitTarget, aura->GetSpellInfo(), aurEff->GetAmount(), DOT, aura->GetStackAmount());
                                 ApplyPctN(basePoint, TickCount * 40);
+                                basePoint = unitTarget->SpellDamageBonusTaken(caster, aura->GetSpellInfo(), basePoint, DOT, aura->GetStackAmount());
                             }
                             // Viper Sting - Instantly restores mana to you equal to 60% of the total amount drained by your Viper Sting.
                             else if (familyFlag[1] & 0x00000080)
@@ -286,8 +287,8 @@ class spell_hun_masters_call : public SpellScriptLoader
                     target->CastSpell(target, HUNTER_SPELL_MASTERS_CALL_TRIGGERED, castMask);
                     // there is a possibility that this effect should access effect 0 (dummy) target, but i dubt that
                     // it's more likely that on on retail it's possible to call target selector based on dbc values
-                    // anyways, we're using GetTargetUnit() here and it's ok
-                    if (Unit* ally = GetTargetUnit())
+                    // anyways, we're using GetExplTargetUnit() here and it's ok
+                    if (Unit* ally = GetExplTargetUnit())
                     {
                         target->CastSpell(ally, GetEffectValue(), castMask);
                         target->CastSpell(ally, GetSpellInfo()->Effects[EFFECT_0].CalcValue(), castMask);

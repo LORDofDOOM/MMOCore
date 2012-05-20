@@ -1624,7 +1624,7 @@ void SpellMgr::LoadSpellGroups()
         uint32 group_id = fields[0].GetUInt32();
         if (group_id <= SPELL_GROUP_DB_RANGE_MIN && group_id >= SPELL_GROUP_CORE_RANGE_MAX)
         {
-            sLog->outErrorDb("SpellGroup id %u listed in `spell_groups` is in core range, but is not defined in core!", group_id);
+            sLog->outErrorDb("SpellGroup id %u listed in `spell_group` is in core range, but is not defined in core!", group_id);
             continue;
         }
         int32 spell_id = fields[1].GetInt32();
@@ -1640,7 +1640,7 @@ void SpellMgr::LoadSpellGroups()
         {
             if (groups.find(abs(itr->second)) == groups.end())
             {
-                sLog->outErrorDb("SpellGroup id %u listed in `spell_groups` does not exist", abs(itr->second));
+                sLog->outErrorDb("SpellGroup id %u listed in `spell_group` does not exist", abs(itr->second));
                 mSpellGroupSpell.erase(itr++);
             }
             else
@@ -3084,10 +3084,6 @@ void SpellMgr::LoadDbcDataCorrections()
                 // Target entry seems to be wrong for this spell :/
                 spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_CASTER_AREA_PARTY;
                 spellInfo->EffectRadiusIndex[0] = EFFECT_RADIUS_10_YARDS_2;
-                break;
-            case 63944:                             // Renewed Hope hack
-                spellInfo->EffectApplyAuraName[0] = 87;
-                spellInfo->EffectMiscValue[0] = 127;
                 break;
             case 71189: // Dreamwalker's Rage
                 spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_CASTER;
