@@ -365,7 +365,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recvData)
 
         float underMapValueZ;
 
-        switch (plMover->GetMapId())
+        switch (plrMover->GetMapId())
         {
             case 617: underMapValueZ = 3.0f; break; // Dalaran Sewers
             case 618: underMapValueZ = 28.0f; break; // Ring of Valor
