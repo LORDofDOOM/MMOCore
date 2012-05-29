@@ -366,7 +366,7 @@ class spell_pri_shadowfiend : public SpellScriptLoader
 
         SpellScript* GetSpellScript() const
         {
-            return new spell_pri_shadowfiend_SpellScript;
+            return new spell_pri_shadowfiend();
         }
 };
 
