@@ -880,6 +880,9 @@ void Transport::UpdateNPCPositions()
         npc->m_movementInfo.t_pos.GetPosition(x, y, z, o);
         CalculatePassengerPosition(x, y, z, o);
         GetMap()->CreatureRelocation(npc, x, y, z, o, false);
+        npc->GetTransportHomePosition(x, y, z, o);
+        CalculatePassengerPosition(x, y, z, o);
+        npc->SetHomePosition(x, y, z, o);
     }
 }
 
@@ -899,6 +902,7 @@ void Transport::UpdatePlayerPositions()
         WorldPacket packet;
         transData.BuildPacket(&packet);
         plr->SendDirectMessage(&packet);
+		}
 }
 
 //! This method transforms supplied transport offsets into global coordinates

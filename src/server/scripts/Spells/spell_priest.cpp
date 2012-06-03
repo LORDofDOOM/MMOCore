@@ -366,7 +366,7 @@ class spell_pri_shadowfiend : public SpellScriptLoader
 
         SpellScript* GetSpellScript() const
         {
-            return new spell_pri_shadowfiend();
+            return new spell_pri_shadowfiend_SpellScript();
         }
 };
 
@@ -379,4 +379,5 @@ void AddSC_priest_spell_scripts()
     new spell_pri_reflective_shield_trigger();
     new spell_pri_mind_sear();
     new spell_pri_prayer_of_mending_heal();
+	new spell_pri_shadowfiend();
 }
