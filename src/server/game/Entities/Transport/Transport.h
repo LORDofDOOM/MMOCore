@@ -49,6 +49,7 @@ class Transport : public GameObject
         void UpdatePosition(MovementInfo* mi);
         void UpdateNPCPositions();
         void UpdatePlayerPositions();
+        void CalculatePassengerOffset(float& x, float& y, float& z, float& o);
         void BuildStartMovePacket(Map const* targetMap);
         void BuildWaitMovePacket(Map const* targetMap);
         void BuildStopMovePacket(Map const* targetMap);
