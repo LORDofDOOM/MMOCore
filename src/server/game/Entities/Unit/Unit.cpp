@@ -2488,12 +2488,12 @@ SpellMissInfo Unit::MagicSpellHitResult(Unit* victim, SpellInfo const* spell)
     // Chance resist debuff
     if (!spell->IsPositive())
     {
-        bool bNegativeAura = false;
+        bool bNegativeAura = true;
         for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
         {
-            if (spell->Effects[i].ApplyAuraName != 0)
+            if (spell->Effects[i].ApplyAuraName == 0)
             {
-                bNegativeAura = true;
+                bNegativeAura = false;
                 break;
             }
         }
@@ -2927,7 +2927,7 @@ void Unit::SetCurrentCastedSpell(Spell* pSpell)
                     InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
                 m_AutoRepeatFirstCast = true;
             }
-            if ((pSpell->m_spellInfo->CalcCastTime(this) > 0) && IsNonMeleeSpellCasted(false, false, true))
+            if (pSpell->m_spellInfo->CalcCastTime(this) > 0)
                 AddUnitState(UNIT_STATE_CASTING);
 
             break;
@@ -3636,97 +3636,6 @@ void Unit::RemoveAurasDueToSpellByDispel(uint32 spellId, uint32 dispellerSpellId
             // Call AfterDispel hook on AuraScript
             aura->CallScriptAfterDispel(&dispelInfo);
 
-            switch (aura->GetSpellInfo()->SpellFamilyName)
-            {
-                case SPELLFAMILY_WARLOCK:
-                {
-                    // Unstable Affliction (crash if before removeaura?)
-                    if (aura->GetSpellInfo()->SpellFamilyFlags[1] & 0x0100)
-                    {
-                        Unit* caster = aura->GetCaster();
-                        if (!caster)
-                            break;
-                        if (AuraEffect const* aurEff = aura->GetEffect(EFFECT_0))
-                        {
-                            int32 damage = aurEff->GetAmount() * 9;
-                            // backfire damage and silence
-                            caster->CastCustomSpell(dispeller, 31117, &damage, NULL, NULL, true, NULL, aurEff);
-                        }
-                    }
-                    break;
-                }
-                case SPELLFAMILY_DRUID:
-                {
-                    // Lifebloom
-                    if (aura->GetSpellInfo()->SpellFamilyFlags[1] & 0x10)
-                    {
-                        if (AuraEffect const* aurEff = aura->GetEffect(EFFECT_1))
-                        {
-                            // final heal
-                            int32 healAmount = aurEff->GetAmount();
-                            if (Unit* caster = aura->GetCaster())
-                            {
-                                healAmount = caster->SpellHealingBonusDone(this, aura->GetSpellInfo(), healAmount, HEAL, dispelInfo.GetRemovedCharges());
-                                healAmount = this->SpellHealingBonusTaken(caster, aura->GetSpellInfo(), healAmount, HEAL, dispelInfo.GetRemovedCharges());
-                            }
-                            CastCustomSpell(this, 33778, &healAmount, NULL, NULL, true, NULL, NULL, aura->GetCasterGUID());
-
-                            // mana
-                            if (Unit* caster = aura->GetCaster())
-                            {
-                                int32 mana = CalculatePctU(caster->GetCreateMana(), aura->GetSpellInfo()->ManaCostPercentage) * chargesRemoved / 2;
-                                caster->CastCustomSpell(caster, 64372, &mana, NULL, NULL, true, NULL, NULL, aura->GetCasterGUID());
-                            }
-                        }
-                    }
-                    break;
-                }
-                case SPELLFAMILY_SHAMAN:
-                {
-                    // Flame Shock
-                    if (aura->GetSpellInfo()->SpellFamilyFlags[0] & 0x10000000)
-                    {
-                        if (Unit* caster = aura->GetCaster())
-                        {
-                            uint32 triggeredSpellId = 0;
-                            // Lava Flows
-                            if (AuraEffect const* aurEff = caster->GetDummyAuraEffect(SPELLFAMILY_SHAMAN, 3087, 0))
-                            {
-                                switch (aurEff->GetId())
-                                {
-                                    case 51482: // Rank 3
-                                        triggeredSpellId = 65264;
-                                        break;
-                                    case 51481: // Rank 2
-                                        triggeredSpellId = 65263;
-                                        break;
-                                    case 51480: // Rank 1
-                                        triggeredSpellId = 64694;
-                                        break;
-                                    default:
-                                        sLog->outError("Unit::RemoveAurasDueToSpellByDispel: Unknown rank of Lava Flows (%d) found", aurEff->GetId());
-                                }
-                            }
-
-                            if (triggeredSpellId)
-                                caster->CastSpell(caster, triggeredSpellId, true);
-                        }
-                    }
-                    break;
-                }
-                default:
-                    break;
-            }
-            // Wyvern Sting
-            if (aura->GetSpellInfo()->SpellFamilyName == SPELLFAMILY_HUNTER && (aura->GetSpellInfo()->SpellFamilyFlags[1] & 0x1000))
-            {
-                Unit * caster = aura->GetCaster();
-                if (caster && !(dispeller->GetTypeId() == TYPEID_UNIT && dispeller->ToCreature()->isTotem()))
-                    // Noxious Stings
-                    if (AuraEffect * auraEff = caster->GetAuraEffect(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, SPELLFAMILY_HUNTER, 3521, 1))
-                        if (Aura * newAura = caster->AddAura(aura->GetId(), dispeller))
-                            newAura->SetDuration(aura->GetDuration() / 100 * auraEff->GetAmount());
-            }
             return;
         }
         else
@@ -9056,12 +8965,6 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 CastSpell(this, 70721, true);
             break;
         }
-        // Bloodthirst (($m/100)% of max health)
-        case 23880:
-        {
-            basepoints0 = int32(CountPctFromMaxHealth(triggerAmount));
-            break;
-        }
         // Shamanistic Rage triggered spell
         case 30824:
         {
@@ -11663,6 +11566,8 @@ bool Unit::IsImmunedToSpell(SpellInfo const* spellInfo)
     {
         // State/effect immunities applied by aura expect full spell immunity
         // Ignore effects with mechanic, they are supposed to be checked separately
+        if (!spellInfo->Effects[i].IsEffect())
+            continue;
         if (!IsImmunedToSpellEffect(spellInfo, i))
         {
             immuneToAllEffects = false;
@@ -13167,7 +13072,7 @@ Unit* Creature::SelectVictim()
     else
         return NULL;
 
-    if (target && _IsTargetAcceptable(target))
+    if (target && _IsTargetAcceptable(target) && canCreatureAttack(target))
     {
         SetInFront(target);
         return target;
@@ -13193,7 +13098,7 @@ Unit* Creature::SelectVictim()
     {
         target = SelectNearestTargetInAttackDistance(m_CombatDistance ? m_CombatDistance : ATTACK_DISTANCE);
 
-        if (target && _IsTargetAcceptable(target))
+        if (target && _IsTargetAcceptable(target) && canCreatureAttack(target))
             return target;
     }
 
@@ -14651,6 +14556,11 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* target, uint32 procFlag, u
                     case SPELL_AURA_REFLECT_SPELLS_SCHOOL:
                         // Skip Melee hits and spells ws wrong school
                         if (procSpell && (triggeredByAura->GetMiscValue() & procSpell->SchoolMask))         // School check
+                            takeCharges = true;
+                        break;
+                    case SPELL_AURA_SPELL_MAGNET:
+                        // Skip Melee hits and targets with magnet aura
+                        if (procSpell && (triggeredByAura->GetBase()->GetUnitOwner()->ToUnit() == ToUnit()))         // Magnet
                             takeCharges = true;
                         break;
                     case SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT:
@@ -17146,7 +17056,7 @@ bool Unit::HandleSpellClick(Unit* clicker, int8 seatId)
 
     Creature* creature = ToCreature();
     if (creature && creature->IsAIEnabled)
-        creature->AI()->DoAction(EVENT_SPELLCLICK);
+        creature->AI()->OnSpellClick(clicker);
 
     return true;
 }

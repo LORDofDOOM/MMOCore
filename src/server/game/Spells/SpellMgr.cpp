@@ -3002,12 +3002,14 @@ void SpellMgr::LoadDbcDataCorrections()
 
         switch (spellInfo->Id)
         {
+            case 40244: // Simon Game Visual
+            case 40245: // Simon Game Visual
+            case 40246: // Simon Game Visual
+            case 40247: // Simon Game Visual
             case 48278:
                 spellInfo->Targets = 1;
                 spellInfo->StackAmount = 3;
                 spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_TARGET_ENEMY;
-            case 40244: case 40245: // Simon Game Visual
-            case 40246: case 40247: // Simon Game Visual
             case 42835: // Spout, remove damage effect, only anim is needed
                 spellInfo->Effect[0] = 0;
                 spellInfo->EffectImplicitTargetB[0] = TARGET_UNIT_NEARBY_ENEMY;
@@ -3219,6 +3221,9 @@ void SpellMgr::LoadDbcDataCorrections()
             case 46363: // Midsummer - Beam Attack against Ahune
                 spellInfo->EffectImplicitTargetA[0] = TARGET_SRC_CASTER;
                 spellInfo->EffectImplicitTargetB[0] = TARGET_UNIT_TARGET_ANY;
+            case 51912: // Crafty's Ultra-Advanced Proto-Typical Shortening Blaster
+                spellInfo->EffectAmplitude[0] = 3000;
+                break;
                 break;
             case 29809: // Desecration Arm - 36 instead of 37 - typo? :/
                 spellInfo->EffectRadiusIndex[0] = EFFECT_RADIUS_7_YARDS;
@@ -3379,6 +3384,10 @@ void SpellMgr::LoadDbcDataCorrections()
             case 53313: // Entangling Roots (Rank 8) -- Nature's Grasp Proc
                 spellInfo->CastingTimeIndex = 1;
                 break;
+            case 59414: // Pulsing Shockwave Aura (Loken)
+                // this flag breaks movement, remove it
+                spellInfo->AttributesEx &= ~SPELL_ATTR1_CHANNELED_1;
+                break;
             case 61719: // Easter Lay Noblegarden Egg Aura - Interrupt flags copied from aura which this aura is linked with
                 spellInfo->AuraInterruptFlags = AURA_INTERRUPT_FLAG_HITBYSPELL | AURA_INTERRUPT_FLAG_TAKE_DAMAGE;
                 break;
@@ -3525,6 +3534,10 @@ void SpellMgr::LoadDbcDataCorrections()
             case 62293: // Cosmic Smash (Algalon the Observer)
                 spellInfo->EffectImplicitTargetB[0] = TARGET_DEST_CASTER;
                 break;
+            case 62311: // Cosmic Smash (Algalon the Observer)
+            case 64596: // Cosmic Smash (Algalon the Observer)
+                spellInfo->rangeIndex = 6;  // 100yd
+                break;
             // ENDOF ULDUAR SPELLS
             //
             // TRIAL OF THE CRUSADER SPELLS
@@ -3625,6 +3638,9 @@ void SpellMgr::LoadDbcDataCorrections()
                 spellInfo->AreaGroupId = 0; // originally, these require area 4522, which is... outside of Icecrown Citadel
                 break;
             case 70602: // Corruption
+            case 48278: // Paralyze
+                spellInfo->AttributesEx3 |= SPELL_ATTR3_STACK_FOR_DIFF_CASTERS;
+                break;
             case 70715: // Column of Frost (visual marker)
                 spellInfo->DurationIndex = 32; // 6 seconds (missing)
                 break;

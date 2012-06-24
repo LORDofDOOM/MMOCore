@@ -2914,6 +2914,7 @@ void Spell::EffectEnchantItemPerm(SpellEffIndex effIndex)
         // add new enchanting if equipped
         item_owner->ApplyEnchantment(itemTarget, PERM_ENCHANTMENT_SLOT, true);
 
+        item_owner->RemoveTradeableItem(itemTarget);
         itemTarget->ClearSoulboundTradeable(item_owner);
     }
 }
@@ -2978,6 +2979,7 @@ void Spell::EffectEnchantItemPrismatic(SpellEffIndex effIndex)
     // add new enchanting if equipped
     item_owner->ApplyEnchantment(itemTarget, PRISMATIC_ENCHANTMENT_SLOT, true);
 
+    item_owner->RemoveTradeableItem(itemTarget);
     itemTarget->ClearSoulboundTradeable(item_owner);
 }
 
@@ -3489,7 +3491,11 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
             // Blood Strike
             if (m_spellInfo->SpellFamilyFlags[0] & 0x400000)
             {
-                AddPctF(totalDamagePercentMod, m_spellInfo->Effects[EFFECT_2].CalcValue() * unitTarget->GetDiseasesByCaster(m_caster->GetGUID()) / 2.0f);
+                float bonusPct = m_spellInfo->Effects[EFFECT_2].CalcValue() * unitTarget->GetDiseasesByCaster(m_caster->GetGUID()) / 2.0f;
+                // Death Knight T8 Melee 4P Bonus
+                if (AuraEffect const* aurEff = m_caster->GetAuraEffect(64736, EFFECT_0))
+                    AddPctF(bonusPct, aurEff->GetAmount());
+                AddPctF(totalDamagePercentMod, bonusPct);
 
                 // Glyph of Blood Strike
                 if (m_caster->GetAuraEffect(59332, EFFECT_0))
@@ -3516,7 +3522,11 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
                     if (roll_chance_i(aurEff->GetAmount()))
                         consumeDiseases = false;
 
-                AddPctF(totalDamagePercentMod, m_spellInfo->Effects[EFFECT_2].CalcValue() * unitTarget->GetDiseasesByCaster(m_caster->GetGUID(), consumeDiseases) / 2.0f);
+                float bonusPct = m_spellInfo->Effects[EFFECT_2].CalcValue() * unitTarget->GetDiseasesByCaster(m_caster->GetGUID(), consumeDiseases) / 2.0f;
+                // Death Knight T8 Melee 4P Bonus
+                if (AuraEffect const* aurEff = m_caster->GetAuraEffect(64736, EFFECT_0))
+                    AddPctF(bonusPct, aurEff->GetAmount());
+                AddPctF(totalDamagePercentMod, bonusPct);
                 break;
             }
             // Blood-Caked Strike - Blood-Caked Blade
@@ -3528,7 +3538,12 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
             // Heart Strike
             if (m_spellInfo->SpellFamilyFlags[0] & 0x1000000)
             {
-                AddPctN(totalDamagePercentMod, m_spellInfo->Effects[EFFECT_2].CalcValue() * unitTarget->GetDiseasesByCaster(m_caster->GetGUID()));
+                float bonusPct = m_spellInfo->Effects[EFFECT_2].CalcValue() * unitTarget->GetDiseasesByCaster(m_caster->GetGUID());
+                // Death Knight T8 Melee 4P Bonus
+                if (AuraEffect const* aurEff = m_caster->GetAuraEffect(64736, EFFECT_0))
+                    AddPctF(bonusPct, aurEff->GetAmount());
+
+                AddPctF(totalDamagePercentMod, bonusPct);
                 break;
             }
             break;
@@ -3638,15 +3653,6 @@ void Spell::EffectHealMaxHealth(SpellEffIndex /*effIndex*/)
         return;
 
     int32 addhealth = 0;
-    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_PALADIN) // Lay on Hands
-    {
-        if (m_caster->GetGUID() == unitTarget->GetGUID())
-        {
-            m_caster->CastSpell(m_caster, 25771, true); // Forbearance
-            m_caster->CastSpell(m_caster, 61988, true); // Immune shield marker (serverside)
-            m_caster->CastSpell(m_caster, 61987, true); // Avenging Wrath marker
-        }
-    }
 
     // damage == 0 - heal for caster max health
     if (damage == 0)
@@ -3954,12 +3960,7 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                     if (!itemTarget && m_caster->GetTypeId() != TYPEID_PLAYER)
                         return;
 
-                    uint32 spell_id = 0;
-                    switch (urand(1, 5))
-                    {
-                    case 1:  spell_id = 8854; break;
-                    default: spell_id = 8855; break;
-                    }
+                    uint32 spell_id = roll_chance_i(20) ? 8854 : 8855;
 
                     m_caster->CastSpell(m_caster, spell_id, true, NULL);
                     return;
@@ -4067,8 +4068,8 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                         DoCreateItem(effIndex, item);
                     break;
                 }
-                // Improved Sprint
-                case 30918:
+                case 20589: // Escape artist
+                case 30918: // Improved Sprint
                 {
                     // Removes snares and roots.
                     unitTarget->RemoveMovementImpairingAuras();
@@ -5278,16 +5279,14 @@ void Spell::EffectDisEnchant(SpellEffIndex /*effIndex*/)
     if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
         return;
 
-    if (m_caster->GetTypeId() != TYPEID_PLAYER)
-        return;
-
-    Player* p_caster = (Player*)m_caster;
     if (!itemTarget || !itemTarget->GetTemplate()->DisenchantID)
         return;
 
-    p_caster->UpdateCraftSkill(m_spellInfo->Id);
-
-    m_caster->ToPlayer()->SendLoot(itemTarget->GetGUID(), LOOT_DISENCHANTING);
+    if (Player* caster = m_caster->ToPlayer())
+    {
+        caster->UpdateCraftSkill(m_spellInfo->Id);
+        caster->SendLoot(itemTarget->GetGUID(), LOOT_DISENCHANTING);
+    }
 
     // item will be removed at disenchanting end
 }
