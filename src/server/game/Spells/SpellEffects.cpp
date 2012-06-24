@@ -4068,7 +4068,6 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                         DoCreateItem(effIndex, item);
                     break;
                 }
-                case 20589: // Escape artist
                 case 30918: // Improved Sprint
                 {
                     // Removes snares and roots.

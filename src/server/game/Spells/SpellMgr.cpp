@@ -3534,10 +3534,6 @@ void SpellMgr::LoadDbcDataCorrections()
             case 62293: // Cosmic Smash (Algalon the Observer)
                 spellInfo->EffectImplicitTargetB[0] = TARGET_DEST_CASTER;
                 break;
-            case 62311: // Cosmic Smash (Algalon the Observer)
-            case 64596: // Cosmic Smash (Algalon the Observer)
-                spellInfo->rangeIndex = 6;  // 100yd
-                break;
             // ENDOF ULDUAR SPELLS
             //
             // TRIAL OF THE CRUSADER SPELLS
@@ -3638,9 +3634,6 @@ void SpellMgr::LoadDbcDataCorrections()
                 spellInfo->AreaGroupId = 0; // originally, these require area 4522, which is... outside of Icecrown Citadel
                 break;
             case 70602: // Corruption
-            case 48278: // Paralyze
-                spellInfo->AttributesEx3 |= SPELL_ATTR3_STACK_FOR_DIFF_CASTERS;
-                break;
             case 70715: // Column of Frost (visual marker)
                 spellInfo->DurationIndex = 32; // 6 seconds (missing)
                 break;

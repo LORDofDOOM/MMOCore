@@ -1091,7 +1091,6 @@ bool ChatHandler::HandleLookupTitleCommand(const char* args)
     return true;
 }
 
-}
 
 bool ChatHandler::HandleIRCpmCommand(const char* args)
 {
@@ -1109,3 +1108,4 @@ bool ChatHandler::HandleIRCpmCommand(const char* args)
    sIRC.SendIRC("PRIVMSG "+To+" : <WoW>["+m_session->GetPlayerName()+"] : " + Msg);
    sIRC.Send_WoW_Player(m_session->GetPlayer(), "|cffCC4ACCTo ["+To+"]: "+Msg);
    return true;
+}
