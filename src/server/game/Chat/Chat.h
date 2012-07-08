@@ -160,12 +160,6 @@ class ChatHandler
         bool HandleBindSightCommand(const char* args);
         bool HandleUnbindSightCommand(const char* args);
 
-        bool HandleGuildCreateCommand(const char* args);
-        bool HandleGuildInviteCommand(const char* args);
-        bool HandleGuildUninviteCommand(const char* args);
-        bool HandleGuildRankCommand(const char* args);
-        bool HandleGuildDeleteCommand(const char* args);
-
         bool HandleLookupAreaCommand(const char* args);
         bool HandleLookupCreatureCommand(const char* args);
         bool HandleLookupEventCommand(const char* args);
@@ -186,14 +180,6 @@ class ChatHandler
 
         bool HandlePDumpLoadCommand(const char *args);
         bool HandlePDumpWriteCommand(const char *args);
-
-        bool HandleResetAchievementsCommand(const char * args);
-        bool HandleResetAllCommand(const char * args);
-        bool HandleResetHonorCommand(const char * args);
-        bool HandleResetLevelCommand(const char * args);
-        bool HandleResetSpellsCommand(const char* args);
-        bool HandleResetStatsCommand(const char * args);
-        bool HandleResetTalentsCommand(const char* args);
 
         bool HandleSendItemsCommand(const char* args);
         bool HandleSendMailCommand(const char* args);

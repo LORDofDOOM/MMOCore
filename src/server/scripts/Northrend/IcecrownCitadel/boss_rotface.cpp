@@ -19,6 +19,7 @@
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "SpellAuras.h"
+#include "GridNotifiers.h"
 #include "icecrown_citadel.h"
 
 // KNOWN BUGS:
@@ -103,7 +104,6 @@ class boss_rotface : public CreatureScript
                 events.ScheduleEvent(EVENT_MUTATED_INFECTION, 14000);
                 infectionStage = 0;
                 infectionCooldown = 14000;
-                aimOrientation = 0.0f;
             }
 
             void EnterCombat(Unit* who)
@@ -124,6 +124,7 @@ class boss_rotface : public CreatureScript
 
             void JustDied(Unit* /*killer*/)
             {
+                summons.DespawnAll();
                 _JustDied();
                 Talk(SAY_DEATH);
                 instance->DoRemoveAurasDueToSpellOnPlayers(MUTATED_INFECTION);
@@ -162,20 +163,10 @@ class boss_rotface : public CreatureScript
                 // don't enter combat
             }
 
-            void SummonedCreatureDespawn(Creature* summon)
-            {
-                if (summon)
-                    if (summon->GetEntry() == NPC_OOZE_SPRAY_STALKER)
-                        aimOrientation = 0.0f;
-            }
-
             void UpdateAI(const uint32 diff)
             {
                 if (!UpdateVictim() || !CheckInRoom())
                     return;
-
-                if (aimOrientation != 0.0f)
-                    me->SetOrientation(aimOrientation);
 
                 events.Update(diff);
 
@@ -189,12 +180,9 @@ class boss_rotface : public CreatureScript
                         case EVENT_SLIME_SPRAY:
                             if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 0.0f, true))
                             {
-                                if (Creature* orientationTarget = DoSummon(NPC_OOZE_SPRAY_STALKER, *target, 8000, TEMPSUMMON_TIMED_DESPAWN))
-                                {
-                                    Talk(EMOTE_SLIME_SPRAY);
-                                    aimOrientation = me->GetAngle(orientationTarget);
-                                    DoCast(me, SPELL_SLIME_SPRAY);
-                                }
+                                DoSummon(NPC_OOZE_SPRAY_STALKER, *target, 8000, TEMPSUMMON_TIMED_DESPAWN);
+                                Talk(EMOTE_SLIME_SPRAY);
+                                DoCast(me, SPELL_SLIME_SPRAY);
                             }
                             events.ScheduleEvent(EVENT_SLIME_SPRAY, 20000);
                             break;
@@ -206,16 +194,9 @@ class boss_rotface : public CreatureScript
                             }
                             break;
                         case EVENT_MUTATED_INFECTION:
-                        {
-                            Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 0.0f, true, -MUTATED_INFECTION);
-                            if (!target)
-                                target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true, -MUTATED_INFECTION);
-                            if (target)
-                                me->AddAura(MUTATED_INFECTION, target);
-
+                            me->CastCustomSpell(SPELL_MUTATED_INFECTION, SPELLVALUE_MAX_TARGETS, 1, NULL, false);
                             events.ScheduleEvent(EVENT_MUTATED_INFECTION, infectionCooldown);
                             break;
-                        }
                         default:
                             break;
                     }
@@ -227,7 +208,6 @@ class boss_rotface : public CreatureScript
         private:
             uint32 infectionCooldown;
             uint32 infectionStage;
-            float aimOrientation;
         };
 
         CreatureAI* GetAI(Creature* creature) const
@@ -462,24 +442,31 @@ class spell_rotface_ooze_flood : public SpellScriptLoader
 
                 std::list<Creature*> triggers;
                 GetHitUnit()->GetCreatureListWithEntryInGrid(triggers, GetHitUnit()->GetEntry(), 12.5f);
+
+                if (triggers.empty())
+                    return;
+
                 triggers.sort(Trinity::ObjectDistanceOrderPred(GetHitUnit()));
                 GetHitUnit()->CastSpell(triggers.back(), uint32(GetEffectValue()), false, NULL, NULL, GetOriginalCaster() ? GetOriginalCaster()->GetGUID() : 0);
             }
 
-            void FilterTargets(std::list<Unit*>& targetList)
+            void FilterTargets(std::list<WorldObject*>& targets)
             {
-                // get 2 nearest targets
-                targetList.sort(Trinity::ObjectDistanceOrderPred(GetCaster()));
+                // get 2 targets except 2 nearest
+                targets.sort(Trinity::ObjectDistanceOrderPred(GetCaster()));
 
                 // .resize() runs pop_back();
-                if (targetList.size() > 3)
-                    targetList.resize(3);
+                if (targets.size() > 4)
+                    targets.resize(4);
+
+                while (targets.size() > 2)
+                    targets.pop_front();
             }
 
             void Register()
             {
                 OnEffectHitTarget += SpellEffectFn(spell_rotface_ooze_flood_SpellScript::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
-                OnUnitTargetSelect += SpellUnitTargetFn(spell_rotface_ooze_flood_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENTRY);
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_rotface_ooze_flood_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENTRY);
             }
         };
 
@@ -504,21 +491,21 @@ class spell_rotface_mutated_infection : public SpellScriptLoader
                 return true;
             }
 
-            void FilterTargets(std::list<Unit*>& targets)
+            void FilterTargets(std::list<WorldObject*>& targets)
             {
                 // remove targets with this aura already
                 // tank is not on this list
-                targets.remove_if (Trinity::UnitAuraCheck(true, GetSpellInfo()->Id));
+                targets.remove_if(Trinity::UnitAuraCheck(true, GetSpellInfo()->Id));
                 if (targets.empty())
                     return;
 
-                Unit* target = Trinity::Containers::SelectRandomContainerElement(targets);
+                WorldObject* target = Trinity::Containers::SelectRandomContainerElement(targets);
                 targets.clear();
                 targets.push_back(target);
                 _target = target;
             }
 
-            void ReplaceTargets(std::list<Unit*>& targets)
+            void ReplaceTargets(std::list<WorldObject*>& targets)
             {
                 targets.clear();
                 if (_target)
@@ -534,13 +521,13 @@ class spell_rotface_mutated_infection : public SpellScriptLoader
 
             void Register()
             {
-                OnUnitTargetSelect += SpellUnitTargetFn(spell_rotface_mutated_infection_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENEMY);
-                OnUnitTargetSelect += SpellUnitTargetFn(spell_rotface_mutated_infection_SpellScript::ReplaceTargets, EFFECT_1, TARGET_UNIT_SRC_AREA_ENEMY);
-                OnUnitTargetSelect += SpellUnitTargetFn(spell_rotface_mutated_infection_SpellScript::ReplaceTargets, EFFECT_2, TARGET_UNIT_SRC_AREA_ENEMY);
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_rotface_mutated_infection_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENEMY);
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_rotface_mutated_infection_SpellScript::ReplaceTargets, EFFECT_1, TARGET_UNIT_SRC_AREA_ENEMY);
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_rotface_mutated_infection_SpellScript::ReplaceTargets, EFFECT_2, TARGET_UNIT_SRC_AREA_ENEMY);
                 AfterHit += SpellHitFn(spell_rotface_mutated_infection_SpellScript::NotifyTargets);
             }
 
-            Unit* _target;
+            WorldObject* _target;
         };
 
         SpellScript* GetSpellScript() const
