@@ -23,7 +23,8 @@ SDComment: by /dev/rsa
 SDCategory: Trial of the Crusader
 EndScriptData */
 
-#include "ScriptPCH.h"
+#include "ScriptMgr.h"
+#include "InstanceScript.h"
 #include "trial_of_the_crusader.h"
 
 class instance_trial_of_the_crusader : public InstanceMapScript
@@ -46,6 +47,7 @@ class instance_trial_of_the_crusader : public InstanceMapScript
 
             uint64 BarrentGUID;
             uint64 TirionGUID;
+            uint64 TirionFordringGUID;
             uint64 FizzlebangGUID;
             uint64 GarroshGUID;
             uint64 VarianGUID;
@@ -83,6 +85,8 @@ class instance_trial_of_the_crusader : public InstanceMapScript
 
                 TrialCounter = 50;
                 EventStage = 0;
+
+                TirionFordringGUID = 0;
 
                 TributeChestGUID = 0;
 
@@ -145,6 +149,9 @@ class instance_trial_of_the_crusader : public InstanceMapScript
                         break;
                     case NPC_TIRION:
                         TirionGUID = creature->GetGUID();
+                        break;
+                    case NPC_TIRION_FORDRING:
+                        TirionFordringGUID = creature->GetGUID();
                         break;
                     case NPC_FIZZLEBANG:
                         FizzlebangGUID = creature->GetGUID();
@@ -393,7 +400,7 @@ class instance_trial_of_the_crusader : public InstanceMapScript
 
                 if (type < MAX_ENCOUNTERS)
                 {
-                    sLog->outDetail("[ToCr] EncounterStatus[type %u] %u = data %u;", type, EncounterStatus[type], data);
+                    sLog->outInfo(LOG_FILTER_TSCR, "[ToCr] EncounterStatus[type %u] %u = data %u;", type, EncounterStatus[type], data);
                     if (data == FAIL)
                     {
                         --TrialCounter;
@@ -421,6 +428,8 @@ class instance_trial_of_the_crusader : public InstanceMapScript
                         return BarrentGUID;
                     case NPC_TIRION:
                         return TirionGUID;
+                    case NPC_TIRION_FORDRING:
+                        return TirionFordringGUID;
                     case NPC_FIZZLEBANG:
                         return FizzlebangGUID;
                     case NPC_GARROSH:

@@ -90,13 +90,13 @@ void WorldSession::HandleSendMail(WorldPacket & recv_data)
 
     if (!rc)
     {
-        sLog->outDetail("Player %u is sending mail to %s (GUID: not existed!) with subject %s and body %s includes %u items, %u copper and %u COD copper with unk1 = %u, unk2 = %u",
+        sLog->outInfo(LOG_FILTER_NETWORKIO, "Player %u is sending mail to %s (GUID: not existed!) with subject %s and body %s includes %u items, %u copper and %u COD copper with unk1 = %u, unk2 = %u",
             player->GetGUIDLow(), receiver.c_str(), subject.c_str(), body.c_str(), items_count, money, COD, unk1, unk2);
         player->SendMailResult(0, MAIL_SEND, MAIL_ERR_RECIPIENT_NOT_FOUND);
         return;
     }
 
-    sLog->outDetail("Player %u is sending mail to %s (GUID: %u) with subject %s and body %s includes %u items, %u copper and %u COD copper with unk1 = %u, unk2 = %u", player->GetGUIDLow(), receiver.c_str(), GUID_LOPART(rc), subject.c_str(), body.c_str(), items_count, money, COD, unk1, unk2);
+    sLog->outInfo(LOG_FILTER_NETWORKIO, "Player %u is sending mail to %s (GUID: %u) with subject %s and body %s includes %u items, %u copper and %u COD copper with unk1 = %u, unk2 = %u", player->GetGUIDLow(), receiver.c_str(), GUID_LOPART(rc), subject.c_str(), body.c_str(), items_count, money, COD, unk1, unk2);
 
     if (player->GetGUID() == rc)
     {
@@ -580,8 +580,8 @@ void WorldSession::HandleGetMailList(WorldPacket & recv_data)
 
     for (PlayerMails::iterator itr = player->GetMailBegin(); itr != player->GetMailEnd(); ++itr)
     {
-        // packet send mail count as uint8, prevent overflow
-        if (mailsCount >= 254)
+        // Only first 50 mails are displayed
+        if (mailsCount >= 50)
         {
             realCount += 1;
             continue;
@@ -593,7 +593,7 @@ void WorldSession::HandleGetMailList(WorldPacket & recv_data)
 
         uint8 item_count = (*itr)->items.size();            // max count is MAX_MAIL_ITEMS (12)
 
-        size_t next_mail_size = 2+4+1+((*itr)->messageType == MAIL_NORMAL ? 8 : 4)+4*8+((*itr)->subject.size()+1)+((*itr)->body.size()+1)+1+item_count*(1+4+4+7*3*4+4+4+4+4+4+4+1);
+        size_t next_mail_size = 2+4+1+((*itr)->messageType == MAIL_NORMAL ? 8 : 4)+4*8+((*itr)->subject.size()+1)+((*itr)->body.size()+1)+1+item_count*(1+4+4+MAX_INSPECTED_ENCHANTMENT_SLOT*3*4+4+4+4+4+4+4+1);
 
         if (data.wpos()+next_mail_size > maxPacketSize)
         {
@@ -621,7 +621,7 @@ void WorldSession::HandleGetMailList(WorldPacket & recv_data)
         }
 
         data << uint32((*itr)->COD);                         // COD
-        data << uint32(0);                                   // probably changed in 3.3.3
+        data << uint32(0);                                   // package (Package.dbc)
         data << uint32((*itr)->stationery);                  // stationery (Stationery.dbc)
         data << uint32((*itr)->money);                       // Gold
         data << uint32((*itr)->checked);                     // flags
@@ -662,8 +662,8 @@ void WorldSession::HandleGetMailList(WorldPacket & recv_data)
             data << uint8(0);
         }
 
-        realCount += 1;
-        mailsCount += 1;
+        ++realCount;
+        ++mailsCount;
     }
 
     data.put<uint32>(0, realCount);                         // this will display warning about undelivered mail to player if realCount > mailsCount
@@ -721,7 +721,7 @@ void WorldSession::HandleMailCreateTextItem(WorldPacket & recv_data)
     bodyItem->SetUInt32Value(ITEM_FIELD_CREATOR, m->sender);
     bodyItem->SetFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_MAIL_TEXT_MASK);
 
-    sLog->outDetail("HandleMailCreateTextItem mailid=%u", mailId);
+    sLog->outInfo(LOG_FILTER_NETWORKIO, "HandleMailCreateTextItem mailid=%u", mailId);
 
     ItemPosCountVec dest;
     uint8 msg = _player->CanStoreItem(NULL_BAG, NULL_SLOT, dest, bodyItem, false);
@@ -751,11 +751,12 @@ void WorldSession::HandleQueryNextMailTime(WorldPacket & /*recv_data*/)
 
     if (_player->unReadMails > 0)
     {
-        data << uint32(0);                                 // float
+        data << float(0);                                  // float
         data << uint32(0);                                 // count
 
         uint32 count = 0;
         time_t now = time(NULL);
+        std::set<uint32> sentSenders;
         for (PlayerMails::iterator itr = _player->GetMailBegin(); itr != _player->GetMailEnd(); ++itr)
         {
             Mail* m = (*itr);
@@ -767,36 +768,29 @@ void WorldSession::HandleQueryNextMailTime(WorldPacket & /*recv_data*/)
             if (now < m->deliver_time)
                 continue;
 
-            if (m->messageType)
-                data << uint64(m->sender); // player guid
-            else
-                data << uint32(m->sender); // creature entry
+            // only send each mail sender once
+            if (sentSenders.count(m->sender))
+                continue;
 
-            switch (m->messageType)
-            {
-                case MAIL_AUCTION:
-                    data << uint32(2);
-                    data << uint32(2);
-                    data << uint32(m->stationery);
-                    break;
-                default:
-                    data << uint32(0);
-                    data << uint32(0);
-                    data << uint32(m->stationery);
-                    break;
-            }
-            data << uint32(0xC6000000);                    // float unk, time or something
+            data << uint64(m->messageType == MAIL_NORMAL ? m->sender : 0);  // player guid
+            data << uint32(m->messageType != MAIL_NORMAL ? m->sender : 0);  // non-player entries
+            data << uint32(m->messageType);
+            data << uint32(m->stationery);
+            data << float(m->deliver_time - now);
 
+            sentSenders.insert(m->sender);
             ++count;
             if (count == 2)                                  // do not display more than 2 mails
                 break;
         }
+
         data.put<uint32>(4, count);
     }
     else
     {
-        data << uint32(0xC7A8C000);
-        data << uint32(0x00000000);
+        data << float(-DAY);
+        data << uint32(0);
     }
+
     SendPacket(&data);
 }

@@ -828,7 +828,7 @@ public:
 
         if (dontdel_str)
         {
-            //sLog->outError("DEBUG: All 3 params are set");
+            //sLog->outError(LOG_FILTER_GENERAL, "DEBUG: All 3 params are set");
 
             // All 3 params are set
             // GUID
@@ -836,7 +836,7 @@ public:
             // doNotDEL
             if (stricmp(dontdel_str, "NODEL") == 0)
             {
-                //sLog->outError("DEBUG: doNotDelete = true;");
+                //sLog->outError(LOG_FILTER_GENERAL, "DEBUG: doNotDelete = true;");
                 doNotDelete = true;
             }
         }
@@ -845,10 +845,10 @@ public:
             // Only 2 params - but maybe NODEL is set
             if (type_str)
             {
-                sLog->outError("DEBUG: Only 2 params ");
+                sLog->outError(LOG_FILTER_GENERAL, "DEBUG: Only 2 params ");
                 if (stricmp(type_str, "NODEL") == 0)
                 {
-                    //sLog->outError("DEBUG: type_str, NODEL ");
+                    //sLog->outError(LOG_FILTER_GENERAL, "DEBUG: type_str, NODEL ");
                     doNotDelete = true;
                     type_str = NULL;
                 }
