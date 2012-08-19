@@ -269,7 +269,7 @@ class guildmaster : public CreatureScript
  i = strcmp(CODE_SELL, sCode);
  }
 
- catch(char *str) {sLog->outErrorDb(str);
+ catch(char *str) {sLog->outError(LOG_FILTER_SQL, str);
  }
 
  if (i == 0)

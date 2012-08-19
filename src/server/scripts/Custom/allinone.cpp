@@ -38,7 +38,7 @@ bool OnGossipHello(Player  *player, Creature* pCreature)
 {
 	//Config sConfig;
 	if (!ConfigMgr::Load(_TRINITY_CORE_CONFIG))
-		sLog->outError("TScript: Unable to open configuration file");
+		sLog->outInfo(LOG_FILTER_GENERAL, "TScript: Unable to open configuration file");
 
 	if (ConfigMgr::GetBoolDefault("pryds_allinone.OnlyGMs", false)) // If pryds_allinone.OnlyGMs is enabled in trinitycore.conf
 		if (player->GetSession()->GetSecurity() == SEC_PLAYER)
@@ -114,7 +114,7 @@ if (player->isInCombat())
 
 //Config sConfig;
 if (!ConfigMgr::Load(_TRINITY_CORE_CONFIG))
-		sLog->outError("TScript: Unable to open configuration file");
+		sLog->outInfo(LOG_FILTER_GENERAL, "TScript: Unable to open configuration file");
 	bool EnableBuffs = ConfigMgr::GetBoolDefault("pryds_allinone.EnableBuffs", true);
 	bool EnableProfessionsSkillUp = ConfigMgr::GetBoolDefault("pryds_allinone.EnableProfessionsSkillUp", true);
 	bool EnableSmallBuff = ConfigMgr::GetBoolDefault("pryds_allinone.EnableSmallBuff", true);

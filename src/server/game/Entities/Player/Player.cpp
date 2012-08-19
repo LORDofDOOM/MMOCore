@@ -19070,7 +19070,7 @@ void Player::SetSpectator(bool bSpectator)
 	{
 		if (IsSpectator())
 		{
-			sLog->outError("Player::SetSpectator: trying to set spectator state for player (GUID: %u) but he already has this state.", GetGUIDLow());
+			sLog->outError(LOG_FILTER_GENERAL,"Player::SetSpectator: trying to set spectator state for player (GUID: %u) but he already has this state.", GetGUIDLow());
 			return;
 		}
 		if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(8326))

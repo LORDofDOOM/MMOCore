@@ -34,13 +34,13 @@ Transport* MapManager::LoadTransportInMap(Map* instance, uint32 goEntry, uint32 
 
     if (!goInfo)
     {
-        sLog->outErrorDb("Transport ID:%u, will not be loaded, gameobject_template missing", goEntry);
+        sLog->outError(LOG_FILTER_SQL, "Transport ID:%u, will not be loaded, gameobject_template missing", goEntry);
         return NULL;
     }
 
     if (goInfo->type != GAMEOBJECT_TYPE_MO_TRANSPORT)
     {
-        sLog->outErrorDb("Transport ID:%u, Name: %s, will not be loaded, gameobject_template type wrong", goEntry, goInfo->name.c_str());
+        sLog->outError(LOG_FILTER_SQL, "Transport ID:%u, Name: %s, will not be loaded, gameobject_template type wrong", goEntry, goInfo->name.c_str());
         return NULL;
     }
 
@@ -48,7 +48,7 @@ Transport* MapManager::LoadTransportInMap(Map* instance, uint32 goEntry, uint32 
     std::set<uint32> mapsUsed;
     if (!t->GenerateWaypoints(goInfo->moTransport.taxiPathId, mapsUsed))
     {
-        sLog->outErrorDb("Transport (path id %u) path size = 0. Transport ignored, check DBC files or the gameobject's data0 field.", goInfo->moTransport.taxiPathId);
+        sLog->outError(LOG_FILTER_SQL, "Transport (path id %u) path size = 0. Transport ignored, check DBC files or the gameobject's data0 field.", goInfo->moTransport.taxiPathId);
         delete t;
         return NULL;
     }
@@ -68,7 +68,7 @@ Transport* MapManager::LoadTransportInMap(Map* instance, uint32 goEntry, uint32 
     // Spameando la nave quieta
     t->BuildWaitMovePacket(instance);
 
-    sLog->outDetail("Creando el transporte <---");
+    sLog->outInfo(LOG_FILTER_UNITS,"Creando el transporte <---");
 
     return t;
 }
@@ -103,7 +103,7 @@ void MapManager::UnLoadTransportFromMap(Transport* t)
     t->m_WayPoints.clear();
     t->RemoveFromWorld();
 
-    sLog->outDetail("Quitando el transporte --->");
+    sLog->outInfo(LOG_FILTER_UNITS,"Quitando el transporte --->");
 }
 
 void MapManager::LoadTransportForPlayers(Player* player)
@@ -117,7 +117,7 @@ void MapManager::LoadTransportForPlayers(Player* player)
     for (MapManager::TransportSet::const_iterator i = tset.begin(); i != tset.end(); ++i)
     {
         (*i)->BuildCreateUpdateBlockForPlayer(&transData, player);
-        sLog->outDetail("Cargando el transporte <---> Aqui hasta el de TransportSet");
+        sLog->outInfo(LOG_FILTER_UNITS,"Cargando el transporte <---> Aqui hasta el de TransportSet");
     }
 
     WorldPacket packet;
@@ -147,7 +147,7 @@ void MapManager::UnLoadTransportForPlayers(Player* player)
         }
 
         (*i)->BuildOutOfRangeUpdateBlock(&transData);
-        sLog->outDetail("Descargando el transporte >---< Aqui desde el de TransportSet");
+        sLog->outInfo(LOG_FILTER_UNITS,"Descargando el transporte >---< Aqui desde el de TransportSet");
     }
 
     WorldPacket packet;
@@ -841,7 +841,7 @@ Creature* Transport::AddNPCPassengerInInstance(uint32 entry, float x, float y, f
 
     if (!creature->IsPositionValid())
     {
-        sLog->outError("Creature (guidlow %d, entry %d) not created. Suggested coordinates isn't valid (X: %f Y: %f)", creature->GetGUIDLow(), creature->GetEntry(), creature->GetPositionX(), creature->GetPositionY());
+        sLog->outError(LOG_FILTER_GENERAL,"Creature (guidlow %d, entry %d) not created. Suggested coordinates isn't valid (X: %f Y: %f)", creature->GetGUIDLow(), creature->GetEntry(), creature->GetPositionX(), creature->GetPositionY());
         delete creature;
         return 0;
     }

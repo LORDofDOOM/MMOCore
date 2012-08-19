@@ -1967,10 +1967,10 @@ void World::SetInitialWorldSettings()
     sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Deleting expired bans...");
     LoginDatabase.Execute("DELETE FROM ip_banned WHERE unbandate <= UNIX_TIMESTAMP() AND unbandate<>bandate");      // One-time query
 
-    sLog->outString("Delete inactive accounts...");
+    sLog->outInfo(LOG_FILTER_SERVER_LOADING,"Delete inactive accounts...");
     AccountMgr::DeleteInactiveAccounts();	
 	
-    sLog->outString("Calculate next daily quest reset time...");
+    sLog->outInfo(LOG_FILTER_SERVER_LOADING,"Calculate next daily quest reset time...");
     InitDailyQuestResetTime();
 
     sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Calculate next weekly quest reset time...");
@@ -1981,18 +1981,18 @@ void World::SetInitialWorldSettings()
 
     LoadCharacterNameData();
 
-    sLog->outString("Initialize AuctionHouseBot...");
+    sLog->outInfo(LOG_FILTER_SERVER_LOADING,"Initialize AuctionHouseBot...");
     auctionbot.Initialize();
 
     // possibly enable db logging; avoid massive startup spam by doing it here.
-    if (sLog->GetLogDBLater())
+    /*if (sLog->GetLogDBLater())
     {
         sLog->outString("Enabling database logging...");
         sLog->SetLogDBLater(false);
         sLog->SetLogDB(true);
     }
     else
-        sLog->SetLogDB(false);
+        sLog->SetLogDB(false);*/
 
     uint32 startupDuration = GetMSTimeDiffToNow(startupBegin);
 

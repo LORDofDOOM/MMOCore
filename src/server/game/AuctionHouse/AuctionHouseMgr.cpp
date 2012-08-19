@@ -414,6 +414,7 @@ void AuctionHouseObject::AddAuction(AuctionEntry* auction)
 
 bool AuctionHouseObject::RemoveAuction(AuctionEntry* auction, uint32 /*item_template*/)
 {
+	uint32 item_template = auction->item_template;
     auctionbot.DecrementItemCounts(auction, item_template);
     bool wasInMap = AuctionsMap.erase(auction->Id) ? true : false;
 

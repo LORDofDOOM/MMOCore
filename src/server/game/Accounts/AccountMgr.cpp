@@ -346,14 +346,14 @@ void DeleteInactiveAccounts()
                continue;
 
            // Output account deletion and delete
-           sLog->outString("Automatic account deletion: %s (%u)", accountName.c_str(), accountId);
+           sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Automatic account deletion: %s (%u)", accountName.c_str(), accountId);
            DeleteAccount(accountId);
 
        } while (result->NextRow());
    }
    }
    else {
-	sLog->outString("Automatic account deletion is disabled");
+	sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Automatic account deletion is disabled");
    }
 }
 

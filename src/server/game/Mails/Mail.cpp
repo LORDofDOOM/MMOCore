@@ -288,13 +288,13 @@ void MailDraft::SendMailTo(SQLTransaction& trans, MailReceiver const& receiver, 
 
 void WorldSession::SendExternalMails()
 {
-   sLog->outDetail("EXTERNAL MAIL> Sending mails in queue...");
+   sLog->outInfo(LOG_FILTER_SERVER_LOADING,"EXTERNAL MAIL> Sending mails in queue...");
 
    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_GET_EXTERNAL_MAIL);
    PreparedQueryResult result = CharacterDatabase.Query(stmt);
    if (!result)
    {
-       sLog->outDetail("EXTERNAL MAIL> No mails in queue...");
+       sLog->outInfo(LOG_FILTER_SERVER_LOADING,"EXTERNAL MAIL> No mails in queue...");
        return;
    }
 
@@ -319,13 +319,13 @@ void WorldSession::SendExternalMails()
 
        if (money)
        {
-           sLog->outDetail("EXTERNAL MAIL> Adding money");
+           sLog->outInfo(LOG_FILTER_GENERAL,"EXTERNAL MAIL> Adding money");
            mail->AddMoney(money);
        }
 
        if (itemId)
        {
-           sLog->outDetail("EXTERNAL MAIL> Adding %u of item with id %u", itemCount, itemId);
+           sLog->outInfo(LOG_FILTER_GENERAL,"EXTERNAL MAIL> Adding %u of item with id %u", itemCount, itemId);
            Item* mailItem = Item::CreateItem(itemId, itemCount);
            mailItem->SaveToDB(trans);
            mail->AddItem(mailItem);
@@ -338,10 +338,10 @@ void WorldSession::SendExternalMails()
        stmt->setUInt32(0, id);
        trans->Append(stmt);
 
-       sLog->outDetail("EXTERNAL MAIL> Mail sent");
+       sLog->outInfo(LOG_FILTER_GENERAL,"EXTERNAL MAIL> Mail sent");
    }
    while (result->NextRow());
 
    CharacterDatabase.CommitTransaction(trans);
-   sLog->outDetail("EXTERNAL MAIL> All Mails Sent...");
+   sLog->outInfo(LOG_FILTER_GENERAL,"EXTERNAL MAIL> All Mails Sent...");
 }
