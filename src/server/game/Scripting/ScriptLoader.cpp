@@ -753,7 +753,7 @@ void AddCommandScripts()
     AddSC_wg_commandscript();
     AddSC_wp_commandscript();
     AddSC_vip_commandscript();
-	AddSC_mmowning_commandscript
+	AddSC_mmowning_commandscript();
 	//AddSC_Reset();
     AddSC_spectate_commandscript();	
 }

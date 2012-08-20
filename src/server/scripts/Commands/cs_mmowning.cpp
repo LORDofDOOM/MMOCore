@@ -32,13 +32,6 @@
 #include "../TriniChat/IRCClient.h"
 #include "../AuctionHouse/AuctionHouseBot/AuctionHouseBot.h"
 
-// wrapper for old-style handlers
-template<bool (ChatHandler::*F)(const char*)>
-bool OldHandler(ChatHandler* chatHandler, const char* args)
-{
-    return (chatHandler->*F)(args);
-}
-
 class mmowning_commandscript : public CommandScript
 {
 public:
