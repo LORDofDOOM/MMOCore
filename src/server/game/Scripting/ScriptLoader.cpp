@@ -122,6 +122,7 @@ void AddSC_titles_commandscript();
 void AddSC_wg_commandscript();
 void AddSC_wp_commandscript();
 void AddSC_vip_commandscript();
+void AddSC_mmowning_commandscript();
 //void AddSC_Reset();
 void AddSC_spectate_commandscript();
 
@@ -752,6 +753,7 @@ void AddCommandScripts()
     AddSC_wg_commandscript();
     AddSC_wp_commandscript();
     AddSC_vip_commandscript();
+	AddSC_mmowning_commandscript
 	//AddSC_Reset();
     AddSC_spectate_commandscript();	
 }
