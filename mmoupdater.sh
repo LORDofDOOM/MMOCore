@@ -189,8 +189,8 @@ LAUNCHER_WORLDSERVER_CONF=`ini_get_value LAUNCHER worldserver_conf`
 WORLDSERVER_FOLDER=`ini_get_value LAUNCHER WORLDSERVER_FOLDER`
 
 #INI DEBUG
-DEBUG_MODE=`ini_get_value DEBUG start_in_debug_mode`
-DEBUG_CRASHLOG_FOLDER=`ini_get_value DEBUG crashlog_folder`
+DEBUG_MODE=`ini_get_value DEBUG DEBUG_MODE`
+DEBUG_CRASHLOG_FOLDER=`ini_get_value DEBUG CRASHLOG_FOLDER`
 
 #INI MAIN
 USERNAME=`ini_get_value MAIN USERNAME`
@@ -299,6 +299,7 @@ if [ "$RECOMPILE_CORE" = "1" ]; then
 fi 
 
 if [ "$DEBUG_MODE" = "1" ]; then
+	cecho "Compile in Debug Mode"	$green
 	cd $MAIN_PATH/$RECOMPILE_OUTBUT_FOLDER
 	cmake ../$CORE_FOLDER -DPREFIX=$CORE_BUILD_FOLDER -DWITH_COREDEBUG=1
 else 
