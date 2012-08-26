@@ -15,6 +15,7 @@ set(scripts_STAT_SRCS
   Commands/cs_account.cpp
   Commands/cs_achievement.cpp
   Commands/cs_ban.cpp
+  Commands/cs_bf.cpp
   Commands/cs_cast.cpp
   Commands/cs_character.cpp
   Commands/cs_debug.cpp
@@ -40,7 +41,6 @@ set(scripts_STAT_SRCS
   Commands/cs_ticket.cpp
   Commands/cs_server.cpp
   Commands/cs_titles.cpp
-  Commands/cs_wg.cpp
   Commands/cs_wp.cpp
   Commands/cs_spectate.cpp  
   Commands/cs_mmowning.cpp   

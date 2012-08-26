@@ -142,13 +142,6 @@ class ChatHandler
 		bool HandleBuffsCommand(const char* args);	
 		//GuildHouse
 		bool HandleGHCommand(const char* args);			
-        //Wintergrasp
-        bool HandleWintergraspStatusCommand(const char *args);
-        bool HandleWintergraspStartCommand(const char *args);
-        bool HandleWintergraspStopCommand(const char *args);
-        bool HandleWintergraspEnableCommand(const char *args);
-        bool HandleWintergraspSwitchTeamCommand(const char *args);
-        bool HandleWintergraspTimerCommand(const char *args);
 		
 		// Custom irc commands
 		bool HandleIRCRelogCommand(const char *args);
