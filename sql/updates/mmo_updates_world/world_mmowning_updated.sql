@@ -96,3 +96,23 @@ UPDATE `quest_template` SET `SourceItemId` = 0, `RequiredSourceItemId4` = 0, `Re
 
 -- Fix Quest Spirituelle eingebung
 UPDATE `quest_template` SET `RequiredSourceItemId1` = 0, `RequiredSourceItemCount1` = 0, `RequiredSpellCast1` = 47190, `RequiredNpcOrGoCount1` = 0 WHERE `Id` = 12237;
+
+-- ########################################################################################################################
+-- ############################## MMO Updates
+-- ########################################################################################################################
+
+-- [Questfix][Author: Cox] Flugplatz Npcs
+UPDATE creature_template SET faction_A = '2070', faction_H = '2070' WHERE entry IN (31081, 31085); 
+
+-- [Questfix][Author: Cox]PvP Haendler
+INSERT INTO creature_template (entry, modelid1, name, subname,maxlevel ,minlevel , faction_A, faction_H, npcflag) VALUES (1500000, 26667, 'Gowli von Hegen', 'PvP Haendler', 80, 80, 35, 35, 128);
+
+-- [Questfix][Author: Cox] Arena Quest Fix
+
+UPDATE quest_template SET RequiredNpcOrGo1 = '30022' WHERE 'entry' IN (12948);
+UPDATE quest_template SET RequiredNpcOrGoCount1 = '1' WHERE 'entry' IN (12948); 
+
+-- [Questfix][Author: Eucharios] Fruehstueck der Champions
+DELETE FROM `creature_loot_template` WHERE `entry`='34920';
+INSERT into `creature_loot_template` (`entry`, `item`, `ChanceOrQuestChance`) VALUE ('34920', '46889', '100');
+UPDATE `creature_template` SET `lootid` = '34920' WHERE `entry` = '34920';
