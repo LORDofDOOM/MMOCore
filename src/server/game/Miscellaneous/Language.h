@@ -86,7 +86,8 @@ enum TrinityStrings
     LANG_CONNECTED_PLAYERS              = 60,
     LANG_ACCOUNT_ADDON                  = 61,
     LANG_IMPROPER_VALUE                 = 62,
-    // Room for more level 0              63-99 not used
+    LANG_CANT_DO_NOW                    = 63,
+    // Room for more level 0              64-99 not used
 
     // level 1 chat
     LANG_GLOBAL_NOTIFY                  = 100,
@@ -337,7 +338,13 @@ enum TrinityStrings
     LANG_TITLE_REMOVE_RES               = 354,
     LANG_TITLE_CURRENT_RES              = 355,
     LANG_CURRENT_TITLE_RESET            = 356,
-    // Room for more level 2              357-399 not used
+    LANG_COMMAND_CHEAT_STATUS           = 357,
+    LANG_COMMAND_CHEAT_GOD              = 358,
+    LANG_COMMAND_CHEAT_CT               = 359,
+    LANG_COMMAND_CHEAT_CD               = 360,
+    LANG_COMMAND_CHEAT_POWER            = 361,
+    LANG_COMMAND_CHEAT_WW               = 362,
+    // Room for more level 2              363-399 not used
 
     // level 3 chat
     LANG_SCRIPTS_RELOADED               = 400,
@@ -1069,7 +1076,7 @@ enum TrinityStrings
 
     // Use for custom patches             11000-11999
     LANG_AUTO_BROADCAST                 = 11000,
-    LANG_INVALID_REALMID                = 11001,
+    LANG_INVALID_REALMID                = 11001
     LANG_BAN_CHEATER                    = 11002,	
     LANG_FAKE_DND                       = 12003,	
     LANG_LOTTERY_ANNOUNCE                   = 11005,

@@ -23,10 +23,8 @@
 #include "DBCFileLoader.h"
 #include "Errors.h"
 
-DBCFileLoader::DBCFileLoader()
+DBCFileLoader::DBCFileLoader() : fieldsOffset(NULL), data(NULL), stringTable(NULL)
 {
-    data = NULL;
-    fieldsOffset = NULL;
 }
 
 bool DBCFileLoader::Load(const char* filename, const char* fmt)

@@ -114,7 +114,7 @@ struct PlayerTalent
 // Spell modifier (used for modify other spells)
 struct SpellModifier
 {
-    SpellModifier(Aura* _ownerAura = NULL) : charges(0), ownerAura(_ownerAura) {}
+    SpellModifier(Aura* _ownerAura = NULL) : op(SPELLMOD_DAMAGE), type(SPELLMOD_FLAT), charges(0), value(0), mask(), spellId(0), ownerAura(_ownerAura) {}
     SpellModOp   op   : 8;
     SpellModType type : 8;
     int16 charges     : 16;
@@ -299,7 +299,7 @@ struct Areas
 enum RuneCooldowns
 {
     RUNE_BASE_COOLDOWN  = 10000,
-    RUNE_MISS_COOLDOWN  = 1500,     // cooldown applied on runes when the spell misses
+    RUNE_MISS_COOLDOWN  = 1500     // cooldown applied on runes when the spell misses
 };
 
 enum RuneType
@@ -399,7 +399,7 @@ enum PlayerFlags
     PLAYER_FLAGS_UNK28             = 0x10000000,
     PLAYER_FLAGS_UNK29             = 0x20000000,
     PLAYER_FLAGS_UNK30             = 0x40000000,
-    PLAYER_FLAGS_UNK31             = 0x80000000,
+    PLAYER_FLAGS_UNK31             = 0x80000000
 };
 
 #define PLAYER_TITLE_MASK_ALLIANCE_PVP             \
@@ -693,7 +693,7 @@ enum TradeSlots
     TRADE_SLOT_COUNT            = 7,
     TRADE_SLOT_TRADED_COUNT     = 6,
     TRADE_SLOT_NONTRADED        = 6,
-    TRADE_SLOT_INVALID          = -1,
+    TRADE_SLOT_INVALID          = -1
 };
 
 enum TransferAbortReason
@@ -713,7 +713,7 @@ enum TransferAbortReason
     TRANSFER_ABORT_NOT_FOUND2               = 0x0D,         // 3.1
     TRANSFER_ABORT_NOT_FOUND3               = 0x0E,         // 3.2
     TRANSFER_ABORT_REALM_ONLY               = 0x0F,         // All players on party must be from the same realm.
-    TRANSFER_ABORT_MAP_NOT_ALLOWED          = 0x10,         // Map can't be entered at this time.
+    TRANSFER_ABORT_MAP_NOT_ALLOWED          = 0x10          // Map can't be entered at this time.
 };
 
 enum InstanceResetWarningType
@@ -760,7 +760,7 @@ enum TeleportToOptions
     TELE_TO_NOT_LEAVE_TRANSPORT = 0x02,
     TELE_TO_NOT_LEAVE_COMBAT    = 0x04,
     TELE_TO_NOT_UNSUMMON_PET    = 0x08,
-    TELE_TO_SPELL               = 0x10,
+    TELE_TO_SPELL               = 0x10
 };
 
 /// Type of environmental damages
@@ -782,7 +782,7 @@ enum PlayerChatTag
     CHAT_TAG_DND        = 0x02,
     CHAT_TAG_GM         = 0x04,
     CHAT_TAG_COM        = 0x08, // Commentator
-    CHAT_TAG_DEV        = 0x10,
+    CHAT_TAG_DEV        = 0x10
 };
 
 enum PlayedTimeIndex
@@ -828,7 +828,7 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOADQUESTSTATUSREW       = 29,
     PLAYER_LOGIN_QUERY_LOADINSTANCELOCKTIMES    = 30,
     PLAYER_LOGIN_QUERY_LOADSEASONALQUESTSTATUS  = 31,
-    MAX_PLAYER_LOGIN_QUERY,
+    MAX_PLAYER_LOGIN_QUERY
 };
 
 enum PlayerDelayedOperations
@@ -915,6 +915,16 @@ enum PlayerRestState
     REST_STATE_RESTED                                = 0x01,
     REST_STATE_NOT_RAF_LINKED                        = 0x02,
     REST_STATE_RAF_LINKED                            = 0x06
+};
+
+enum PlayerCommandStates
+{
+    CHEAT_NONE      = 0x00,
+    CHEAT_GOD       = 0x01,
+    CHEAT_CASTTIME  = 0x02,
+    CHEAT_COOLDOWN  = 0x04,
+    CHEAT_POWER     = 0x08,
+    CHEAT_WATERWALK = 0x10
 };
 
 class PlayerTaxi
@@ -1200,6 +1210,11 @@ class Player : public Unit, public GridObject<Player>
         void GiveLevel(uint8 level);
 
         void InitStatsForLevel(bool reapplyMods = false);
+
+        // .cheat command related
+        bool GetCommandStatus(uint32 command) const { return _activeCheats & command; }
+        void SetCommandStatusOn(uint32 command) { _activeCheats |= command; }
+        void SetCommandStatusOff(uint32 command) { _activeCheats &= ~command; }
 
         // Played Time Stuff
         time_t m_logintime;
@@ -2921,6 +2936,8 @@ class Player : public Unit, public GridObject<Player>
         uint32 _pendingBindTimer;
 		
         bool m_spectator; // sets to true when player uses '.spectate' command		
+
+        uint32 _activeCheats;
 };
 
 void AddItemsSetItem(Player*player, Item* item);

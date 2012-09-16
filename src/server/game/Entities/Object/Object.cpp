@@ -1778,10 +1778,10 @@ bool WorldObject::canSeeOrDetect(WorldObject const* obj, bool ignoreStealth, boo
        if (ToPlayer()->IsSpectator() && GetMap()->IsBattleArena() && ToPlayer()->HasAura(8326)) // Prevent exploits
            return true;	
 
-    bool corpseCheck = false;
     bool corpseVisibility = false;
     if (distanceCheck)
     {
+        bool corpseCheck = false;
         if (Player const* thisPlayer = ToPlayer())
         {
             if (thisPlayer->isDead() && thisPlayer->GetHealth() > 0 && // Cheap way to check for ghost state
@@ -2564,6 +2564,24 @@ GameObject* WorldObject::FindNearestGameObject(uint32 entry, float range) const
     return go;
 }
 
+GameObject* WorldObject::FindNearestGameObjectOfType(GameobjectTypes type, float range) const
+{
+    GameObject* go = NULL;
+    Trinity::NearestGameObjectTypeInObjectRangeCheck checker(*this, type, range);
+    Trinity::GameObjectLastSearcher<Trinity::NearestGameObjectTypeInObjectRangeCheck> searcher(this, go, checker);
+    VisitNearbyGridObject(range, searcher);
+    return go;
+}
+
+Player* WorldObject::FindNearestPlayer(float range, bool alive)
+{
+  Player* player = NULL;
+  Trinity::AnyPlayerInObjectRangeCheck check(this, GetVisibilityRange());
+  Trinity::PlayerSearcher<Trinity::AnyPlayerInObjectRangeCheck> searcher(this, player, check);
+  VisitNearbyWorldObject(range, searcher);
+  return player;
+}
+
 void WorldObject::GetGameObjectListWithEntryInGrid(std::list<GameObject*>& gameobjectList, uint32 entry, float maxSearchRange) const
 {
     CellCoord pair(Trinity::ComputeCellCoord(this->GetPositionX(), this->GetPositionY()));
@@ -2973,23 +2991,6 @@ void WorldObject::UpdateObjectVisibility(bool /*forced*/)
     //updates object's visibility for nearby players
     Trinity::VisibleChangesNotifier notifier(*this);
     VisitNearbyWorldObject(GetVisibilityRange(), notifier);
-}
-
-Player* WorldObject::FindNearestPlayer(float range, bool alive)
-{
-    Player* player = NULL;
-    Trinity::AnyPlayerInObjectRangeCheck checker(this, range, alive);
-    Trinity::PlayerSearcher<Trinity::AnyPlayerInObjectRangeCheck> searcher(this, player, checker);
-    VisitNearbyWorldObject(range, searcher);
-    return player;
-}
-
-std::list<Player*> WorldObject::GetNearestPlayersList(float range, bool alive) {
-    std::list<Player*> players;
-    Trinity::AnyPlayerInObjectRangeCheck checker(this, range, alive);
-    Trinity::PlayerListSearcher<Trinity::AnyPlayerInObjectRangeCheck> searcher(this, players, checker);
-    VisitNearbyWorldObject(range, searcher);
-    return players;
 }
 
 struct WorldObjectChangeAccumulator

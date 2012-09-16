@@ -904,6 +904,7 @@ bool SmartAIMgr::IsEventValid(SmartScriptHolder& e)
         case SMART_ACTION_SEND_GOSSIP_MENU:
         case SMART_ACTION_GO_SET_LOOT_STATE:
         case SMART_ACTION_SEND_TARGET_TO_TARGET:
+        case SMART_ACTION_SET_HOME_POS:
             break;
         default:
             sLog->outError(LOG_FILTER_SQL, "SmartAIMgr: Not handled action_type(%u), event_type(%u), Entry %d SourceType %u Event %u, skipped.", e.GetActionType(), e.GetEventType(), e.entryOrGuid, e.GetScriptType(), e.event_id);
@@ -913,7 +914,7 @@ bool SmartAIMgr::IsEventValid(SmartScriptHolder& e)
     return true;
 }
 
-bool SmartAIMgr::IsTextValid(SmartScriptHolder const& e, uint32 id)
+/*bool SmartAIMgr::IsTextValid(SmartScriptHolder const& e, uint32 id) // unused
 {
     bool error = false;
     uint32 entry = 0;
@@ -938,4 +939,4 @@ bool SmartAIMgr::IsTextValid(SmartScriptHolder const& e, uint32 id)
         return false;
     }
     return true;
-}
+}*/

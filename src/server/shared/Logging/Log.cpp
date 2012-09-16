@@ -103,7 +103,7 @@ void Log::CreateAppenderFromConfig(const char* name)
     LogLevel level = LogLevel(atoi(*iter));
     if (level > LOG_LEVEL_FATAL)
     {
-        fprintf(stderr, "Log::CreateAppenderFromConfig: Wrong Log Level %u for appender %s\n", level, name);
+        fprintf(stderr, "Log::CreateAppenderFromConfig: Wrong Log Level %d for appender %s\n", level, name);
         return;
     }
 
@@ -158,7 +158,7 @@ void Log::CreateAppenderFromConfig(const char* name)
             break;
         }
         default:
-            fprintf(stderr, "Log::CreateAppenderFromConfig: Unknown type %u for appender %s\n", type, name);
+            fprintf(stderr, "Log::CreateAppenderFromConfig: Unknown type %d for appender %s\n", type, name);
             break;
     }
 }
@@ -260,14 +260,9 @@ void Log::ReadLoggersFromConfig()
     }
     while (ss);
 
-    LoggerMap::const_iterator it = loggers.begin();
-
-    while (it != loggers.end() && it->first)
-      ++it;
-
     // root logger must exist. Marking as disabled as its not configured
-    if (it == loggers.end())
-        loggers[0].Create("root", LOG_FILTER_GENERAL, LOG_LEVEL_DISABLED);
+    if (loggers.find(LOG_FILTER_GENERAL) == loggers.end())
+        loggers[LOG_FILTER_GENERAL].Create("root", LOG_FILTER_GENERAL, LOG_LEVEL_DISABLED);
 }
 
 void Log::EnableDBAppenders()
@@ -275,19 +270,6 @@ void Log::EnableDBAppenders()
     for (AppenderMap::iterator it = appenders.begin(); it != appenders.end(); ++it)
         if (it->second && it->second->getType() == APPENDER_DB)
             ((AppenderDB *)it->second)->setEnable(true);
-}
-
-void Log::log(LogFilterType filter, LogLevel level, char const* str, ...)
-{
-    if (!str || !ShouldLog(filter, level))
-        return;
-
-    va_list ap;
-    va_start(ap, str);
-
-    vlog(filter, level, str, ap);
-
-    va_end(ap);
 }
 
 void Log::vlog(LogFilterType filter, LogLevel level, char const* str, va_list argptr)
@@ -349,10 +331,7 @@ bool Log::SetLogLevel(std::string const& name, const char* newLevelc, bool isLog
 
 bool Log::ShouldLog(LogFilterType type, LogLevel level) const
 {
-    LoggerMap::const_iterator it = loggers.begin();
-    while (it != loggers.end() && it->second.getType() != type)
-        ++it;
-
+    LoggerMap::const_iterator it = loggers.find(type);
     if (it != loggers.end())
     {
         LogLevel loggerLevel = it->second.getLogLevel();
@@ -443,19 +422,20 @@ void Log::outFatal(LogFilterType filter, const char * str, ...)
     va_end(ap);
 }
 
-void Log::outCharDump(const char* param, const char * str, ...)
+void Log::outCharDump(char const* str, uint32 accountId, uint32 guid, char const* name)
 {
     if (!str || !ShouldLog(LOG_FILTER_PLAYER_DUMP, LOG_LEVEL_INFO))
         return;
 
-    va_list ap;
-    va_start(ap, str);
-    char text[MAX_QUERY_LEN];
-    vsnprintf(text, MAX_QUERY_LEN, str, ap);
-    va_end(ap);
+    std::ostringstream ss;
+    ss << "== START DUMP == (account: " << accountId << " guid: " << guid << " name: " << name
+       << ")\n" << str << "\n== END DUMP ==\n";
 
-    LogMessage* msg = new LogMessage(LOG_LEVEL_INFO, LOG_FILTER_PLAYER_DUMP, text);
-    msg->param1 = param;
+    LogMessage* msg = new LogMessage(LOG_LEVEL_INFO, LOG_FILTER_PLAYER_DUMP, ss.str());
+    ss.clear();
+    ss << guid << '_' << name;
+
+    msg->param1 = ss.str();
 
     write(msg);
 }

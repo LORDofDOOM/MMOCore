@@ -52,6 +52,8 @@ BattlegroundWS::BattlegroundWS()
     StartMessageIds[BG_STARTING_EVENT_SECOND] = LANG_BG_WS_START_ONE_MINUTE;
     StartMessageIds[BG_STARTING_EVENT_THIRD]  = LANG_BG_WS_START_HALF_MINUTE;
     StartMessageIds[BG_STARTING_EVENT_FOURTH] = LANG_BG_WS_HAS_BEGUN;
+    _flagSpellForceTimer = 0;
+    _bothFlagsKept = false;
     _flagDebuffState = 0;
 }
 
@@ -729,7 +731,6 @@ void BattlegroundWS::Reset()
     _bothFlagsKept = false;
     _flagDebuffState = 0;
     _flagSpellForceTimer = 0;
-    _lastFlagCaptureTeam = 0;
     _flagsDropTimer[BG_TEAM_ALLIANCE] = 0;
     _flagsDropTimer[BG_TEAM_HORDE] = 0;
     _flagsTimer[BG_TEAM_ALLIANCE] = 0;

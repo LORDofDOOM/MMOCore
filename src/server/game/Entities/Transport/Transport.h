@@ -20,12 +20,13 @@
 #define TRANSPORTS_H
 
 #include "GameObject.h"
+#include "VehicleDefines.h"
 
 #include <map>
 #include <set>
 #include <string>
 
-class Transport : public GameObject
+class Transport : public GameObject, public TransportBase
 {
     public:
         Transport(uint32 period, uint32 script);
@@ -49,8 +50,12 @@ class Transport : public GameObject
         void UpdatePosition(MovementInfo* mi);
         void UpdateNPCPositions();
         void UpdatePlayerPositions();
+        /// This method transforms supplied transport offsets into global coordinates
         void CalculatePassengerPosition(float& x, float& y, float& z, float& o);
+
+        /// This method transforms supplied global coordinates into local offsets
         void CalculatePassengerOffset(float& x, float& y, float& z, float& o);
+
         void BuildStartMovePacket(Map const* targetMap);
         void BuildWaitMovePacket(Map const* targetMap);
         void BuildStopMovePacket(Map const* targetMap);
@@ -91,8 +96,8 @@ class Transport : public GameObject
         WayPointMap m_WayPoints;
         uint32 m_nextNodeTime;
     private:
-        void UpdateForMap(Map const* map);
         void TeleportTransport(uint32 newMapid, float x, float y, float z);
+        void UpdateForMap(Map const* map);
         void DoEventIfAny(WayPointMap::value_type const& node, bool departure);
         WayPointMap::const_iterator GetNextWayPoint();
 };

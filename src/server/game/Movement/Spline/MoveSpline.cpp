@@ -107,7 +107,7 @@ struct FallInitializer
 };
 
 enum{
-    minimal_duration = 1,
+    minimal_duration = 1
 };
 
 struct CommonInitializer
@@ -167,6 +167,7 @@ void MoveSpline::Initialize(const MoveSplineInitArgs& args)
     point_Idx_offset = args.path_Idx_offset;
     initialOrientation = args.initialOrientation;
 
+    onTransport = false;
     time_passed = 0;
     vertical_acceleration = 0.f;
     effect_start_time = 0;
@@ -217,7 +218,7 @@ bool MoveSplineInitArgs::_checkPathBounds() const
     if (!(flags & MoveSplineFlag::Mask_CatmullRom) && path.size() > 2)
     {
         enum{
-            MAX_OFFSET = (1 << 11) / 2,
+            MAX_OFFSET = (1 << 11) / 2
         };
         Vector3 middle = (path.front()+path.back()) / 2;
         Vector3 offset;

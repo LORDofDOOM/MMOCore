@@ -60,12 +60,19 @@ Battlefield::Battlefield()
 
 Battlefield::~Battlefield()
 {
+    for (BfCapturePointMap::iterator itr = m_capturePoints.begin(); itr != m_capturePoints.end(); ++itr)
+        delete itr->second;
+
+    for (GraveyardVect::const_iterator itr = m_GraveyardList.begin(); itr != m_GraveyardList.end(); ++itr)
+        delete *itr;
+
+    m_capturePoints.clear();
 }
 
 // Called when a player enters the zone
 void Battlefield::HandlePlayerEnterZone(Player* player, uint32 /*zone*/)
 {
-    // If battle is started, 
+    // If battle is started,
     // If not full of players > invite player to join the war
     // If full of players > announce to player that BF is full and kick him after a few second if he desn't leave
     if (IsWarTime())
@@ -133,7 +140,7 @@ bool Battlefield::Update(uint32 diff)
         m_Timer -= diff;
 
     // Invite players a few minutes before the battle's beginning
-    if (!m_StartGrouping && m_Timer <= m_StartGroupingTimer)
+    if (!IsWarTime() && !m_StartGrouping && m_Timer <= m_StartGroupingTimer)
     {
         m_StartGrouping = true;
         InvitePlayersInZoneToQueue();
@@ -155,13 +162,13 @@ bool Battlefield::Update(uint32 diff)
         if (m_uiKickDontAcceptTimer <= diff)
         {
             for (int team = 0; team < 2; team++)
-                for (PlayerTimerMap::iterator itr = m_InvitedPlayers[team].begin(); itr != m_InvitedPlayers[team].end(); itr++)
+                for (PlayerTimerMap::iterator itr = m_InvitedPlayers[team].begin(); itr != m_InvitedPlayers[team].end(); ++itr)
                     if ((*itr).second <= time(NULL))
                         KickPlayerFromBattlefield((*itr).first);
 
             InvitePlayersInZoneToWar();
             for (int team = 0; team < 2; team++)
-                for (PlayerTimerMap::iterator itr = m_PlayersWillBeKick[team].begin(); itr != m_PlayersWillBeKick[team].end(); itr++)
+                for (PlayerTimerMap::iterator itr = m_PlayersWillBeKick[team].begin(); itr != m_PlayersWillBeKick[team].end(); ++itr)
                     if ((*itr).second <= time(NULL))
                         KickPlayerFromBattlefield((*itr).first);
 
@@ -444,8 +451,8 @@ WorldPacket Battlefield::BuildWarningAnnPacket(std::string msg)
     data << uint32(1);
     data << uint8(0);
     data << uint64(0);
-    data << uint32(strlen(msg.c_str()) + 1);
-    data << msg.c_str();
+    data << uint32(msg.length() + 1);
+    data << msg;
     data << uint8(0);
 
     return data;
@@ -456,7 +463,7 @@ void Battlefield::SendWarningToAllInZone(uint32 entry)
     if (Unit* unit = sObjectAccessor->FindUnit(StalkerGuid))
         if (Creature* stalker = unit->ToCreature())
             // FIXME: replaced CHAT_TYPE_END with CHAT_MSG_BG_SYSTEM_NEUTRAL to fix compile, it's a guessed change :/
-            sCreatureTextMgr->SendChat(stalker, (uint8) entry, NULL, CHAT_MSG_BG_SYSTEM_NEUTRAL, LANG_ADDON, TEXT_RANGE_ZONE);
+            sCreatureTextMgr->SendChat(stalker, (uint8) entry, 0, CHAT_MSG_BG_SYSTEM_NEUTRAL, LANG_ADDON, TEXT_RANGE_ZONE);
 }
 
 /*void Battlefield::SendWarningToAllInWar(int32 entry,...)
@@ -669,8 +676,8 @@ BfGraveyard::BfGraveyard(Battlefield* battlefield)
     m_Bf = battlefield;
     m_GraveyardId = 0;
     m_ControlTeam = TEAM_NEUTRAL;
-    m_SpiritGuide[0] = NULL;
-    m_SpiritGuide[1] = NULL;
+    m_SpiritGuide[0] = 0;
+    m_SpiritGuide[1] = 0;
     m_ResurrectQueue.clear();
 }
 
@@ -862,7 +869,8 @@ BfCapturePoint::BfCapturePoint(Battlefield* battlefield) : m_Bf(battlefield), m_
 {
     m_team = TEAM_NEUTRAL;
     m_value = 0;
-    m_maxValue = 0;
+    m_minValue = 0.0f;
+    m_maxValue = 0.0f;
     m_State = BF_CAPTUREPOINT_OBJECTIVESTATE_NEUTRAL;
     m_OldState = BF_CAPTUREPOINT_OBJECTIVESTATE_NEUTRAL;
     m_capturePointEntry = 0;
@@ -885,9 +893,9 @@ GuidSet::iterator BfCapturePoint::HandlePlayerLeave(Player* player)
 {
     if (m_capturePoint)
         player->SendUpdateWorldState(m_capturePoint->GetGOInfo()->capturePoint.worldState1, 0);
-    
+
     GuidSet::iterator current = m_activePlayers[player->GetTeamId()].find(player->GetGUID());
-    
+
     if (current == m_activePlayers[player->GetTeamId()].end())
         return current; // return end()
 

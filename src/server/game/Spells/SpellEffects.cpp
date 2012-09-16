@@ -307,6 +307,10 @@ void Spell::EffectInstaKill(SpellEffIndex /*effIndex*/)
             return;
     }
 
+    if (unitTarget->GetTypeId() == TYPEID_PLAYER)
+        if (unitTarget->ToPlayer()->GetCommandStatus(CHEAT_GOD))
+            return;
+
     if (m_caster == unitTarget)                              // prevent interrupt message
         finish();
 
@@ -342,10 +346,9 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
     if (effectHandleMode != SPELL_EFFECT_HANDLE_LAUNCH_TARGET)
         return;
 
-    bool apply_direct_bonus = true;
-
     if (unitTarget && unitTarget->isAlive())
     {
+        bool apply_direct_bonus = true;
         switch (m_spellInfo->SpellFamilyName)
         {
             case SPELLFAMILY_GENERIC:
@@ -1249,6 +1252,14 @@ void Spell::EffectTeleportUnits(SpellEffIndex /*effIndex*/)
             if (unitTarget->getLevel() > uiMaxSafeLevel)
             {
                 unitTarget->AddAura(60444, unitTarget); //Apply Lost! Aura
+
+                // ALLIANCE from 60323 to 60330 - HORDE from 60328 to 60335
+                uint32 spellId = 60323;
+                if (m_caster->ToPlayer()->GetTeam() == HORDE)
+                    spellId += 5;
+
+                spellId += urand(0, 7);
+                m_caster->CastSpell(m_caster, spellId, true);
                 return;
             }
             break;
@@ -1820,8 +1831,7 @@ void Spell::DoCreateItem(uint32 /*i*/, uint32 itemtype)
             pItem->SetUInt32Value(ITEM_FIELD_CREATOR, player->GetGUIDLow());
 
         // send info to the client
-        if (pItem)
-            player->SendNewItem(pItem, num_to_add, true, bgType == 0);
+        player->SendNewItem(pItem, num_to_add, true, bgType == 0);
 
         // we succeeded in creating at least one item, so a levelup is possible
         if (bgType == 0)
@@ -2179,7 +2189,8 @@ void Spell::EffectOpenLock(SpellEffIndex effIndex)
                     bg->EventPlayerClickedOnFlag(player, gameObjTarget);
                 return;
             }
-        }else if (m_spellInfo->Id == 1842 && gameObjTarget->GetGOInfo()->type == GAMEOBJECT_TYPE_TRAP && gameObjTarget->GetOwner())
+        }
+        else if (m_spellInfo->Id == 1842 && gameObjTarget->GetGOInfo()->type == GAMEOBJECT_TYPE_TRAP && gameObjTarget->GetOwner())
         {
             gameObjTarget->SetLootState(GO_JUST_DEACTIVATED);
             return;
@@ -2216,7 +2227,7 @@ void Spell::EffectOpenLock(SpellEffIndex effIndex)
 
     if (gameObjTarget)
         SendLoot(guid, LOOT_SKINNING);
-    else
+    else if (itemTarget)
         itemTarget->SetFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_UNLOCKED);
 
     // not allow use skill grow at item base open
@@ -4629,6 +4640,8 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                     return;
                 }
                 case 59317:                                 // Teleporting
+                {
+
                     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
                         return;
 
@@ -4639,20 +4652,6 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                     else
                         unitTarget->CastSpell(unitTarget, 59314, true);
 
-                    return;
-                // random spell learn instead placeholder
-                case 60893:                                 // Northrend Alchemy Research
-                case 61177:                                 // Northrend Inscription Research
-                case 61288:                                 // Minor Inscription Research
-                case 61756:                                 // Northrend Inscription Research (FAST QA VERSION)
-                case 64323:                                 // Book of Glyph Mastery
-                {
-                    if (m_caster->GetTypeId() != TYPEID_PLAYER)
-                        return;
-
-                    // learn random explicit discovery recipe (if any)
-                    if (uint32 discoveredSpell = GetExplicitDiscoverySpell(m_spellInfo->Id, m_caster->ToPlayer()))
-                        m_caster->ToPlayer()->learnSpell(discoveredSpell, false);
                     return;
                 }
                 case 62482: // Grab Crate
@@ -4772,17 +4771,6 @@ void Spell::EffectScriptEffect(SpellEffIndex effIndex)
                     unitTarget->CastSpell(unitTarget, spellTarget[urand(0, 4)], true);
                     break;
                 }
-                case 64142:                                 // Upper Deck - Create Foam Sword
-                    if (unitTarget->GetTypeId() != TYPEID_PLAYER)
-                        return;
-                    Player* player = unitTarget->ToPlayer();
-                    static uint32 const itemId[] = {45061, 45176, 45177, 45178, 45179, 0};
-                    // player can only have one of these items
-                    for (uint32 const* itr = &itemId[0]; *itr; ++itr)
-                        if (player->HasItemCount(*itr, 1, true))
-                            return;
-                    DoCreateItem(effIndex, itemId[urand(0, 4)]);
-                    return;
             }
             break;
         }

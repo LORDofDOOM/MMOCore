@@ -45,7 +45,7 @@ namespace Movement
             Result_None         = 0x01,
             Result_Arrived      = 0x02,
             Result_NextCycle    = 0x04,
-            Result_NextSegment  = 0x08,
+            Result_NextSegment  = 0x08
         };
         friend class PacketBuilder;
     protected:
@@ -119,6 +119,7 @@ namespace Movement
         const Vector3 CurrentDestination() const { return Initialized() ? spline.getPoint(point_Idx+1) : Vector3();}
         int32 currentPathIdx() const;
 
+        bool onTransport;
         std::string ToString() const;
     };
 }
