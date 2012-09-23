@@ -2540,7 +2540,6 @@ class Player : public Unit, public GridObject<Player>
         void StartTimedAchievement(AchievementCriteriaTimedTypes type, uint32 entry, uint32 timeLost = 0);
         void RemoveTimedAchievement(AchievementCriteriaTimedTypes type, uint32 entry);
         void CompletedAchievement(AchievementEntry const* entry);
-        bool HasAchieved(uint32 entry);
 
         bool HasTitle(uint32 bitIndex);
         bool HasTitle(CharTitlesEntry const* title) { return HasTitle(title->bit_index); }
