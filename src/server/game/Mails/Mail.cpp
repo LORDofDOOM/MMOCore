@@ -288,13 +288,13 @@ void MailDraft::SendMailTo(SQLTransaction& trans, MailReceiver const& receiver, 
 
 void WorldSession::SendExternalMails()
 {
-   sLog->outInfo(LOG_FILTER_SERVER_LOADING,"EXTERNAL MAIL> Sending mails in queue...");
+   sLog->outInfo(LOG_FILTER_GENERAL,"EXTERNAL MAIL> Sending mails in queue...");
 
    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_GET_EXTERNAL_MAIL);
    PreparedQueryResult result = CharacterDatabase.Query(stmt);
    if (!result)
    {
-       sLog->outInfo(LOG_FILTER_SERVER_LOADING,"EXTERNAL MAIL> No mails in queue...");
+       sLog->outInfo(LOG_FILTER_GENERAL,"EXTERNAL MAIL> No mails in queue...");
        return;
    }
 

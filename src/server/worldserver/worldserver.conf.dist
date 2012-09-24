@@ -3116,25 +3116,25 @@ Anticheat.Ban = 1
 #                          w - (Overwrite)
 #
 
-Appender.Console=1,3,0
-Appender.Server=2,2,0,Server.log,w
-Appender.GM=2,2,0,GM.log
-Appender.DBErrors=2,2,0,DBErrors.log
-Appender.Char=2,2,0,Char.log,w
-Appender.RA=2,2,0,RA.log
-Appender.Warden=2,4,0,Warden.log
-Appender.Chat=2,2,0,Chat.log
-Appender.CharDump=2,2,0,%s.log
-Appender.Arenas=2,2,0,Arena.log
-Appender.SQLDev=2,2,0,SQLDev.log
-Appender.SQLDriver=2,2,0,SQLDriver.log
+Appender.Console=1,3,32
+Appender.Server=2,3,15,server.log
+Appender.GM=2,3,7,gm_%s.log,a
+Appender.SQL=2,2,15,sql.log
+Appender.DBErrors=2,5,15,db_errors.log
+Appender.Char=2,2,15,characters.log
+Appender.RA=2,2,15,ra.log
+Appender.Arenas=2,1,15,arena.log
+Appender.SQLDev=2,2,15,SQLDev.log
+Appender.SQLDriver=2,2,15,SQLDriver.log
+Appender.Warden=2,5,15,warden.log
+Appender.Chat=2,1,15,chat.log
 
 #    Appenders
 #        Description: List of Appenders to read from config
 #                     (Using spaces as separator).
 #        Default:     "Console Server GM DBErrors Char RA Warden Chat"
 
-Appenders=Console Server GM DBErrors Char RA Warden Chat
+Appenders=Console Server DBErrors Warden Arenas Char GM RA Chat
 
 #  Logger config values: Given a logger "name"
 #    Logger.name
@@ -3202,19 +3202,43 @@ Appenders=Console Server GM DBErrors Char RA Warden Chat
 #
 
 Logger.Root=0,5,Console Server
-Logger.Chat=22,2,Chat
-Logger.DBErrors=26,5,Console Server DBErrors
+Logger.Units=1,3,Console Server
+Logger.Pets=2,3,Console Server
+Logger.Vehicles=3,3,Console Server
+Logger.TCSR=4,3,Console Server
+Logger.AI=5,3,Console Server
+Logger.MapScripts=6,3,Console Server
+Logger.NetWork=7,3,Console Server
+Logger.Spells=8,3,Console Server
+Logger.Achievements=9,3,Console Server
+Logger.Conditions=10,3,Console Server
+Logger.Pool=11,3,Console Server
+Logger.AuctionHouse=12,3,Console Server
+Logger.Battlegrounds=13,3,Console Server
+Logger.OutdoorPvP=14,3,Console Server
+Logger.ChatSystem=15,3,Console Server
+Logger.LFG=16,3,Console Server
+Logger.Maps=17,3,Console Server
+Logger.Player=18,3,Console Server
+Logger.PlayerLoading=19,3,Console Server
+Logger.PlayerItems=20,3,Console Server
+Logger.PlayerSkills=21,3,Console Server
+Logger.PlayerChat=22,2,Chat
+Logger.Loot=23,3,Console Server
+Logger.Guilds=24,3,Console Server
+Logger.Transports=25,3,Console Server
+Logger.SQL=26,5,DBErrors
 Logger.GM=27,3,Console Server GM
 Logger.RA=28,3,RA
-Logger.Warden=29,4,Warden
-Logger.WorldServer=31,3,Console Server
-Logger.Character=34,3,Char
-Logger.Arenas=35,3,Arenas
+Logger.Warden=29,3,Warden
+Logger.Authserver=30,3,Console Server
+Logger.Worldserver=31,3,Console Server
+Logger.GameEvents=32,3,Console Server
+Logger.Calendar=33,3,Console Server
+Logger.Character=34,2,Char
+Logger.Arenas=35,2,Arenas
 Logger.SQLDriver=36,5,SQLDriver
 Logger.SQLDev=37,3,SQLDev
-Logger.CharDump=38,3,CharDump
-Logger.Load=40,3,Console Server
-Logger.Opcodes=41,6,Console Server
 
 #
 #    Loggers
@@ -3222,7 +3246,7 @@ Logger.Opcodes=41,6,Console Server
 #                     (Using spaces as separator).
 #        Default:     "Root Chat DBErrors GM RA Warden Character Load"
 
-Loggers=Root Chat DBErrors GM RA Warden Character Load WorldServer Opcodes
+Loggers=Root Chat DBErrors GM RA Warden Character Load WorldServer
 
 ##########################################################
 # Enable or Disable Primary Professions
