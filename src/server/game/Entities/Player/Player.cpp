@@ -2141,6 +2141,9 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
     else
         sLog->outDebug(LOG_FILTER_MAPS, "Player %s is being teleported to map %u", GetName(), mapid);
 
+    if (m_vehicle)
+        ExitVehicle();
+
     // reset movement flags at teleport, because player will continue move with these flags after teleport
     SetUnitMovementFlags(0);
     DisableSpline();
@@ -5574,12 +5577,7 @@ void Player::RepopAtGraveyard()
         if (sBattlefieldMgr->GetBattlefieldToZoneId(GetZoneId()))
             ClosestGrave = sBattlefieldMgr->GetBattlefieldToZoneId(GetZoneId())->GetClosestGraveYard(this);
         else
-        {
-            if (sBattlefieldMgr->GetBattlefieldToZoneId(GetZoneId()))
-                ClosestGrave = sBattlefieldMgr->GetBattlefieldToZoneId(GetZoneId())->GetClosestGraveYard(this);
-            else
-                ClosestGrave = sObjectMgr->GetClosestGraveYard(GetPositionX(), GetPositionY(), GetPositionZ(), GetMapId(), GetTeam());
-        }
+            ClosestGrave = sObjectMgr->GetClosestGraveYard(GetPositionX(), GetPositionY(), GetPositionZ(), GetMapId(), GetTeam());
     }
 
     // stop countdown until repop
@@ -21977,7 +21975,8 @@ inline void UpdateVisibilityOf_helper(std::set<uint64>& s64, T* target, std::set
 template<>
 inline void UpdateVisibilityOf_helper(std::set<uint64>& s64, GameObject* target, std::set<Unit*>& /*v*/)
 {
-    if (!(target->GetGOInfo()->type == GAMEOBJECT_TYPE_TRANSPORT))
+    // Don't update only GAMEOBJECT_TYPE_TRANSPORT (or all transports and destructible buildings?)
+    if ((target->GetGOInfo()->type != GAMEOBJECT_TYPE_TRANSPORT))
         s64.insert(target->GetGUID());
 }
 
