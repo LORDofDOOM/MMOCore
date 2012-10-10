@@ -437,11 +437,8 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
             }
             case SPELLFAMILY_WARRIOR:
             {
-                // Bloodthirst
-                if (m_spellInfo->SpellFamilyFlags[1] & 0x400)
-                    ApplyPctF(damage, m_caster->GetTotalAttackPowerValue(BASE_ATTACK));
                 // Shield Slam
-                else if (m_spellInfo->SpellFamilyFlags[1] & 0x200 && m_spellInfo->Category == 1209)
+                if (m_spellInfo->SpellFamilyFlags[1] & 0x200 && m_spellInfo->Category == 1209)
                 {
                     uint8 level = m_caster->getLevel();
                     uint32 block_value = m_caster->GetShieldBlockValue(uint32(float(level) * 24.5f), uint32(float(level) * 34.5f));
@@ -777,7 +774,7 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
             // Divine Storm
             if (m_spellInfo->SpellFamilyFlags[1] & SPELLFAMILYFLAG1_PALADIN_DIVINESTORM && effIndex == 1)
             {
-                int32 dmg = CalculatePctN(m_damage, damage);
+                int32 dmg = CalculatePct(m_damage, damage);
                 if (!unitTarget)
                     unitTarget = m_caster;
                 m_caster->CastCustomSpell(unitTarget, 54171, &dmg, 0, 0, true);

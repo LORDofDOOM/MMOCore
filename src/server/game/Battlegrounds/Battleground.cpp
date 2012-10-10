@@ -1172,17 +1172,16 @@ void Battleground::StartBattleground()
        sprintf(arenatmp, "%d", m_ArenaType);
        arenamsg += arenatmp;
        arenamsg += "for Team1Id: ";
-       sprintf(arenatmp, "%d", m_ArenaTeamIds[BG_TEAM_ALLIANCE]);
+       sprintf(arenatmp, "%d", m_ArenaTeamIds[TEAM_ALLIANCE]);
        arenamsg += arenatmp;
        arenamsg += " - Team2Id: ";
-       sprintf(arenatmp, "%d", m_ArenaTeamIds[BG_TEAM_HORDE]);
+       sprintf(arenatmp, "%d", m_ArenaTeamIds[TEAM_HORDE]);
        arenamsg += arenatmp;
        arenamsg += " started.";
 
        sIRC.SendIRC(arenamsg);
 
-       // arena log output	
-    }		
+       // arena log output		
 }
 
 void Battleground::AddPlayer(Player* player)
