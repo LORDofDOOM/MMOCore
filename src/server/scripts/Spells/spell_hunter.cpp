@@ -138,7 +138,7 @@ class spell_hun_chimera_shot : public SpellScriptLoader
                                 int32 TickCount = aurEff->GetTotalTicks();
                                 spellId = HUNTER_SPELL_CHIMERA_SHOT_SERPENT;
                                 basePoint = caster->SpellDamageBonusDone(unitTarget, aura->GetSpellInfo(), aurEff->GetAmount(), DOT, aura->GetStackAmount());
-                                ApplyPctN(basePoint, TickCount * 40);
+                                ApplyPct(basePoint, TickCount * 40);
                                 basePoint = unitTarget->SpellDamageBonusTaken(caster, aura->GetSpellInfo(), basePoint, DOT, aura->GetStackAmount());
                             }
                             // Viper Sting - Instantly restores mana to you equal to 60% of the total amount drained by your Viper Sting.
@@ -148,11 +148,11 @@ class spell_hun_chimera_shot : public SpellScriptLoader
                                 spellId = HUNTER_SPELL_CHIMERA_SHOT_VIPER;
 
                                 // Amount of one aura tick
-                                basePoint = int32(CalculatePctN(unitTarget->GetMaxPower(POWER_MANA), aurEff->GetAmount()));
+                                basePoint = int32(CalculatePct(unitTarget->GetMaxPower(POWER_MANA), aurEff->GetAmount()));
                                 int32 casterBasePoint = aurEff->GetAmount() * unitTarget->GetMaxPower(POWER_MANA) / 50; // TODO: WTF? caster uses unitTarget?
                                 if (basePoint > casterBasePoint)
                                     basePoint = casterBasePoint;
-                                ApplyPctN(basePoint, TickCount * 60);
+                                ApplyPct(basePoint, TickCount * 60);
                             }
                             // Scorpid Sting - Attempts to Disarm the target for 10 sec. This effect cannot occur more than once per 1 minute.
                             else if (familyFlag[0] & 0x00008000)
@@ -277,27 +277,31 @@ class spell_hun_masters_call : public SpellScriptLoader
                 return true;
             }
 
+            void HandleDummy(SpellEffIndex /*effIndex*/)
+            {
+                if (Unit* ally = GetHitUnit())
+                    if (Player* caster = GetCaster()->ToPlayer())
+                        if (Pet* target = caster->GetPet())
+                        {
+                            TriggerCastFlags castMask = TriggerCastFlags(TRIGGERED_FULL_MASK & ~TRIGGERED_IGNORE_CASTER_AURASTATE);
+                            target->CastSpell(ally, GetEffectValue(), castMask);
+                            target->CastSpell(ally, GetSpellInfo()->Effects[EFFECT_0].CalcValue(), castMask);
+                        }
+            }
+
             void HandleScriptEffect(SpellEffIndex /*effIndex*/)
             {
                 if (Unit* target = GetHitUnit())
                 {
                     // Cannot be processed while pet is dead
                     TriggerCastFlags castMask = TriggerCastFlags(TRIGGERED_FULL_MASK & ~TRIGGERED_IGNORE_CASTER_AURASTATE);
-                    target->CastSpell(target, GetEffectValue(), castMask);
                     target->CastSpell(target, HUNTER_SPELL_MASTERS_CALL_TRIGGERED, castMask);
-                    // there is a possibility that this effect should access effect 0 (dummy) target, but i dubt that
-                    // it's more likely that on on retail it's possible to call target selector based on dbc values
-                    // anyways, we're using GetExplTargetUnit() here and it's ok
-                    if (Unit* ally = GetExplTargetUnit())
-                    {
-                        target->CastSpell(ally, GetEffectValue(), castMask);
-                        target->CastSpell(ally, GetSpellInfo()->Effects[EFFECT_0].CalcValue(), castMask);
-                    }
                 }
             }
 
             void Register()
             {
+                OnEffectHitTarget += SpellEffectFn(spell_hun_masters_call_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
                 OnEffectHitTarget += SpellEffectFn(spell_hun_masters_call_SpellScript::HandleScriptEffect, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
             }
         };

@@ -1678,6 +1678,9 @@ void World::SetInitialWorldSettings()
     sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Loading LFG rewards...");
     sLFGMgr->LoadRewards();
 
+    sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Loading LFG entrance positions...");
+    sLFGMgr->LoadEntrancePositions();
+
     sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Loading SpellArea Data...");                // must be after quest load
     sSpellMgr->LoadSpellAreas();
 
@@ -1827,6 +1830,9 @@ void World::SetInitialWorldSettings()
 
     sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Loading faction change reputation pairs...");
     sObjectMgr->LoadFactionChangeReputations();
+
+    sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Loading faction change title pairs...");
+    sObjectMgr->LoadFactionChangeTitles();
 
     sLog->outInfo(LOG_FILTER_SERVER_LOADING, "Loading GM tickets...");
     sTicketMgr->LoadTickets();

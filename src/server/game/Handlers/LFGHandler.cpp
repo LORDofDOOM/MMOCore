@@ -23,6 +23,7 @@
 #include "LFGMgr.h"
 #include "ObjectMgr.h"
 #include "GroupMgr.h"
+#include "GameEventMgr.h"
 #include "InstanceScript.h"
 #include "GameEventMgr.h"
 
@@ -157,40 +158,24 @@ void WorldSession::HandleLfgPlayerLockInfoRequestOpcode(WorldPacket& /*recv_data
     sLog->outDebug(LOG_FILTER_NETWORKIO, "CMSG_LFD_PLAYER_LOCK_INFO_REQUEST [" UI64FMTD "]", guid);
 
     // Get Random dungeons that can be done at a certain level and expansion
-    // FIXME - Should return seasonals (when not disabled)
     LfgDungeonSet randomDungeons;
     uint8 level = GetPlayer()->getLevel();
     uint8 expansion = GetPlayer()->GetSession()->Expansion();
     for (uint32 i = 0; i < sLFGDungeonStore.GetNumRows(); ++i)
     {
         LFGDungeonEntry const* dungeon = sLFGDungeonStore.LookupEntry(i);
-        if (dungeon && dungeon->type == LFG_TYPE_RANDOM && dungeon->expansion <= expansion &&
-            dungeon->minlevel <= level && level <= dungeon->maxlevel)
-            randomDungeons.insert(dungeon->Entry());
-
-        if (dungeon && dungeon->grouptype == 11 && dungeon->expansion <= expansion && dungeon->minlevel <= level && level <= dungeon->maxlevel)
+        if (dungeon && dungeon->expansion <= expansion && dungeon->minlevel <= level && level <= dungeon->maxlevel)
         {
-            uint8 eventEntry = 0;
-            switch (dungeon->ID)
+            if (dungeon->flags & LFG_FLAG_SEASONAL)
             {
-                case 285: // The Headless Horseman
-                    eventEntry = 12; // Hallow's End
-                    break;
-                case 286: // The Frost Lord Ahune
-                    eventEntry = 1; // Midsummer Fire Festival
-                    break;
-                case 287: // Coren Direbrew
-                    eventEntry = 24; // Brewfest
-                    break;
-                case 288: // The Crown Chemical Co.
-                    eventEntry = 8; // Love is in the Air
-                    break;
-                default:
-                    break;
+                if (HolidayIds holiday = sLFGMgr->GetDungeonSeason(dungeon->ID))
+                    if (!IsHolidayActive(holiday))
+                        continue;
             }
+            else if (dungeon->type != LFG_TYPE_RANDOM)
+                continue;
 
-            if (eventEntry && sGameEventMgr->IsActiveEvent(eventEntry))
-                randomDungeons.insert(dungeon->Entry());
+            randomDungeons.insert(dungeon->Entry());
         }
     }
 
