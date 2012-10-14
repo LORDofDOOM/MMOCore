@@ -141,8 +141,11 @@ UPDATE command SET security = '3' WHERE name = 'modify bit';
 UPDATE command SET security = '3' WHERE name = 'modify aspeed';
 -- Original 1
 UPDATE command SET security = '3' WHERE name = 'modify arena';
+-- Original 1
+UPDATE command SET security = '3' WHERE name = 'npc add item';
 
-
+-- Original 3
+UPDATE command SET security = '2' WHERE name = 'dev';
 -- Original 3
 UPDATE command SET security = '2' WHERE name = 'revive';
 -- Original 3
