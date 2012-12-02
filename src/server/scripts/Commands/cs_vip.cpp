@@ -366,7 +366,7 @@ static bool HandleVipTaxiCommand(ChatHandler* handler, const char* /*args*/)
     chr->SetTaxiCheater(true);
     handler->PSendSysMessage(LANG_YOU_GIVE_TAXIS, handler->GetNameLink(chr).c_str());
     if (handler->needReportToTarget(chr))
-        ChatHandler(chr).PSendSysMessage(LANG_YOURS_TAXIS_ADDED, handler->GetNameLink().c_str());
+        ChatHandler(chr->GetSession()).PSendSysMessage(LANG_YOURS_TAXIS_ADDED, handler->GetNameLink().c_str());
     return true;
 }
 

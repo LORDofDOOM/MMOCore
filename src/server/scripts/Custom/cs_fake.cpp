@@ -24,6 +24,7 @@ EndScriptData */
 
 #include "ScriptMgr.h"
 #include "AccountMgr.h"
+#include "Language.h"
 #include "Chat.h"
 
 class fake_commandscript : public CommandScript

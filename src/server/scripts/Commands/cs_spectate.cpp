@@ -17,6 +17,7 @@
 
 #include "ScriptMgr.h"
 #include "Chat.h"
+#include "Language.h"
 #include "SocialMgr.h"
 
 class spectate_commandscript : public CommandScript
