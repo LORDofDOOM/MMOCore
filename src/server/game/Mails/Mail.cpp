@@ -27,6 +27,7 @@
 #include "Item.h"
 #include "AuctionHouseMgr.h"
 #include "AuctionHouseBot.h"
+#include "CalendarMgr.h"
 
 MailSender::MailSender(Object* sender, MailStationery stationery) : m_stationery(stationery)
 {
@@ -40,10 +41,10 @@ MailSender::MailSender(Object* sender, MailStationery stationery) : m_stationery
             m_messageType = MAIL_GAMEOBJECT;
             m_senderId = sender->GetEntry();
             break;
-        case TYPEID_ITEM:
+        /*case TYPEID_ITEM:
             m_messageType = MAIL_ITEM;
             m_senderId = sender->GetEntry();
-            break;
+            break;*/
         case TYPEID_PLAYER:
             m_messageType = MAIL_NORMAL;
             m_senderId = sender->GetGUIDLow();
@@ -54,6 +55,11 @@ MailSender::MailSender(Object* sender, MailStationery stationery) : m_stationery
             sLog->outError(LOG_FILTER_GENERAL, "MailSender::MailSender - Mail have unexpected sender typeid (%u)", sender->GetTypeId());
             break;
     }
+}
+
+MailSender::MailSender(CalendarEvent* sender)
+    : m_messageType(MAIL_CALENDAR), m_senderId(sender->GetEventId()), m_stationery(MAIL_STATIONERY_DEFAULT) // what stationery we should use here?
+{
 }
 
 MailSender::MailSender(AuctionEntry* sender)

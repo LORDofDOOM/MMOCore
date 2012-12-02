@@ -27,6 +27,7 @@ EndScriptData */
 #include "ScriptedCreature.h"
 #include "the_eye.h"
 #include "WorldPacket.h"
+#include "Opcodes.h"
 
 enum eEnums
 {
@@ -176,7 +177,7 @@ struct advisorbase_ai : public ScriptedAI
 
         //reset encounter
         if (instance && (instance->GetData(DATA_KAELTHASEVENT) == 1 || instance->GetData(DATA_KAELTHASEVENT) == 3))
-            if (Creature* Kaelthas = Unit::GetCreature((*me), instance->GetData64(DATA_KAELTHAS)))
+            if (Creature* Kaelthas = Unit::GetCreature(*me, instance->GetData64(DATA_KAELTHAS)))
                 Kaelthas->AI()->EnterEvadeMode();
     }
 
@@ -344,7 +345,7 @@ class boss_kaelthas : public CreatureScript
             {
                 for (uint8 i = 0; i < MAX_ADVISORS; ++i)
                 {
-                    if (Creature* creature = Unit::GetCreature((*me), m_auiAdvisorGuid[i]))
+                    if (Creature* creature = Unit::GetCreature(*me, m_auiAdvisorGuid[i]))
                     {
                         creature->Respawn();
                         creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -379,7 +380,6 @@ class boss_kaelthas : public CreatureScript
 
                     if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0))
                         AttackStart(target);
-
                 }
                 else
                 {
@@ -499,7 +499,7 @@ class boss_kaelthas : public CreatureScript
                             case 1:
                                 if (Phase_Timer <= diff)
                                 {
-                                    Advisor = (Unit::GetCreature((*me), m_auiAdvisorGuid[0]));
+                                    Advisor = (Unit::GetCreature(*me, m_auiAdvisorGuid[0]));
 
                                     if (Advisor)
                                     {
@@ -517,7 +517,7 @@ class boss_kaelthas : public CreatureScript
 
                             //Subphase 2 - Start
                             case 2:
-                                Advisor = (Unit::GetCreature((*me), m_auiAdvisorGuid[0]));
+                                Advisor = (Unit::GetCreature(*me, m_auiAdvisorGuid[0]));
 
                                 if (Advisor && (Advisor->getStandState() == UNIT_STAND_STATE_DEAD))
                                 {
@@ -533,7 +533,7 @@ class boss_kaelthas : public CreatureScript
                             case 3:
                                 if (Phase_Timer <= diff)
                                 {
-                                    Advisor = (Unit::GetCreature((*me), m_auiAdvisorGuid[1]));
+                                    Advisor = (Unit::GetCreature(*me, m_auiAdvisorGuid[1]));
 
                                     if (Advisor)
                                     {
@@ -551,7 +551,7 @@ class boss_kaelthas : public CreatureScript
 
                             //Subphase 3 - Start
                             case 4:
-                                Advisor = (Unit::GetCreature((*me), m_auiAdvisorGuid[1]));
+                                Advisor = (Unit::GetCreature(*me, m_auiAdvisorGuid[1]));
 
                                 if (Advisor && (Advisor->getStandState() == UNIT_STAND_STATE_DEAD))
                                 {
@@ -567,7 +567,7 @@ class boss_kaelthas : public CreatureScript
                             case 5:
                                 if (Phase_Timer <= diff)
                                 {
-                                    Advisor = (Unit::GetCreature((*me), m_auiAdvisorGuid[2]));
+                                    Advisor = (Unit::GetCreature(*me, m_auiAdvisorGuid[2]));
 
                                     if (Advisor)
                                     {
@@ -585,7 +585,7 @@ class boss_kaelthas : public CreatureScript
 
                             //Subphase 4 - Start
                             case 6:
-                                Advisor = (Unit::GetCreature((*me), m_auiAdvisorGuid[2]));
+                                Advisor = (Unit::GetCreature(*me, m_auiAdvisorGuid[2]));
 
                                 if (Advisor && (Advisor->getStandState() == UNIT_STAND_STATE_DEAD))
                                 {
@@ -601,7 +601,7 @@ class boss_kaelthas : public CreatureScript
                             case 7:
                                 if (Phase_Timer <= diff)
                                 {
-                                    Advisor = (Unit::GetCreature((*me), m_auiAdvisorGuid[3]));
+                                    Advisor = (Unit::GetCreature(*me, m_auiAdvisorGuid[3]));
 
                                     if (Advisor)
                                     {
@@ -620,7 +620,7 @@ class boss_kaelthas : public CreatureScript
 
                             //End of phase 1
                             case 8:
-                                Advisor = (Unit::GetCreature((*me), m_auiAdvisorGuid[3]));
+                                Advisor = (Unit::GetCreature(*me, m_auiAdvisorGuid[3]));
 
                                 if (Advisor && (Advisor->getStandState() == UNIT_STAND_STATE_DEAD))
                                 {
@@ -691,7 +691,7 @@ class boss_kaelthas : public CreatureScript
                             Creature* Advisor;
                             for (uint8 i = 0; i < MAX_ADVISORS; ++i)
                             {
-                                Advisor = Unit::GetCreature((*me), m_auiAdvisorGuid[i]);
+                                Advisor = Unit::GetCreature(*me, m_auiAdvisorGuid[i]);
 
                                 if (!Advisor)
                                     sLog->outError(LOG_FILTER_TSCR, "SD2: Kael'Thas Advisor %u does not exist. Possibly despawned? Incorrectly Killed?", i);
@@ -787,7 +787,7 @@ class boss_kaelthas : public CreatureScript
                                 if (me->getThreatManager().getThreatList().size() >= 2)
                                     for (uint32 i = 0; i < 3; ++i)
                                 {
-                                    sLog->outDebug(LOG_FILTER_TSCR, "SD2: Kael'Thas mind control not supported.");
+                                    sLog->outDebug(LOG_FILTER_TSCR, "Kael'Thas mind control not supported.");
                                     //DoCast(unit, SPELL_MIND_CONTROL);
                                 }
 
@@ -879,11 +879,12 @@ class boss_kaelthas : public CreatureScript
                         //Phase 5
                         if (Phase == 6)
                         {
-
                             //GravityLapse_Timer
                             if (GravityLapse_Timer <= diff)
                             {
-                                std::list<HostileReference*>::const_iterator i = me->getThreatManager().getThreatList().begin();
+                                ThreatContainer::StorageType threatlist = me->getThreatManager().getThreatList();
+                                ThreatContainer::StorageType::const_iterator i = threatlist.begin();
+
                                 switch (GravityLapse_Phase)
                                 {
                                     case 0:
@@ -894,7 +895,7 @@ class boss_kaelthas : public CreatureScript
                                         me->MonsterMoveWithSpeed(afGravityPos[0], afGravityPos[1], afGravityPos[2], 0);
 
                                         // 1) Kael'thas will portal the whole raid right into his body
-                                        for (i = me->getThreatManager().getThreatList().begin(); i!= me->getThreatManager().getThreatList().end(); ++i)
+                                        for (i = threatlist.begin(); i != threatlist.end(); ++i)
                                         {
                                             Unit* unit = Unit::GetUnit(*me, (*i)->getUnitGuid());
                                             if (unit && (unit->GetTypeId() == TYPEID_PLAYER))
@@ -915,7 +916,7 @@ class boss_kaelthas : public CreatureScript
                                         DoScriptText(RAND(SAY_GRAVITYLAPSE1, SAY_GRAVITYLAPSE2), me);
 
                                         // 2) At that point he will put a Gravity Lapse debuff on everyone
-                                        for (i = me->getThreatManager().getThreatList().begin(); i != me->getThreatManager().getThreatList().end(); ++i)
+                                        for (i = threatlist.begin(); i != threatlist.end(); ++i)
                                         {
                                             if (Unit* unit = Unit::GetUnit(*me, (*i)->getUnitGuid()))
                                             {
@@ -926,8 +927,7 @@ class boss_kaelthas : public CreatureScript
                                                 unit->CastSpell(unit, SPELL_GRAVITY_LAPSE_AURA, true, 0, 0, me->GetGUID());
 
                                                 //Using packet workaround
-                                                WorldPacket data(12);
-                                                data.SetOpcode(SMSG_MOVE_SET_CAN_FLY);
+                                                WorldPacket data(SMSG_MOVE_SET_CAN_FLY, 12);
                                                 data.append(unit->GetPackGUID());
                                                 data << uint32(0);
                                                 unit->SendMessageToSet(&data, true);
@@ -948,13 +948,12 @@ class boss_kaelthas : public CreatureScript
 
                                     case 3:
                                         //Remove flight
-                                        for (i = me->getThreatManager().getThreatList().begin(); i!= me->getThreatManager().getThreatList().end(); ++i)
+                                        for (i = threatlist.begin(); i != threatlist.end(); ++i)
                                         {
                                             if (Unit* unit = Unit::GetUnit(*me, (*i)->getUnitGuid()))
                                             {
                                                 //Using packet workaround
-                                                WorldPacket data(12);
-                                                data.SetOpcode(SMSG_MOVE_UNSET_CAN_FLY);
+                                                WorldPacket data(SMSG_MOVE_UNSET_CAN_FLY, 12);
                                                 data.append(unit->GetPackGUID());
                                                 data << uint32(0);
                                                 unit->SendMessageToSet(&data, true);
@@ -1287,8 +1286,8 @@ class boss_grand_astromancer_capernian : public CreatureScript
                 {
                     bool InMeleeRange = false;
                     Unit* target = NULL;
-                    std::list<HostileReference*>& m_threatlist = me->getThreatManager().getThreatList();
-                    for (std::list<HostileReference*>::const_iterator i = m_threatlist.begin(); i!= m_threatlist.end(); ++i)
+                    ThreatContainer::StorageType const &threatlist = me->getThreatManager().getThreatList();
+                    for (ThreatContainer::StorageType::const_iterator i = threatlist.begin(); i!= threatlist.end(); ++i)
                     {
                         Unit* unit = Unit::GetUnit(*me, (*i)->getUnitGuid());
                                                                     //if in melee range

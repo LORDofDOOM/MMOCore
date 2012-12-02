@@ -20,10 +20,13 @@
 #include "TicketMgr.h"
 #include "DatabaseEnv.h"
 #include "Log.h"
+#include "Language.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
 #include "Chat.h"
 #include "World.h"
+#include "Player.h"
+#include "Opcodes.h"
 
 #include "TriniChat/IRCClient.h"
 

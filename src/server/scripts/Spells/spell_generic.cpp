@@ -23,16 +23,19 @@
  */
 
 #include "ScriptMgr.h"
-#include "SpellScript.h"
-#include "SpellAuraEffects.h"
-#include "SkillDiscovery.h"
+#include "Battleground.h"
 #include "Cell.h"
 #include "CellImpl.h"
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
-#include "InstanceScript.h"
 #include "Group.h"
+#include "InstanceScript.h"
 #include "LFGMgr.h"
+#include "Pet.h"
+#include "ReputationMgr.h"
+#include "SkillDiscovery.h"
+#include "SpellScript.h"
+#include "SpellAuraEffects.h"
 
 class spell_gen_absorb0_hitlimit1 : public SpellScriptLoader
 {
@@ -1746,12 +1749,12 @@ class spell_gen_luck_of_the_draw : public SpellScriptLoader
                     }
 
 
-                    LFGDungeonEntry const* randomDungeon = sLFGDungeonStore.LookupEntry(*itr);
+                    LFGDungeonData const* randomDungeon = sLFGMgr->GetLFGDungeon(*itr);
                     if (Group* group = owner->GetGroup())
                         if (Map const* map = owner->GetMap())
                             if (group->isLFGGroup())
                                 if (uint32 dungeonId = sLFGMgr->GetDungeon(group->GetGUID(), true))
-                                    if (LFGDungeonEntry const* dungeon = sLFGDungeonStore.LookupEntry(dungeonId))
+                                    if (LFGDungeonData const* dungeon = sLFGMgr->GetLFGDungeon(dungeonId))
                                         if (uint32(dungeon->map) == map->GetId() && dungeon->difficulty == uint32(map->GetDifficulty()))
                                             if (randomDungeon && randomDungeon->type == LFG_TYPE_RANDOM)
                                                 return; // in correct dungeon
