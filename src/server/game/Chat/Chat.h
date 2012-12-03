@@ -131,7 +131,6 @@ class ChatHandler
         static bool SetDataForCommandInTable(ChatCommand* table, const char* text, uint32 security, std::string const& help, std::string const& fullcommand);
         bool ExecuteCommandInTable(ChatCommand* table, const char* text, std::string const& fullcmd);
         bool ShowHelpForSubCommands(ChatCommand* table, char const* cmd, char const* subcmd);
-        bool HandleAHBotOptionsCommand(const char* args);
 		//Gamble
 		bool HandleRouletteCommand(const char* args);
 		bool HandleGambleCommand(const char* args);		
@@ -142,11 +141,7 @@ class ChatHandler
 		//Buffer
 		bool HandleBuffsCommand(const char* args);	
 		//GuildHouse
-		bool HandleGHCommand(const char* args);			
-		
-		// Custom irc commands
-		bool HandleIRCRelogCommand(const char *args);
-		bool HandleIRCpmCommand(const char* args);		
+		bool HandleGHCommand(const char* args);				
 
     private:
         WorldSession* m_session;                           // != NULL for chat command call and NULL for CLI command

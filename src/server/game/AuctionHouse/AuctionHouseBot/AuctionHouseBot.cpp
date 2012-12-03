@@ -20,6 +20,7 @@
 #include "ObjectMgr.h"
 #include "AuctionHouseMgr.h"
 #include "AuctionHouseBot.h"
+#include "Player.h"
 #include <vector>
 
 using namespace std;
@@ -427,8 +428,8 @@ void AuctionHouseBot::addNewAuctions(Player *AHBplayer, AHBConfig *config)
             AuctionEntry* auctionEntry = new AuctionEntry;
             auctionEntry->Id = sObjectMgr->GenerateAuctionID();
             auctionEntry->auctioneer = AuctioneerGUID;
-            auctionEntry->item_guidlow = item->GetGUIDLow();
-            auctionEntry->item_template = item->GetEntry();
+            auctionEntry->itemGUIDLow = item->GetGUIDLow();
+            auctionEntry->itemEntry = item->GetEntry();
             auctionEntry->owner = AHBplayer->GetGUIDLow();
             auctionEntry->startbid = bidPrice * stackCount;
             auctionEntry->buyout = buyoutPrice * stackCount;
@@ -545,15 +546,15 @@ void AuctionHouseBot::addNewAuctionBuyerBotBid(Player *AHBplayer, AHBConfig *con
             continue;
 
         // get exact item information
-        Item *pItem =  sAuctionMgr->GetAItem(auction->item_guidlow);
+        Item *pItem =  sAuctionMgr->GetAItem(auction->itemGUIDLow);
         if (!pItem)
         {
-            if (debug_Out) sLog->outError(LOG_FILTER_GENERAL, "AHBuyer: Item %u doesn't exist, perhaps bought already?", auction->item_guidlow);
+            if (debug_Out) sLog->outError(LOG_FILTER_GENERAL, "AHBuyer: Item %u doesn't exist, perhaps bought already?", auction->itemGUIDLow);
             continue;
         }
 
         // get item prototype
-        ItemTemplate const* prototype = sObjectMgr->GetItemTemplate(auction->item_template);
+        ItemTemplate const* prototype = sObjectMgr->GetItemTemplate(auction->itemEntry);
 
         // check which price we have to use, startbid or if it is bidded already
         uint32 currentprice;
@@ -644,8 +645,8 @@ void AuctionHouseBot::addNewAuctionBuyerBotBid(Player *AHBplayer, AHBConfig *con
             sLog->outInfo(LOG_FILTER_GENERAL, "AHBuyer: Bid Max: %Lf", bidMax);
             sLog->outInfo(LOG_FILTER_GENERAL, "AHBuyer: Bid Value: %Lf", bidvalue);
             sLog->outInfo(LOG_FILTER_GENERAL, "AHBuyer: Bid Price: %u", bidprice);
-            sLog->outInfo(LOG_FILTER_GENERAL, "AHBuyer: Item GUID: %u", auction->item_guidlow);
-            sLog->outInfo(LOG_FILTER_GENERAL, "AHBuyer: Item Template: %u", auction->item_template);
+            sLog->outInfo(LOG_FILTER_GENERAL, "AHBuyer: Item GUID: %u", auction->itemGUIDLow);
+            sLog->outInfo(LOG_FILTER_GENERAL, "AHBuyer: Item Template: %u", auction->itemEntry);
             sLog->outInfo(LOG_FILTER_GENERAL, "AHBuyer: Item Info:");
             sLog->outInfo(LOG_FILTER_GENERAL, "AHBuyer: Item ID: %u", prototype->ItemId);
             sLog->outInfo(LOG_FILTER_GENERAL, "AHBuyer: Buy Price: %u", prototype->BuyPrice);
@@ -699,9 +700,9 @@ void AuctionHouseBot::addNewAuctionBuyerBotBid(Player *AHBplayer, AHBConfig *con
             sAuctionMgr->SendAuctionSuccessfulMail(auction, trans);
             sAuctionMgr->SendAuctionWonMail(auction, trans);
             auction->DeleteFromDB( trans);
-            uint32 item_template = auction->item_template;
-            sAuctionMgr->RemoveAItem(auction->item_guidlow);
-            auctionHouse->RemoveAuction(auction, item_template);
+            uint32 itemEntry = auction->itemEntry;
+            sAuctionMgr->RemoveAItem(auction->itemGUIDLow);
+            auctionHouse->RemoveAuction(auction, itemEntry);
             CharacterDatabase.CommitTransaction(trans);
         }
     }
@@ -713,7 +714,7 @@ void AuctionHouseBot::Update()
     if ((!AHBSeller) && (!AHBBuyer))
         return;
 
-    WorldSession _session(AHBplayerAccount, NULL, SEC_PLAYER, true, 0, LOCALE_enUS, 0, 0);
+	WorldSession _session(AHBplayerAccount, NULL, SEC_PLAYER, true, 0, 0, LOCALE_enUS, 0, 0);	
     Player _AHBplayer(&_session);
     _AHBplayer.Initialize(AHBplayerGUID);
     sObjectAccessor->AddObject(&_AHBplayer);
@@ -782,8 +783,8 @@ void AuctionHouseBot::Initialize()
 
     std::string disabledItems = ConfigMgr::GetStringDefault("AuctionHouseBot.DisabledItems", "");
     DisableItemStore.clear();
-    Tokens tokens(disabledItems, ' ');
-    for (Tokens::iterator iter = tokens.begin(); iter != tokens.end(); ++iter)
+    Tokenizer tokens(disabledItems, ' ');
+    for (Tokenizer::const_iterator iter = tokens.begin(); iter != tokens.end(); ++iter)
     {
         uint32 id = uint32(atol(*iter));
         DisableItemStore.insert(id);
@@ -1392,15 +1393,15 @@ void AuctionHouseBot::IncrementItemCounts(AuctionEntry* ah)
     // from auctionhousehandler.cpp, creates auction pointer & player pointer
 
     // get exact item information
-    Item *pItem =  sAuctionMgr->GetAItem(ah->item_guidlow);
+    Item *pItem =  sAuctionMgr->GetAItem(ah->itemGUIDLow);
     if (!pItem)
     {
-        if (debug_Out) sLog->outError(LOG_FILTER_GENERAL, "AHBot: Item %u doesn't exist, perhaps bought already?", ah->item_guidlow);
+        if (debug_Out) sLog->outError(LOG_FILTER_GENERAL, "AHBot: Item %u doesn't exist, perhaps bought already?", ah->itemGUIDLow);
         return;
     }
 
     // get item prototype
-    ItemTemplate const* prototype = sObjectMgr->GetItemTemplate(ah->item_template);
+    ItemTemplate const* prototype = sObjectMgr->GetItemTemplate(ah->itemEntry);
 
     AHBConfig *config;
 
@@ -1429,10 +1430,10 @@ void AuctionHouseBot::IncrementItemCounts(AuctionEntry* ah)
     config->IncItemCounts(prototype->Class, prototype->Quality);
 }
 
-void AuctionHouseBot::DecrementItemCounts(AuctionEntry* ah, uint32 item_template)
+void AuctionHouseBot::DecrementItemCounts(AuctionEntry* ah, uint32 itemEntry)
 {
     // get item prototype
-    ItemTemplate const* prototype = sObjectMgr->GetItemTemplate(item_template);
+    ItemTemplate const* prototype = sObjectMgr->GetItemTemplate(itemEntry);
 
     AHBConfig *config;
 
@@ -1793,7 +1794,7 @@ void AuctionHouseBot::LoadValues(AHBConfig *config)
             for (AuctionHouseObject::AuctionEntryMap::const_iterator itr = auctionHouse->GetAuctionsBegin(); itr != auctionHouse->GetAuctionsEnd(); ++itr)
             {
                 AuctionEntry *Aentry = itr->second;
-                Item *item =  sAuctionMgr->GetAItem(Aentry->item_guidlow);
+                Item *item =  sAuctionMgr->GetAItem(Aentry->itemGUIDLow);
                 if (item)
                 {
                     ItemTemplate const *prototype = item->GetTemplate();

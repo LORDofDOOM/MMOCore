@@ -684,7 +684,7 @@ DumpReturn PlayerDumpReader::LoadDump(std::string const& file, uint32 account, s
 
     if (incHighest)
         ++sObjectMgr->_hiCharGuid;
-		
+
     fclose(fin);
 
     return DUMP_SUCCESS;

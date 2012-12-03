@@ -35,8 +35,6 @@
 #include "Player.h"
 #include "Util.h"
 
-#include "TriniChat/IRCClient.h"
-
 #if PLATFORM != PLATFORM_WINDOWS
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -118,15 +116,6 @@ void commandFinished(void*, bool /*success*/)
     fflush(stdout);
 }
 
-
-//Reconnect TriniChat to IRC server via CLI command
-bool ChatHandler::HandleIRCRelogCommand(const char *args)
-{
-   SendSysMessage("TriniChat is dropping from IRC Server");
-   sIRC.ResetIRC();
-   SendSysMessage("TriniChat is reconnecting to IRC Server");
-   return true;
-}
 #ifdef linux
 // Non-blocking keypress detector, when return pressed, return 1, else always return 0
 int kb_hit_return()

@@ -36,7 +36,6 @@
 #include "ScriptMgr.h"
 #include "ChatLink.h"
 
-#include "TriniChat/IRCClient.h"
 bool ChatHandler::load_command_table = true;
 
 // get number of commands in table
@@ -351,16 +350,7 @@ bool ChatHandler::ExecuteCommandInTable(ChatCommand* table, const char* text, co
                     uint64 sel_guid = p->GetSelection();
                     sLog->outCommand(m_session->GetAccountId(), "Command: %s [Player: %s (Account: %u) X: %f Y: %f Z: %f Map: %u Selected %s: %s (GUID: %u)]",
                         fullcmd.c_str(), p->GetName().c_str(), m_session->GetAccountId(), p->GetPositionX(), p->GetPositionY(), p->GetPositionZ(), p->GetMapId(),
-                        GetLogNameForGuid(sel_guid), (p->GetSelectedUnit()) ? p->GetSelectedUnit()->GetName().c_str() : "", GUID_LOPART(sel_guid));
-						
-                    if((sIRC.logmask & 2) != 0)
-                   {
-                       std::string logchan = "#";
-                       logchan += sIRC.logchan;
-                       std::stringstream ss;
-                       ss << sIRC.iLog.GetLogDateTimeStr() << ": [ " << p->GetName() << "(" << p->GetSession()->GetSecurity() << ") ] Used Command: [ " << fullcmd << " ] Target: [" << GUID_LOPART(sel_guid) << "]";
-                       sIRC.Send_IRC_Channel(logchan,ss.str().c_str(), true, "LOG");
-                   }			
+                        GetLogNameForGuid(sel_guid), (p->GetSelectedUnit()) ? p->GetSelectedUnit()->GetName().c_str() : "", GUID_LOPART(sel_guid));			
                 }
             }
         }

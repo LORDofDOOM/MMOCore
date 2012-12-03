@@ -21,7 +21,6 @@
 #include "World.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
-
 #include "AuctionHouseBot.h"
 #include "AuctionHouseMgr.h"
 #include "Log.h"
@@ -30,8 +29,6 @@
 #include "UpdateMask.h"
 #include "Util.h"
 #include "AccountMgr.h"
-
-#include "TriniChat/IRCClient.h"
 
 //please DO NOT use iterator++, because it is slower than ++iterator!!!
 //post-incrementation is always slower than pre-incrementation !
@@ -267,9 +264,6 @@ void WorldSession::HandleAuctionSellItem(WorldPacket& recvData)
             AH->auctionHouseEntry = auctionHouseEntry;
 
             sLog->outInfo(LOG_FILTER_NETWORKIO, "CMSG_AUCTION_SELL_ITEM: Player %s (guid %d) is selling item %s entry %u (guid %d) to auctioneer %u with count %u with initial bid %u with buyout %u and with time %u (in sec) in auctionhouse %u", _player->GetName().c_str(), _player->GetGUIDLow(), item->GetTemplate()->Name1.c_str(), item->GetEntry(), item->GetGUIDLow(), AH->auctioneer, item->GetCount(), bid, buyout, auctionTime, AH->GetHouseId());
-            if((sIRC.BOTMASK & 1024) != 0)
-                sIRC.AHFunc(item->GetEntry(), item->GetTemplate()->Name1, _player->GetName(), AH->GetHouseId());
-
             sAuctionMgr->AddAItem(item);
             auctionHouse->AddAuction(AH);
 
@@ -314,9 +308,6 @@ void WorldSession::HandleAuctionSellItem(WorldPacket& recvData)
             AH->expire_time = time(NULL) + auctionTime;
             AH->deposit = deposit;
             AH->auctionHouseEntry = auctionHouseEntry;
-
-            if((sIRC.BOTMASK & 1024) != 0)
-                sIRC.AHFunc(newItem->GetEntry(), newItem->GetTemplate()->Name1, _player->GetName(), AH->GetHouseId());
 
             sLog->outInfo(LOG_FILTER_NETWORKIO, "CMSG_AUCTION_SELL_ITEM: Player %s (guid %d) is selling item %s entry %u (guid %d) to auctioneer %u with count %u with initial bid %u with buyout %u and with time %u (in sec) in auctionhouse %u", _player->GetName().c_str(), _player->GetGUIDLow(), newItem->GetTemplate()->Name1.c_str(), newItem->GetEntry(), newItem->GetGUIDLow(), AH->auctioneer, newItem->GetCount(), bid, buyout, auctionTime, AH->GetHouseId());
             sAuctionMgr->AddAItem(newItem);

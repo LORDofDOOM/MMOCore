@@ -40,30 +40,6 @@
 #include "ScriptMgr.h"
 #include "AccountMgr.h"
 
-#include "TriniChat/IRCClient.h"
-
-bool WorldSession::processChatmessageFurtherAfterSecurityChecks(std::string& msg, uint32 lang)
-{
-    if (lang != LANG_ADDON)
-    {
-        // strip invisible characters for non-addon messages
-        if (sWorld->getBoolConfig(CONFIG_CHAT_FAKE_MESSAGE_PREVENTING))
-            stripLineInvisibleChars(msg);
-
-        if (sWorld->getIntConfig(CONFIG_CHAT_STRICT_LINK_CHECKING_SEVERITY) && AccountMgr::IsPlayerAccount(GetSecurity())
-                && !ChatHandler(this).isValidChatMessage(msg.c_str()))
-        {
-            sLog->outError(LOG_FILTER_NETWORKIO, "Player %s (GUID: %u) sent a chatmessage with an invalid link: %s", GetPlayer()->GetName(),
-                    GetPlayer()->GetGUIDLow(), msg.c_str());
-            if (sWorld->getIntConfig(CONFIG_CHAT_STRICT_LINK_CHECKING_KICK))
-                KickPlayer();
-            return false;
-        }
-    }
-
-    return true;
-}
-
 void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
 {
     uint32 type;
@@ -470,12 +446,8 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
                 }
             }
 			
-            if (msg.empty())
-               break;
+			if (ChannelMgr* cMgr = ChannelMgr::forTeam(_player->GetTeam()))
 
-           sIRC.Send_WoW_IRC(_player, channel, msg);
-		   
-            if (ChannelMgr* cMgr = channelMgr(_player->GetTeam()))
             {
 
                 if (Channel* chn = cMgr->GetChannel(channel, _player))

@@ -1237,7 +1237,7 @@ public:
     void Update();
     void Initialize();
     void LoadValues(AHBConfig*);
-    void DecrementItemCounts(AuctionEntry* ah, uint32 item_template);
+    void DecrementItemCounts(AuctionEntry* ah, uint32 itemEntry);
     void IncrementItemCounts(AuctionEntry* ah);
     void Commands(uint32, uint32, uint32, char*);
     uint32 GetAHBplayerGUID() { return AHBplayerGUID; };

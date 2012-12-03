@@ -627,7 +627,6 @@ class WorldObject : public Object, public WorldLocation
         }
 
         float GetObjectSize() const;
-
         void UpdateGroundPositionZ(float x, float y, float &z) const;
         void UpdateAllowedPositionZ(float x, float y, float &z) const;
 

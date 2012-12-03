@@ -35,8 +35,6 @@
 #include "World.h"
 #include "WorldPacket.h"
 
-#include "TriniChat/IRCClient.h"
-
 namespace Trinity
 {
     class BattlegroundChatBuilder
@@ -1179,25 +1177,6 @@ void Battleground::StartBattleground()
 
     if (m_IsRated)
         sLog->outDebug(LOG_FILTER_ARENAS, "Arena match type: %u for Team1Id: %u - Team2Id: %u started.", m_ArenaType, m_ArenaTeamIds[TEAM_ALLIANCE], m_ArenaTeamIds[TEAM_HORDE]);
-       // irc announce
-       std::string arenamsg;
-       char arenatmp[16];
-
-       arenamsg = "PRIVMSG #wowarena ";
-       arenamsg += "Arena match type: ";
-       sprintf(arenatmp, "%d", m_ArenaType);
-       arenamsg += arenatmp;
-       arenamsg += "for Team1Id: ";
-       sprintf(arenatmp, "%d", m_ArenaTeamIds[TEAM_ALLIANCE]);
-       arenamsg += arenatmp;
-       arenamsg += " - Team2Id: ";
-       sprintf(arenatmp, "%d", m_ArenaTeamIds[TEAM_HORDE]);
-       arenamsg += arenatmp;
-       arenamsg += " started.";
-
-       sIRC.SendIRC(arenamsg);
-
-       // arena log output		
 }
 
 void Battleground::AddPlayer(Player* player)

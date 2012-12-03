@@ -93,6 +93,7 @@ void AddSC_SmartSCripts();
 void AddSC_anticheat_commandscript();
 void AddSC_account_commandscript();
 void AddSC_achievement_commandscript();
+void AddSC_ah_bot_commandscript();
 void AddSC_ban_commandscript();
 void AddSC_bf_commandscript();
 void AddSC_cast_commandscript();
@@ -540,8 +541,6 @@ void AddSC_boss_marwyn();
 void AddSC_boss_lich_king_hr();
 void AddSC_boss_lord_marrowgar();       // Icecrown Citadel
 void AddSC_boss_lady_deathwhisper();
-void AddSC_boss_gunship_battle();
-//void AddSC_boss_gunship_battle_wowrean();
 void AddSC_boss_deathbringer_saurfang();
 void AddSC_boss_festergut();
 void AddSC_boss_rotface();
@@ -729,6 +728,7 @@ void AddCommandScripts()
     AddSC_anticheat_commandscript();
     AddSC_account_commandscript();
     AddSC_achievement_commandscript();
+	AddSC_ah_bot_commandscript();
     AddSC_ban_commandscript();
     AddSC_bf_commandscript();
     AddSC_cast_commandscript();
@@ -1279,8 +1279,6 @@ void AddNorthrendScripts()
     AddSC_boss_lich_king_hr();
     AddSC_boss_lord_marrowgar();        // Icecrown Citadel
     AddSC_boss_lady_deathwhisper();
-    AddSC_boss_gunship_battle();
-    //AddSC_boss_gunship_battle_wowrean();
     AddSC_boss_deathbringer_saurfang();
     AddSC_boss_festergut();
     AddSC_boss_rotface();

@@ -24,7 +24,6 @@
 #include "DatabaseEnv.h"
 #include "AccountMgr.h"
 #include "Player.h"
-#include "TriniChat/IRCClient.h"
 
 Channel::Channel(std::string const& name, uint32 channelId, uint32 team):
     _announce(true),
@@ -209,7 +208,7 @@ void Channel::JoinChannel(Player* player, std::string const& pass)
     MakeYouJoined(&data);
     SendToOne(&data, guid);
 	
-    sIRC.Handle_WoW_Channel(m_name, ObjectAccessor::FindPlayer(p), CHANNEL_JOIN);	
+    JoinNotify(guid);
 
 
     // Custom channel handling
@@ -262,9 +261,7 @@ void Channel::LeaveChannel(Player* player, bool send)
         SendToAll(&data);
     }
 
-    LeaveNotify(guid);
-		
-        sIRC.Handle_WoW_Channel(m_name, ObjectAccessor::FindPlayer(p), CHANNEL_LEAVE);		
+    LeaveNotify(guid);	
 
     if (!IsConstant())
     {
