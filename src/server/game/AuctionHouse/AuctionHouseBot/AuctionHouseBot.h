@@ -1174,7 +1174,6 @@ private:
     bool Bind_When_Use;
     bool Bind_Quest_Item;
 
-    bool DisableBeta_PTR_Unused;
     bool DisablePermEnchant;
     bool DisableConjured;
     bool DisableGems;
@@ -1213,6 +1212,8 @@ private:
     uint32 DisableItemsAboveReqSkillRank;
     uint32 DisableTGsBelowReqSkillRank;
     uint32 DisableTGsAboveReqSkillRank;
+
+    std::set<uint32> DisableItemStore;
 
     //End Filters
 
