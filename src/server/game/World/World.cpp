@@ -2006,12 +2006,12 @@ void World::Update(uint32 diff)
      // Handle external mail
     if (sWorld->getBoolConfig(CONFIG_EXTERNAL_MAIL_ENABLE))
     {
-        //extmail_timer.Update(diff);
-        //if (extmail_timer.Passed())
-        //{
+        extmail_timer.Update(diff);
+        if (extmail_timer.Passed())
+        {
             WorldSession::SendExternalMails();
-            //extmail_timer.Reset();
-        //}	
+            extmail_timer.Reset();
+        }	
     }	
      
     /// <ul><li> Handle auctions when the timer has passed
